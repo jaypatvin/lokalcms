@@ -1,25 +1,31 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import { CurrentUserProvider } from './contexts/CurrentUserContext';
+import PrivateRoute from './components/PrivateRoute'
+
+import PageContainer from './components/PageContainer'
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+
+class App extends React.Component {
+
+  render() {
+    return (
+      <CurrentUserProvider>
+        <Router>
+          <Switch>
+            <Route exact path="/login" component={LoginPage} />
+            <PageContainer>
+              <PrivateRoute exact path="/" component={DashboardPage} />
+            </PageContainer>
+          </Switch>
+        </Router>
+      </CurrentUserProvider>
+      
+    )
+  }
+
 }
 
 export default App;
