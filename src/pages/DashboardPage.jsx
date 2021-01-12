@@ -8,7 +8,9 @@ const DashboardPage = (props) => {
   console.log(currentUser);
  
   return (
-    <div>Dashboard</div>
+    <div>
+      <h3>Dashboard</h3>
+    </div>
   );
 
 };

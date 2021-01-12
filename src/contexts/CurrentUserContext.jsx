@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
+import ReactLoading from 'react-loading'
 import { auth } from '../services/firebase';
 
 export const CurrentUserContext = React.createContext()
@@ -35,8 +36,8 @@ export const CurrentUserProvider = ({ children }) => {
     getCurrentUser,
   }
 
-  if(pending) {
-    return ( <div>Loading...</div> )
+  if (pending) {
+    return (<ReactLoading width={75} height={75} type='spin' color='#81e6d9' className='mx-auto my-auto'/>);
   }
 
   return <CurrentUserContext.Provider value={authStore}>{children}</CurrentUserContext.Provider>
