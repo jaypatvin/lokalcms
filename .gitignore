@@ -12,6 +12,7 @@
 /build
 
 /src/services/firebase-config.json
+/functions/src/getstream-config.json
 
 # misc
 .DS_Store
