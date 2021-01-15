@@ -12,18 +12,20 @@ export const CurrentUserProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [pending, setPending] = useState(true);
 
-  // Check if user logged in or not
   useEffect(() => {
-    auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
       setCurrentUser(user)
       setPending(false)
-    });
+    })
+
+    return unsubscribe
   }, [])
 
   async function getCurrentUser() {
     var user = await auth.currentUser;
-
+    console.log(user);
     if (user) {
+      console.log('getCurrentUser: - 1');
       setCurrentUser(user)
     } else {
       setCurrentUser(null)

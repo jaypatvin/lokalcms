@@ -1,6 +1,5 @@
 import React from 'react'
 import SideNav from './SideNav'
-import background from '../static/img/logo.svg'
 
 const PageContainer = ({ children }) => {
   return (

@@ -1,24 +1,16 @@
 import React from 'react'
-import { Redirect, Route, useLocation } from 'react-router-dom'
-import { useCurrentUser } from '../contexts/CurrentUserContext'
+import { Redirect, Route } from 'react-router-dom'
+import { useAuth } from "../contexts/AuthContext"
 
 const PrivateRoute = ({ component: RouteComponent, ...rest }) => {
-  const currentUser = useCurrentUser()
-
-  console.log(currentUser);
-
-  let location = useLocation()
+  const { currentUser } = useAuth()
 
   return (
     <Route
       {...rest}
-      render={routeProps =>
-        !!currentUser ? (
-          <RouteComponent {...routeProps} />
-        ) : (
-          <Redirect to={{ pathname: '/login', state: { from: location.pathname } }} />
-        )
-      }
+      render={props => {
+        return currentUser ? <RouteComponent {...props} /> : <Redirect to="/login" />
+      }}
     />
   )
 }

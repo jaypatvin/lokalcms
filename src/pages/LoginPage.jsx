@@ -1,14 +1,10 @@
-import React, { useState, useContext } from 'react'
+import React, { useState} from 'react'
 import { Formik } from 'formik'
 import { object, string } from 'yup'
-import { useHistory } from 'react-router'
 
-import { firebase } from '../services/firebase';
-import { CurrentUserContext } from '../contexts/CurrentUserContext'
+import { useAuth } from "../contexts/AuthContext"
 import { FormikTextField } from '../components/inputs'
 import { Button } from '../components/buttons'
-
-import { signIn } from '../services/users';
 
 import imgLogo from '../static/img/logo.svg'
 
@@ -25,32 +21,42 @@ const loginValidation = object().shape({
 })
 
 const LoginPage = (props) => {
-  let history = useHistory()
-
-  const { currentUser, getCurrentUser } = useContext(CurrentUserContext)
+  
+  const { login, withError, errorMsg, setRedirect } = useAuth()
   const [isError, setIsError] = useState(false)
   const [errors, setErrors] = useState({})
 
-  getCurrentUser();
+  console.log('Login - error:', withError, errorMsg)
 
-  // check if user already logged in
-  if (!!currentUser) {
-    history.push('/')
-  }
-
-  async function login(values) {
+  async function loginHandle(values) {
     const { email, password } = values
 
-    signIn(email, password)
-    .then(response => {
-      console.log(response);
-      getCurrentUser();
-    })
-    .catch(error => {
-      console.log(error);
+    try {
+      
+      setIsError(false)
+      setErrors('')
+
+      setRedirect('/')
+      await login(email, password)
+     // history.push("/")
+
+    } catch (error) {
+
+      console.log(error)
       setIsError(true)
       setErrors(error.message)
-    });
+    }
+
+    // signIn(email, password)
+    // .then(response => {
+    //   console.log(response);
+    //   getCurrentUser();
+    // })
+    // .catch(error => {
+    //   console.log(error);
+    //   setIsError(true)
+    //   setErrors(error.message)
+    // });
 
     // try {
     //   const response = await signIn(email, password);
@@ -67,14 +73,14 @@ const LoginPage = (props) => {
 
 
   return (
-    <div class="w-full max-w-xs m-auto bg-indigo-100 rounded p-5">
+    <div className="w-full max-w-xs m-auto bg-indigo-100 rounded p-5">
       <header>
-        <img class="w-40 mx-auto mb-5" src={imgLogo} alt="Lokal Logo" />
+        <img className="w-40 mx-auto mb-5" src={imgLogo} alt="Lokal Logo" />
       </header>
       <Formik
         initialValues={initialValues}
         onSubmit={(values, actions) => {
-          login(values);
+          loginHandle(values);
           actions.setSubmitting(false);
           actions.resetForm(initialValues);
         }}
@@ -86,6 +92,12 @@ const LoginPage = (props) => {
             {isError && (
               <p className="text-red-500 mb-5 italic">
                 Login failed, <br /> Please check your email & password
+              </p>
+            )}
+
+            {withError && (
+              <p className="text-red-500 mb-5 italic">
+                { errorMsg }
               </p>
             )}
 

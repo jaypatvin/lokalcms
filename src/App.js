@@ -1,18 +1,18 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 
-import { CurrentUserProvider } from './contexts/CurrentUserContext';
+import { AuthProvider } from './contexts/AuthContext'
 import PrivateRoute from './components/PrivateRoute'
 
 import PageContainer from './components/PageContainer'
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
+import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
 
 class App extends React.Component {
 
   render() {
     return (
-      <CurrentUserProvider>
+      <AuthProvider>
         <Router>
           <Switch>
             <Route exact path="/login" component={LoginPage} />
@@ -21,7 +21,7 @@ class App extends React.Component {
             </PageContainer>
           </Switch>
         </Router>
-      </CurrentUserProvider>
+      </AuthProvider>
       
     )
   }

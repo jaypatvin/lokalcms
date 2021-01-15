@@ -17,7 +17,7 @@ function cn(css) {
   function formatError(errors) {
     const formatedError = {}
     errors.map(error => {
-      formatedError[error.field] = error.message
+      return formatedError[error.field] = error.message
     })
   
     return formatedError

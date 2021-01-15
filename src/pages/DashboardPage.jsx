@@ -1,11 +1,6 @@
-import React, { useContext } from 'react'
-import { CurrentUserContext } from '../contexts/CurrentUserContext'
+import React from 'react'
 
 const DashboardPage = (props) => {
-
-  const { currentUser } = useContext(CurrentUserContext)
-
-  console.log(currentUser);
  
   return (
     <div>

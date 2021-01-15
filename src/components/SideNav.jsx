@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { cn } from '../utils/format'
-//import { auth } from '../firebase'
-import { useLocation, useHistory, useRouteMatch, NavLink, Redirect } from 'react-router-dom'
-import { CurrentUserContext } from '../contexts/CurrentUserContext'
+import { useLocation, useRouteMatch, NavLink, Redirect } from 'react-router-dom'
+import { useAuth } from "../contexts/AuthContext"
 import {
   IoMdHome,
   IoMdSettings,
@@ -12,9 +11,7 @@ import {
   IoIosBasket,
   IoIosContacts
 } from 'react-icons/io'
-import { useContext } from 'react'
 import { ConfirmationDialog } from './Dialog'
-import { removeLocalStorage } from '../utils/helper'
 import { signOut } from '../services/users'
 
 const sideNavStyles = {
@@ -142,17 +139,25 @@ const Item = props => {
 }
 
 const SideNav = () => {
-  let history = useHistory()
+  const { currentUser, currentUserInfo } = useAuth()
 
-  const { currentUser, getCurrentUser, setCurrentUser } = useContext(CurrentUserContext)
+  console.log(currentUser, currentUserInfo)
+
+  // const { 
+  //   currentUser, 
+  //   getCurrentUser, 
+  //   setCurrentUser, 
+  //   currentUserInfo } = useContext(CurrentUserContext)
+    
   const [isLogout, setIsLogout] = useState(false)
-  getCurrentUser();
-  console.log("SideNav:", currentUser);
+  //getCurrentUser();
+  // console.log("SideNav - currentUser:", currentUser);
+  // console.log("SideNav - currentUserInfo:", currentUserInfo);
 
   async function logout() {
     console.log('logout');
     signOut()
-    setCurrentUser(null)
+    // setCurrentUser(null)
     return <Redirect to="/login" />
   }
 
@@ -173,7 +178,7 @@ const SideNav = () => {
         <h2 className="font-normal text-xl text-gray-700">
           Welcome back, <br />{' '}
           <span className="text-teal-400 font-semibold text-2xl">
-            {!!currentUser && currentUser.name}
+            { currentUserInfo.display_name }
           </span>
         </h2>
       </div>
