@@ -18,10 +18,7 @@ const PrivateRoute = ({ component: RouteComponent, ...rest }) => {
             <SideNav />
           </div>
           <div className="p-6 w-full min-h-screen relative"><RouteComponent {...props} /></div>
-        </div>)
-           
-          : 
-          <Redirect to="/login" />)
+        </div>) : <Redirect to="/login" />)
       }}
     />
   )
