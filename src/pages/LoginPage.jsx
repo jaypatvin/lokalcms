@@ -47,93 +47,73 @@ const LoginPage = (props) => {
       setErrors(error.message)
     }
 
-    // signIn(email, password)
-    // .then(response => {
-    //   console.log(response);
-    //   getCurrentUser();
-    // })
-    // .catch(error => {
-    //   console.log(error);
-    //   setIsError(true)
-    //   setErrors(error.message)
-    // });
-
-    // try {
-    //   const response = await signIn(email, password);
-    //   if (response.user.uid) {
-    //     //getCurrentUser();
-    //     //history.push('/')
-    //   }
-    // } catch (error) {
-    //   setIsError(true)
-    //   setErrors(error.message)
-    // }
-
   }
 
 
   return (
-    <div className="w-full max-w-xs m-auto bg-indigo-100 rounded p-5">
-      <header>
-        <img className="w-40 mx-auto mb-5" src={imgLogo} alt="Lokal Logo" />
-      </header>
-      <Formik
-        initialValues={initialValues}
-        onSubmit={(values, actions) => {
-          loginHandle(values);
-          actions.setSubmitting(false);
-          actions.resetForm(initialValues);
-        }}
-        validationSchema={loginValidation}
-        >
+    <div className="flex h-screen">
+      <div className="w-full max-w-xs m-auto bg-indigo-100 rounded-md p-5">
+        <header>
+          <img className="w-40 mx-auto mb-5" src={imgLogo} alt="Lokal Logo" />
+        </header>
+        <Formik
+          initialValues={initialValues}
+          onSubmit={(values, actions) => {
+            loginHandle(values);
+            actions.setSubmitting(false);
+            actions.resetForm(initialValues);
+          }}
+          validationSchema={loginValidation}
+          >
 
-        {(props) => (
-          <form onSubmit={props.handleSubmit}>
-            {isError && (
-              <p className="text-red-500 mb-5 italic">
-                Login failed, <br /> Please check your email & password
-              </p>
-            )}
+          {(props) => (
+            <form onSubmit={props.handleSubmit}>
+              {isError && (
+                <p className="text-red-500 mb-5 italic">
+                  Login failed, <br /> Please check your email & password
+                </p>
+              )}
 
-            {withError && (
-              <p className="text-red-500 mb-5 italic">
-                { errorMsg }
-              </p>
-            )}
-
-            <FormikTextField
-                type="email"
-                label="Email"
-                name="email"
-                placeholder="user@mail.com"
-                error={errors.email}
-              />
+              {withError && (
+                <p className="text-red-500 mb-5 italic">
+                  { errorMsg }
+                </p>
+              )}
 
               <FormikTextField
-                type="password"
-                name="password"
-                label="Password"
-                placeholder="*************"
-                error={errors.password}
-              />
+                  type="email"
+                  label="Email"
+                  name="email"
+                  placeholder="user@mail.com"
+                  error={errors.email}
+                />
 
-            <div>          
-            <Button
-              block
-              color="primary"
-              type="submit"
-              disabled={!props.isValid}
-              loading={props.isSubmitting}
-            >
-              LOGIN
-            </Button>
-            </div>   
+                <FormikTextField
+                  type="password"
+                  name="password"
+                  label="Password"
+                  placeholder="*************"
+                  error={errors.password}
+                />
 
-          </form> 
-        )}
+              <div>          
+              <Button
+                block
+                color="primary"
+                type="submit"
+                disabled={!props.isValid}
+                loading={props.isSubmitting}
+              >
+                LOGIN
+              </Button>
+              </div>   
 
-      </Formik>
-       
+            </form> 
+          )}
+
+        </Formik>
+        
+      </div>
     </div>
   );
 

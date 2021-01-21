@@ -27,7 +27,7 @@ const OutlineButton = (props) => {
         'justify-center',
         'rounded',
         `text-${buttonColors[color].default}`,
-        'border-2',
+        'border',
         'transition-all',
         'bg-transparent',
         size ? buttonSizes[size] : buttonSizes['normal'], 

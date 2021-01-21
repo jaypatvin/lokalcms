@@ -1,10 +1,15 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Redirect, Route } from 'react-router-dom'
+import { useMediaQuery } from 'react-responsive'
+
 import { useAuth } from "../contexts/AuthContext"
+import BasePage from "./BasePage"
 import SideNav from './SideNav'
 
-const PrivateRoute = ({ component: RouteComponent, ...rest }) => {
+const PrivateRoute = ({ component: RouteComponent, redirect: RedirectPath, ...rest }) => {
   const { currentUser } = useAuth()
+  const [isClosed, setClosed] = useState(false)
+
 
   console.log('PrivateRoute:', currentUser);
 
@@ -12,13 +17,12 @@ const PrivateRoute = ({ component: RouteComponent, ...rest }) => {
     <Route
       {...rest}
       render={props => {
-        return (currentUser !== null ? 
-          (<div className="flex row w-screen bg-gray-100 bg-no-repeat bg-top">
-          <div className="bg-white" style={{ width: 400, boxShadow: '2px 0 10px rgba(0,0,0,0.05)' }}>
-            <SideNav />
-          </div>
-          <div className="p-6 w-full min-h-screen relative"><RouteComponent {...props} /></div>
-        </div>) : <Redirect to="/login" />)
+        return (currentUser !== null ? ( RedirectPath ? <Redirect to={RedirectPath} /> :
+          (
+          <BasePage>
+            <RouteComponent {...props} {...rest} />
+          </BasePage>
+          )) : <Redirect to="/login" />)
       }}
     />
   )

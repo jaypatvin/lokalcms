@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { cn } from '../utils/format'
 import { useLocation, useRouteMatch, NavLink, Redirect } from 'react-router-dom'
-import { useAuth } from "../contexts/AuthContext"
 import {
   IoMdHome,
   IoMdSettings,
@@ -11,27 +10,6 @@ import {
   IoIosBasket,
   IoIosContacts
 } from 'react-icons/io'
-import { ConfirmationDialog } from './Dialog'
-import { signOut } from '../services/users'
-
-const sideNavStyles = {
-  logoutButton: {
-    default: [
-      'w-full',
-      'flex',
-      'items-center',
-      'border-2',
-      'border-red-400',
-      'bg-red-100',
-      'rounded',
-      'py-2',
-      'px-5',
-      'text-red-400',
-      'transition-all',
-    ],
-    hover: ['bg-red-400', 'text-white', 'shadow-lg'],
-  },
-}
 
 const menus = [
   {
@@ -63,7 +41,6 @@ const menus = [
     key: 'settings',
     label: 'Setting',
     icon: <IoMdSettings size={23} />,
-    // items: [{ key: 'account', label: 'Account' }],
   },
 ]
 
@@ -71,6 +48,7 @@ const Item = props => {
   const {
     menu: { key, label, icon, items },
   } = props
+
 
   let match = useRouteMatch(`/${key}`)
   let { pathname } = useLocation()
@@ -92,7 +70,7 @@ const Item = props => {
         'transition-all',
         match ? 'bg-teal-400 text-white font-medium shadow' : 'text-gray-500',
       ],
-      hover: ['bg-indigo-50', 'text-green-900'],
+      hover: ['bg-indigo-100', 'text-green-900'],
       focus: ['outline-none'],
     },
     childItem: {
@@ -130,7 +108,7 @@ const Item = props => {
       )}
 
       {!items && (
-        <NavLink className={cn(styles.parrentItem)} to={`/${key}`}>
+        <NavLink className={cn(styles.parrentItem)} to={`/${key}`} key={key}>
           {icon} <span className={cn(styles.label)}>{label}</span>
         </NavLink>
       )}
@@ -139,60 +117,20 @@ const Item = props => {
 }
 
 const SideNav = () => {
-  const { currentUser, currentUserInfo } = useAuth()
-
-  console.log(currentUser, currentUserInfo)
-
-  // const { 
-  //   currentUser, 
-  //   getCurrentUser, 
-  //   setCurrentUser, 
-  //   currentUserInfo } = useContext(CurrentUserContext)
-    
-  const [isLogout, setIsLogout] = useState(false)
-  //getCurrentUser();
-  // console.log("SideNav - currentUser:", currentUser);
-  // console.log("SideNav - currentUserInfo:", currentUserInfo);
-
-  async function logout() {
-    console.log('logout');
-    signOut()
-    // setCurrentUser(null)
-    return <Redirect to="/login" />
-  }
-
   return (
     <>
-      <ConfirmationDialog
-        isOpen={isLogout}
-        onClose={() => setIsLogout(false)}
-        onAccept={() => logout()}
-        color="danger"
-        title="Logout"
-        descriptions="Are you sure want to logout from application?"
-        acceptLabel="Logout"
-        cancelLabel="Cancel"
-      />
-
-      <div className="mx-12 mb-5 mt-12">
-        <h2 className="font-normal text-xl text-gray-700">
-          Welcome back, <br />{' '}
-          <span className="text-teal-400 font-semibold text-2xl">
-            { currentUserInfo.display_name }
-          </span>
-        </h2>
-      </div>
-      <hr className="mx-8" />
-      <div className="mx-8 my-8">
-        {menus.map(menu => {
-          return <Item key={menu.key} menu={menu} />
-        })}
-      </div>
-      <hr className="mx-8" />
-      <div className="mx-8 mt-6">
-        <button className={cn(sideNavStyles.logoutButton)} onClick={() => setIsLogout(true)}>
-          <IoMdLogOut size={22} className="mr-6" /> Sign Out
-        </button>
+      <div className="mx-2 my-4 py-4 flex-grow">
+        <nav>
+          <ul>
+          {menus.map(menu => {
+            return (
+              <li key={menu.key}>
+                <Item key={menu.key} menu={menu} />
+              </li>
+            )
+          })}
+          </ul>
+        </nav>
       </div>
     </>
   )
