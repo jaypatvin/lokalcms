@@ -1,0 +1,25 @@
+// Base Style
+
+.app {
+    @apply relative flex flex-col min-h-screen;
+
+    @media (max-width: 976px) {
+        width: calc(100vw + #{$sidebar_width});
+        transition: left 250ms ease-in-out;
+        left: -$sidebar_width;
+    
+        &.show-nav {
+            left: 0;
+        }
+    }
+}
+
+
+#page-sidenav {
+    @apply fixed z-10 flex flex-col min-h-screen overflow-y-auto overflow-x-hidden bg-blue-50;
+    width: $sidebar_width;
+}
+
+#page-container {
+    padding-left: $sidebar_width;
+}
