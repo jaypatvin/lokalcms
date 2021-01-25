@@ -29,24 +29,11 @@ const IconButton = (props) => {
   const styles = {
     button: {
       default: [
-        icon && 'flex',
-        'items-center',
-        'justify-center',
-        'rounded',
-        outline ? `text-${buttonColors[color].default}` : 'text-white',
-        'border-2',
-        'transition-all',
-        outline ? 'bg-transparent' : `bg-${buttonColors[color].default}`,
+        'button-icon',
+        color,
+        outline ? 'with-outline' : '',
         size ? sizeProps[size] : sizeProps['normal'], 
         block ? 'w-full block' : 'w-auto',
-        disabled ? 'opacity-50' : 'opacity-100',
-        disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-        disabled ? `border-${buttonColors[color].disabled}` : `border-${buttonColors[color].default}`,
-      ],
-      hover: [
-        outline ? `bg-${buttonColors[color].outline}` : `bg-${buttonColors[color].hover}`,
-        outline ? `text-${buttonColors[color].hover}` : `text-white`,
-        `border-${buttonColors[color].hover}`
       ]
     }
   }

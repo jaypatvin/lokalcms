@@ -22,23 +22,10 @@ const Button = (props) => {
   const styles = {
     button: {
       default: [
-        icon && 'flex',
-        'items-center',
-        'justify-center',
-        'rounded-sm',
-        'text-white',
-        'border',
-        'transition-all',
+        'button',
         size ? buttonSizes[size] : buttonSizes['normal'], 
-        block ? 'w-full block' : 'w-auto',
-        disabled ? 'opacity-50' : 'opacity-100',
-        disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-        disabled ? `bg-${buttonColors[color].disabled}` : `bg-${buttonColors[color].default}`,
-        disabled ? `border-${buttonColors[color].disabled}` : `border-${buttonColors[color].default}`,
-      ],
-      hover: [
-        `bg-${buttonColors[color].hover}`,
-        `border-${buttonColors[color].hover}`
+        color,
+        block ? 'w-full block' : 'w-auto'
       ]
     }
   }

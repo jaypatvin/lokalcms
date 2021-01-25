@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
     })
 
     return unsubscribe
-  }, [redirect, errorMsg, withError])
+  }, [redirect, errorMsg, withError, loading])
 
   const value = {
     currentUser,

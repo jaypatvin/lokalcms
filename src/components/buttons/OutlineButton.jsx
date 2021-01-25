@@ -22,24 +22,10 @@ const OutlineButton = (props) => {
   const styles = {
     button: {
       default: [
-        icon && 'flex',
-        'items-center',
-        'justify-center',
-        'rounded',
-        `text-${buttonColors[color].default}`,
-        'border',
-        'transition-all',
-        'bg-transparent',
+        'button-outline',
+        color,
         size ? buttonSizes[size] : buttonSizes['normal'], 
-        block ? 'w-full block' : 'w-auto',
-        disabled ? 'opacity-50' : 'opacity-100',
-        disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-        disabled ? `border-${buttonColors[color].disabled}` : `border-${buttonColors[color].default}`,
-      ],
-      hover: [
-        `bg-${buttonColors[color].outline}`,
-        `text-${buttonColors[color].hover}`,
-        `border-${buttonColors[color].hover}`
+        block ? 'w-full block' : 'w-auto'
       ]
     }
   }

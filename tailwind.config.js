@@ -17,6 +17,11 @@ module.exports = {
       transparent: 'transparent',
       current: 'currentColor',
 
+      primary: colors.teal,
+      secondary: colors.gray,
+      danger: colors.red,
+      warning: colors.yellow,
+
       black: colors.black,
       white: colors.white,
       gray: colors.coolGray,
@@ -121,6 +126,7 @@ module.exports = {
     borderWidth: {
       DEFAULT: '1px',
       0: '0px',
+      1: '1px',
       2: '2px',
       4: '4px',
       8: '8px',

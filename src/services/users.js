@@ -26,11 +26,14 @@ export const fetchUserByUID = async (uid = false) => {
     }
 }
 
-export const signIn = async (email, password) => {
-  console.log('SignIn:');
-  return await auth.signInWithEmailAndPassword(email, password);
-}
+export const getUsers = (role="all", search="", sortBy="name", sortOrder="asc", limit = 50) => {
+  let ref = db.collection('users')
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
 
-export const signOut = async () => {
-  await auth.signOut();
+    if (['admin', 'member'].indexOf(role) >= 0) {
+      ref = ref.where('roles.' + role, '==', true )
+    }
+
+  return ref
 }

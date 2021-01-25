@@ -1,6 +1,6 @@
 import React from 'react'
 import posed from 'react-pose'
-import { Button, OutlineButton } from './buttons'
+import { Button, OutlineButton, IconButton } from './buttons'
 import { IoIosClose } from 'react-icons/io'
 import { colors } from '../theme'
 
@@ -106,7 +106,7 @@ const ConfirmationDialog = (props) => {
         <Button color={rest.color} size='small' onClick={onAccept}>{acceptLabel}</Button>
       </div>
       <div>
-        <OutlineButton color={rest.color} size='small' onClick={rest.onClose}>{cancelLabel}</OutlineButton>
+        <OutlineButton color={rest.color} size='small'  onClick={rest.onClose}>{cancelLabel}</OutlineButton>
       </div>
     </div>
   </Dialog>)

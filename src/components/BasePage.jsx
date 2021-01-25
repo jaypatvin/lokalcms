@@ -3,7 +3,8 @@ import { useMediaQuery } from 'react-responsive'
 import { Redirect, Link } from 'react-router-dom'
 
 import { ConfirmationDialog } from './Dialog'
-import { useAuth } from "../contexts/AuthContext"
+import { useAuth } from '../contexts/AuthContext'
+import Avatar from './Avatar'
 
 import SideNav from './SideNav'
 import imgLogo from '../static/img/logo.svg'
@@ -26,7 +27,7 @@ const BasePage = (props) => {
   console.log("BasePage:", currentUser, currentUserInfo)
 
   const isStatic = useMediaQuery ({
-    query: '(min-width: 976px)'
+    query: '(min-width: 1199px)'
   });
 
   const toggleSidenav = () => {
@@ -123,12 +124,7 @@ const BasePage = (props) => {
                 <button 
                   onClick={toggleAvatar}
                   className="flex flex-row rounded-full overflow-hidden focus:outline-none align-middle ">
-                  <div className="block h-8 w-8 rounded-full overflow-hidden">
-                    <img 
-                      className="h-full w-full object-cover" 
-                      src={"https://eu.ui-avatars.com/api/?name=" + encodeURI(currentUserInfo.display_name) + "&size=100"} 
-                      alt="avatar" />
-                  </div>
+                  <Avatar url={currentUserInfo.profile_photo} name={currentUserInfo.display_name} size={8} statusColor="green" />
                   <span className="block h-8 leading-8 ml-1">
                     <IoIosArrowDown className="h-8" size={16} />
                   </span>
@@ -169,7 +165,7 @@ const BasePage = (props) => {
             
           </div>
         </header>
-        <div className="p-6 w-full min-h-full relative">{props.children}</div>
+        <div className="p-4 w-full min-h-full relative">{props.children}</div>
       </main>
     </>
   );
