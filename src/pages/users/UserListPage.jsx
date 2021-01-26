@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react'
+import * as dayjs from 'dayjs'
+import * as relativeTime from 'dayjs/plugin/relativeTime'
 
+import { auth, db } from '../../services/firebase'
 import { Button } from '../../components/buttons'
 import MenuList from '../../components/MenuList'
 import Avatar from '../../components/Avatar'
 
-import { getUsers } from '../../services/users'
+
+import { getUsers, getAuthUserByUID } from '../../services/users'
+
+
+// Init
+dayjs.extend(relativeTime);
+
 
 const UserListPage = (props) => {
 
@@ -48,7 +57,7 @@ const UserListPage = (props) => {
 
     console.log(selectedRole);
     getUsers(selectedRole, searchText, sortBy, sortOrder, limit).onSnapshot((snapshot) => {
-      setUserList(snapshot.docs.map(doc => {
+      setUserList(snapshot.docs.map((doc) => {
         let _data = doc.data()
         _data.id = doc.id
         return _data
@@ -104,8 +113,8 @@ const UserListPage = (props) => {
               <th>
                 Status
               </th>
-              <th>
-                Last Login
+              <th >
+                Member Since
               </th>
               <th className="action-col"></th>
             </tr>
@@ -113,28 +122,45 @@ const UserListPage = (props) => {
           <tbody>
 
           {userList.map(user => {
+
+            console.log(user)
+            let _created_at = "-"
+            let _created_at_ago = "-"
+            if (user.created_at) {
+              //_created_at = new Date(user.created_at.seconds * 1000).toLocaleDateString("en-US")
+              _created_at = dayjs(user.created_at.toDate())
+              _created_at_ago = dayjs(_created_at).fromNow()
+            }
             
             const display_name = String(user.display_name).trim().length > 0 && typeof user.display_name !== "undefined" ? user.display_name : user.first_name + ' ' + user.last_name
-            let statusColor = 'grey';
+            let statusColor = 'gray'
+            let statusText = 'Active'
             const _status = String(user.status).trim().length > 0 && typeof user.status !== "undefined" ? user.status : 'undefined'
+
             switch (String(_status).toLowerCase()) {
               case 'active': 
                 statusColor = 'green'
+                statusText = 'Active'
                 break
               case 'suspended': 
                 statusColor = 'red'
+                statusText = 'Suspended'
                 break
               case 'pending': 
                 statusColor = 'yellow'
+                statusText = 'Pending'
                 break
               case 'locked': 
-                statusColor = 'grey'
+                statusColor = 'gray'
+                statusText = 'Locked'
                 break
               default:
-                statusColor = 'grey'
+                statusColor = 'gray'
                 break
 
             }
+
+
             return (
               <tr>
                 <td >
@@ -153,21 +179,22 @@ const UserListPage = (props) => {
                   <p class="text-gray-900 whitespace-no-wrap">{user.community_id}</p>
                   <p class="text-gray-600 whitespace-no-wrap">{""}</p>
                 </td>
-                <td >
-                  <p class="text-gray-900 whitespace-no-wrap">Sept 28, 2019</p>
-                  <p class="text-gray-600 whitespace-no-wrap">{""}</p>
-                </td>
                 <td>
                   <span
-                    class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight"
+                    className={"relative inline-block px-3 py-1 font-semibold text-" + statusColor + "-900 leading-tight"}
                   >
                     <span
                       aria-hidden
-                      class="absolute inset-0 bg-green-200 opacity-50 rounded-full"
+                      className={"absolute inset-0 bg-" + statusColor + "-200 opacity-50 rounded-full"}
                     ></span>
-                    <span class="relative">Paid</span>
+                    <span class="relative">{statusText}</span>
                   </span>
                 </td>
+                <td title={ _created_at === '-' ? '-' : _created_at.format() } >
+                  <p class="text-gray-900 whitespace-no-wrap">{ _created_at_ago }</p>
+                  <p class="text-gray-600 whitespace-no-wrap">{""}</p>
+                </td>
+                
                 <td
                   className="action-col"
                 >

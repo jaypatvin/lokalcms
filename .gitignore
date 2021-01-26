@@ -12,6 +12,7 @@
 /build
 
 /src/services/firebase-config.json
+/src/services/firebase-service-key.json
 /functions/src/getstream-config.json
 
 # misc

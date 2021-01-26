@@ -15,7 +15,7 @@ const Avatar = (props) => {
 
   return (
     <div className={"relative w-" + size + " h-" + size} >
-      <img className="rounded-full border border-gray-100 shadow-sm" src={_url} alt="avatar" />
+      <img className="rounded-full border border-gray-100 shadow-sm h-full w-auto" src={_url} alt="avatar" />
       { statusColor !== false ? (
         <div className={"absolute top-0 right-0 h-" + Math.floor(size / 4) + " w-" + Math.floor(size / 4) + " my-1 border-" + _borderWidth + " border-white rounded-full bg-" + statusColor + "-400 z-2"}></div>
       ) : null}
