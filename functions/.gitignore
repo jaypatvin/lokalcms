@@ -13,3 +13,5 @@ node_modules/
 
 # Don't commit lib folder 
 lib/
+
+firebase-config.json
