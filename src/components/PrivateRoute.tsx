@@ -16,7 +16,7 @@ const PrivateRoute = ({ component: RouteComponent, redirect: RedirectPath, ...re
   console.log('PrivateRoute:', currentUser)
 
   const renderPage = (props: any) => {
-    if (currentUser !== null) {
+    if (currentUser) {
       if (RedirectPath) return <Redirect to={RedirectPath} />
       if (RouteComponent)
         return (

@@ -12,7 +12,7 @@ export type ButtonProps = {
   type?: 'button' | 'submit'
   loading?: boolean
   icon?: ButtonIcon
-  block?: string
+  block?: boolean
   size?: Size
   [x: string]: any
 }

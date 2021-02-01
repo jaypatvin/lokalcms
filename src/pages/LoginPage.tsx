@@ -1,8 +1,8 @@
-import React, { useState} from 'react'
+import React, { useState } from 'react'
 import { Formik } from 'formik'
 import { object, string } from 'yup'
 
-import { useAuth } from "../contexts/AuthContext"
+import { useAuth } from '../contexts/AuthContext'
 import { FormikTextField } from '../components/inputs'
 import { Button } from '../components/buttons'
 
@@ -20,35 +20,29 @@ const loginValidation = object().shape({
   password: string().required('Please enter your password'),
 })
 
-const LoginPage = (props) => {
-  
+const LoginPage = (props: any) => {
   const { login, withError, errorMsg, setRedirect } = useAuth()
   const [isError, setIsError] = useState(false)
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState<any>({})
 
   console.log('Login - error:', withError, errorMsg)
 
-  async function loginHandle(values) {
+  async function loginHandle(values: any) {
     const { email, password } = values
 
     try {
-      
       setIsError(false)
-      setErrors('')
+      setErrors({})
 
-      setRedirect('/')
-      await login(email, password)
-     // history.push("/")
-
+      if (setRedirect) setRedirect('/')
+      if (login) await login(email, password)
+      // history.push("/")
     } catch (error) {
-
       console.log(error)
       setIsError(true)
-      setErrors(error.message)
+      setErrors(error)
     }
-
   }
-
 
   return (
     <div className="flex h-screen">
@@ -59,13 +53,12 @@ const LoginPage = (props) => {
         <Formik
           initialValues={initialValues}
           onSubmit={(values, actions) => {
-            loginHandle(values);
-            actions.setSubmitting(false);
-            actions.resetForm(initialValues);
+            loginHandle(values)
+            actions.setSubmitting(false)
+            actions.resetForm({})
           }}
           validationSchema={loginValidation}
-          >
-
+        >
           {(props) => (
             <form onSubmit={props.handleSubmit}>
               {isError && (
@@ -74,49 +67,41 @@ const LoginPage = (props) => {
                 </p>
               )}
 
-              {withError && (
-                <p className="text-red-500 mb-5 italic">
-                  { errorMsg }
-                </p>
-              )}
+              {withError && <p className="text-red-500 mb-5 italic">{errorMsg}</p>}
 
               <FormikTextField
-                  type="email"
-                  label="Email"
-                  name="email"
-                  placeholder="user@mail.com"
-                  error={errors.email}
-                />
+                type="email"
+                label="Email"
+                name="email"
+                placeholder="user@mail.com"
+                error={errors.email}
+              />
 
-                <FormikTextField
-                  type="password"
-                  name="password"
-                  label="Password"
-                  placeholder="*************"
-                  error={errors.password}
-                />
+              <FormikTextField
+                type="password"
+                name="password"
+                label="Password"
+                placeholder="*************"
+                error={errors.password}
+              />
 
-              <div>          
-              <Button
-                block
-                color="primary"
-                type="submit"
-                disabled={!props.isValid}
-                loading={props.isSubmitting}
-              >
-                LOGIN
-              </Button>
-              </div>   
-
-            </form> 
+              <div>
+                <Button
+                  block
+                  color="primary"
+                  type="submit"
+                  disabled={!props.isValid}
+                  loading={props.isSubmitting}
+                >
+                  LOGIN
+                </Button>
+              </div>
+            </form>
           )}
-
         </Formik>
-        
       </div>
     </div>
-  );
+  )
+}
 
-};
-
-export default LoginPage;
+export default LoginPage

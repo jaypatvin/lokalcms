@@ -1,21 +1,21 @@
 import { db, auth } from './firebase';
 
 
-export const getAuthUserByUID = async (uid) => {
-  try {
-    console.log(uid);
-    return await auth
-                  .getUser(uid)
-                  .then((userRecord) => {
-                    return userRecord
-                  })
-  } catch (e) {
-    console.log(e);
-    return false
-  }
-}
+// export const getAuthUserByUID = async (uid: string) => {
+//   try {
+//     console.log(uid);
+//     return await auth
+//                   .getUser(uid)
+//                   .then((userRecord) => {
+//                     return userRecord
+//                   })
+//   } catch (e) {
+//     console.log(e);
+//     return false
+//   }
+// }
 
-export const fetchUserByUID = async (uid = false) => {
+export const fetchUserByUID = async (uid = '') => {
     try {
       // valid login
       const userRef = db.collection('users');
@@ -41,7 +41,7 @@ export const fetchUserByUID = async (uid = false) => {
     }
 }
 
-export const getUsers = (role="all", search="", sortBy="name", sortOrder="asc", limit = 50) => {
+export const getUsers = (role="all", search="", sortBy="name", sortOrder: 'asc' | 'desc', limit = 50) => {
   let ref = db.collection('users')
     .orderBy(sortBy, sortOrder)
     .limit(limit)

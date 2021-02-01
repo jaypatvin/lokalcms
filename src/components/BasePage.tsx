@@ -47,7 +47,7 @@ const BasePage = (props: Props) => {
   }
 
   async function signOut() {
-    logout()
+    if (logout) logout()
     return <Redirect to="/login" />
   }
 

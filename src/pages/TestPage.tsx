@@ -3,15 +3,16 @@ import { useMediaQuery } from 'react-responsive'
 
 import Transition from '../components/Transition'
 
-const TestPage = (props) => {
+const TestPage = (props: any) => {
   const [isClosed, setClosed] = useState(false)
-  const rootEl =  document.getElementById("root");
+  const rootEl = document.getElementById('root')
 
-  const isStatic = useMediaQuery ({
-    query: '(min-width: 976px)'
-  });
+  const isStatic = useMediaQuery({
+    query: '(min-width: 976px)',
+  })
 
   const toggleSidenav = () => {
+    if (!rootEl) return
     setClosed(!isClosed)
     if (isClosed) {
       rootEl.classList.remove('show-nav')
@@ -20,12 +21,9 @@ const TestPage = (props) => {
     }
   }
 
- 
   return (
     <>
-      <aside
-        aria-hidden={isClosed}
-        id="page-sidenav">
+      <aside aria-hidden={isClosed} id="page-sidenav">
         <div className="bg-white border-r border-b px-4 h-12 flex items-center justify-between">
           <span className="text-blue py-2">Application</span>
         </div>
@@ -53,29 +51,29 @@ const TestPage = (props) => {
         </div>
       </aside>
 
-      <main id='page-container' className="flex-grow flex flex-col min-h-screen w-">
+      <main id="page-container" className="flex-grow flex flex-col min-h-screen w-">
         <header className="bg-white border-b h-12 flex items-center justify-center">
           <div className="flex flex-grow items-center justify-between px-3">
-            { !isStatic && (
-          <button
-              tabIndex="1"
-              className="w-10 p-1"
-              aria-label="Toggle menu"
-              title="Toggle menu"
-              onClick={() => toggleSidenav()}
-            >
-              <svg
-                aria-hidden="true"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {!isStatic && (
+              <button
+                tabIndex={1}
+                className="w-10 p-1"
+                aria-label="Toggle menu"
+                title="Toggle menu"
+                onClick={() => toggleSidenav()}
               >
-                <path d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-            </button>
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              </button>
             )}
 
             <h1 className="text-lg">Home</h1>
@@ -84,8 +82,7 @@ const TestPage = (props) => {
         </header>
       </main>
     </>
-  );
+  )
+}
 
-};
-
-export default TestPage;
+export default TestPage

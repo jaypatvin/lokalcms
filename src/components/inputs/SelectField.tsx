@@ -1,23 +1,17 @@
 import React from 'react'
 import { useField } from 'formik'
 import { cn } from '../../utils/format'
+import { InputProps, SelectType, sizes } from './utils'
 
-const sizes = {
-  small: {
-    label: 'text-sm',
-    input: 'py-1 px-3',
-  },
-  normal: {
-    label: 'text-base',
-    input: 'py-2 px-4',
-  },
-  large: {
-    label: 'text-lg',
-    input: 'py-3 px-5',
-  },
+type Props = InputProps & {
+  options: SelectType[]
+  optionKeyRef: string
+  optionValueRef: string
+  optionPlaceholderRef: string
+  [x: string]: any
 }
 
-const SelectField = React.forwardRef((props, ref) => {
+const SelectField = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
   const {
     label,
     options,
@@ -31,7 +25,7 @@ const SelectField = React.forwardRef((props, ref) => {
     optionKeyRef,
     optionValueRef,
     optionPlaceholderRef,
-    size = 'normal',
+    size = 'medium',
     ...rest
   } = props
 
@@ -40,7 +34,7 @@ const SelectField = React.forwardRef((props, ref) => {
       default: ['w-full', label && 'flex flex-col', noMargin ? 'mb-0' : 'mb-4'],
     },
     label: {
-      default: ['text-gray-600', 'mb-1', size ? sizes[size].label : sizes['normal'].label],
+      default: ['text-gray-600', 'mb-1', size ? sizes[size].label : sizes['medium'].label],
     },
     input: {
       default: [
@@ -50,7 +44,7 @@ const SelectField = React.forwardRef((props, ref) => {
         'placeholder-gray-500',
         'text-gray-600',
         'w-full',
-        size ? sizes[size].input : sizes['normal'].input,
+        size ? sizes[size].input : sizes['medium'].input,
         touched && error ? 'border-red-300' : 'border-gray-300',
       ],
       focus: ['border-blue-300'],
@@ -67,7 +61,7 @@ const SelectField = React.forwardRef((props, ref) => {
         <option value="" hidden>
           {options.length === 0 ? 'Load options...' : placeholder}
         </option>
-        {options.map(option => (
+        {options.map((option) => (
           <option
             key={option[optionKeyRef] || option.id}
             value={option[optionValueRef] || option.id}
@@ -81,7 +75,7 @@ const SelectField = React.forwardRef((props, ref) => {
   )
 })
 
-const FormikSelectField = ({ ...rest }) => {
+const FormikSelectField = ({ ...rest }: any) => {
   const [field, meta] = useField(rest)
 
   return <SelectField label={rest.label} {...field} {...meta} {...rest} />
