@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom'
 
 import { AuthProvider, useAuth } from './contexts/AuthContext'
@@ -19,12 +19,8 @@ import SettingsPage from './pages/settings/SettingsPage'
 // User Edit for MyAccount
 import UserEditPage from './pages/users/UserEditPage'
 
-
-
 class App extends React.Component {
-
   render() {
-    
     return (
       <AuthProvider>
         <Router>
@@ -39,14 +35,12 @@ class App extends React.Component {
             <PrivateRoute exact path="/users" component={UserListPage} />
             <PrivateRoute exact path="/invites" component={InviteListPage} />
             <PrivateRoute exact path="/settings" component={SettingsPage} />
-            <PrivateRoute exact path="/myaccount" component={UserEditPage}  useCurrentUser={true} />
+            <PrivateRoute exact path="/myaccount" component={UserEditPage} useCurrentUser={true} />
           </Switch>
         </Router>
       </AuthProvider>
-      
     )
   }
-
 }
 
-export default App;
+export default App

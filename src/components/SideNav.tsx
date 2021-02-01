@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
 import { cn } from '../utils/format'
-import { useLocation, useRouteMatch, NavLink, Redirect } from 'react-router-dom'
+import { useLocation, useRouteMatch, NavLink } from 'react-router-dom'
 import {
   IoMdHome,
   IoMdSettings,
-  IoMdLogOut,
   IoIosPaperPlane,
   IoIosPeople,
   IoIosBasket,
-  IoIosContacts
+  IoIosContacts,
 } from 'react-icons/io'
+import { ItemType } from '../utils/types'
 
 const menus = [
   {
@@ -44,11 +44,19 @@ const menus = [
   },
 ]
 
-const Item = props => {
+type Props = {
+  menu: {
+    key: string
+    label: string
+    icon: JSX.Element
+    items?: ItemType[]
+  }
+}
+
+const Item = (props: Props) => {
   const {
     menu: { key, label, icon, items },
   } = props
-
 
   let match = useRouteMatch(`/${key}`)
   let { pathname } = useLocation()
@@ -90,7 +98,7 @@ const Item = props => {
           </button>
           {isShowChild && (
             <div className="shadow ml-10 rounded mb-2">
-              {items.map(item => {
+              {items.map((item) => {
                 const active = '/' + key + '/' + item.key === pathname
                 return (
                   <NavLink
@@ -122,13 +130,13 @@ const SideNav = () => {
       <div className="mx-2 my-4 py-4 flex-grow">
         <nav>
           <ul>
-          {menus.map(menu => {
-            return (
-              <li key={menu.key}>
-                <Item key={menu.key} menu={menu} />
-              </li>
-            )
-          })}
+            {menus.map((menu) => {
+              return (
+                <li key={menu.key}>
+                  <Item key={menu.key} menu={menu} />
+                </li>
+              )
+            })}
           </ul>
         </nav>
       </div>

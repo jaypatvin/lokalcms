@@ -39,7 +39,7 @@ const buttonIcons = {
 
 const buttonSizes = {
   small: 'py-1 px-3',
-  normal: 'py-2 px-4',
+  medium: 'py-2 px-4',
   large: 'py-3 px-5',
 }
 

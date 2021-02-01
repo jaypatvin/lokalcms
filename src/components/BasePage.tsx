@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, ReactNode, MouseEventHandler } from 'react'
 import { useMediaQuery } from 'react-responsive'
 import { Redirect, Link } from 'react-router-dom'
 
@@ -9,29 +9,31 @@ import Avatar from './Avatar'
 import SideNav from './SideNav'
 import imgLogo from '../static/img/logo.svg'
 
-import {
-  IoIosArrowDown
-} from 'react-icons/io'
+import { IoIosArrowDown } from 'react-icons/io'
 
-const BasePage = (props) => {
-  
-  const node = useRef()
+type Props = {
+  children: ReactNode
+}
+
+const BasePage = (props: Props) => {
+  const node = useRef<HTMLDivElement>(null)
 
   const [isClosed, setClosed] = useState(false)
   const [isLogout, setIsLogout] = useState(false)
   const [isAvatarOpen, setIsAvatarOpen] = useState(false)
-  const rootEl =  document.getElementById("root");
+  const rootEl = document.getElementById('root')
 
   const { currentUser, currentUserInfo, logout } = useAuth()
 
-  console.log("BasePage:", currentUser, currentUserInfo)
+  console.log('BasePage:', currentUser, currentUserInfo)
 
-  const isStatic = useMediaQuery ({
-    query: '(min-width: 1199px)'
-  });
+  const isStatic = useMediaQuery({
+    query: '(min-width: 1199px)',
+  })
 
   const toggleSidenav = () => {
     setClosed(!isClosed)
+    if (!rootEl) return
     if (isClosed) {
       rootEl.classList.remove('show-nav')
     } else {
@@ -39,7 +41,7 @@ const BasePage = (props) => {
     }
   }
 
-  const toggleAvatar = (e) => {
+  const toggleAvatar: MouseEventHandler = (e) => {
     e.preventDefault()
     setIsAvatarOpen(!isAvatarOpen)
   }
@@ -49,23 +51,23 @@ const BasePage = (props) => {
     return <Redirect to="/login" />
   }
 
-  const handleClick = e => {
-    if (node.current.contains(e.target)) {
+  const handleClick = (e: any) => {
+    if (node.current && node.current.contains(e.target)) {
       // inside click
-      return;
+      return
     }
     // outside click
-    setIsAvatarOpen(false);
-  };
+    setIsAvatarOpen(false)
+  }
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClick);
+    document.addEventListener('mousedown', handleClick)
 
     return () => {
-      document.removeEventListener("mousedown", handleClick);
-    };
-  }, []);
- 
+      document.removeEventListener('mousedown', handleClick)
+    }
+  }, [])
+
   return (
     <>
       <ConfirmationDialog
@@ -79,70 +81,73 @@ const BasePage = (props) => {
         cancelLabel="Cancel"
       />
 
-      <aside
-        aria-hidden={isClosed}
-        id="page-sidenav">
+      <aside aria-hidden={isClosed} id="page-sidenav">
         <div className="p-4 h-16 flex items-center justify-between">
           <img className="w-32 mx-auto " src={imgLogo} alt="Lokal Logo" />
         </div>
 
-        <SideNav/>
-
+        <SideNav />
       </aside>
 
-      <main id='page-container' className="flex-grow flex flex-col min-h-screen w-">
+      <main id="page-container" className="flex-grow flex flex-col min-h-screen w-">
         <header className="bg-white border-b h-12 flex items-center justify-center">
           <div className="flex flex-grow items-center justify-between px-4">
-            { !isStatic && (
-          <button
-              tabIndex="1"
-              className="w-10 p-1"
-              aria-label="Toggle menu"
-              title="Toggle menu"
-              onClick={() => toggleSidenav()}
-            >
-              <svg
-                aria-hidden="true"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {!isStatic && (
+              <button
+                tabIndex={1}
+                className="w-10 p-1"
+                aria-label="Toggle menu"
+                title="Toggle menu"
+                onClick={() => toggleSidenav()}
               >
-                <path d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-            </button>
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              </button>
             )}
 
             <div>&nbsp;</div>
-            
 
             <div ref={node} className="flex justify-center">
-
               <div className="relative">
-                <button 
+                <button
                   onClick={toggleAvatar}
-                  className="flex flex-row rounded-full overflow-hidden focus:outline-none align-middle ">
-                  <Avatar url={currentUserInfo.profile_photo} name={currentUserInfo.display_name} size={8} statusColor="green" />
+                  className="flex flex-row rounded-full overflow-hidden focus:outline-none align-middle "
+                >
+                  <Avatar
+                    url={currentUserInfo.profile_photo}
+                    name={currentUserInfo.display_name}
+                    size={8}
+                    statusColor="green"
+                  />
                   <span className="block h-8 leading-8 ml-1">
                     <IoIosArrowDown className="h-8" size={16} />
                   </span>
                 </button>
-            
-                { isAvatarOpen ? (
+
+                {isAvatarOpen ? (
                   <div className="absolute z-20 right-0 w-40 mt-2 py-2 bg-white border rounded shadow-xl ">
-                    <Link 
+                    <Link
                       onClick={(e) => {
-                        setIsAvatarOpen(!isAvatarOpen);
+                        setIsAvatarOpen(!isAvatarOpen)
                       }}
-                      to={"/myaccount"}
+                      to={'/myaccount'}
                       className="transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-teal-400 hover:text-white"
-                      >{currentUserInfo.display_name}</Link>
+                    >
+                      {currentUserInfo.display_name}
+                    </Link>
                     <div className="py-2">
                       <hr></hr>
                     </div>
-                    <a 
+                    <a
                       className="transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-teal-400 hover:text-white"
                       href="/logout"
                       onClick={(e) => {
@@ -150,26 +155,19 @@ const BasePage = (props) => {
                         setIsAvatarOpen(false)
                         setIsLogout(true)
                       }}
-                      >    
+                    >
                       Logout
                     </a>
                   </div>
-                ) : null }
-              
+                ) : null}
               </div>
-            
             </div>
-
-
-
-            
           </div>
         </header>
         <div className="p-4 w-full min-h-full relative">{props.children}</div>
       </main>
     </>
-  );
+  )
+}
 
-};
-
-export default BasePage;
+export default BasePage

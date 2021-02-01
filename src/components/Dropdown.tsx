@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Dropdown = (props) => {
+const Dropdown = (props: any) => {
   let {
     headers=[],
     ...rest
