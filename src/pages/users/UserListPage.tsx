@@ -49,7 +49,6 @@ const UserListPage = (props: any) => {
   ]
 
   useEffect(() => {
-    console.log(selectedRole)
     getUsers(selectedRole, searchText, sortBy, sortOrder, limit).onSnapshot((snapshot) => {
       setUserList(
         snapshot.docs.map((doc) => {
@@ -79,6 +78,7 @@ const UserListPage = (props: any) => {
               id="inline-searcg"
               type="text"
               placeholder="Search"
+              onChange={(e) => setSearchText(e.target.value)}
             />
           </div>
           <div className="flex items-center">
