@@ -82,6 +82,7 @@ export const createUser = async (req, res) => {
     },
     community_id: data.community_id,
     community: db.doc(`community/${data.community_id}`),
+    community_name: _community.name,
     address: {
       barangay: _community.address.barangay,
       street: data.address,

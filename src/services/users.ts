@@ -1,3 +1,4 @@
+import { UserSortByType, UserRoleType, SortOrderType } from '../utils/types'
 import { db, auth } from './firebase'
 
 // export const getAuthUserByUID = async (uid: string) => {
@@ -39,13 +40,21 @@ export const fetchUserByUID = async (uid = '') => {
   }
 }
 
-export const getUsers = (
+type GetUsersParamTypes = {
+  role?: UserRoleType,
+  search?: string
+  sortBy?: UserSortByType
+  sortOrder?: SortOrderType
+  limit?: number
+}
+
+export const getUsers = ({
   role = 'all',
   search = '',
   sortBy = 'first_name',
-  sortOrder: 'asc' | 'desc',
+  sortOrder = 'asc',
   limit = 50
-) => {
+}: GetUsersParamTypes) => {
   let ref = db
     .collection('users')
     .where('keywords', 'array-contains', search.toLowerCase())

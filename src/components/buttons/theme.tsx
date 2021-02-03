@@ -1,5 +1,5 @@
 import React from 'react'
-import { IoIosAdd, IoIosCreate, IoIosTrash, IoIosSearch, IoMdCreate } from 'react-icons/io'
+import { IoIosAdd, IoIosCreate, IoIosTrash, IoIosSearch, IoMdCreate, IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io'
 import { colors } from '../../theme'
 
 const buttonColors = {
@@ -35,6 +35,8 @@ const buttonIcons = {
   pencil: <IoMdCreate size={24} />,
   trash: <IoIosTrash size={24} />,
   search: <IoIosSearch size={24} />,
+  caretDown: <IoMdArrowDropdown size={16} />,
+  caretUp: <IoMdArrowDropup size={16} />
 }
 
 const buttonSizes = {
