@@ -20,23 +20,56 @@ const UserListPage = (props: any) => {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<UserSortByType>('first_name')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
-  const [limit, setLimit] = useState(50)
+  const [limit, setLimit] = useState(1)
+  const [pageNum, setPageNum] = useState(1)
+  const [usersRef, setUsersRef] = useState<any>()
+  const [firstUserOnList, setFirstUserOnList] = useState<any>()
+  const [lastUserOnList, setLastUserOnList] = useState<any>()
+
+  const getUserList = async (docs: any[]) => {
+    const newUserList = []
+    for (let i = 0; i < docs.length; i++) {
+      const doc = docs[i]
+      const _data = doc.data()
+      _data.id = doc.id
+      const community = await _data.community.get()
+      const _community = community.data()
+      _data.community_name = _community.name
+      newUserList.push(_data)
+    }
+    setUserList(newUserList)
+    setLastUserOnList(docs[docs.length - 1])
+    setFirstUserOnList(docs[0])
+  }
 
   useEffect(() => {
-    getUsers({ role, search, sortBy, sortOrder, limit }).onSnapshot(async (snapshot) => {
-      const newUserList = []
-      for (let i = 0; i < snapshot.docs.length; i++) {
-        const doc = snapshot.docs[i]
-        const _data = doc.data()
-        _data.id = doc.id
-        const community = await _data.community.get()
-        const _community = community.data()
-        _data.community_name = _community.name
-        newUserList.push(_data)
-      }
-      setUserList(newUserList)
+    const newUsersRef = getUsers({ role, search, sortBy, sortOrder, limit })
+    newUsersRef.onSnapshot(async (snapshot) => {
+      getUserList(snapshot.docs)
     })
+    setUsersRef(newUsersRef)
   }, [role, search, sortBy, sortOrder, limit])
+
+  const onNextPage = () => {
+    if (usersRef && lastUserOnList) {
+      const newUsersRef = usersRef.startAfter(lastUserOnList).limit(limit)
+      newUsersRef.onSnapshot(async (snapshot: any) => {
+        getUserList(snapshot.docs)
+      })
+    }
+    setPageNum(pageNum + 1)
+  }
+
+  const onPreviousPage = () => {
+    const newPageNum = pageNum - 1
+    if (usersRef && firstUserOnList && newPageNum > 0) {
+      const newUsersRef = usersRef.endBefore(firstUserOnList).limitToLast(limit)
+      newUsersRef.onSnapshot(async (snapshot: any) => {
+        getUserList(snapshot.docs)
+      })
+    }
+    setPageNum(Math.max(1, newPageNum))
+  }
 
   const onSort = (sortName: UserSortByType) => {
     if (sortName === sortBy) {
@@ -60,6 +93,9 @@ const UserListPage = (props: any) => {
               placeholder="Search"
               onChange={(e) => setSearch(e.target.value)}
             />
+            <button onClick={onPreviousPage}>previous</button>
+            <span>{pageNum}</span>
+            <button onClick={onNextPage}>next</button>
           </div>
           <div className="flex items-center">
             <Button
