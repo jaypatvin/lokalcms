@@ -11,6 +11,11 @@ export const getItems = async (req, res) => {
   return res.json({status: 'ok'})
 }
 
+export const createItem = async (req, res) => {
+
+  res.json({status: 'ok'})
+}
+
 export const getItem = async (req, res) => {
 
   res.json({status: 'ok'})

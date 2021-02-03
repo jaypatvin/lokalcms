@@ -10,6 +10,15 @@ export const getUserByUID = async (uid) => {
                   .then(res => res.docs.map(doc => doc.data()))
 }
 
+export const getUserByID = async (id) => {
+  return await db
+                .collection('users')
+                .doc(id)
+                .get()
+                .then((res) => {
+                    return res.data()
+                })
+}
 
 export const createUser = async (data) => {
   return await db

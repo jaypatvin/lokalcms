@@ -8,6 +8,8 @@ export const getCommunityByID = async (id) => {
                   .doc(id)
                   .get()
                   .then((res) => {
-                      return res.data()
+                      let _ret = res.data()
+                      _ret.referencePath = res.ref.path
+                      return _ret
                   })
 }

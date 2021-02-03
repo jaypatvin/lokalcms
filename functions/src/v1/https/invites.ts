@@ -11,6 +11,11 @@ export const getInvites = async (req, res) => {
   return res.json({status: 'ok'})
 }
 
+export const createInvite = async (req, res) => {
+
+  res.json({status: 'ok'})
+}
+
 export const getInvite = async (req, res) => {
 
   res.json({status: 'ok'})

@@ -11,6 +11,11 @@ export const getCommunities = async (req, res) => {
   return res.json({status: 'ok'})
 }
 
+export const createCommunity = async (req, res) => {
+
+  res.json({status: 'ok'})
+}
+
 export const getCommunity = async (req, res) => {
 
   res.json({status: 'ok'})
