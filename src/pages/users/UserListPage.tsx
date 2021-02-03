@@ -23,14 +23,18 @@ const UserListPage = (props: any) => {
   const [limit, setLimit] = useState(50)
 
   useEffect(() => {
-    getUsers({ role, search, sortBy, sortOrder, limit }).onSnapshot((snapshot) => {
-      setUserList(
-        snapshot.docs.map((doc) => {
-          let _data = doc.data()
-          _data.id = doc.id
-          return _data
-        })
-      )
+    getUsers({ role, search, sortBy, sortOrder, limit }).onSnapshot(async (snapshot) => {
+      const newUserList = []
+      for (let i = 0; i < snapshot.docs.length; i++) {
+        const doc = snapshot.docs[i]
+        const _data = doc.data()
+        _data.id = doc.id
+        const community = await _data.community.get()
+        const _community = community.data()
+        _data.community_name = _community.name
+        newUserList.push(_data)
+      }
+      setUserList(newUserList)
     })
   }, [role, search, sortBy, sortOrder, limit])
 
@@ -161,7 +165,7 @@ const UserListPage = (props: any) => {
                   }
 
                   return (
-                    <tr>
+                    <tr key={user.id}>
                       <td>
                         <div className="flex">
                           <Avatar
