@@ -18,4 +18,4 @@ export type LimitType = 10 | 25 | 50 | 100
 
 // --- User Types --- //
 export type UserRoleType = 'all' | 'admin' | 'member'
-export type UserSortByType = 'first_name' | 'community_name' | 'status' | 'created_at'
+export type UserSortByType = 'display_name' | 'community_name' | 'status' | 'created_at'

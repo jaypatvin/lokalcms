@@ -19,7 +19,7 @@ const UserListPage = (props: any) => {
   const [userList, setUserList] = useState<any>([])
   const [role, setRole] = useState<UserRoleType>('all')
   const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState<UserSortByType>('first_name')
+  const [sortBy, setSortBy] = useState<UserSortByType>('display_name')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
@@ -152,9 +152,9 @@ const UserListPage = (props: any) => {
                     <SortButton
                       className="text-xs uppercase font-bold"
                       label="User"
-                      showSortIcons={sortBy === 'first_name'}
+                      showSortIcons={sortBy === 'display_name'}
                       currentSortOrder={sortOrder}
-                      onClick={() => onSort('first_name')}
+                      onClick={() => onSort('display_name')}
                     />
                   </th>
                   <th>
