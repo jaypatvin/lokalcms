@@ -67,10 +67,10 @@ export const claimInvite = async (req, res) => {
   console.log(_user)
 
   // update and claim the invite to the user
-  // updateInvite(_invite.id, {
-  //   claimed: true,
-  //   invitee: data.user_id
-  // })
+  updateInvite(_invite.id, {
+    claimed: true,
+    invitee: data.user_id
+  })
 
 
   res.json({status: 'ok', message: 'Invite code is now claimed by ' + _user.display_name + '!'})
