@@ -14,6 +14,7 @@ export type ButtonProps = {
   icon?: ButtonIcon
   block?: boolean
   size?: Size
+  className?: string
   [x: string]: any
 }
 
@@ -27,6 +28,7 @@ const Button = (props: ButtonProps) => {
     icon,
     block,
     size = 'medium',
+    className = '',
     ...rest
   } = props
 
@@ -44,7 +46,12 @@ const Button = (props: ButtonProps) => {
   }
 
   return (
-    <button className={cn(styles.button)} disabled={disabled} type={type} {...rest}>
+    <button
+      className={`${className} ${cn(styles.button)}`}
+      disabled={disabled}
+      type={type}
+      {...rest}
+    >
       {icon && !loading && <span className="mr-1">{buttonIcons[icon]}</span>}
       {loading ? (
         <ReactLoading width={24} height={24} type="bubbles" className="mx-auto" />

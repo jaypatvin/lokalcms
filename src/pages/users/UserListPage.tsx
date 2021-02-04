@@ -4,73 +4,94 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 
 import { auth, db } from '../../services/firebase'
 import { Button } from '../../components/buttons'
-import MenuList from '../../components/MenuList'
 import Avatar from '../../components/Avatar'
 
 import { getUsers } from '../../services/users'
-import { MenuItemType } from '../../utils/types'
+import { LimitType, SortOrderType, UserRoleType, UserSortByType } from '../../utils/types'
+import UserRoleMenu from './UserRoleMenu'
+import SortButton from '../../components/buttons/SortButton'
+import Dropdown from '../../components/Dropdown'
 
 // Init
 dayjs.extend(relativeTime)
 
 const UserListPage = (props: any) => {
   const [userList, setUserList] = useState<any>([])
-  const [selectedRole, setSelectedRole] = useState('all')
-  const [searchText, setSearchText] = useState('')
-  const [sortBy, setSortBy] = useState('first_name')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-  const [limit, setLimit] = useState(50)
+  const [role, setRole] = useState<UserRoleType>('all')
+  const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState<UserSortByType>('first_name')
+  const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
+  const [limit, setLimit] = useState<LimitType>(10)
+  const [pageNum, setPageNum] = useState(1)
+  const [usersRef, setUsersRef] = useState<any>()
+  const [firstUserOnList, setFirstUserOnList] = useState<any>()
+  const [lastUserOnList, setLastUserOnList] = useState<any>()
+  const [isLastPage, setIsLastPage] = useState(false)
 
-  const menuItems: MenuItemType[] = [
-    {
-      key: 'all',
-      name: 'All Users',
-      onClick: (e, item) => {
-        console.log(e, item)
-        setSelectedRole('all')
-      },
-    },
-    {
-      key: 'admins',
-      name: 'Admins',
-      onClick: (e, item) => {
-        console.log(e, item)
-        setSelectedRole('admin')
-      },
-    },
-    {
-      key: 'members',
-      name: 'Members',
-      onClick: (e, item) => {
-        console.log(e, item)
-        setSelectedRole('member')
-      },
-    },
-  ]
+  const getUserList = async (docs: any[]) => {
+    const newUserList = []
+    for (let i = 0; i < docs.length; i++) {
+      const doc = docs[i]
+      const _data = doc.data()
+      _data.id = doc.id
+      const community = await _data.community.get()
+      const _community = community.data()
+      _data.community_name = _community.name
+      newUserList.push(_data)
+    }
+    setUserList(newUserList)
+    setLastUserOnList(docs[docs.length - 1])
+    setFirstUserOnList(docs[0])
+  }
 
   useEffect(() => {
-    console.log(selectedRole)
-    getUsers(selectedRole, searchText, sortBy, sortOrder, limit).onSnapshot((snapshot) => {
-      setUserList(
-        snapshot.docs.map((doc) => {
-          let _data = doc.data()
-          _data.id = doc.id
-          return _data
-        })
-      )
+    const newUsersRef = getUsers({ role, search, sortBy, sortOrder, limit })
+    newUsersRef.onSnapshot(async (snapshot) => {
+      getUserList(snapshot.docs)
     })
-  }, [selectedRole, searchText, sortBy, sortOrder, limit])
+    setUsersRef(newUsersRef)
+    setPageNum(1)
+    setIsLastPage(false)
+  }, [role, search, sortBy, sortOrder, limit])
+
+  const onNextPage = () => {
+    if (usersRef && lastUserOnList) {
+      const newUsersRef = usersRef.startAfter(lastUserOnList).limit(limit)
+      newUsersRef.onSnapshot(async (snapshot: any) => {
+        if (snapshot.docs.length) {
+          getUserList(snapshot.docs)
+          setPageNum(pageNum + 1)
+        } else if (!isLastPage) {
+          setIsLastPage(true)
+        }
+      })
+    }
+  }
+
+  const onPreviousPage = () => {
+    const newPageNum = pageNum - 1
+    if (usersRef && firstUserOnList && newPageNum > 0) {
+      const newUsersRef = usersRef.endBefore(firstUserOnList).limitToLast(limit)
+      newUsersRef.onSnapshot(async (snapshot: any) => {
+        getUserList(snapshot.docs)
+      })
+    }
+    setIsLastPage(false)
+    setPageNum(Math.max(1, newPageNum))
+  }
+
+  const onSort = (sortName: UserSortByType) => {
+    if (sortName === sortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(sortName)
+      setSortOrder('asc')
+    }
+  }
 
   return (
     <div className="flex flex-row w-full">
-      <div className="flex flex-row w-52 hidden mdl:block">
-        <div className="pb-5">
-          <h2 className="text-2xl font-semibold leading-tight">Users</h2>
-        </div>
-        <div>
-          <MenuList items={menuItems} selected={'all'} />
-        </div>
-      </div>
+      <UserRoleMenu onSelect={setRole} />
       <div className="pb-8 flex-grow">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
           <div className="flex items-center">
@@ -79,7 +100,34 @@ const UserListPage = (props: any) => {
               id="inline-searcg"
               type="text"
               placeholder="Search"
+              onChange={(e) => setSearch(e.target.value)}
             />
+            <div className="flex justify-between align-middle ml-4">
+              <div className="flex items-center">
+                Show:{' '}
+                <Dropdown
+                  className="ml-1"
+                  simpleOptions={[10, 25, 50, 100]}
+                  onSelect={(option: any) => setLimit(option.value)}
+                  currentValue={limit}
+                  size='small'
+                />
+              </div>
+              <Button
+                className="ml-5"
+                icon="arrowBack"
+                size="small"
+                color={pageNum === 1 ? 'secondary' : 'primary'}
+                onClick={onPreviousPage}
+              />
+              <Button
+                className="ml-3"
+                icon="arrowForward"
+                size="small"
+                color={isLastPage ? 'secondary' : 'primary'}
+                onClick={onNextPage}
+              />
+            </div>
           </div>
           <div className="flex items-center">
             <Button
@@ -100,10 +148,42 @@ const UserListPage = (props: any) => {
             <table>
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Community</th>
-                  <th>Status</th>
-                  <th>Member Since</th>
+                  <th>
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="User"
+                      showSortIcons={sortBy === 'first_name'}
+                      currentSortOrder={sortOrder}
+                      onClick={() => onSort('first_name')}
+                    />
+                  </th>
+                  <th>
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Community"
+                      showSortIcons={sortBy === 'community_name'}
+                      currentSortOrder={sortOrder}
+                      onClick={() => onSort('community_name')}
+                    />
+                  </th>
+                  <th>
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Status"
+                      showSortIcons={sortBy === 'status'}
+                      currentSortOrder={sortOrder}
+                      onClick={() => onSort('status')}
+                    />
+                  </th>
+                  <th>
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Member Since"
+                      showSortIcons={sortBy === 'created_at'}
+                      currentSortOrder={sortOrder}
+                      onClick={() => onSort('created_at')}
+                    />
+                  </th>
                   <th className="action-col"></th>
                 </tr>
               </thead>
@@ -153,7 +233,7 @@ const UserListPage = (props: any) => {
                   }
 
                   return (
-                    <tr>
+                    <tr key={user.id}>
                       <td>
                         <div className="flex">
                           <Avatar
@@ -169,7 +249,7 @@ const UserListPage = (props: any) => {
                         </div>
                       </td>
                       <td>
-                        <p className="text-gray-900 whitespace-no-wrap">{user.community_id}</p>
+                        <p className="text-gray-900 whitespace-no-wrap">{user.community_name}</p>
                         <p className="text-gray-600 whitespace-no-wrap">{''}</p>
                       </td>
                       <td>

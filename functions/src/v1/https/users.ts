@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
 import { getUserByUID, createUser as createNewUser } from '../../service/users'
 import { getCommunityByID } from '../../service/community'
+import { generateUserKeywords } from '../../utils/generateKeywords'
 
 //admin.initializeApp()
 
@@ -55,6 +56,8 @@ export const createUser = async (req, res) => {
     return res.json({status: 'error', message: 'User "' + _authUser.email + '" already exist!'})
   }
 
+  const keywords = generateUserKeywords([data.first_name, data.last_name, data.email])
+
   // create a user
   const _newData = {
     user_uids: [data.user_uid],
@@ -78,6 +81,7 @@ export const createUser = async (req, res) => {
       verified: false
     },
     community_id: data.community_id,
+    community: db.doc(`community/${data.community_id}`),
     address: {
       barangay: _community.address.barangay,
       street: data.address,
@@ -86,7 +90,8 @@ export const createUser = async (req, res) => {
       subdivision: _community.address.subdivision,
       zip_code: _community.address.zip_code,
       country: _community.address.country
-    }
+    },
+    keywords
   }
 
   const _newUser = await createNewUser(_newData)
