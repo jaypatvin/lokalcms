@@ -26,7 +26,7 @@ export const createShop = async (req, res) => {
   try {
     _user = await getUserByID(data.user_id)
   } catch (e) {
-    return res.json({status: 'error', message: 'Invalid Community ID!'})
+    return res.json({status: 'error', message: 'Invalid User ID!'})
   }
 
   // check if community id is valid

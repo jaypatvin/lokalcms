@@ -60,7 +60,7 @@ export const createUser = async (req, res) => {
     user_uids: [data.user_uid],
     first_name: data.first_name,
     last_name: data.last_name,
-    dislay_name: data.first_name + ' ' + data.last_name,
+    display_name: data.first_name + ' ' + data.last_name,
     email: _authUser.email,
     profile_photo: data.profile_photo,
     roles: {

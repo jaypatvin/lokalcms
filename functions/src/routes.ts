@@ -7,6 +7,8 @@ import { postStreamFeedCredentials } from "./v1/https/streamFeedCredentials"
 import { getUsers as getUserList, createUser, getUser, updateUser, deleteUser } from './v1/https/users'
 import { getShops as getShopList, createShop, getShop, updateShop, deleteShop } from './v1/https/shops'
 
+import { checkInvite, claimInvite } from './v1/https/invites'
+
 module.exports = api => {
 
   /**
@@ -32,5 +34,9 @@ module.exports = api => {
   api.route("/v1/shops/:shopId").get(wrapAsync(getShop))
   api.route("/v1/shops/:shopId").put(wrapAsync(updateShop))
   api.route("/v1/shops/:shopId").delete(wrapAsync(deleteShop))
+
+  // -- Invites routes
+  api.route("/v1/invite/check/:inviteCode").get(wrapAsync(checkInvite))
+  api.route("/v1/invite/claim").post(wrapAsync(claimInvite))
 
 };
