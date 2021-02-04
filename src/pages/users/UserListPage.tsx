@@ -7,9 +7,10 @@ import { Button } from '../../components/buttons'
 import Avatar from '../../components/Avatar'
 
 import { getUsers } from '../../services/users'
-import { SortOrderType, UserRoleType, UserSortByType } from '../../utils/types'
+import { LimitType, SortOrderType, UserRoleType, UserSortByType } from '../../utils/types'
 import UserRoleMenu from './UserRoleMenu'
 import SortButton from '../../components/buttons/SortButton'
+import Dropdown from '../../components/Dropdown'
 
 // Init
 dayjs.extend(relativeTime)
@@ -20,11 +21,12 @@ const UserListPage = (props: any) => {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<UserSortByType>('first_name')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
-  const [limit, setLimit] = useState(1)
+  const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
   const [usersRef, setUsersRef] = useState<any>()
   const [firstUserOnList, setFirstUserOnList] = useState<any>()
   const [lastUserOnList, setLastUserOnList] = useState<any>()
+  const [isLastPage, setIsLastPage] = useState(false)
 
   const getUserList = async (docs: any[]) => {
     const newUserList = []
@@ -48,16 +50,22 @@ const UserListPage = (props: any) => {
       getUserList(snapshot.docs)
     })
     setUsersRef(newUsersRef)
+    setPageNum(1)
+    setIsLastPage(false)
   }, [role, search, sortBy, sortOrder, limit])
 
   const onNextPage = () => {
     if (usersRef && lastUserOnList) {
       const newUsersRef = usersRef.startAfter(lastUserOnList).limit(limit)
       newUsersRef.onSnapshot(async (snapshot: any) => {
-        getUserList(snapshot.docs)
+        if (snapshot.docs.length) {
+          getUserList(snapshot.docs)
+          setPageNum(pageNum + 1)
+        } else if (!isLastPage) {
+          setIsLastPage(true)
+        }
       })
     }
-    setPageNum(pageNum + 1)
   }
 
   const onPreviousPage = () => {
@@ -68,6 +76,7 @@ const UserListPage = (props: any) => {
         getUserList(snapshot.docs)
       })
     }
+    setIsLastPage(false)
     setPageNum(Math.max(1, newPageNum))
   }
 
@@ -93,9 +102,32 @@ const UserListPage = (props: any) => {
               placeholder="Search"
               onChange={(e) => setSearch(e.target.value)}
             />
-            <button onClick={onPreviousPage}>previous</button>
-            <span>{pageNum}</span>
-            <button onClick={onNextPage}>next</button>
+            <div className="flex justify-between align-middle ml-4">
+              <div className="flex items-center">
+                Show:{' '}
+                <Dropdown
+                  className="ml-1"
+                  simpleOptions={[10, 25, 50, 100]}
+                  onSelect={(option: any) => setLimit(option.value)}
+                  currentValue={limit}
+                  size='small'
+                />
+              </div>
+              <Button
+                className="ml-5"
+                icon="arrowBack"
+                size="small"
+                color={pageNum === 1 ? 'secondary' : 'primary'}
+                onClick={onPreviousPage}
+              />
+              <Button
+                className="ml-3"
+                icon="arrowForward"
+                size="small"
+                color={isLastPage ? 'secondary' : 'primary'}
+                onClick={onNextPage}
+              />
+            </div>
           </div>
           <div className="flex items-center">
             <Button
