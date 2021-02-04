@@ -11,6 +11,7 @@ import { LimitType, SortOrderType, UserRoleType, UserSortByType } from '../../ut
 import UserRoleMenu from './UserRoleMenu'
 import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
+import Modal from '../../components/modals'
 
 // Init
 dayjs.extend(relativeTime)
@@ -27,6 +28,7 @@ const UserListPage = (props: any) => {
   const [firstUserOnList, setFirstUserOnList] = useState<any>()
   const [lastUserOnList, setLastUserOnList] = useState<any>()
   const [isLastPage, setIsLastPage] = useState(false)
+  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
 
   const getUserList = async (docs: any[]) => {
     const newUserList = []
@@ -89,8 +91,15 @@ const UserListPage = (props: any) => {
     }
   }
 
+  const openCreateUser = () => {
+    setIsCreateUserOpen(true)
+  }
+
   return (
     <div className="flex flex-row w-full">
+      <Modal title="Create User" isOpen={isCreateUserOpen} setIsOpen={setIsCreateUserOpen}>
+        create user form
+      </Modal>
       <UserRoleMenu onSelect={setRole} />
       <div className="pb-8 flex-grow">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
@@ -110,7 +119,7 @@ const UserListPage = (props: any) => {
                   simpleOptions={[10, 25, 50, 100]}
                   onSelect={(option: any) => setLimit(option.value)}
                   currentValue={limit}
-                  size='small'
+                  size="small"
                 />
               </div>
               <Button
@@ -133,11 +142,7 @@ const UserListPage = (props: any) => {
             <Button
               icon="add"
               size="small"
-              onClick={(e: any) => {
-                e.preventDefault()
-                console.log('Add User')
-                return false
-              }}
+              onClick={openCreateUser}
             >
               New User
             </Button>
