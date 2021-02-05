@@ -57,10 +57,18 @@ export const claimInvite = async (req, res) => {
     return res.json({status: 'error', message: 'Invalid Invite Code!'})
   }
 
+  if (!_invite) {
+    return res.json({status: 'error', message: 'Invalid Invite Code!'})
+  }
+
   // check if user id is valid
   try {
     _user = await getUserByID(data.user_id)
   } catch (e) {
+    return res.json({status: 'error', message: 'Invalid User ID!'})
+  }
+
+  if (!_user) {
     return res.json({status: 'error', message: 'Invalid User ID!'})
   }
 
