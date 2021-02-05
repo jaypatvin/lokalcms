@@ -28,28 +28,49 @@ export const createUser = async (req, res) => {
   const data = req.body
   let _authUser
   let _community
+  const required_fields = [
+    'email',
+    'first_name',
+    'last_name',
+    'street',
+    'community_id'
+  ]
+  const error_fields = []
+  const invalid_values = [null, undefined, '']
+
+  // check required fields
+  required_fields.forEach(field => {
+    if (invalid_values.includes(data[field])) error_fields.push(field)
+  })
+
+  if (error_fields.length) {
+    return res.json({status: 'error', message: 'Required fields missing', error_fields})
+  }
 
   // double check if uid is valid
   try {
-    _authUser = await auth
-                        .getUser(data.user_uid)
-                        .then((userRecord) => {
-                          return userRecord
-                        })
+    if (data.user_uid) {
+      _authUser = await auth.getUser(data.user_uid)
+    } else if (data.email) {
+      _authUser = await auth.getUserByEmail(data.email)
+    }
   } catch (e) {
-    return res.json({status: 'error', message: 'Invalid User UID!'})
+    if (data.user_uid) return res.json({status: 'error', message: 'Invalid User UID!'})
+    error_fields.push('email')
+    return res.json({status: 'error', message: 'Email not found', error_fields})
   }
 
   // check if community id is valid
   try {
     _community = await getCommunityByID(data.community_id)
   } catch (e) {
-    return res.json({status: 'error', message: 'Invalid Community ID!'})
+    error_fields.push('community_id')
+    return res.json({status: 'error', message: 'Invalid Community ID!', error_fields})
   }
   
 
   // check if uid already exist in the users' collection
-  const _users = await getUserByUID(data.user_uid)
+  const _users = await getUserByUID(_authUser.uid)
 
 
   if (_users.length > 0) {
@@ -59,18 +80,17 @@ export const createUser = async (req, res) => {
   const keywords = generateUserKeywords([data.first_name, data.last_name, data.email])
 
   // create a user
-  const _newData = {
-    user_uids: [data.user_uid],
+  const _newData: any = {
+    user_uids: [_authUser.uid],
     first_name: data.first_name,
     last_name: data.last_name,
-    display_name: data.first_name + ' ' + data.last_name,
+    display_name: data.display_name || `${data.first_name} ${data.last_name}`,
     email: _authUser.email,
-    profile_photo: data.profile_photo,
     roles: {
       admin: false,
       member: true
     },
-    status: 'active',
+    status: data.status || 'active',
     birthdate: '',
     created_at: new Date(),
     registration: {
@@ -84,7 +104,7 @@ export const createUser = async (req, res) => {
     community: db.doc(`community/${data.community_id}`),
     address: {
       barangay: _community.address.barangay,
-      street: data.address,
+      street: data.street,
       city: _community.address.city,
       state: _community.address.state,
       subdivision: _community.address.subdivision,
@@ -92,6 +112,9 @@ export const createUser = async (req, res) => {
       country: _community.address.country
     },
     keywords
+  }
+  if (data.profile_photo) {
+    _newData.profile_photo = data.profile_photo
   }
 
   const _newUser = await createNewUser(_newData)

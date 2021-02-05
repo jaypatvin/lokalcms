@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ChangeEventHandler } from 'react'
 import { useField } from 'formik'
 import { cn } from '../../utils/format'
 import { InputProps, SelectType, sizes } from './utils'
@@ -8,6 +8,7 @@ type Props = InputProps & {
   optionKeyRef: string
   optionValueRef: string
   optionPlaceholderRef: string
+  onChange?: ChangeEventHandler<HTMLSelectElement>
   [x: string]: any
 }
 

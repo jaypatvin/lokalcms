@@ -1,15 +1,19 @@
+import { ChangeEventHandler } from 'react'
 import { Size } from '../../utils/types'
 
 export type InputProps = {
   label: string
-  error: string
-  touched: boolean
+  isError?: boolean
+  errorMessage?: string
+  touched?: boolean
   initialValue?: boolean
   initialTouched?: boolean
   initialError?: string
   noMargin?: boolean
   placeholder?: string
   size?: Size
+  onChange?: ChangeEventHandler<HTMLInputElement>,
+  required?: boolean
 }
 
 export const sizes = {

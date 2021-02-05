@@ -12,6 +12,8 @@ import UserRoleMenu from './UserRoleMenu'
 import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
 import Modal from '../../components/modals'
+import { TextField } from '../../components/inputs'
+import UserCreateUpdateForm from './UserCreateUpdateForm'
 
 // Init
 dayjs.extend(relativeTime)
@@ -97,9 +99,7 @@ const UserListPage = (props: any) => {
 
   return (
     <div className="flex flex-row w-full">
-      <Modal title="Create User" isOpen={isCreateUserOpen} setIsOpen={setIsCreateUserOpen}>
-        create user form
-      </Modal>
+      <UserCreateUpdateForm isOpen={isCreateUserOpen} setIsOpen={setIsCreateUserOpen} />
       <UserRoleMenu onSelect={setRole} />
       <div className="pb-8 flex-grow">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
@@ -139,11 +139,7 @@ const UserListPage = (props: any) => {
             </div>
           </div>
           <div className="flex items-center">
-            <Button
-              icon="add"
-              size="small"
-              onClick={openCreateUser}
-            >
+            <Button icon="add" size="small" onClick={openCreateUser}>
               New User
             </Button>
           </div>
