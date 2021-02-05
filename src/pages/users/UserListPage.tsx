@@ -31,6 +31,8 @@ const UserListPage = (props: any) => {
   const [lastUserOnList, setLastUserOnList] = useState<any>()
   const [isLastPage, setIsLastPage] = useState(false)
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
+  const [userModalMode, setUserModalMode] = useState<'create' | 'update'>('create')
+  const [userToUpdate, setUserToUpdate] = useState<any>()
 
   const getUserList = async (docs: any[]) => {
     const newUserList = []
@@ -95,11 +97,38 @@ const UserListPage = (props: any) => {
 
   const openCreateUser = () => {
     setIsCreateUserOpen(true)
+    setUserModalMode('create')
+    setUserToUpdate(undefined)
+  }
+
+  const openUpdateUser = (user: any) => {
+    setIsCreateUserOpen(true)
+    setUserModalMode('update')
+    const data = {
+      id: user.id,
+      status: user.status,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      display_name: user.display_name,
+      community_id: user.community_id,
+      profile_photo: user.profile_photo,
+      street: user.address.street,
+      is_admin: user.roles.admin,
+    }
+    setUserToUpdate(data)
   }
 
   return (
     <div className="flex flex-row w-full">
-      <UserCreateUpdateForm isOpen={isCreateUserOpen} setIsOpen={setIsCreateUserOpen} />
+      {isCreateUserOpen && (
+        <UserCreateUpdateForm
+          isOpen={isCreateUserOpen}
+          setIsOpen={setIsCreateUserOpen}
+          userToUpdate={userToUpdate}
+          mode={userModalMode}
+        />
+      )}
       <UserRoleMenu onSelect={setRole} />
       <div className="pb-8 flex-grow">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
@@ -277,6 +306,7 @@ const UserListPage = (props: any) => {
 
                       <td className="action-col">
                         <button
+                          onClick={() => openUpdateUser(user)}
                           type="button"
                           className="inline-block text-gray-500 hover:text-gray-700"
                         >

@@ -12,8 +12,9 @@ export type InputProps = {
   noMargin?: boolean
   placeholder?: string
   size?: Size
-  onChange?: ChangeEventHandler<HTMLInputElement>,
+  onChange?: ChangeEventHandler<HTMLInputElement>
   required?: boolean
+  className?: string
 }
 
 export const sizes = {

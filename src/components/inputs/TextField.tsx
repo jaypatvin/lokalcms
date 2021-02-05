@@ -5,6 +5,7 @@ import { sizes, InputProps } from './utils'
 
 type Props = InputProps & {
   type: string
+  defaultValue?: string
 }
 
 const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
@@ -14,7 +15,6 @@ const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
     isError,
     errorMessage,
     touched,
-    initialValue,
     initialTouched,
     initialError,
     noMargin,

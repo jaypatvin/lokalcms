@@ -1,40 +1,52 @@
 import React, { useState } from 'react'
 import Dropdown from '../../components/Dropdown'
-import { TextField } from '../../components/inputs'
+import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 
 type Props = {
   isOpen: boolean
   setIsOpen: (val: boolean) => void
   mode?: 'create' | 'update'
+  userToUpdate?: any
 }
 
 const initialData = { status: 'active' }
 
-const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => {
-  const [data, setData] = useState<any>(initialData)
+const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create', userToUpdate }: Props) => {
+  console.log('mode', mode)
+  console.log('userToUpdate', userToUpdate)
+  const [data, setData] = useState<any>(userToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
-  const changeHandler = (field: string, value: string | number | null) => {
+
+  const changeHandler = (field: string, value: string | number | boolean | null) => {
     const newData = { ...data }
     newData[field] = value
     setData(newData)
   }
 
   const onSave = async () => {
-    console.log(data)
-    let res: any = await fetch('http://localhost:5001/lokal-1baac/us-central1/api/v1/users', {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-    res = await res.json()
-    setResponseData(res)
-    if (res.status !== 'error') {
-      setResponseData({})
-      setData(initialData)
-      setIsOpen(false)
+    console.log('data', data)
+    if (process.env.REACT_APP_API_URL) {
+      let url = `${process.env.REACT_APP_API_URL}/users`
+      if (mode === 'update' && data.id) {
+        url = `${url}/${data.id}`
+      }
+      let res: any = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        method: 'PUT',
+        body: JSON.stringify(data),
+      })
+      res = await res.json()
+      setResponseData(res)
+      if (res.status !== 'error') {
+        setResponseData({})
+        setData(initialData)
+        setIsOpen(false)
+      }
+    } else {
+      console.error('environment variable for the api does not exist.')
     }
   }
 
@@ -48,13 +60,16 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => 
 
   return (
     <Modal title={`${mode} user`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
-      <Dropdown
-        name="status"
-        simpleOptions={['active', 'suspended', 'pending', 'locked']}
-        currentValue={data.status}
-        size="small"
-        onSelect={(option) => changeHandler('status', option.value)}
-      />
+      <div className="flex justify-between mb-3">
+        <Dropdown
+          name="status"
+          simpleOptions={['active', 'suspended', 'pending', 'locked']}
+          currentValue={data.status}
+          size="small"
+          onSelect={(option) => changeHandler('status', option.value)}
+        />
+        <Checkbox label="Admin" onChange={(e) => changeHandler('is_admin', e.target.checked)} noMargin value={data.is_admin} />
+      </div>
       <div className="grid grid-cols-2 gap-x-2">
         <TextField
           required
@@ -63,7 +78,7 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => 
           size="small"
           onChange={(e) => changeHandler('email', e.target.value)}
           isError={fieldIsError('email')}
-          initialValue={data['email']}
+          defaultValue={data.email}
         />
         <TextField
           required
@@ -72,7 +87,7 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => 
           size="small"
           onChange={(e) => changeHandler('first_name', e.target.value)}
           isError={fieldIsError('first_name')}
-          initialValue={data['first_name']}
+          defaultValue={data.first_name}
         />
         <TextField
           required
@@ -81,7 +96,7 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => 
           size="small"
           onChange={(e) => changeHandler('last_name', e.target.value)}
           isError={fieldIsError('last_name')}
-          initialValue={data['last_name']}
+          defaultValue={data.last_name}
         />
         <TextField
           label="display name"
@@ -89,7 +104,7 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => 
           size="small"
           onChange={(e) => changeHandler('display_name', e.target.value)}
           isError={fieldIsError('display_name')}
-          initialValue={data['display_name']}
+          defaultValue={data.display_name}
         />
         <TextField
           label="profile photo"
@@ -97,7 +112,7 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => 
           size="small"
           onChange={(e) => changeHandler('profile_photo', e.target.value)}
           isError={fieldIsError('profile_photo')}
-          initialValue={data['profile_photo']}
+          defaultValue={data.profile_photo}
         />
         <TextField
           required
@@ -106,7 +121,7 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => 
           size="small"
           onChange={(e) => changeHandler('community_id', e.target.value)}
           isError={fieldIsError('community_id')}
-          initialValue={data['community_id']}
+          defaultValue={data.community_id}
         />
         <TextField
           required
@@ -115,7 +130,7 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create' }: Props) => 
           size="small"
           onChange={(e) => changeHandler('street', e.target.value)}
           isError={fieldIsError('street')}
-          initialValue={data['street']}
+          defaultValue={data.street}
         />
       </div>
       {responseData.status === 'error' && (
