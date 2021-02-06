@@ -28,3 +28,10 @@ export const createUser = async (data) => {
                     return res
                   })
 }
+
+export const updateUser = async (id, data) => {
+  return await db
+                  .collection('users')
+                  .doc(id)
+                  .update(data)
+}

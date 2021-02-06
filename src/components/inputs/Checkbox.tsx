@@ -3,21 +3,21 @@ import { useField } from 'formik'
 import { cn } from '../../utils/format'
 import { InputProps, sizes } from './utils'
 
-type Props = InputProps & {
-  [x: string]: any
-}
+type Props = InputProps & { value?: boolean }
 
 const Checkbox = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
   const {
     label,
-    error,
-    touched,
+    errorMessage,
+    isError,
     initialValue,
     initialTouched,
     initialError,
     noMargin,
     placeholder,
     size = 'medium',
+    value,
+    className = '',
     ...rest
   } = props
 
@@ -37,7 +37,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
         'text-gray-600',
         'mr-2',
         size ? sizes[size].input : sizes['medium'].input,
-        touched && error ? 'border-red-300' : 'border-gray-300',
+        isError && errorMessage ? 'border-red-300' : 'border-gray-300',
       ],
       focus: ['border-blue-300'],
     },
@@ -47,17 +47,12 @@ const Checkbox = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
   }
 
   return (
-    <div className={cn(styles.wrapper)}>
-      <input
-        ref={ref}
-        className={cn(styles.input)}
-        checked={rest.value}
-        value={rest.value}
-        type="checkbox"
-        {...rest}
-      />
-      {label && <label className={cn(styles.label)}>{label}</label>}
-      {touched && error && <span className={cn(styles.errorMessage)}>{error}</span>}
+    <div className={className}>
+      <div className={cn(styles.wrapper)}>
+        <input ref={ref} className={cn(styles.input)} checked={value} type="checkbox" {...rest} />
+        {label && <label className={cn(styles.label)}>{label}</label>}
+        {isError && errorMessage && <span className={cn(styles.errorMessage)}>{errorMessage}</span>}
+      </div>
     </div>
   )
 })

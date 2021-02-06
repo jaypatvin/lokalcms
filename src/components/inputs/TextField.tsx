@@ -5,20 +5,21 @@ import { sizes, InputProps } from './utils'
 
 type Props = InputProps & {
   type: string
-  [x: string]: any
+  defaultValue?: string
 }
 
 const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
   const {
     type = 'text',
     label,
-    error,
+    isError,
+    errorMessage,
     touched,
-    initialValue,
     initialTouched,
     initialError,
     noMargin,
     size = 'medium',
+    required,
     ...rest
   } = props
 
@@ -38,7 +39,7 @@ const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
         'text-gray-600',
         'w-full',
         size ? sizes[size].input : sizes['medium'].input,
-        touched && error ? 'border-red-300' : 'border-gray-300',
+        isError ? 'border-red-300' : 'border-gray-300',
       ],
       focus: ['border-blue-300'],
     },
@@ -49,9 +50,9 @@ const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
 
   return (
     <div className={cn(styles.wrapper)}>
-      {label && <label className={cn(styles.label)}>{label}</label>}
+      {label && <label className={cn(styles.label)}>{label} {required ? <span className='text-red-600'>*</span> : ''}</label>}
       <input ref={ref} className={cn(styles.input)} type={type} {...rest} />
-      {touched && error && <span className={cn(styles.errorMessage)}>{error}</span>}
+      {isError && <span className={cn(styles.errorMessage)}>{errorMessage}</span>}
     </div>
   )
 })

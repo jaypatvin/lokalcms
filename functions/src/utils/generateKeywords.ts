@@ -1,5 +1,5 @@
-export const generateUserKeywords = (names: [string, string, string]) => {
-    let [first, last, email] = names
+export const generateUserKeywords = (names: [string, string, string, string]) => {
+    let [first, last, displayName, email] = names
     first = first.toLowerCase()
     last = last.toLowerCase()
     const keywords = ['']
@@ -16,6 +16,11 @@ export const generateUserKeywords = (names: [string, string, string]) => {
     currentKeyword = ''
     const fullname = `${first} ${last}`
     fullname.split('').forEach(letter => {
+        currentKeyword += letter
+        keywords.push(currentKeyword)
+    })
+    currentKeyword = ''
+    displayName.split('').forEach(letter => {
         currentKeyword += letter
         keywords.push(currentKeyword)
     })

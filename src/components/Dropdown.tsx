@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import useOuterClick from '../customHooks/useOuterClick'
-import { ItemType, Size } from '../utils/types'
+import { Color, ItemType, Size } from '../utils/types'
 import { Button } from './buttons'
 
 type OptionType = {
@@ -16,6 +16,7 @@ type Props = {
   currentValue?: ItemType | string | number
   className?: string
   size?: Size
+  color?: Color
 }
 
 const Dropdown = ({
@@ -25,7 +26,8 @@ const Dropdown = ({
   onSelect,
   currentValue,
   className = '',
-  size='medium'
+  size='medium',
+  color
 }: Props) => {
   const [open, setOpen] = useState(false)
   const ref = useOuterClick(() => setOpen(false))
@@ -62,7 +64,7 @@ const Dropdown = ({
 
   return (
     <div ref={ref} className={`${className} relative`}>
-      <Button size={size} onClick={() => setOpen(!open)}>{displayName}</Button>
+      <Button color={color} size={size} onClick={() => setOpen(!open)}>{displayName}</Button>
       {open && <ul className="absolute top-full left-3 max-h-52 max-w-xs overflow-y-auto bg-white shadow">{displayedOptions.map(renderOption)}</ul>}
     </div>
   )

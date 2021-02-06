@@ -11,6 +11,9 @@ import { LimitType, SortOrderType, UserRoleType, UserSortByType } from '../../ut
 import UserRoleMenu from './UserRoleMenu'
 import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
+import Modal from '../../components/modals'
+import { TextField } from '../../components/inputs'
+import UserCreateUpdateForm from './UserCreateUpdateForm'
 
 // Init
 dayjs.extend(relativeTime)
@@ -27,6 +30,9 @@ const UserListPage = (props: any) => {
   const [firstUserOnList, setFirstUserOnList] = useState<any>()
   const [lastUserOnList, setLastUserOnList] = useState<any>()
   const [isLastPage, setIsLastPage] = useState(false)
+  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
+  const [userModalMode, setUserModalMode] = useState<'create' | 'update'>('create')
+  const [userToUpdate, setUserToUpdate] = useState<any>()
 
   const getUserList = async (docs: any[]) => {
     const newUserList = []
@@ -89,8 +95,40 @@ const UserListPage = (props: any) => {
     }
   }
 
+  const openCreateUser = () => {
+    setIsCreateUserOpen(true)
+    setUserModalMode('create')
+    setUserToUpdate(undefined)
+  }
+
+  const openUpdateUser = (user: any) => {
+    setIsCreateUserOpen(true)
+    setUserModalMode('update')
+    const data = {
+      id: user.id,
+      status: user.status,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      display_name: user.display_name,
+      community_id: user.community_id,
+      profile_photo: user.profile_photo,
+      street: user.address.street,
+      is_admin: user.roles.admin,
+    }
+    setUserToUpdate(data)
+  }
+
   return (
     <div className="flex flex-row w-full">
+      {isCreateUserOpen && (
+        <UserCreateUpdateForm
+          isOpen={isCreateUserOpen}
+          setIsOpen={setIsCreateUserOpen}
+          userToUpdate={userToUpdate}
+          mode={userModalMode}
+        />
+      )}
       <UserRoleMenu onSelect={setRole} />
       <div className="pb-8 flex-grow">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
@@ -110,7 +148,7 @@ const UserListPage = (props: any) => {
                   simpleOptions={[10, 25, 50, 100]}
                   onSelect={(option: any) => setLimit(option.value)}
                   currentValue={limit}
-                  size='small'
+                  size="small"
                 />
               </div>
               <Button
@@ -130,15 +168,7 @@ const UserListPage = (props: any) => {
             </div>
           </div>
           <div className="flex items-center">
-            <Button
-              icon="add"
-              size="small"
-              onClick={(e: any) => {
-                e.preventDefault()
-                console.log('Add User')
-                return false
-              }}
-            >
+            <Button icon="add" size="small" onClick={openCreateUser}>
               New User
             </Button>
           </div>
@@ -276,6 +306,7 @@ const UserListPage = (props: any) => {
 
                       <td className="action-col">
                         <button
+                          onClick={() => openUpdateUser(user)}
                           type="button"
                           className="inline-block text-gray-500 hover:text-gray-700"
                         >
