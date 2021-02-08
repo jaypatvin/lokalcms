@@ -19,3 +19,9 @@ export type LimitType = 10 | 25 | 50 | 100
 // --- User Types --- //
 export type UserRoleType = 'all' | 'admin' | 'member'
 export type UserSortByType = 'display_name' | 'community_name' | 'status' | 'created_at'
+export const statusColorMap: any = {
+  active: 'bg-green-400',
+  suspended: 'bg-red-400',
+  pending: 'bg-yellow-400',
+  locked: 'bg-gray-400',
+}

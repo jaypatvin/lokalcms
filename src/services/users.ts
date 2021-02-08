@@ -15,6 +15,10 @@ import { db, auth } from './firebase'
 //   }
 // }
 
+export const fetchUserByID = async (id: string) => {
+  return db.collection('users').doc(id).get()
+}
+
 export const fetchUserByUID = async (uid = '') => {
   try {
     // valid login
@@ -33,7 +37,7 @@ export const fetchUserByUID = async (uid = '') => {
       return false
     }
 
-    return userInfoRef.data()
+    return userInfoRef
   } catch (error) {
     console.log(error)
     return false
@@ -61,8 +65,10 @@ export const getUsers = ({
     .orderBy(sortBy, sortOrder)
     .limit(limit)
 
-  if (['admin', 'member'].indexOf(role) >= 0) {
-    ref = ref.where('roles.' + role, '==', true)
+  if (role === 'member') {
+    ref = ref.where('roles.admin', '==', false)
+  } else if (role !== 'all') {
+    ref = ref.where(`roles.${role}`, '==', true)
   }
 
   return ref

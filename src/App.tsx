@@ -33,6 +33,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/communities" component={CommunityListPage} />
             <PrivateRoute exact path="/shops" component={ShopListPage} />
             <PrivateRoute exact path="/users" component={UserListPage} />
+            <PrivateRoute exact path="/users/:id" component={UserEditPage} />
             <PrivateRoute exact path="/invites" component={InviteListPage} />
             <PrivateRoute exact path="/settings" component={SettingsPage} />
             <PrivateRoute exact path="/myaccount" component={UserEditPage} useCurrentUser={true} />

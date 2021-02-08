@@ -57,8 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setCurrentUser(user)
 
       if (user !== null) {
-        const userInfo = await fetchUserByUID(user.uid)
-        if (userInfo === false) {
+        const userRef = await fetchUserByUID(user.uid)
+        if (userRef === false) {
           // if user is not mapped to the users collection
           // log out the user
           setCurrentUserInfo(null)
@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // logout
           await logout()
         } else {
+          const userInfo = { ...userRef.data(), id: userRef.id }
           setCurrentUserInfo(userInfo)
         }
 
