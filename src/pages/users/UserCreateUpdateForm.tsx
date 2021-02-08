@@ -1,22 +1,54 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { Link, useHistory } from 'react-router-dom'
+import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
+import { statusColorMap } from '../../utils/types'
 
 type Props = {
-  isOpen: boolean
-  setIsOpen: (val: boolean) => void
+  isOpen?: boolean
+  setIsOpen?: (val: boolean) => void
   mode?: 'create' | 'update'
   userToUpdate?: any
+  isModal?: boolean
 }
 
 const initialData = { status: 'active' }
 
-const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create', userToUpdate }: Props) => {
-  console.log('mode', mode)
-  console.log('userToUpdate', userToUpdate)
+const UserCreateUpdateForm = ({
+  isOpen = false,
+  setIsOpen,
+  mode = 'create',
+  userToUpdate,
+  isModal = true,
+}: Props) => {
+  const history = useHistory()
   const [data, setData] = useState<any>(userToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
+  const [WrapperComponent, setWrapperComponent] = useState<any>()
+
+  useEffect(() => {
+    if (isModal && setIsOpen) {
+      const Component = ({ children, isOpen, setIsOpen, onSave }: any) => (
+        <Modal title={`${mode} user`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
+          {children}
+        </Modal>
+      )
+      setWrapperComponent(() => Component)
+    } else {
+      const Component = ({ children }: any) => <>{children}</>
+      setWrapperComponent(() => Component)
+    }
+  }, [isModal, userToUpdate, setIsOpen, isOpen, mode])
+
+  useEffect(() => {
+    if (userToUpdate) {
+      setData(userToUpdate)
+    } else {
+      setData(initialData)
+    }
+  }, [userToUpdate])
 
   const changeHandler = (field: string, value: string | number | boolean | null) => {
     const newData = { ...data }
@@ -43,7 +75,11 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create', userToUpdate
       if (res.status !== 'error') {
         setResponseData({})
         setData(initialData)
-        setIsOpen(false)
+        if (setIsOpen) {
+          setIsOpen(false)
+        } else if (!isModal) {
+          history.push('/users')
+        }
       }
     } else {
       console.error('environment variable for the api does not exist.')
@@ -58,8 +94,12 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create', userToUpdate
     return false
   }
 
+  console.log('data', data)
+
+  if (!WrapperComponent) return null
+
   return (
-    <Modal title={`${mode} user`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
+    <WrapperComponent title={`${mode} user`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
       <div className="flex justify-between mb-3">
         <Dropdown
           name="status"
@@ -67,8 +107,14 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create', userToUpdate
           currentValue={data.status}
           size="small"
           onSelect={(option) => changeHandler('status', option.value)}
+          buttonColor={statusColorMap[data.status]}
         />
-        <Checkbox label="Admin" onChange={(e) => changeHandler('is_admin', e.target.checked)} noMargin value={data.is_admin} />
+        <Checkbox
+          label="Admin"
+          onChange={(e) => changeHandler('is_admin', e.target.checked)}
+          noMargin
+          value={data.is_admin || false}
+        />
       </div>
       <div className="grid grid-cols-2 gap-x-2">
         <TextField
@@ -79,6 +125,7 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create', userToUpdate
           onChange={(e) => changeHandler('email', e.target.value)}
           isError={fieldIsError('email')}
           defaultValue={data.email}
+          readOnly={mode === 'update'}
         />
         <TextField
           required
@@ -136,7 +183,17 @@ const UserCreateUpdateForm = ({ isOpen, setIsOpen, mode = 'create', userToUpdate
       {responseData.status === 'error' && (
         <p className="text-red-600 text-center">{responseData.message}</p>
       )}
-    </Modal>
+      {!isModal && (
+        <div className="flex justify-end">
+          <Link to="/users">
+            <Button color="secondary">Cancel</Button>
+          </Link>
+          <Button color="primary" className="ml-3" onClick={onSave}>
+            Save
+          </Button>
+        </div>
+      )}
+    </WrapperComponent>
   )
 }
 

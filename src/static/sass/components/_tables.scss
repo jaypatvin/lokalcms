@@ -1,11 +1,11 @@
 
 .table-wrapper {
 
-    @apply p-2 min-w-full overflow-y-hidden overflow-x-auto;
+    @apply p-2 min-w-full overflow-y-visible;
     
     .table-container {
 
-        @apply block min-w-full shadow-md rounded-lg overflow-hidden;
+        @apply block min-w-full shadow-md rounded-lg overflow-y-visible;
         min-width: $table_container_width;
     
         table {

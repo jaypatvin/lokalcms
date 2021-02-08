@@ -15,6 +15,7 @@ export type ButtonProps = {
   block?: boolean
   size?: Size
   className?: string
+  customColor?: string
   [x: string]: any
 }
 
@@ -29,6 +30,7 @@ const Button = (props: ButtonProps) => {
     block,
     size = 'medium',
     className = '',
+    customColor,
     ...rest
   } = props
 
@@ -39,7 +41,7 @@ const Button = (props: ButtonProps) => {
       default: [
         'button',
         size ? buttonSizes[size] : buttonSizes['medium'],
-        color,
+        (customColor || color),
         block ? 'w-full block' : 'w-auto',
       ],
     },
@@ -47,7 +49,7 @@ const Button = (props: ButtonProps) => {
 
   return (
     <button
-      className={`${className} ${cn(styles.button)}`}
+      className={`${cn(styles.button)} ${className}`}
       disabled={disabled}
       type={type}
       {...rest}

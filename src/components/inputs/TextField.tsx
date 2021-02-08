@@ -6,6 +6,7 @@ import { sizes, InputProps } from './utils'
 type Props = InputProps & {
   type: string
   defaultValue?: string
+  readOnly?: boolean
 }
 
 const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
@@ -20,6 +21,7 @@ const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
     noMargin,
     size = 'medium',
     required,
+    readOnly = false,
     ...rest
   } = props
 
@@ -40,6 +42,7 @@ const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
         'w-full',
         size ? sizes[size].input : sizes['medium'].input,
         isError ? 'border-red-300' : 'border-gray-300',
+        readOnly ? 'bg-gray-200' : ''
       ],
       focus: ['border-blue-300'],
     },
@@ -51,7 +54,7 @@ const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
   return (
     <div className={cn(styles.wrapper)}>
       {label && <label className={cn(styles.label)}>{label} {required ? <span className='text-red-600'>*</span> : ''}</label>}
-      <input ref={ref} className={cn(styles.input)} type={type} {...rest} />
+      <input ref={ref} className={cn(styles.input)} type={type} readOnly={readOnly} {...rest} />
       {isError && <span className={cn(styles.errorMessage)}>{errorMessage}</span>}
     </div>
   )

@@ -17,6 +17,7 @@ type Props = {
   className?: string
   size?: Size
   color?: Color
+  buttonColor?: string
 }
 
 const Dropdown = ({
@@ -27,7 +28,8 @@ const Dropdown = ({
   currentValue,
   className = '',
   size='medium',
-  color
+  color,
+  buttonColor = ''
 }: Props) => {
   const [open, setOpen] = useState(false)
   const ref = useOuterClick(() => setOpen(false))
@@ -57,14 +59,14 @@ const Dropdown = ({
     const optionObj = { key, value }
     return (
       <li key={optionObj.key}>
-        <button className="p-2 hover:bg-gray-300 w-full" onClick={() => handleSelect(optionObj)}>{optionObj.value}</button>
+        <button className="p-2 hover:bg-gray-100 w-full" onClick={() => handleSelect(optionObj)}>{optionObj.value}</button>
       </li>
     )
   }
 
   return (
     <div ref={ref} className={`${className} relative`}>
-      <Button color={color} size={size} onClick={() => setOpen(!open)}>{displayName}</Button>
+      <Button customColor={buttonColor} size={size} onClick={() => setOpen(!open)}>{displayName}</Button>
       {open && <ul className="absolute top-full left-3 max-h-52 max-w-xs overflow-y-auto bg-white shadow">{displayedOptions.map(renderOption)}</ul>}
     </div>
   )
