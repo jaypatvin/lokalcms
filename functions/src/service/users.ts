@@ -35,3 +35,10 @@ export const updateUser = async (id, data) => {
                   .doc(id)
                   .update(data)
 }
+
+export const deleteUser = async (id) => {
+  return await db
+                  .collection('users')
+                  .doc(id)
+                  .delete()
+}

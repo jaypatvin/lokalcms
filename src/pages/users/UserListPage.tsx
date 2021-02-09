@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import dayjs, { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-
-import { auth, db } from '../../services/firebase'
 import { Button } from '../../components/buttons'
-import Avatar from '../../components/Avatar'
-
 import { getUsers } from '../../services/users'
 import { LimitType, SortOrderType, UserRoleType, UserSortByType } from '../../utils/types'
 import UserRoleMenu from './UserRoleMenu'
 import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
-import Modal from '../../components/modals'
-import { TextField } from '../../components/inputs'
 import UserCreateUpdateForm from './UserCreateUpdateForm'
-import UserListItem from './UserListItem'
+import UserListItems from './UserListItems'
 
 // Init
 dayjs.extend(relativeTime)
@@ -219,13 +213,7 @@ const UserListPage = (props: any) => {
                 </tr>
               </thead>
               <tbody>
-                {userList.map((user: any) => (
-                  <UserListItem
-                    key={user.id}
-                    user={user}
-                    openUpdateUser={() => openUpdateUser(user)}
-                  />
-                ))}
+                <UserListItems users={userList} openUpdateUser={openUpdateUser} />
               </tbody>
             </table>
           </div>

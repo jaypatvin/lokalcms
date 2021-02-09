@@ -1,11 +1,6 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
-import {
-  getUserByUID,
-  createUser as createNewUser,
-  getUserByID,
-  updateUser as updateExistingUser,
-} from '../../service/users'
+import * as UsersService from '../../service/users'
 import { getCommunityByID } from '../../service/community'
 import { generateUserKeywords } from '../../utils/generateKeywords'
 
@@ -66,7 +61,7 @@ export const createUser = async (req, res) => {
   }
 
   // check if uid already exist in the users' collection
-  const _users = await getUserByUID(_authUser.uid)
+  const _users = await UsersService.getUserByUID(_authUser.uid)
 
   if (_users.length > 0) {
     return res.json({ status: 'error', message: 'User "' + _authUser.email + '" already exist!' })
@@ -117,7 +112,7 @@ export const createUser = async (req, res) => {
     _newData.profile_photo = data.profile_photo
   }
 
-  const _newUser = await createNewUser(_newData)
+  const _newUser = await UsersService.createUser(_newData)
 
   // get the created user's data
   let _result = await _newUser.get().then((doc) => {
@@ -149,7 +144,7 @@ export const updateUser = async (req, res) => {
     return res.json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
-  const existingUserData = await getUserByID(data.id)
+  const existingUserData = await UsersService.getUserByID(data.id)
 
   // check if community id is valid
   try {
@@ -203,11 +198,20 @@ export const updateUser = async (req, res) => {
     updateData.address = { ...existingUserData.address, street: data.street }
   }
 
-  const _result = await updateExistingUser(data.id, updateData)
+  const _result = await UsersService.updateUser(data.id, updateData)
 
   return res.json({ status: 'ok', data: _result })
 }
 
 export const deleteUser = async (req, res) => {
-  res.json({ status: 'ok' })
+  const data = req.body
+  if (!data.id) res.json({ status: 'error', message: 'User ID is required!' })
+  const { id: user_id, display_name } = data
+
+  // delete document on user collections
+  const result = await UsersService.deleteUser(user_id)
+
+  // TODO: delete documents that should only exist with the user e.g. shop, products, etc
+
+  res.json({ status: 'ok', data: result, message: `User ${display_name || user_id} successfully deleted.` })
 }
