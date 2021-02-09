@@ -12,6 +12,8 @@ const UserListItems = ({ users, openUpdateUser }: Props) => {
   const { currentUserInfo } = useAuth()
   const [userToDelete, setUserToDelete] = useState<any>({})
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [userToUnarchive, setUserToUnarchive] = useState<any>({})
+  const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   const deleteUser = async (user: any) => {
     if (process.env.REACT_APP_API_URL) {
@@ -38,6 +40,30 @@ const UserListItems = ({ users, openUpdateUser }: Props) => {
     setUserToDelete(user)
   }
 
+  const unarchiveUser = async (user: any) => {
+    if (process.env.REACT_APP_API_URL) {
+      let url = `${process.env.REACT_APP_API_URL}/users/${user.id}`
+      let res: any = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        method: 'PUT',
+        body: JSON.stringify({ id: user.id, unarchive_only: true }),
+      })
+      res = await res.json()
+      console.log(res)
+      setIsUnarchiveDialogOpen(false)
+      setUserToUnarchive({})
+    } else {
+      console.error('environment variable for the api does not exist.')
+    }
+  }
+
+  const unarchiveClicked = (user: any) => {
+    setIsUnarchiveDialogOpen(true)
+    setUserToUnarchive(user)
+  }
+
   return (
     <>
       <ConfirmationDialog
@@ -50,13 +76,25 @@ const UserListItems = ({ users, openUpdateUser }: Props) => {
         acceptLabel="Delete"
         cancelLabel="Cancel"
       />
+      <ConfirmationDialog
+        isOpen={isUnarchiveDialogOpen}
+        onClose={() => setIsUnarchiveDialogOpen(false)}
+        onAccept={() => unarchiveUser(userToUnarchive)}
+        color="primary"
+        title="Unarchive"
+        descriptions={`Are you sure you want to unarchive user ${userToUnarchive.email}?`}
+        acceptLabel="Unarchive"
+        cancelLabel="Cancel"
+      />
       {users.map((user: any) => (
         <UserListItem
           key={user.id}
           user={user}
           openUpdateUser={() => openUpdateUser(user)}
           onDeleteUser={() => deleteClicked(user)}
+          onUnarchiveUser={() => unarchiveClicked(user)}
           hideDelete={currentUserInfo.id === user.id}
+          isArchived={user.status === 'archived'}
         />
       ))}
     </>

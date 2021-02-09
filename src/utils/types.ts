@@ -17,7 +17,7 @@ export type SortOrderType = 'asc' | 'desc'
 export type LimitType = 10 | 25 | 50 | 100
 
 // --- User Types --- //
-export type UserRoleType = 'all' | 'admin' | 'member'
+export type UserFilterType = 'all' | 'admin' | 'member' | 'archived'
 export type UserSortByType = 'display_name' | 'community_name' | 'status' | 'created_at'
 export const statusColorMap: any = {
   active: 'bg-green-400',

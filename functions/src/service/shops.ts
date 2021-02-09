@@ -37,7 +37,7 @@ export const createShop = async (data) => {
                   })
 }
 
-export const archiveShopsOfUser = async (id) => {
+export const setShopsStatusOfUser = async (id, status: 'previous' | 'enabled' | 'disabled' | 'archived') => {
 
   const shopsRef = await db
                   .collection('shops')
@@ -46,7 +46,15 @@ export const archiveShopsOfUser = async (id) => {
 
   const batch = db.batch()
   shopsRef.forEach(shop => {
-    batch.update(shop.ref, { status: 'archived' })
+    const shopRef = shop.ref
+    const shopData = shop.data()
+    const new_status = status === 'previous' ? (shopData.previous_status || 'enabled') : status
+    const updateData: any = {
+      status: new_status,
+      previous_status: shopData.status
+    }
+    if (status === 'archived') updateData.archived_at = new Date()
+    batch.update(shopRef, updateData)
   })
   const result = await batch.commit()
   return result

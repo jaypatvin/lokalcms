@@ -132,9 +132,17 @@ export const getUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   const data = req.body
-  let _authUser
   let _community
   const error_fields = []
+
+  const existingUserData = await UsersService.getUserByID(data.id)
+
+  if (data.unarchive_only && existingUserData.status === 'archived') {
+    const _result = await UsersService.updateUser(data.id, { status: 'active' })
+    const shops_update = await ShopsService.setShopsStatusOfUser(data.id, 'previous')
+
+    return res.json({ status: 'ok', data: _result, shops_update })
+  }
 
   // check required fields
   required_fields.forEach((field) => {
@@ -144,8 +152,6 @@ export const updateUser = async (req, res) => {
   if (error_fields.length) {
     return res.json({ status: 'error', message: 'Required fields missing', error_fields })
   }
-
-  const existingUserData = await UsersService.getUserByID(data.id)
 
   // check if community id is valid
   try {
@@ -213,7 +219,7 @@ export const deleteUser = async (req, res) => {
   const result = await UsersService.deleteUser(user_id)
 
   // archive the shops of the user
-  const shops_update = await ShopsService.archiveShopsOfUser(user_id)
+  const shops_update = await ShopsService.setShopsStatusOfUser(user_id, 'archived')
 
   res.json({ status: 'ok', data: result, shops_update, message: `User ${display_name || user_id} successfully deleted.` })
 }

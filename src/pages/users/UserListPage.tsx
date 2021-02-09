@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { Button } from '../../components/buttons'
 import { getUsers } from '../../services/users'
-import { LimitType, SortOrderType, UserRoleType, UserSortByType } from '../../utils/types'
+import { LimitType, SortOrderType, UserFilterType, UserSortByType } from '../../utils/types'
 import UserRoleMenu from './UserRoleMenu'
 import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
@@ -15,7 +15,7 @@ dayjs.extend(relativeTime)
 
 const UserListPage = (props: any) => {
   const [userList, setUserList] = useState<any>([])
-  const [role, setRole] = useState<UserRoleType>('all')
+  const [filter, setFilter] = useState<UserFilterType>('all')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<UserSortByType>('display_name')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
@@ -46,14 +46,14 @@ const UserListPage = (props: any) => {
   }
 
   useEffect(() => {
-    const newUsersRef = getUsers({ role, search, sortBy, sortOrder, limit })
+    const newUsersRef = getUsers({ filter, search, sortBy, sortOrder, limit })
     newUsersRef.onSnapshot(async (snapshot) => {
       getUserList(snapshot.docs)
     })
     setUsersRef(newUsersRef)
     setPageNum(1)
     setIsLastPage(false)
-  }, [role, search, sortBy, sortOrder, limit])
+  }, [filter, search, sortBy, sortOrder, limit])
 
   const onNextPage = () => {
     if (usersRef && lastUserOnList) {
@@ -124,7 +124,7 @@ const UserListPage = (props: any) => {
           mode={userModalMode}
         />
       )}
-      <UserRoleMenu onSelect={setRole} />
+      <UserRoleMenu onSelect={setFilter} />
       <div className="pb-8 flex-grow">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
           <div className="flex items-center">
