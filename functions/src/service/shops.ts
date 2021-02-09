@@ -36,3 +36,18 @@ export const createShop = async (data) => {
                     return res
                   })
 }
+
+export const archiveShopsOfUser = async (id) => {
+
+  const shopsRef = await db
+                  .collection('shops')
+                  .where('user_id', '==', id)
+                  .get()
+
+  const batch = db.batch()
+  shopsRef.forEach(shop => {
+    batch.update(shop.ref, { status: 'archived' })
+  })
+  const result = await batch.commit()
+  return result
+}

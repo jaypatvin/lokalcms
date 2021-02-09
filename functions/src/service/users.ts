@@ -40,5 +40,5 @@ export const deleteUser = async (id) => {
   return await db
                   .collection('users')
                   .doc(id)
-                  .delete()
+                  .update({ status: 'archived' })
 }

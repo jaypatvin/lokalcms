@@ -51,6 +51,10 @@ const UserListItem = ({ user, openUpdateUser, onDeleteUser, hideDelete }: Props)
       statusColor = 'gray'
       statusText = 'Locked'
       break
+    case 'archived':
+      statusColor = 'black'
+      statusText = 'Archived'
+      break
     default:
       statusColor = 'gray'
       break

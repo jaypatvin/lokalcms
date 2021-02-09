@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
 import * as UsersService from '../../service/users'
+import * as ShopsService from '../../service/shops'
 import { getCommunityByID } from '../../service/community'
 import { generateUserKeywords } from '../../utils/generateKeywords'
 
@@ -208,10 +209,11 @@ export const deleteUser = async (req, res) => {
   if (!data.id) res.json({ status: 'error', message: 'User ID is required!' })
   const { id: user_id, display_name } = data
 
-  // delete document on user collections
+  // archive the user
   const result = await UsersService.deleteUser(user_id)
 
-  // TODO: delete documents that should only exist with the user e.g. shop, products, etc
+  // archive the shops of the user
+  const shops_update = await ShopsService.archiveShopsOfUser(user_id)
 
-  res.json({ status: 'ok', data: result, message: `User ${display_name || user_id} successfully deleted.` })
+  res.json({ status: 'ok', data: result, shops_update, message: `User ${display_name || user_id} successfully deleted.` })
 }
