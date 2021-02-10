@@ -72,8 +72,11 @@ export const getUsers = ({
     ref = ref.where(`roles.${filter}`, '==', true)
   }
 
-  ref = ref.orderBy('status', sortOrder).limit(limit)
-  ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+  ref = ref.orderBy('status', sortOrder)
+  if (sortBy !== 'status') {
+    ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+  }
+  ref = ref.limit(limit)
 
   return ref
 }

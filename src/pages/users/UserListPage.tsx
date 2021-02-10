@@ -186,9 +186,7 @@ const UserListPage = (props: any) => {
                     <SortButton
                       className="text-xs uppercase font-bold"
                       label="Community"
-                      showSortIcons={sortBy === 'community_name'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('community_name')}
+                      showSortIcons={false}
                     />
                   </th>
                   <th>

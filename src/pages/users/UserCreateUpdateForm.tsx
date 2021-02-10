@@ -60,14 +60,16 @@ const UserCreateUpdateForm = ({
     console.log('data', data)
     if (process.env.REACT_APP_API_URL) {
       let url = `${process.env.REACT_APP_API_URL}/users`
+      let method = 'POST'
       if (mode === 'update' && data.id) {
         url = `${url}/${data.id}`
+        method = 'PUT'
       }
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
         },
-        method: 'PUT',
+        method,
         body: JSON.stringify(data),
       })
       res = await res.json()
