@@ -11,6 +11,7 @@ import TestPage from './pages/TestPage'
 
 // Pages
 import CommunityListPage from './pages/communities/CommunityListPage'
+import CommunityEditPage from './pages/communities/CommunityEditPage'
 import ShopListPage from './pages/shops/ShopListPage'
 import UserListPage from './pages/users/UserListPage'
 import InviteListPage from './pages/invites/InviteListPage'
@@ -31,6 +32,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/" redirect="/dashboard" />
             <PrivateRoute exact path="/dashboard" component={DashboardPage} />
             <PrivateRoute exact path="/communities" component={CommunityListPage} />
+            <PrivateRoute exact path="/communities/:id" component={CommunityEditPage} />
             <PrivateRoute exact path="/shops" component={ShopListPage} />
             <PrivateRoute exact path="/users" component={UserListPage} />
             <PrivateRoute exact path="/users/:id" component={UserEditPage} />
