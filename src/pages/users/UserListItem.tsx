@@ -7,9 +7,20 @@ import { Link } from 'react-router-dom'
 type Props = {
   user: any
   openUpdateUser: () => void
+  onDeleteUser: () => void
+  onUnarchiveUser: () => void
+  hideDelete?: boolean
+  isArchived?: boolean
 }
 
-const UserListItem = ({ user, openUpdateUser }: Props) => {
+const UserListItem = ({
+  user,
+  openUpdateUser,
+  onDeleteUser,
+  onUnarchiveUser,
+  hideDelete,
+  isArchived = false,
+}: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
@@ -49,10 +60,36 @@ const UserListItem = ({ user, openUpdateUser }: Props) => {
       statusColor = 'gray'
       statusText = 'Locked'
       break
+    case 'archived':
+      statusColor = 'black'
+      statusText = 'Archived'
+      break
     default:
       statusColor = 'gray'
       break
   }
+
+  const OptionsComponent = isArchived ? (
+    <div className="absolute top-0 right-full shadow w-36 bg-white">
+      <button onClick={onUnarchiveUser} className="block w-full p-2 hover:bg-gray-100">
+        Unarchive
+      </button>
+    </div>
+  ) : (
+    <div className="absolute top-0 right-full shadow w-36 bg-white">
+      <button onClick={openUpdateUser} className="block w-full p-2 hover:bg-gray-100">
+        Quick Edit
+      </button>
+      <Link to={`/users/${user.id}`} className="block w-full p-2 hover:bg-gray-100 text-center">
+        Edit
+      </Link>
+      {!hideDelete && (
+        <button className="block w-full p-2 hover:bg-gray-100 text-red-600" onClick={onDeleteUser}>
+          Delete
+        </button>
+      )}
+    </div>
+  )
 
   return (
     <tr>
@@ -105,15 +142,7 @@ const UserListItem = ({ user, openUpdateUser }: Props) => {
               <path d="M12 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm-2 6a2 2 0 104 0 2 2 0 00-4 0z" />
             </svg>
           </button>
-          {
-            isOptionsOpen && (
-              <div className="absolute top-0 right-full shadow w-36 bg-white">
-                <button onClick={openUpdateUser} className="block w-full p-2 hover:bg-gray-100">Quick Edit</button>
-                <Link to={`/users/${user.id}`} className="block w-full p-2 hover:bg-gray-100 text-center">Edit</Link>
-                <button className="block w-full p-2 hover:bg-gray-100 text-red-600">Delete</button>
-              </div>
-            )
-          }
+          {isOptionsOpen && OptionsComponent}
         </div>
       </td>
     </tr>

@@ -1,11 +1,7 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
-import {
-  getUserByUID,
-  createUser as createNewUser,
-  getUserByID,
-  updateUser as updateExistingUser,
-} from '../../service/users'
+import * as UsersService from '../../service/users'
+import * as ShopsService from '../../service/shops'
 import { getCommunityByID } from '../../service/community'
 import { generateUserKeywords } from '../../utils/generateKeywords'
 
@@ -66,7 +62,7 @@ export const createUser = async (req, res) => {
   }
 
   // check if uid already exist in the users' collection
-  const _users = await getUserByUID(_authUser.uid)
+  const _users = await UsersService.getUserByUID(_authUser.uid)
 
   if (_users.length > 0) {
     return res.json({ status: 'error', message: 'User "' + _authUser.email + '" already exist!' })
@@ -117,7 +113,7 @@ export const createUser = async (req, res) => {
     _newData.profile_photo = data.profile_photo
   }
 
-  const _newUser = await createNewUser(_newData)
+  const _newUser = await UsersService.createUser(_newData)
 
   // get the created user's data
   let _result = await _newUser.get().then((doc) => {
@@ -136,9 +132,17 @@ export const getUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   const data = req.body
-  let _authUser
   let _community
   const error_fields = []
+
+  const existingUserData = await UsersService.getUserByID(data.id)
+
+  if (data.unarchive_only && existingUserData.status === 'archived') {
+    const _result = await UsersService.updateUser(data.id, { status: 'active' })
+    const shops_update = await ShopsService.setShopsStatusOfUser(data.id, 'previous')
+
+    return res.json({ status: 'ok', data: _result, shops_update })
+  }
 
   // check required fields
   required_fields.forEach((field) => {
@@ -148,8 +152,6 @@ export const updateUser = async (req, res) => {
   if (error_fields.length) {
     return res.json({ status: 'error', message: 'Required fields missing', error_fields })
   }
-
-  const existingUserData = await getUserByID(data.id)
 
   // check if community id is valid
   try {
@@ -203,11 +205,21 @@ export const updateUser = async (req, res) => {
     updateData.address = { ...existingUserData.address, street: data.street }
   }
 
-  const _result = await updateExistingUser(data.id, updateData)
+  const _result = await UsersService.updateUser(data.id, updateData)
 
   return res.json({ status: 'ok', data: _result })
 }
 
 export const deleteUser = async (req, res) => {
-  res.json({ status: 'ok' })
+  const data = req.body
+  if (!data.id) res.json({ status: 'error', message: 'User ID is required!' })
+  const { id: user_id, display_name } = data
+
+  // archive the user
+  const result = await UsersService.deleteUser(user_id)
+
+  // archive the shops of the user
+  const shops_update = await ShopsService.setShopsStatusOfUser(user_id, 'archived')
+
+  res.json({ status: 'ok', data: result, shops_update, message: `User ${display_name || user_id} successfully deleted.` })
 }

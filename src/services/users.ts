@@ -1,4 +1,4 @@
-import { UserSortByType, UserRoleType, SortOrderType } from '../utils/types'
+import { UserSortByType, UserFilterType, SortOrderType } from '../utils/types'
 import { db, auth } from './firebase'
 
 // export const getAuthUserByUID = async (uid: string) => {
@@ -45,7 +45,7 @@ export const fetchUserByUID = async (uid = '') => {
 }
 
 type GetUsersParamTypes = {
-  role?: UserRoleType,
+  filter?: UserFilterType
   search?: string
   sortBy?: UserSortByType
   sortOrder?: SortOrderType
@@ -53,23 +53,30 @@ type GetUsersParamTypes = {
 }
 
 export const getUsers = ({
-  role = 'all',
+  filter = 'all',
   search = '',
   sortBy = 'display_name',
   sortOrder = 'asc',
-  limit = 50
+  limit = 50,
 }: GetUsersParamTypes) => {
-  let ref = db
-    .collection('users')
-    .where('keywords', 'array-contains', search.toLowerCase())
-    .orderBy(sortBy, sortOrder)
-    .limit(limit)
+  let ref = db.collection('users').where('keywords', 'array-contains', search.toLowerCase())
 
-  if (role === 'member') {
-    ref = ref.where('roles.admin', '==', false)
-  } else if (role !== 'all') {
-    ref = ref.where(`roles.${role}`, '==', true)
+  if (filter === 'archived') {
+    ref = ref.where('status', '==', 'archived')
+  } else {
+    ref = ref.where('status', '!=', 'archived')
   }
+  if (filter === 'member') {
+    ref = ref.where('roles.admin', '==', false)
+  } else if (!['all', 'archived'].includes(filter)) {
+    ref = ref.where(`roles.${filter}`, '==', true)
+  }
+
+  ref = ref.orderBy('status', sortOrder)
+  if (sortBy !== 'status') {
+    ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+  }
+  ref = ref.limit(limit)
 
   return ref
 }
