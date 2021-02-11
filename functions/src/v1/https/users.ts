@@ -68,12 +68,12 @@ export const createUser = async (req, res) => {
     return res.json({ status: 'error', message: 'User "' + _authUser.email + '" already exist!' })
   }
 
-  const keywords = generateUserKeywords([
-    data.first_name,
-    data.last_name,
-    data.display_name || `${data.first_name} ${data.last_name}`,
-    _authUser.email,
-  ])
+  const keywords = generateUserKeywords({
+    first_name: data.first_name,
+    last_name: data.last_name,
+    email: _authUser.email,
+    display_name: data.display_name || `${data.first_name} ${data.last_name}`
+  })
 
   // create a user
   const _newData: any = {
@@ -168,15 +168,15 @@ export const updateUser = async (req, res) => {
     existingUserData.last_name !== data.last_name ||
     existingUserData.display_name !== data.display_name
   ) {
-    keywords = generateUserKeywords([
-      data.first_name,
-      data.last_name,
-      data.display_name || `${data.first_name} ${data.last_name}`,
-      existingUserData.email,
-    ])
+    keywords = generateUserKeywords({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: existingUserData.email,
+      display_name: data.display_name || `${data.first_name} ${data.last_name}`
+    })
   }
 
-  const updateData: any = {}
+  const updateData: any = { updated_at: new Date() }
 
   if (existingUserData.first_name !== data.first_name) updateData.first_name = data.first_name
   if (existingUserData.last_name !== data.last_name) updateData.last_name = data.last_name

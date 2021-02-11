@@ -25,3 +25,6 @@ export const statusColorMap: any = {
   pending: 'bg-yellow-400',
   locked: 'bg-gray-400',
 }
+
+// --- User Types --- //
+export type CommunitySortByType = 'name' | 'barangay' | 'city' | 'country' | 'state' | 'state' | 'subdivision'
