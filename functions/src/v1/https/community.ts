@@ -56,7 +56,6 @@ export const createCommunity = async (req, res) => {
   // create new community
   const _newData: any = {
     name: data.name,
-    created_at: new Date(),
     address: {
       barangay: data.barangay,
       city: data.city,
@@ -89,7 +88,6 @@ export const getCommunity = async (req, res) => {
 
 export const updateCommunity = async (req, res) => {
   const data = req.body
-  let _community
   const error_fields = []
 
   const existing_community = await CommunityService.getCommunityByID(data.id)
@@ -116,7 +114,7 @@ export const updateCommunity = async (req, res) => {
   }
 
 
-  const updateData: any = { updated_at: new Date(), address: existing_community.address }
+  const updateData: any = { address: existing_community.address }
 
   if (
     existing_community.name !== data.name ||

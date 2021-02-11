@@ -44,9 +44,12 @@ export const getCommunitiesByNameAndAddress = async (options: NameAndAddressArgs
 }
 
 export const createCommunity = async (data) => {
-  return await db.collection('community').add(data)
+  return await db.collection('community').add({ ...data, created_at: new Date() })
 }
 
 export const updateCommunity = async (id, data) => {
-  return await db.collection('community').doc(id).update(data)
+  return await db
+    .collection('community')
+    .doc(id)
+    .update({ ...data, updated_at: new Date() })
 }

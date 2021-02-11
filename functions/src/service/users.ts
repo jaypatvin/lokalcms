@@ -23,7 +23,7 @@ export const getUserByID = async (id) => {
 export const createUser = async (data) => {
   return await db
                   .collection('users')
-                  .add(data)
+                  .add({ ...data, created_at: new Date() })
                   .then((res) => {
                     return res
                   })
@@ -33,12 +33,12 @@ export const updateUser = async (id, data) => {
   return await db
                   .collection('users')
                   .doc(id)
-                  .update(data)
+                  .update({ ...data, updated_at: new Date() })
 }
 
-export const deleteUser = async (id) => {
+export const archiveUser = async (id) => {
   return await db
                   .collection('users')
                   .doc(id)
-                  .update({ status: 'archived', archived_at: new Date() })
+                  .update({ status: 'archived', archived_at: new Date(), updated_at: new Date() })
 }
