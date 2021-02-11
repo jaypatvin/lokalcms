@@ -61,21 +61,19 @@ export const getUsers = ({
 }: GetUsersParamTypes) => {
   let ref = db.collection('users').where('keywords', 'array-contains', search.toLowerCase())
 
-  if (filter === 'archived') {
-    ref = ref.where('status', '==', 'archived')
-  } else {
-    ref = ref.where('status', '!=', 'archived')
-  }
   if (filter === 'member') {
     ref = ref.where('roles.admin', '==', false)
   } else if (!['all', 'archived'].includes(filter)) {
     ref = ref.where(`roles.${filter}`, '==', true)
   }
 
-  ref = ref.orderBy('status', sortOrder)
-  if (sortBy !== 'status') {
-    ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+  if (filter === 'archived') {
+    ref = ref.where('status', '==', 'archived')
+  } else {
+    ref = ref.where('status', '!=', 'archived').orderBy('status', sortOrder)
   }
+
+  if (sortBy !== 'status') ref = ref.orderBy(sortBy, sortOrder)
   ref = ref.limit(limit)
 
   return ref
