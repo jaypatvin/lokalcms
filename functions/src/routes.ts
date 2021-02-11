@@ -4,7 +4,7 @@ import { requireAuthHeader } from './v1/https/streamUsers'
 import { getUsers, postUsers } from "./v1/https/streamUsers"
 import { postStreamFeedCredentials } from "./v1/https/streamFeedCredentials"
 
-import { getUsers as getUserList, createUser, getUser, updateUser, deleteUser } from './v1/https/users'
+import { getUsers as getUserList, createUser, getUser, updateUser, unarchiveUser } from './v1/https/users'
 import { getShops as getShopList, createShop, getShop, updateShop, deleteShop } from './v1/https/shops'
 
 import { checkInvite, claimInvite } from './v1/https/invites'
@@ -27,7 +27,7 @@ module.exports = api => {
   api.route("/v1/users").post(wrapAsync(createUser))
   api.route("/v1/users/:userId").get(wrapAsync(getUser))
   api.route("/v1/users/:userId").put(wrapAsync(updateUser))
-  api.route("/v1/users/:userId").delete(wrapAsync(deleteUser))
+  api.route("/v1/users/:userId").delete(wrapAsync(unarchiveUser))
   
   // -- Shops routes
   api.route("/v1/shops").get(wrapAsync(getShopList))

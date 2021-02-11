@@ -88,7 +88,6 @@ export const createUser = async (req, res) => {
     },
     status: data.status || 'active',
     birthdate: '',
-    created_at: new Date(),
     registration: {
       id_photo: '',
       id_type: '',
@@ -176,7 +175,7 @@ export const updateUser = async (req, res) => {
     })
   }
 
-  const updateData: any = { updated_at: new Date() }
+  const updateData: any = { }
 
   if (existingUserData.first_name !== data.first_name) updateData.first_name = data.first_name
   if (existingUserData.last_name !== data.last_name) updateData.last_name = data.last_name
@@ -210,13 +209,13 @@ export const updateUser = async (req, res) => {
   return res.json({ status: 'ok', data: _result })
 }
 
-export const deleteUser = async (req, res) => {
+export const unarchiveUser = async (req, res) => {
   const data = req.body
   if (!data.id) res.json({ status: 'error', message: 'User ID is required!' })
   const { id: user_id, display_name } = data
 
   // archive the user
-  const result = await UsersService.deleteUser(user_id)
+  const result = await UsersService.archiveUser(user_id)
 
   // archive the shops of the user
   const shops_update = await ShopsService.setShopsStatusOfUser(user_id, 'archived')
