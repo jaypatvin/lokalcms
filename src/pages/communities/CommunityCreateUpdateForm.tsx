@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { ChangeEventHandler, useEffect, useState } from 'react'
 import { Link, useHistory } from 'react-router-dom'
 import { Button } from '../../components/buttons'
 import { TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
+import { getUsers } from '../../services/users'
 
 type Props = {
   isOpen?: boolean
@@ -25,11 +26,13 @@ const CommunityCreateUpdateForm = ({
   const [data, setData] = useState<any>(communityToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
+  const [userSearchText, setUserSearchText] = useState('')
+  const [userSearchResult, setUserSearchResult] = useState<any>([])
 
   useEffect(() => {
     if (isModal && setIsOpen) {
       const Component = ({ children, isOpen, setIsOpen, onSave }: any) => (
-        <Modal title={`${mode} user`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
+        <Modal title={`${mode} Community`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
           {children}
         </Modal>
       )
@@ -52,6 +55,18 @@ const CommunityCreateUpdateForm = ({
     const newData = { ...data }
     newData[field] = value
     setData(newData)
+  }
+
+  const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    if (e.target.value.length > 2) {
+      const usersRef = getUsers({ search: e.target.value })
+      const result = await usersRef.get()
+      const users = result.docs.map(doc => doc.data())
+      setUserSearchResult(users)
+    } else {
+      setUserSearchResult([])
+    }
+    setUserSearchText(e.target.value)
   }
 
   const onSave = async () => {
@@ -107,16 +122,32 @@ const CommunityCreateUpdateForm = ({
         <TextField
           required
           label="name"
-          type="name"
+          type="text"
           size="small"
           onChange={(e) => changeHandler('name', e.target.value)}
           isError={fieldIsError('name')}
           defaultValue={data.name}
         />
         <TextField
+          label="cover_photo"
+          type="text"
+          size="small"
+          onChange={(e) => changeHandler('cover_photo', e.target.value)}
+          isError={fieldIsError('cover_photo')}
+          defaultValue={data.cover_photo}
+        />
+        <TextField
+          label="profile_photo"
+          type="text"
+          size="small"
+          onChange={(e) => changeHandler('profile_photo', e.target.value)}
+          isError={fieldIsError('profile_photo')}
+          defaultValue={data.profile_photo}
+        />
+        <TextField
           required
           label="subdivision"
-          type="subdivision"
+          type="text"
           size="small"
           onChange={(e) => changeHandler('subdivision', e.target.value)}
           isError={fieldIsError('subdivision')}
@@ -125,7 +156,7 @@ const CommunityCreateUpdateForm = ({
         <TextField
           required
           label="city"
-          type="city"
+          type="text"
           size="small"
           onChange={(e) => changeHandler('city', e.target.value)}
           isError={fieldIsError('city')}
@@ -134,7 +165,7 @@ const CommunityCreateUpdateForm = ({
         <TextField
           required
           label="barangay"
-          type="barangay"
+          type="text"
           size="small"
           onChange={(e) => changeHandler('barangay', e.target.value)}
           isError={fieldIsError('barangay')}
@@ -143,7 +174,7 @@ const CommunityCreateUpdateForm = ({
         <TextField
           required
           label="state"
-          type="state"
+          type="text"
           size="small"
           onChange={(e) => changeHandler('state', e.target.value)}
           isError={fieldIsError('state')}
@@ -152,7 +183,7 @@ const CommunityCreateUpdateForm = ({
         <TextField
           required
           label="country"
-          type="country"
+          type="text"
           size="small"
           onChange={(e) => changeHandler('country', e.target.value)}
           isError={fieldIsError('country')}
@@ -161,28 +192,30 @@ const CommunityCreateUpdateForm = ({
         <TextField
           required
           label="zip_code"
-          type="zip_code"
+          type="text"
           size="small"
           onChange={(e) => changeHandler('zip_code', e.target.value)}
           isError={fieldIsError('zip_code')}
           defaultValue={data.zip_code}
         />
-        <TextField
-          label="cover_photo"
-          type="cover_photo"
-          size="small"
-          onChange={(e) => changeHandler('cover_photo', e.target.value)}
-          isError={fieldIsError('cover_photo')}
-          defaultValue={data.cover_photo}
-        />
-        <TextField
-          label="profile_photo"
-          type="profile_photo"
-          size="small"
-          onChange={(e) => changeHandler('profile_photo', e.target.value)}
-          isError={fieldIsError('profile_photo')}
-          defaultValue={data.profile_photo}
-        />
+        <div className="relative">
+          <TextField
+            label="admins"
+            type="text"
+            size="small"
+            onChange={userSearchHandler}
+            defaultValue={userSearchText}
+          />
+          {
+            userSearchResult.length > 0 && (
+              <div className="absolute top-full left-0">
+                {
+                  userSearchResult.map((user: any) => <p key={user.id}>{user.display_name}</p>)
+                }
+              </div>
+            )
+          }
+        </div>
       </div>
       {responseData.status === 'error' && (
         <p className="text-red-600 text-center">{responseData.message}</p>
