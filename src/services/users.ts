@@ -50,6 +50,7 @@ type GetUsersParamTypes = {
   sortBy?: UserSortByType
   sortOrder?: SortOrderType
   limit?: number
+  community?: string
 }
 
 export const getUsers = ({
@@ -58,8 +59,13 @@ export const getUsers = ({
   sortBy = 'display_name',
   sortOrder = 'asc',
   limit = 50,
+  community
 }: GetUsersParamTypes) => {
   let ref = db.collection('users').where('keywords', 'array-contains', search.toLowerCase())
+
+  if (community) {
+    ref = ref.where('community_id', '==', community)
+  }
 
   if (filter === 'member') {
     ref = ref.where('roles.admin', '==', false)

@@ -40,7 +40,7 @@ export const getCommunitiesByNameAndAddress = async (options: NameAndAddressArgs
     .where('address.barangay', '==', barangay)
     .where('address.zip_code', '==', zip_code)
     .get()
-    .then((res) => res.docs.map((doc) => doc.data()))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const createCommunity = async (data) => {

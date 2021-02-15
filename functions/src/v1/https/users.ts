@@ -187,7 +187,9 @@ export const updateUser = async (req, res) => {
   if (existingUserData.keywords !== keywords) updateData.keywords = keywords
   if (existingUserData.profile_photo !== data.profile_photo)
     updateData.profile_photo = data.profile_photo
+
   if (existingUserData.community_id !== data.community_id) {
+    // TODO: if user is admin of previous community, remove the user from admin array of community
     updateData.community_id = data.community_id
     updateData.community = db.doc(`community/${data.community_id}`)
     const address: any = {

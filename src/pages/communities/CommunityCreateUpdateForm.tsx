@@ -3,7 +3,8 @@ import { Link, useHistory } from 'react-router-dom'
 import { Button } from '../../components/buttons'
 import { TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
-import { getUsers } from '../../services/users'
+import { fetchUserByID, getUsers } from '../../services/users'
+import useOuterClick from '../../customHooks/useOuterClick'
 
 type Props = {
   isOpen?: boolean
@@ -28,6 +29,9 @@ const CommunityCreateUpdateForm = ({
   const [WrapperComponent, setWrapperComponent] = useState<any>()
   const [userSearchText, setUserSearchText] = useState('')
   const [userSearchResult, setUserSearchResult] = useState<any>([])
+  const [showUserSearchResult, setShowUserSearchResult] = useState(false)
+  const [admins, setAdmins] = useState<any[]>([])
+  const userSearchResultRef = useOuterClick(() => setShowUserSearchResult(false))
 
   useEffect(() => {
     if (isModal && setIsOpen) {
@@ -51,6 +55,29 @@ const CommunityCreateUpdateForm = ({
     }
   }, [communityToUpdate])
 
+  useEffect(() => {
+    if (
+      !isModal &&
+      communityToUpdate &&
+      communityToUpdate.admin &&
+      communityToUpdate.admin.length
+    ) {
+      const getAdminUsers = async () => {
+        const fetchedAdmins = []
+        for (let i = 0; i < communityToUpdate.admin.length; i++) {
+          const userId = communityToUpdate.admin[i]
+          const user = await fetchUserByID(userId)
+          if (user) fetchedAdmins.push({ id: user.id, ...user.data() })
+        }
+        return fetchedAdmins
+      }
+
+      getAdminUsers().then((data) => {
+        setAdmins(data)
+      })
+    }
+  }, [])
+
   const changeHandler = (field: string, value: string | number | boolean | null) => {
     const newData = { ...data }
     newData[field] = value
@@ -59,14 +86,33 @@ const CommunityCreateUpdateForm = ({
 
   const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     if (e.target.value.length > 2) {
-      const usersRef = getUsers({ search: e.target.value })
+      const usersRef = getUsers({ search: e.target.value, community: communityToUpdate.id })
       const result = await usersRef.get()
-      const users = result.docs.map(doc => doc.data())
+      let users = result.docs.map((doc) => {
+        const data = doc.data()
+        return { ...data, id: doc.id }
+      })
+      users = users.filter((user) => !admins.some((admin: any) => admin.id === user.id))
       setUserSearchResult(users)
+      setShowUserSearchResult(users.length > 0)
     } else {
+      setShowUserSearchResult(false)
       setUserSearchResult([])
     }
     setUserSearchText(e.target.value)
+  }
+
+  const userSelectHandler = (user: any) => {
+    let newAdmins = [...admins]
+    if (admins.some((admin) => admin.id === user.id)) {
+      newAdmins = admins.filter((admin) => admin.id !== user.id)
+    } else {
+      newAdmins.push(user)
+    }
+    newAdmins.sort((a, b) => (a.display_name.toLowerCase() < b.display_name.toLowerCase() ? -1 : 1))
+    setAdmins(newAdmins)
+    const newData = { ...data, admin: newAdmins.map(admin => admin.id) }
+    setData(newData)
   }
 
   const onSave = async () => {
@@ -198,25 +244,63 @@ const CommunityCreateUpdateForm = ({
           isError={fieldIsError('zip_code')}
           defaultValue={data.zip_code}
         />
-        <div className="relative">
-          <TextField
-            label="admins"
-            type="text"
-            size="small"
-            onChange={userSearchHandler}
-            defaultValue={userSearchText}
-          />
-          {
-            userSearchResult.length > 0 && (
-              <div className="absolute top-full left-0">
-                {
-                  userSearchResult.map((user: any) => <p key={user.id}>{user.display_name}</p>)
-                }
-              </div>
-            )
-          }
-        </div>
       </div>
+      {!isModal && (
+        // TODO: make this generic / reusable
+        <div className="w-64">
+          <div ref={userSearchResultRef} className="relative">
+            <TextField
+              label="admins"
+              type="text"
+              size="small"
+              placeholder="Search"
+              onChange={userSearchHandler}
+              defaultValue={userSearchText}
+              onFocus={() => setShowUserSearchResult(userSearchResult.length > 0)}
+            />
+            {showUserSearchResult && userSearchResult.length > 0 && (
+              <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+                {userSearchResult
+                  .filter((user: any) => !admins.some((admin: any) => admin.id === user.id))
+                  .map((user: any) => (
+                    <button
+                      className="w-full p-1 hover:bg-gray-200 block text-left"
+                      key={user.id}
+                      onClick={() => userSelectHandler(user)}
+                    >
+                      {user.display_name}
+                      {user.display_name !== `${user.first_name} ${user.last_name}` ? (
+                        <span className="block text-xs text-gray-500">{`${user.first_name} ${user.last_name}`}</span>
+                      ) : (
+                        ''
+                      )}
+                      <span className="block text-xs text-gray-500">{user.email}</span>
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
+          <div className="shadow-inner bg-gray-50 rounded">
+            {admins.map((user: any) => (
+              <p className="p-1 text-right relative" key={user.id}>
+                {user.display_name}
+                {user.display_name !== `${user.first_name} ${user.last_name}` ? (
+                  <span className="block text-xs text-gray-500">{`${user.first_name} ${user.last_name}`}</span>
+                ) : (
+                  ''
+                )}
+                <span className="block text-xs text-gray-500">{user.email}</span>
+                <button
+                  className="text-red-600 absolute left-full top-1/3 ml-1"
+                  onClick={() => userSelectHandler(user)}
+                >
+                  remove
+                </button>
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
       {responseData.status === 'error' && (
         <p className="text-red-600 text-center">{responseData.message}</p>
       )}

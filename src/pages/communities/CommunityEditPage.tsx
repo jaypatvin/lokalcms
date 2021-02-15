@@ -13,6 +13,7 @@ const CommunityEditPage = ({ match }: Props) => {
   const normalizeCommunityData = (data: any) => {
     return {
       name: data.name,
+      admin: data.admin,
       profile_photo: data.profile_photo,
       cover_photo: data.cover_photo,
       subdivision: data.address.subdivision,
@@ -43,7 +44,7 @@ const CommunityEditPage = ({ match }: Props) => {
     <div className="container">
       {community && (
         <>
-          <h3>Community Edit: {community.name}</h3>
+          <h2 className="text-3xl mb-3">Community Edit</h2>
           <CommunityCreateUpdateForm communityToUpdate={community} isModal={false} mode="update" />
         </>
       )}

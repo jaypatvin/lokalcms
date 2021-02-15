@@ -1,4 +1,4 @@
-import { ChangeEventHandler } from 'react'
+import { ChangeEventHandler, FocusEventHandler } from 'react'
 import { Size } from '../../utils/types'
 
 export type InputProps = {
@@ -13,6 +13,7 @@ export type InputProps = {
   placeholder?: string
   size?: Size
   onChange?: ChangeEventHandler<HTMLInputElement>
+  onFocus?: FocusEventHandler
   required?: boolean
   className?: string
 }
