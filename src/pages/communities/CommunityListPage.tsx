@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { Button } from '../../components/buttons'
-import { CommunitySortByType, LimitType, SortOrderType } from '../../utils/types'
+import { CommunityFilterType, CommunitySortByType, LimitType, SortOrderType } from '../../utils/types'
 import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
 import CommunityCreateUpdateForm from './CommunityCreateUpdateForm'
 import CommunityListItems from './CommunityListItems'
-import { getCommunities } from '../../services/community'
+import { communityHaveMembers, getCommunities } from '../../services/community'
+import CommunityMenu from './CommunityMenu'
 
 // Init
 dayjs.extend(relativeTime)
@@ -15,11 +16,13 @@ dayjs.extend(relativeTime)
 const CommunityListPage = (props: any) => {
   const [communityList, setCommunityList] = useState<any>([])
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<CommunityFilterType>('all')
   const [sortBy, setSortBy] = useState<CommunitySortByType>('name')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
   const [communitiesRef, setCommunitiesRef] = useState<any>()
+  const [snapshot, setSnapshot] = useState<any>()
   const [firstCommunityOnList, setFirstCommunityOnList] = useState<any>()
   const [lastCommunityOnList, setLastCommunityOnList] = useState<any>()
   const [isLastPage, setIsLastPage] = useState(false)
@@ -29,21 +32,28 @@ const CommunityListPage = (props: any) => {
 
   const getCommunityList = async (docs: any[]) => {
     const newList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    console.log('newList', newList)
+
+    for (let i = 0; i < newList.length; i++) {
+      const community = newList[i]
+      community.haveMembers = await communityHaveMembers(community.id)
+    }
+
     setCommunityList(newList)
     setLastCommunityOnList(docs[docs.length - 1])
     setFirstCommunityOnList(docs[0])
   }
 
   useEffect(() => {
-    const newCommunitiesRef = getCommunities({ search, sortBy, sortOrder, limit })
-    newCommunitiesRef.onSnapshot(async (snapshot) => {
+    const newCommunitiesRef = getCommunities({ search, filter, sortBy, sortOrder, limit })
+    if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
+    const newUnsubscribe = newCommunitiesRef.onSnapshot((snapshot) => {
       getCommunityList(snapshot.docs)
     })
+    setSnapshot({ unsubscribe: newUnsubscribe })
     setCommunitiesRef(newCommunitiesRef)
     setPageNum(1)
     setIsLastPage(false)
-  }, [search, sortBy, sortOrder, limit])
+  }, [search, filter, sortBy, sortOrder, limit])
 
   const onNextPage = () => {
     if (communitiesRef && lastCommunityOnList) {
@@ -110,6 +120,7 @@ const CommunityListPage = (props: any) => {
           mode={communityModalMode}
         />
       )}
+      <CommunityMenu selected={filter} onSelect={setFilter} />
       <div className="pb-8 flex-grow">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
           <div className="flex items-center">

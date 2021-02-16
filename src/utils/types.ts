@@ -28,3 +28,4 @@ export const statusColorMap: any = {
 
 // --- User Types --- //
 export type CommunitySortByType = 'name' | 'barangay' | 'city' | 'country' | 'state' | 'state' | 'subdivision'
+export type CommunityFilterType = 'all' | 'archived'

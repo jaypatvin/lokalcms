@@ -71,20 +71,38 @@ const UserListItem = ({
 
   const OptionsComponent = isArchived ? (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
-      <button onClick={onUnarchiveUser} className="block w-full p-2 hover:bg-gray-100">
+      <button
+        onClick={() => {
+          onUnarchiveUser()
+          setIsOptionsOpen(false)
+        }}
+        className="block w-full p-2 hover:bg-gray-100"
+      >
         Unarchive
       </button>
     </div>
   ) : (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
-      <button onClick={openUpdateUser} className="block w-full p-2 hover:bg-gray-100">
+      <button
+        onClick={() => {
+          openUpdateUser()
+          setIsOptionsOpen(false)
+        }}
+        className="block w-full p-2 hover:bg-gray-100"
+      >
         Quick Edit
       </button>
       <Link to={`/users/${user.id}`} className="block w-full p-2 hover:bg-gray-100 text-center">
         Edit
       </Link>
       {!hideDelete && (
-        <button className="block w-full p-2 hover:bg-gray-100 text-red-600" onClick={onDeleteUser}>
+        <button
+          className="block w-full p-2 hover:bg-gray-100 text-red-600"
+          onClick={() => {
+            onDeleteUser()
+            setIsOptionsOpen(false)
+          }}
+        >
           Delete
         </button>
       )}

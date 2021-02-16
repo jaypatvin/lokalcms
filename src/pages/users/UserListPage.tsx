@@ -22,6 +22,7 @@ const UserListPage = (props: any) => {
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
   const [usersRef, setUsersRef] = useState<any>()
+  const [snapshot, setSnapshot] = useState<any>()
   const [firstUserOnList, setFirstUserOnList] = useState<any>()
   const [lastUserOnList, setLastUserOnList] = useState<any>()
   const [isLastPage, setIsLastPage] = useState(false)
@@ -47,9 +48,11 @@ const UserListPage = (props: any) => {
 
   useEffect(() => {
     const newUsersRef = getUsers({ filter, search, sortBy, sortOrder, limit })
-    newUsersRef.onSnapshot(async (snapshot) => {
+    if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
+    const newUnsubscribe = newUsersRef.onSnapshot(async (snapshot) => {
       getUserList(snapshot.docs)
     })
+    setSnapshot({ unsubscribe: newUnsubscribe })
     setUsersRef(newUsersRef)
     setPageNum(1)
     setIsLastPage(false)
@@ -124,7 +127,7 @@ const UserListPage = (props: any) => {
           mode={userModalMode}
         />
       )}
-      <UserRoleMenu onSelect={setFilter} />
+      <UserRoleMenu selected={filter} onSelect={setFilter} />
       <div className="pb-8 flex-grow">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
           <div className="flex items-center">

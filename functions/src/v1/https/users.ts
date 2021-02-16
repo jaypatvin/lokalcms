@@ -136,7 +136,8 @@ export const updateUser = async (req, res) => {
 
   const existingUserData = await UsersService.getUserByID(data.id)
 
-  if (data.unarchive_only && existingUserData.status === 'archived') {
+  if (data.unarchive_only) {
+    if (existingUserData.status !== 'archived') return res.json({ status: 'error', message: "User is not archived" })
     const _result = await UsersService.updateUser(data.id, { status: 'active' })
     const shops_update = await ShopsService.setShopsStatusOfUser(data.id, 'previous')
 
@@ -209,7 +210,7 @@ export const updateUser = async (req, res) => {
   return res.json({ status: 'ok', data: _result })
 }
 
-export const unarchiveUser = async (req, res) => {
+export const archiveUser = async (req, res) => {
   const data = req.body
   if (!data.id) res.json({ status: 'error', message: 'User ID is required!' })
   const { id: user_id, display_name } = data
