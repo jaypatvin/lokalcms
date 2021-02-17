@@ -4,13 +4,13 @@ import * as UsersService from '../../service/users'
 import * as ShopsService from '../../service/shops'
 import { getCommunityByID } from '../../service/community'
 import { generateUserKeywords } from '../../utils/generateKeywords'
+import validateFields from '../../utils/validateFields'
 
 //admin.initializeApp()
 
 const db = admin.firestore()
 const auth = admin.auth()
 
-const invalid_values = [null, undefined, '']
 const required_fields = ['email', 'first_name', 'last_name', 'street', 'community_id']
 
 export const getUsers = async (req, res) => {
@@ -29,12 +29,7 @@ export const createUser = async (req, res) => {
   const data = req.body
   let _authUser
   let _community
-  const error_fields = []
-
-  // check required fields
-  required_fields.forEach((field) => {
-    if (invalid_values.includes(data[field])) error_fields.push(field)
-  })
+  const error_fields = validateFields(data, required_fields)
 
   if (error_fields.length) {
     return res.json({ status: 'error', message: 'Required fields missing', error_fields })
@@ -132,7 +127,6 @@ export const getUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   const data = req.body
   let _community
-  const error_fields = []
 
   const existingUserData = await UsersService.getUserByID(data.id)
 
@@ -144,10 +138,7 @@ export const updateUser = async (req, res) => {
     return res.json({ status: 'ok', data: _result, shops_update })
   }
 
-  // check required fields
-  required_fields.forEach((field) => {
-    if (invalid_values.includes(data[field])) error_fields.push(field)
-  })
+  const error_fields = validateFields(data, required_fields)
 
   if (error_fields.length) {
     return res.json({ status: 'error', message: 'Required fields missing', error_fields })
