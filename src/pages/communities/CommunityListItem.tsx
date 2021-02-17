@@ -38,6 +38,24 @@ const CommunityListItem = ({
       >
         Unarchive
       </button>
+      {!hideDelete && (
+        <button
+          className={`block w-full p-2 hover:bg-gray-100 text-red-600 ${
+            disableDelete ? 'opacity-30 pointer-events-none' : ''
+          }`}
+          onClick={
+            disableDelete
+              ? undefined
+              : () => {
+                  onDeleteCommunity()
+                  setIsOptionsOpen(false)
+                }
+          }
+          disabled={disableDelete}
+        >
+          Delete
+        </button>
+      )}
     </div>
   ) : (
     <div className="absolute bottom-0 right-full shadow w-36 bg-white">
