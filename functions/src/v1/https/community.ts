@@ -2,12 +2,12 @@ import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
 import { generateCommunityKeywords } from '../../utils/generateKeywords'
 import * as CommunityService from '../../service/community'
+import validateFields from '../../utils/validateFields'
 //admin.initializeApp()
 
 const db = admin.firestore()
 const auth = admin.auth()
 
-const invalid_values = [null, undefined, '']
 const required_fields = ['name', 'subdivision', 'city', 'barangay', 'state', 'country', 'zip_code']
 
 
@@ -19,12 +19,7 @@ export const getCommunities = async (req, res) => {
 export const createCommunity = async (req, res) => {
 
   const data = req.body
-  const error_fields = []
-
-  // check required fields
-  required_fields.forEach((field) => {
-    if (invalid_values.includes(data[field])) error_fields.push(field)
-  })
+  const error_fields = validateFields(data, required_fields)
 
   if (error_fields.length) {
     return res.json({ status: 'error', message: 'Required fields missing', error_fields })
@@ -89,7 +84,6 @@ export const getCommunity = async (req, res) => {
 
 export const updateCommunity = async (req, res) => {
   const data = req.body
-  const error_fields = []
 
   const existing_community = await CommunityService.getCommunityByID(data.id)
 
@@ -112,10 +106,7 @@ export const updateCommunity = async (req, res) => {
     return res.json({ status: 'error', message: `Community "${data.name}" already exists with the same address.`, data: existing_communities })
   }
 
-  // check required fields
-  required_fields.forEach((field) => {
-    if (invalid_values.includes(data[field])) error_fields.push(field)
-  })
+  const error_fields = validateFields(data, required_fields)
 
   if (error_fields.length) {
     return res.json({ status: 'error', message: 'Required fields missing', error_fields })
