@@ -1,4 +1,4 @@
-import { SortOrderType, CommunitySortByType } from '../utils/types'
+import { SortOrderType, CommunitySortByType, CommunityFilterType } from '../utils/types'
 import { db, auth } from './firebase'
 
 export const fetchCommunityByID = async (id: string) => {
@@ -7,6 +7,7 @@ export const fetchCommunityByID = async (id: string) => {
 
 type GetCommunitiesParamTypes = {
   search?: string
+  filter?: CommunityFilterType
   sortBy?: CommunitySortByType
   sortOrder?: SortOrderType
   limit?: number
@@ -14,11 +15,18 @@ type GetCommunitiesParamTypes = {
 
 export const getCommunities = ({
   search = '',
+  filter,
   sortBy = 'name',
   sortOrder = 'asc',
   limit = 50,
 }: GetCommunitiesParamTypes) => {
   let ref = db.collection('community').where('keywords', 'array-contains', search.toLowerCase())
+
+  if (filter === 'archived') {
+    ref = ref.where('archived', '==', true)
+  } else {
+    ref = ref.where('archived', '==', false)
+  }
 
   if (sortBy === 'name') {
     ref = ref.orderBy('name', sortOrder).limit(limit)
@@ -27,4 +35,9 @@ export const getCommunities = ({
   }
 
   return ref
+}
+
+export const communityHaveMembers = async (id: string) => {
+  let user = await db.collection('users').where('community_id', '==', id).limit(1).get()
+  return !user.empty
 }

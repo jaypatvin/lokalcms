@@ -7,8 +7,10 @@ type Props = {
   community: any
   openUpdateCommunity: () => void
   onDeleteCommunity: () => void
+  onArchiveCommunity: () => void
   onUnarchiveCommunity: () => void
   hideDelete?: boolean
+  disableDelete?: boolean
   isArchived?: boolean
 }
 
@@ -16,8 +18,10 @@ const CommunityListItem = ({
   community,
   openUpdateCommunity,
   onDeleteCommunity,
+  onArchiveCommunity,
   onUnarchiveCommunity,
   hideDelete,
+  disableDelete = false,
   isArchived = false,
 }: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
@@ -25,13 +29,25 @@ const CommunityListItem = ({
 
   const OptionsComponent = isArchived ? (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
-      <button onClick={onUnarchiveCommunity} className="block w-full p-2 hover:bg-gray-100">
+      <button
+        onClick={() => {
+          onUnarchiveCommunity()
+          setIsOptionsOpen(false)
+        }}
+        className="block w-full p-2 hover:bg-gray-100"
+      >
         Unarchive
       </button>
     </div>
   ) : (
-    <div className="absolute top-0 right-full shadow w-36 bg-white">
-      <button onClick={openUpdateCommunity} className="block w-full p-2 hover:bg-gray-100">
+    <div className="absolute bottom-0 right-full shadow w-36 bg-white">
+      <button
+        onClick={() => {
+          openUpdateCommunity()
+          setIsOptionsOpen(false)
+        }}
+        className="block w-full p-2 hover:bg-gray-100"
+      >
         Quick Edit
       </button>
       <Link
@@ -41,12 +57,40 @@ const CommunityListItem = ({
         Edit
       </Link>
       {!hideDelete && (
-        <button
-          className="block w-full p-2 hover:bg-gray-100 text-red-600"
-          onClick={onDeleteCommunity}
-        >
-          Delete
-        </button>
+        <>
+          <button
+            className={`block w-full p-2 hover:bg-gray-100 text-warning-600 ${
+              disableDelete ? 'opacity-30 pointer-events-none' : ''
+            }`}
+            onClick={
+              disableDelete
+                ? undefined
+                : () => {
+                    onArchiveCommunity()
+                    setIsOptionsOpen(false)
+                  }
+            }
+            disabled={disableDelete}
+          >
+            Archive
+          </button>
+          <button
+            className={`block w-full p-2 hover:bg-gray-100 text-red-600 ${
+              disableDelete ? 'opacity-30 pointer-events-none' : ''
+            }`}
+            onClick={
+              disableDelete
+                ? undefined
+                : () => {
+                    onDeleteCommunity()
+                    setIsOptionsOpen(false)
+                  }
+            }
+            disabled={disableDelete}
+          >
+            Delete
+          </button>
+        </>
       )}
     </div>
   )

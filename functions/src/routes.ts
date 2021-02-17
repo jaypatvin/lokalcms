@@ -4,11 +4,11 @@ import { requireAuthHeader } from './v1/https/streamUsers'
 import { getUsers, postUsers } from "./v1/https/streamUsers"
 import { postStreamFeedCredentials } from "./v1/https/streamFeedCredentials"
 
-import { getUsers as getUserList, createUser, getUser, updateUser, unarchiveUser } from './v1/https/users'
+import { getUsers as getUserList, createUser, getUser, updateUser, archiveUser } from './v1/https/users'
 import { getShops as getShopList, createShop, getShop, updateShop, deleteShop } from './v1/https/shops'
 
 import { checkInvite, claimInvite } from './v1/https/invites'
-import { createCommunity, updateCommunity } from "./v1/https/community"
+import { createCommunity, updateCommunity, archiveCommunity } from "./v1/https/community"
 
 module.exports = api => {
 
@@ -27,7 +27,7 @@ module.exports = api => {
   api.route("/v1/users").post(wrapAsync(createUser))
   api.route("/v1/users/:userId").get(wrapAsync(getUser))
   api.route("/v1/users/:userId").put(wrapAsync(updateUser))
-  api.route("/v1/users/:userId").delete(wrapAsync(unarchiveUser))
+  api.route("/v1/users/:userId").delete(wrapAsync(archiveUser))
   
   // -- Shops routes
   api.route("/v1/shops").get(wrapAsync(getShopList))
@@ -43,5 +43,6 @@ module.exports = api => {
   // -- Community routes
   api.route("/v1/community").post(wrapAsync(createCommunity))
   api.route("/v1/community/:communityId").put(wrapAsync(updateCommunity))
+  api.route("/v1/community/:communityId").delete(wrapAsync(archiveCommunity))
 
 };

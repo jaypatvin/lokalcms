@@ -65,6 +65,7 @@ export const createCommunity = async (req, res) => {
       country: data.country,
     },
     keywords,
+    archived: false
   }
   if (data.profile_photo) {
     _newData.profile_photo = data.profile_photo
@@ -91,6 +92,13 @@ export const updateCommunity = async (req, res) => {
   const error_fields = []
 
   const existing_community = await CommunityService.getCommunityByID(data.id)
+
+  if (data.unarchive_only) {
+    if (!existing_community.archived) return res.json({ status: 'error', message: "Community is not archived" })
+    const _result = await CommunityService.unarchiveCommunity(data.id)
+
+    return res.json({ status: 'ok', data: _result })
+  }
 
   const existing_communities = await CommunityService.getCommunitiesByNameAndAddress({
     name: data.name,
@@ -156,6 +164,16 @@ export const updateCommunity = async (req, res) => {
   return res.json({ status: 'ok', data: result })
 }
 
+
+export const archiveCommunity = async (req, res) => {
+  const data = req.body
+  if (!data.id) res.json({ status: 'error', message: 'Community ID is required!' })
+  const { id: community_id, name } = data
+
+  const result = await CommunityService.archiveCommunity(community_id)
+
+  res.json({ status: 'ok', data: result, message: `Community ${name || community_id} successfully archived.` })
+}
 
 export const deleteCommunity = async (req, res) => {
 

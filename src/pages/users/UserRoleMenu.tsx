@@ -3,10 +3,11 @@ import MenuList from '../../components/MenuList'
 import { MenuItemType, UserFilterType } from '../../utils/types'
 
 type Props = {
+  selected: string
   onSelect: (role: UserFilterType) => void
 }
 
-const UserRoleMenu = ({ onSelect }: Props) => {
+const UserRoleMenu = ({ onSelect, selected }: Props) => {
   const roles: MenuItemType[] = [
     {
       key: 'all',
@@ -36,7 +37,7 @@ const UserRoleMenu = ({ onSelect }: Props) => {
         <h2 className="text-2xl font-semibold leading-tight">Users</h2>
       </div>
       <div>
-        <MenuList items={roles} selected={'all'} />
+        <MenuList items={roles} selected={selected} />
       </div>
     </div>
   )
