@@ -149,7 +149,7 @@ export const updateCommunity = async (req, res) => {
   if (existing_community.address.state !== data.state) updateData.address.state = data.state
   if (existing_community.address.country !== data.country) updateData.address.country = data.country
   if (existing_community.address.zip_code !== data.zip_code) updateData.address.zip_code = data.zip_code
-
+  if (data.admin && data.admin.length) updateData.admin = data.admin
 
   const result = await CommunityService.updateCommunity(data.id, updateData)
 

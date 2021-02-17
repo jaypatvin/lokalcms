@@ -50,7 +50,6 @@ export const createShop = async (req, res) => {
       custom: data.use_custom_hours,
     },
     status: data.status,
-    created_at: new Date()
   }
 
   // -----------------

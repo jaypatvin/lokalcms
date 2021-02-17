@@ -1,6 +1,10 @@
 import { SortOrderType, CommunitySortByType } from '../utils/types'
 import { db, auth } from './firebase'
 
+export const fetchCommunityByID = async (id: string) => {
+  return db.collection('community').doc(id).get()
+}
+
 type GetCommunitiesParamTypes = {
   search?: string
   sortBy?: CommunitySortByType
