@@ -8,7 +8,7 @@ import { getUsers as getUserList, createUser, getUser, updateUser, archiveUser }
 import { getShops as getShopList, createShop, getShop, updateShop, deleteShop } from './v1/https/shops'
 
 import { checkInvite, claimInvite } from './v1/https/invites'
-import { createCommunity, updateCommunity, archiveCommunity } from "./v1/https/community"
+import { createCommunity, updateCommunity, deleteCommunity } from "./v1/https/community"
 
 module.exports = api => {
 
@@ -43,6 +43,6 @@ module.exports = api => {
   // -- Community routes
   api.route("/v1/community").post(wrapAsync(createCommunity))
   api.route("/v1/community/:communityId").put(wrapAsync(updateCommunity))
-  api.route("/v1/community/:communityId").delete(wrapAsync(archiveCommunity))
+  api.route("/v1/community/:communityId").delete(wrapAsync(deleteCommunity))
 
 };

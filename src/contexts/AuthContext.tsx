@@ -1,14 +1,15 @@
 import React, { useContext, useState, useEffect, createContext, ReactNode } from 'react'
 import ReactLoading from 'react-loading'
 
-import { auth } from '../services/firebase'
+import { auth, firebase } from '../services/firebase'
 import { fetchUserByUID } from '../services/users'
 
 type ContextType = {
-  currentUser?: any
+  currentUser?: firebase.User
   currentUserInfo?: any
   login?: (email: string, password: string) => void
   logout?: () => void
+  reauthenticate?: (email: string, password: string) => Promise<any>
   withError?: boolean
   errorMsg?: string
   setRedirect?: (s: string) => void
@@ -21,7 +22,7 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<any>()
+  const [currentUser, setCurrentUser] = useState<firebase.User>()
   const [currentUserInfo, setCurrentUserInfo] = useState<any>()
   const [withError, setWithError] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -45,18 +46,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function updateEmail(email: string) {
-    return currentUser.updateEmail(email)
+    if (currentUser) return currentUser.updateEmail(email)
   }
 
   function updatePassword(password: string) {
-    return currentUser.updatePassword(password)
+    if (currentUser) return currentUser.updatePassword(password)
+  }
+
+  function reauthenticate(email: string, password: string) {
+    if (currentUser) {
+      const credential = firebase.auth.EmailAuthProvider.credential(
+        currentUserInfo.email,
+        password
+      )
+  
+      return currentUser.reauthenticateWithCredential(credential)
+    }
+    return new Promise((resolve, reject) => reject({ status: "error", message: "Current user does not exist" }))
   }
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      setCurrentUser(user)
 
       if (user !== null) {
+        setCurrentUser(user)
         const userRef = await fetchUserByUID(user.uid)
         if (userRef === false) {
           // if user is not mapped to the users collection
@@ -95,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPassword,
     updateEmail,
     updatePassword,
+    reauthenticate,
     setRedirect,
     redirect,
     withError,

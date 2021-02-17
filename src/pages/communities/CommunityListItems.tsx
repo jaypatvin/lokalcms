@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { ConfirmationDialog } from '../../components/Dialog'
+import { ConfirmationDialog, Dialog } from '../../components/Dialog'
 import CommunityListItem from './CommunityListItem'
 import { useAuth } from '../../contexts/AuthContext'
+import { TextField } from '../../components/inputs'
+import { Button } from '../../components/buttons'
 
 type Props = {
   communities: any
@@ -9,22 +11,82 @@ type Props = {
 }
 
 const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
-  const { currentUserInfo } = useAuth()
+  const { currentUserInfo, currentUser, reauthenticate } = useAuth()
   const [communityToDelete, setCommunityToDelete] = useState<any>({})
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [communityToArchive, setCommunityToArchive] = useState<any>({})
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
   const [communityToUnarchive, setCommunityToUnarchive] = useState<any>({})
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
+  const [isTypePasswordOpen, setIsTypePasswordOpen] = useState(false)
+  const [isTypeNameOpen, setIsTypeNameOpen] = useState(false)
+  const [typedPassword, setTypedPassword] = useState('')
+  const [typedName, setTypedName] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const deleteCommunity = async (community: any) => {
     console.log('deleting community, joke.')
-    setIsDeleteDialogOpen(false)
+    if (process.env.REACT_APP_API_URL) {
+      const { id, name } = community
+      let url = `${process.env.REACT_APP_API_URL}/community/${id}`
+      let res: any = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        method: 'DELETE',
+        body: JSON.stringify({ id, name, hard_delete: true }),
+      })
+      res = await res.json()
+      console.log(res)
+      setIsDeleteDialogOpen(false)
+      setCommunityToDelete({})
+      setTypedPassword('')
+      setTypedName('')
+      setErrorMessage('')
+    } else {
+      console.error('environment variable for the api does not exist.')
+    }
   }
 
   const deleteClicked = (community: any) => {
-    setIsDeleteDialogOpen(true)
+    setIsTypePasswordOpen(true)
     setCommunityToDelete(community)
+  }
+
+  const passwordConfirmClicked = () => {
+    if (currentUser && reauthenticate) {
+      setErrorMessage('')
+      reauthenticate(currentUserInfo.email, typedPassword)
+        .then((data) => {
+          if (data.user) {
+            setIsTypePasswordOpen(false)
+            setIsTypeNameOpen(true)
+          }
+        })
+        .catch((error) => {
+          console.error(error)
+          setErrorMessage(error.message)
+        })
+    }
+  }
+
+  const communityConfirmClicked = () => {
+    if (typedName === communityToDelete.name) {
+      setIsTypeNameOpen(false)
+      setIsDeleteDialogOpen(true)
+      setErrorMessage('')
+    } else {
+      setErrorMessage('Community name does not match!')
+    }
+  }
+
+  const onCancelDelete = () => {
+    setIsTypePasswordOpen(false)
+    setTypedPassword('')
+    setIsTypeNameOpen(false)
+    setTypedName('')
+    setCommunityToDelete({})
+    setErrorMessage('')
   }
 
   const archiveCommunity = async (community: any) => {
@@ -78,6 +140,41 @@ const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
 
   return (
     <>
+      <Dialog isOpen={isTypePasswordOpen} title="Confirmation" onClose={onCancelDelete}>
+        <p>Please type your password</p>
+        <TextField
+          label=""
+          type="password"
+          value={typedPassword}
+          onChange={(e) => setTypedPassword(e.target.value)}
+        />
+        <p className="text-red-600">{errorMessage}</p>
+        <div className="flex flex-row-reverse">
+          <Button className="ml-1" onClick={onCancelDelete} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={passwordConfirmClicked}>Confirm</Button>
+        </div>
+      </Dialog>
+      <Dialog isOpen={isTypeNameOpen} title="Confirmation" onClose={onCancelDelete}>
+        <p>
+          Please type community name{' '}
+          <strong className="text-red-600">{communityToDelete.name}</strong>
+        </p>
+        <TextField
+          label=""
+          type="text"
+          value={typedName}
+          onChange={(e) => setTypedName(e.target.value)}
+        />
+        <p className="text-red-600">{errorMessage}</p>
+        <div className="flex flex-row-reverse">
+          <Button className="ml-1" onClick={onCancelDelete} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={communityConfirmClicked}>Confirm</Button>
+        </div>
+      </Dialog>
       <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}

@@ -61,11 +61,11 @@ const dialogBoardSizes = {
 }
 
 type DialogProps = {
-  isOpen: boolean
-  onClose: () => void
-  title: string
+  isOpen?: boolean
+  onClose?: () => void
+  title?: string
   size?: Size
-  color: Color
+  color?: Color
   children?: ReactNode
 }
 
@@ -82,7 +82,7 @@ const Dialog = (props: DialogProps) => {
       <PosedDialogBoardContainer
         pose={isOpen ? 'open' : 'closed'}
         className="fixed w-full h-full left-0 z-30 top-0"
-        onClick={() => onClose()}
+        onClick={onClose ? () => onClose() : undefined}
       >
         <PosedDialogBoard
           pose={isOpen ? 'open' : 'closed'}

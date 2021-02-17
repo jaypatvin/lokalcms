@@ -164,19 +164,19 @@ export const updateCommunity = async (req, res) => {
   return res.json({ status: 'ok', data: result })
 }
 
-
-export const archiveCommunity = async (req, res) => {
+export const deleteCommunity = async (req, res) => {
   const data = req.body
   if (!data.id) res.json({ status: 'error', message: 'Community ID is required!' })
   const { id: community_id, name } = data
 
-  const result = await CommunityService.archiveCommunity(community_id)
+  let result: any = ''
+  if (data.hard_delete) {
+    result = await CommunityService.deleteCommunity(community_id)
+  } else {
+    result = await CommunityService.archiveCommunity(community_id)
+  }
 
-  res.json({ status: 'ok', data: result, message: `Community ${name || community_id} successfully archived.` })
-}
 
-export const deleteCommunity = async (req, res) => {
-
-  res.json({status: 'ok'})
+  res.json({ status: 'ok', data: result, message: `Community ${name || community_id} successfully ${data.hard_delete ? 'deleted' : 'archived'}.` })
 }
 
