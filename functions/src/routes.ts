@@ -9,6 +9,7 @@ import { getShops as getShopList, createShop, getShop, updateShop, deleteShop } 
 
 import { checkInvite, claimInvite } from './v1/https/invites'
 import { createCommunity, updateCommunity, deleteCommunity } from "./v1/https/community"
+import { getProducts as getProductList, createProduct, deleteProduct, getProduct, updateProduct } from "./v1/https/products"
 
 module.exports = api => {
 
@@ -45,4 +46,10 @@ module.exports = api => {
   api.route("/v1/community/:communityId").put(wrapAsync(updateCommunity))
   api.route("/v1/community/:communityId").delete(wrapAsync(deleteCommunity))
 
+  // -- Products routes
+  api.route('/v1/products').get(wrapAsync(getProductList))
+  api.route('/v1/products').post(wrapAsync(createProduct))
+  api.route('/v1/products').put(wrapAsync(updateProduct))
+  api.route('/v1/products/:productId').get(wrapAsync(getProduct))
+  api.route('/v1/products/:productId').delete(wrapAsync(deleteProduct))
 };
