@@ -127,12 +127,11 @@ export const getUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   const data = req.body
   let _community
-  let _existing_user
 
   if (!data.id) return res.json({ status: 'error', message: 'id is required!' })
 
   // check if user id is valid
-  _existing_user = await UsersService.getUserByID(data.id)
+  const _existing_user = await UsersService.getUserByID(data.id)
   if (!_existing_user) return res.json({ status: 'error', message: 'Invalid User ID!' })
 
   if (data.unarchive_only) {
