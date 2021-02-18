@@ -9,7 +9,7 @@ export const getCommunityByID = async (id) => {
     .get()
     .then((res) => {
       let _ret = res.data()
-      _ret.referencePath = res.ref.path
+      if (_ret) _ret.referencePath = res.ref.path
       return _ret
     })
 }
