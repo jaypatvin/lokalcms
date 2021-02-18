@@ -1,6 +1,6 @@
 const invalid_values = [null, undefined, '']
 
-const validateValue = (val: any) => {
+export const validateValue = (val: any) => {
   return !invalid_values.includes(val)
 }
 
