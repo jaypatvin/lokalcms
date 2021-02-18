@@ -127,13 +127,16 @@ export const getUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   const data = req.body
   let _community
+  let _existing_user
 
   if (!data.id) return res.json({ status: 'error', message: 'id is required!' })
 
-  const existingUserData = await UsersService.getUserByID(data.id)
+  // check if user id is valid
+  _existing_user = await UsersService.getUserByID(data.id)
+  if (!_existing_user) return res.json({ status: 'error', message: 'Invalid User ID!' })
 
   if (data.unarchive_only) {
-    if (existingUserData.status !== 'archived') return res.json({ status: 'error', message: "User is not archived" })
+    if (_existing_user.status !== 'archived') return res.json({ status: 'error', message: "User is not archived" })
     const _result = await UsersService.updateUser(data.id, { status: 'active' })
     const shops_update = await ShopsService.setShopsStatusOfUser(data.id, 'previous')
 
@@ -165,13 +168,13 @@ export const updateUser = async (req, res) => {
 
   if (data.first_name || data.last_name || data.display_name
   ) {
-    const first_name = data.first_name || existingUserData.first_name
-    const last_name = data.last_name || existingUserData.last_name
-    const display_name = data.display_name || existingUserData.display_name 
+    const first_name = data.first_name || _existing_user.first_name
+    const last_name = data.last_name || _existing_user.last_name
+    const display_name = data.display_name || _existing_user.display_name 
     keywords = generateUserKeywords({
       first_name,
       last_name,
-      email: existingUserData.email,
+      email: _existing_user.email,
       display_name
     })
   }
