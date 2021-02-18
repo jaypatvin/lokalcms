@@ -144,6 +144,7 @@ export const updateShop = async (req, res) => {
   }
   if (validateValue(data.use_custom_hours))
     updateData['operating_hours.custom'] = data.use_custom_hours
+  if (data.status) updateData.status = data.status
 
   if (typeof data.custom_hours === 'object') {
     const custom_hours_errors = []
