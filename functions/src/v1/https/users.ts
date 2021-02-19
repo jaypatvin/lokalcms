@@ -4,7 +4,7 @@ import * as UsersService from '../../service/users'
 import * as ShopsService from '../../service/shops'
 import { getCommunityByID } from '../../service/community'
 import { generateUserKeywords } from '../../utils/generateKeywords'
-import validateFields from '../../utils/validateFields'
+import validateFields, { validateValue } from '../../utils/validateFields'
 
 //admin.initializeApp()
 
@@ -128,75 +128,82 @@ export const updateUser = async (req, res) => {
   const data = req.body
   let _community
 
-  const existingUserData = await UsersService.getUserByID(data.id)
+  if (!data.id) return res.json({ status: 'error', message: 'id is required!' })
+
+  // check if user id is valid
+  const _existing_user = await UsersService.getUserByID(data.id)
+  if (!_existing_user) return res.json({ status: 'error', message: 'Invalid User ID!' })
 
   if (data.unarchive_only) {
-    if (existingUserData.status !== 'archived') return res.json({ status: 'error', message: "User is not archived" })
+    if (_existing_user.status !== 'archived') return res.json({ status: 'error', message: "User is not archived" })
     const _result = await UsersService.updateUser(data.id, { status: 'active' })
     const shops_update = await ShopsService.setShopsStatusOfUser(data.id, 'previous')
 
     return res.json({ status: 'ok', data: _result, shops_update })
   }
 
-  const error_fields = validateFields(data, required_fields)
-
-  if (error_fields.length) {
-    return res.json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
+  const error_fields: string[] = []
+  required_fields.forEach(field => {
+    if (data.hasOwnProperty(field) && !validateValue(data[field])) {
+      error_fields.push(field)
+    }
+  })
 
   // check if community id is valid
-  try {
-    _community = await getCommunityByID(data.community_id)
-  } catch (e) {
-    error_fields.push('community_id')
-    return res.json({ status: 'error', message: 'Invalid Community ID!', error_fields })
+  if (data.community_id) {
+    try {
+      _community = await getCommunityByID(data.community_id)
+    } catch (e) {
+      error_fields.push('community_id')
+      return res.json({ status: 'error', message: 'Invalid Community ID!', error_fields })
+    }
   }
 
-  let keywords = existingUserData.keywords
+  if (error_fields.length) {
+    return res.json({ status: 'error', message: 'Required fields missing!', error_fields })
+  }
 
-  if (
-    existingUserData.first_name !== data.first_name ||
-    existingUserData.last_name !== data.last_name ||
-    existingUserData.display_name !== data.display_name
+  let keywords
+
+  if (data.first_name || data.last_name || data.display_name
   ) {
+    const first_name = data.first_name || _existing_user.first_name
+    const last_name = data.last_name || _existing_user.last_name
+    const display_name = data.display_name || _existing_user.display_name 
     keywords = generateUserKeywords({
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: existingUserData.email,
-      display_name: data.display_name || `${data.first_name} ${data.last_name}`
+      first_name,
+      last_name,
+      email: _existing_user.email,
+      display_name
     })
   }
 
   const updateData: any = { }
 
-  if (existingUserData.first_name !== data.first_name) updateData.first_name = data.first_name
-  if (existingUserData.last_name !== data.last_name) updateData.last_name = data.last_name
-  if (existingUserData.display_name !== data.display_name)
-    updateData.display_name = data.display_name
-  if (existingUserData.roles.admin !== data.is_admin)
-    updateData.roles = { ...existingUserData.roles, admin: data.is_admin }
-  if (existingUserData.status !== data.status) updateData.status = data.status
-  if (existingUserData.keywords !== keywords) updateData.keywords = keywords
-  if (existingUserData.profile_photo !== data.profile_photo)
-    updateData.profile_photo = data.profile_photo
+  if (data.first_name) updateData.first_name = data.first_name
+  if (data.last_name) updateData.last_name = data.last_name
+  if (data.display_name) updateData.display_name = data.display_name
+  if (data.is_admin) updateData['roles.admin'] = data.is_admin
+  if (data.status) updateData.status = data.status
+  if (keywords) updateData.keywords = keywords
+  if (data.profile_photo) updateData.profile_photo = data.profile_photo
 
-  if (existingUserData.community_id !== data.community_id) {
+  if (data.community_id && _community) {
     // TODO: if user is admin of previous community, remove the user from admin array of community
     updateData.community_id = data.community_id
     updateData.community = db.doc(`community/${data.community_id}`)
-    const address: any = {
-      barangay: _community.address.barangay,
-      city: _community.address.city,
-      state: _community.address.state,
-      subdivision: _community.address.subdivision,
-      zip_code: _community.address.zip_code,
-      country: _community.address.country,
-    }
-    if (existingUserData.address.street !== data.street) address.street = data.street
-    updateData.address = address
-  } else if (existingUserData.address.street !== data.street) {
-    updateData.address = { ...existingUserData.address, street: data.street }
+    updateData['address.barangay'] = _community.address.barangay
+    updateData['address.city'] = _community.address.city
+    updateData['address.state'] = _community.address.state
+    updateData['address.subdivision'] = _community.address.subdivision
+    updateData['address.zip_code'] = _community.address.zip_code
+    updateData['address.country'] = _community.address.country
   }
+
+  if (data.street) updateData['address.street'] = data.street
+
+  if (!Object.keys(updateData).length)
+    return res.json({ status: 'error', message: 'no field for user is provided' })
 
   const _result = await UsersService.updateUser(data.id, updateData)
 
