@@ -4,7 +4,7 @@ import * as admin from 'firebase-admin'
 import { getUserByID } from '../../service/users'
 import * as ShopService from '../../service/shops'
 import { getCommunityByID } from '../../service/community'
-import validateFields from '../../utils/validateFields'
+import validateFields, { validateValue } from '../../utils/validateFields'
 
 //admin.initializeApp()
 
@@ -12,7 +12,11 @@ const db = admin.firestore()
 const auth = admin.auth()
 
 const required_fields = ['name', 'description', 'user_id', 'opening', 'closing']
-const hourFormat = /((1[0-2]|0?[1-9]):([0-5][0-9]) ([AaPp][Mm]))/
+const hourFormat = /((1[0-2]|0?[1-9]):([0-5][0-9]) ?([AaPp][Mm]))/
+
+const timeFormatError = (field: string, time: string) => {
+  return `Incorrect time format for field "${field}": "${time}". Please follow format "12:00 PM"`
+}
 
 export const getShops = async (req, res) => {
   return res.json({ status: 'ok' })
@@ -59,12 +63,12 @@ export const createShop = async (req, res) => {
   if (!hourFormat.test(data.opening))
     return res.json({
       status: 'error',
-      message: `Incorrect format for opening time (${data.opening}). Please follow format [12:00 PM]`,
+      message: timeFormatError('opening', data.opening),
     })
   if (!hourFormat.test(data.closing))
     return res.json({
       status: 'error',
-      message: `Incorrect format for closing time (${data.closing}). Please follow format [12:00 PM]`,
+      message: timeFormatError('closing', data.closing),
     })
 
   const _newData: any = {
@@ -91,13 +95,9 @@ export const createShop = async (req, res) => {
         const opening = data.custom_hours[key].opening
         const closing = data.custom_hours[key].closing
         if (!hourFormat.test(opening))
-          custom_hours_errors.push(
-            `Incorrect format for opening time (${opening}) on day ${key}. Please follow format [12:00 PM]`
-          )
+          custom_hours_errors.push(timeFormatError(`${key}.opening`, opening))
         if (!hourFormat.test(closing))
-          custom_hours_errors.push(
-            `Incorrect format for closing time (${closing}) on day ${key}. Please follow format [12:00 PM]`
-          )
+          custom_hours_errors.push(timeFormatError(`${key}.closing`, opening))
         if (custom_hours_errors.length === 0) _newData.operating_hours[key] = { opening, closing }
       }
     }
@@ -123,7 +123,55 @@ export const getShop = async (req, res) => {
 }
 
 export const updateShop = async (req, res) => {
-  res.json({ status: 'ok' })
+  const data = req.body
+
+  if (!data.id) return res.json({ status: 'error', message: 'id is required!' })
+
+  const updateData: any = {}
+  if (data.name) updateData.name = data.name
+  if (data.description) updateData.description = data.description
+  if (validateValue(data.is_close)) updateData.is_close = data.is_close
+
+  if (data.opening) {
+    if (!hourFormat.test(data.opening))
+      return res.json({ status: 'error', message: timeFormatError('opening', data.opening) })
+    updateData['operating_hours.opening'] = data.opening
+  }
+  if (data.closing) {
+    if (!hourFormat.test(data.closing))
+      return res.json({ status: 'error', message: timeFormatError('closing', data.closing) })
+    updateData['operating_hours.closing'] = data.closing
+  }
+  if (validateValue(data.use_custom_hours))
+    updateData['operating_hours.custom'] = data.use_custom_hours
+  if (data.status) updateData.status = data.status
+
+  if (typeof data.custom_hours === 'object') {
+    const custom_hours_errors = []
+    for (let key in data.custom_hours) {
+      if (['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(key)) {
+        const opening = data.custom_hours[key].opening
+        const closing = data.custom_hours[key].closing
+        if (opening && !hourFormat.test(opening))
+          custom_hours_errors.push(timeFormatError(`${key}.opening`, opening))
+        if (closing && !hourFormat.test(closing))
+          custom_hours_errors.push(timeFormatError(`${key}.closing`, opening))
+        if (custom_hours_errors.length === 0) {
+          if (opening) updateData[`operating_hours.${key}.opening`] = opening
+          if (closing) updateData[`operating_hours.${key}.closing`] = closing
+        }
+      }
+    }
+    if (custom_hours_errors.length)
+      return res.json({ status: 'error', message: 'Incorrect time format', custom_hours_errors })
+  }
+
+  if (!Object.keys(updateData).length)
+    return res.json({ status: 'error', message: 'no field for shop is provided' })
+
+  const result = await ShopService.updateShop(data.id, updateData)
+
+  return res.json({ status: 'ok', data: result })
 }
 
 export const deleteShop = async (req, res) => {

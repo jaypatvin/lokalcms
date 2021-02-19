@@ -37,6 +37,13 @@ export const createShop = async (data) => {
     })
 }
 
+export const updateShop = async (id, data) => {
+  return await db
+    .collection('shops')
+    .doc(id)
+    .update({ ...data, updated_at: new Date() })
+}
+
 export const setShopsStatusOfUser = async (
   id,
   status: 'previous' | 'enabled' | 'disabled' | 'archived'
