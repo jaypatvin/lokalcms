@@ -10,7 +10,6 @@ const required_fields = [
   'shop_id',
   'base_price',
   'quantity',
-  'delivery_options',
   'product_category',
 ]
 
@@ -79,7 +78,6 @@ export const createProduct = async (req, res) => {
     community_id: _shop.community_id,
     base_price: +data.base_price, // conver to number
     quantity: +data.quantity, // convert to number
-    delivery_options: data.delivery_options,
     product_category: data.product_category,
     gallery: data.gallery || { url: '', order: 0 },
     status: data.status || 'enabled',
@@ -138,7 +136,6 @@ export const updateProduct = async (req, res) => {
 
     updateData.gallery = data.gallery
   }
-  if (data.delivery_options) updateData.delivery_options = data.delivery_options
   if (data.product_category) updateData.product_category = data.product_category
 
   if (!Object.keys(updateData).length)
