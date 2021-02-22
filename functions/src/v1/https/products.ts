@@ -138,7 +138,7 @@ export const updateProduct = async (req, res) => {
 
   const updateData: any = {}
 
-  if (data.name || data.delivery_options || data.product_category) {
+  if (data.name || data.product_category) {
     const keywords = generateProductKeywords({
       name: data.name || product.name,
       product_category: data.product_category || product.product_category,
