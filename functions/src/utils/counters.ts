@@ -17,39 +17,23 @@ const getCountRef = (params: any) => {
   return db.doc(countDoc)
 }
 
-const updateMemberCountForCommunity = async (
-  community_id: string,
-  transaction: FirebaseFirestore.Transaction,
-  member_count: FirebaseFirestore.FieldValue
+const updateCountsInDoc = async (
+  doc_id: string,
+  collection_name: string,
+  has_collection_name: string,
+  foreign_key: string,
+  count: FirebaseFirestore.FieldValue,
+  transaction: FirebaseFirestore.Transaction
 ) => {
-  const communityCountRef = db.doc(`${metaCol}/community/${metaCol}/${community_id}`)
-  const communityCountSnap = await communityCountRef.get()
-  if (communityCountSnap.exists) {
-    await transaction.update(communityCountRef, { member_count })
+  const countRef = db.doc(`${metaCol}/${collection_name}/${metaCol}/${doc_id}`)
+  const countSnap = await countRef.get()
+  if (countSnap.exists) {
+    await transaction.update(countRef, { [`${has_collection_name}_count`]: count })
   } else {
     db.runTransaction(async (tr: FirebaseFirestore.Transaction) => {
-      const communityRef = db.collection('users').where('community_id', '==', community_id)
-      const colSnap = await tr.get(communityRef)
-      tr.set(communityCountRef, { member_count: colSnap.size })
-    })
-  }
-  return null
-}
-
-const updateShopCountForCommunity = async (
-  community_id: string,
-  transaction: FirebaseFirestore.Transaction,
-  shops_count: FirebaseFirestore.FieldValue
-) => {
-  const communityCountRef = db.doc(`${metaCol}/community/${metaCol}/${community_id}`)
-  const communityCountSnap = await communityCountRef.get()
-  if (communityCountSnap.exists) {
-    await transaction.update(communityCountRef, { shops_count })
-  } else {
-    db.runTransaction(async (tr: FirebaseFirestore.Transaction) => {
-      const communityRef = db.collection('shops').where('community_id', '==', community_id)
-      const colSnap = await tr.get(communityRef)
-      tr.set(communityCountRef, { shops_count: colSnap.size })
+      const subCollectionsRef = db.collection(has_collection_name).where(foreign_key, '==', doc_id)
+      const colSnap = await tr.get(subCollectionsRef)
+      tr.set(countRef, { [`${has_collection_name}_count`]: colSnap.size })
     })
   }
   return null
@@ -98,18 +82,19 @@ export const runCounter = async (
       switch (collection_name) {
         case 'users':
           community_id = data.community_id
-          await updateMemberCountForCommunity(community_id, transaction, count)
+          await updateCountsInDoc(community_id, 'community', 'users', 'community_id', count, transaction)
           break
         case 'community':
           break
         case 'shops':
           // increment community shop count
           community_id = data.community_id
-          await updateShopCountForCommunity(community_id, transaction, count)
+          await updateCountsInDoc(community_id, 'community', 'shops', 'community_id', count, transaction)
           // TODO: is it worth it to store shops count for users?
           break
         case 'products':
-          // increment product count of shop
+          const shop_id = data.shop_id
+          await updateCountsInDoc(shop_id, 'shops', 'products', 'shop_id', count, transaction)
           break
         default:
           break
