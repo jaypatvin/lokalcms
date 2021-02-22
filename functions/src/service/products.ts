@@ -7,7 +7,7 @@ const getProductsBy = async (idType, id) => {
     .collection('products')
     .where(idType, '==', id)
     .get()
-    .then((res) => res.docs.map((doc) => doc.data()))
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getProductsByShopID = async (id) => await getProductsBy('shop_id', id)
