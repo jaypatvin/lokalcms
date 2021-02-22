@@ -10,7 +10,7 @@ admin.initializeApp()
 import helloRouter from './v1/https/hello.function'
 import { runCounter } from './utils/counters'
 
-const express = require('express')
+import express from 'express'
 
 const app = express()
 app.use(cors({ origin: true }))

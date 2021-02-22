@@ -2,15 +2,15 @@ import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
 
-export const getShopsByUserID = async (id) => {
+export const getShopsByUserID = async (id: string) => {
   return await db
     .collection('shops')
     .where('user_id', '==', id)
     .get()
-    .then((res) => res.docs.map((doc) => doc.data()))
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
-export const getShopsByCommunityID = async (id) => {
+export const getShopsByCommunityID = async (id: string) => {
   return await db
     .collection('shops')
     .where('community_id', '==', id)
@@ -18,7 +18,7 @@ export const getShopsByCommunityID = async (id) => {
     .then((res) => res.docs.map((doc) => doc.data()))
 }
 
-export const getShopByID = async (id) => {
+export const getShopByID = async (id: string) => {
   return await db
     .collection('shops')
     .doc(id)
@@ -37,7 +37,7 @@ export const createShop = async (data) => {
     })
 }
 
-export const updateShop = async (id, data) => {
+export const updateShop = async (id: string, data) => {
   return await db
     .collection('shops')
     .doc(id)

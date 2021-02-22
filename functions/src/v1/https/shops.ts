@@ -3,9 +3,11 @@ import * as admin from 'firebase-admin'
 
 import { getUserByID } from '../../service/users'
 import * as ShopService from '../../service/shops'
+import * as ProductService from '../../service/products'
 import { getCommunityByID } from '../../service/community'
 import validateFields, { validateValue } from '../../utils/validateFields'
 import { generateShopKeywords } from '../../utils/generateKeywords'
+import { Request, Response } from 'express'
 
 //admin.initializeApp()
 
@@ -21,6 +23,38 @@ const timeFormatError = (field: string, time: string) => {
 
 export const getShops = async (req, res) => {
   return res.json({ status: 'ok' })
+}
+
+export const getUserShops = async (req: Request, res: Response) => {
+  const data = req.body
+
+  if (!data.user_id) return res.status(400).json({ status: 'error', message: 'user_id is required!' })
+
+  const shops = await ShopService.getShopsByUserID(data.user_id)
+
+  // reduce return data
+  shops.forEach(shop => {
+    delete shop.keywords
+  })
+
+  return res.json({ status: 'ok', data: shops })
+}
+
+export const getShopDetails = async (req: Request, res: Response) => {
+  const data = req.body
+
+  if (!data.id) return res.status(400).json({ status: 'error', message: 'id is required!' })
+
+  const shop = await ShopService.getShopByID(data.id)
+
+  const products = await ProductService.getProductsByShopID(data.id)
+
+  // reduce return data
+  delete shop.keywords
+  products.forEach(product => delete product.keywords)
+  shop.products = products
+
+  return res.json({ status: 'ok', data: shop })
 }
 
 export const createShop = async (req, res) => {
@@ -120,10 +154,6 @@ export const createShop = async (req, res) => {
   _result.id = _newShop.id
 
   return res.json({ status: 'ok', data: _result })
-}
-
-export const getShop = async (req, res) => {
-  res.json({ status: 'ok' })
 }
 
 export const updateShop = async (req, res) => {
