@@ -3,6 +3,7 @@ import * as ProductService from '../../service/products'
 import { getCommunityByID } from '../../service/community'
 import { getShopByID } from '../../service/shops'
 import validateFields from '../../utils/validateFields'
+import { generateProductKeywords } from '../../utils/generateKeywords'
 
 const required_fields = [
   'name',
@@ -86,6 +87,11 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'order is not a type of number' })
   }
 
+  const keywords = generateProductKeywords({
+    name: data.name,
+    product_category: data.product_category,
+  })
+
   const _productData: any = {
     name: data.name,
     description: data.description,
@@ -97,6 +103,7 @@ export const createProduct = async (req, res) => {
     product_category: data.product_category,
     gallery: { url: data.gallery['url'], order: +data.gallery['order'] }, // make sure that order is converted to number
     status: data.status || 'enabled',
+    keywords,
   }
 
   const _newProduct = await ProductService.createProduct(_productData)
@@ -130,6 +137,14 @@ export const updateProduct = async (req, res) => {
   if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
 
   const updateData: any = {}
+
+  if (data.name || data.product_category) {
+    const keywords = generateProductKeywords({
+      name: data.name || product.name,
+      product_category: data.product_category || product.product_category,
+    })
+    updateData.keywords = keywords
+  }
 
   if (data.name) updateData.name = data.name
   if (data.description) updateData.description = data.description

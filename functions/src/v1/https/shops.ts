@@ -5,6 +5,7 @@ import { getUserByID } from '../../service/users'
 import * as ShopService from '../../service/shops'
 import { getCommunityByID } from '../../service/community'
 import validateFields, { validateValue } from '../../utils/validateFields'
+import { generateShopKeywords } from '../../utils/generateKeywords'
 
 //admin.initializeApp()
 
@@ -71,6 +72,8 @@ export const createShop = async (req, res) => {
       message: timeFormatError('closing', data.closing),
     })
 
+  const keywords = generateShopKeywords({ name: data.name })
+
   const _newData: any = {
     name: data.name,
     description: data.description,
@@ -83,6 +86,7 @@ export const createShop = async (req, res) => {
       custom: data.use_custom_hours || false,
     },
     status: data.status || 'enabled',
+    keywords,
   }
 
   if (data.profile_photo) _newData.profile_photo = data.profile_photo
@@ -128,7 +132,10 @@ export const updateShop = async (req, res) => {
   if (!data.id) return res.json({ status: 'error', message: 'id is required!' })
 
   const updateData: any = {}
-  if (data.name) updateData.name = data.name
+  if (data.name) {
+    updateData.name = data.name
+    updateData.keywords = generateShopKeywords({ name: data.name })
+  }
   if (data.description) updateData.description = data.description
   if (validateValue(data.is_close)) updateData.is_close = data.is_close
 

@@ -46,3 +46,26 @@ export const generateCommunityKeywords = (fields: CommunitySearchFields) => {
   const searchValues = Object.values(fields)
   return generateKeywords(searchValues)
 }
+
+// ####### SHOP #######
+
+type ShopSearchFields = {
+  name: string
+}
+
+export const generateShopKeywords = (fields: ShopSearchFields) => {
+  const searchValues = Object.values(fields)
+  return generateKeywords(searchValues)
+}
+
+// ####### Product #######
+
+type ProductSearchFields = {
+  name: string
+  product_category: string
+}
+
+export const generateProductKeywords = (fields: ProductSearchFields) => {
+  const searchValues = Object.values(fields)
+  return generateKeywords(searchValues)
+}

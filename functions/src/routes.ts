@@ -49,7 +49,7 @@ module.exports = api => {
   // -- Products routes
   api.route('/v1/products').get(wrapAsync(getProductList))
   api.route('/v1/products').post(wrapAsync(createProduct))
-  api.route('/v1/products').put(wrapAsync(updateProduct))
   api.route('/v1/products/:productId').get(wrapAsync(getProduct))
+  api.route('/v1/products/:productId').put(wrapAsync(updateProduct))
   api.route('/v1/products/:productId').delete(wrapAsync(deleteProduct))
 };
