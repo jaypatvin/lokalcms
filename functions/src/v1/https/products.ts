@@ -10,11 +10,20 @@ const required_fields = [
   'shop_id',
   'base_price',
   'quantity',
-  'delivery_options',
   'product_category',
 ]
 
 export const getProducts = async (req, res) => res.status(200).json({ status: 'ok_list' })
+
+const stringIsNum = (input) => {
+  if (typeof input != 'string') return false
+  // parseFloat is for strings with white spaces
+  return !isNaN(Number(input)) && !isNaN(parseFloat(input))
+}
+
+const fieldIsNum = (input) => {
+  return typeof input == 'number' || stringIsNum(input)
+}
 
 export const createProduct = async (req, res) => {
   const data = req.body
@@ -63,13 +72,19 @@ export const createProduct = async (req, res) => {
   }
 
   // check for correct number format
-  if (!+data.base_price)
+  if (!fieldIsNum(data.base_price))
     return res.status(400).json({ status: 'error', message: 'Base Price is not a type of number' })
-  if (!+data.quantity)
+  if (!fieldIsNum(data.quantity))
     return res.status(400).json({ status: 'error', message: 'Quantity is not a type of number' })
 
-  if (data.gallery && !+data.gallery['order'])
-    return res.status(400).json({ status: 'error', message: 'order is not a type of number' })
+  // gallery field should contain both url and order
+  if (data.gallery) {
+    if (!data.gallery['url'])
+      return res.status(400).json({ status: 'error', message: 'Missing gallery url' })
+
+    if (!fieldIsNum(data.gallery['order']))
+      return res.status(400).json({ status: 'error', message: 'order is not a type of number' })
+  }
 
   const _productData: any = {
     name: data.name,
@@ -77,11 +92,10 @@ export const createProduct = async (req, res) => {
     shop_id: data.shop_id,
     user_id: _shop.user_id,
     community_id: _shop.community_id,
-    base_price: +data.base_price, // conver to number
+    base_price: +data.base_price, // convert to number
     quantity: +data.quantity, // convert to number
-    delivery_options: data.delivery_options,
     product_category: data.product_category,
-    gallery: data.gallery || { url: '', order: 0 },
+    gallery: { url: data.gallery['url'], order: +data.gallery['order'] }, // make sure that order is converted to number
     status: data.status || 'enabled',
   }
 
@@ -121,24 +135,27 @@ export const updateProduct = async (req, res) => {
   if (data.description) updateData.description = data.description
   // there might be a better way to write these nested ifs
   if (data.base_price) {
-    if (!+data.base_price)
+    if (!fieldIsNum(data.base_price))
       return res
         .status(400)
         .json({ status: 'error', message: 'Base Price is not a type of number' })
     updateData.base_price = data.base_price
   }
   if (data.quantity) {
-    if (!+data.quantity)
+    if (!fieldIsNum(data.quantity))
       return res.status(400).json({ status: 'error', message: 'Quantity is not a type of number' })
     updateData.quantity = data.quantity
   }
   if (data.gallery) {
-    if (!+data.gallery['order'])
+    if (data.gallery['order'] != null && !fieldIsNum(data.gallery['order']))
       return res.status(400).json({ status: 'error', message: 'order is not a type of number' })
 
-    updateData.gallery = data.gallery
+    // user can update either the order, the gallery url, or both
+    updateData.gallery = {
+      url: data.gallery['url'] ?? product.gallery['url'],
+      order: data.gallery['order'] != null ? +data.gallery['order'] : +product.gallery['order'],
+    }
   }
-  if (data.delivery_options) updateData.delivery_options = data.delivery_options
   if (data.product_category) updateData.product_category = data.product_category
 
   if (!Object.keys(updateData).length)
