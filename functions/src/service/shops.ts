@@ -15,7 +15,7 @@ export const getShopsByCommunityID = async (id: string) => {
     .collection('shops')
     .where('community_id', '==', id)
     .get()
-    .then((res) => res.docs.map((doc) => doc.data()))
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getShopByID = async (id: string) => {

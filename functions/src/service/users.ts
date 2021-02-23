@@ -2,6 +2,17 @@ import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
 
+type GetUsersOptions = {
+  community_id?: string
+}
+
+export const getUsers = (options: GetUsersOptions) => {
+  const { community_id } = options
+  let usersRef: any = db.collection('users')
+  if (community_id) usersRef = usersRef.where('community_id', '==', community_id)
+  return usersRef.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getUserByUID = async (uid) => {
   return await db
     .collection('users')

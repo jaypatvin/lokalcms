@@ -2,6 +2,13 @@ import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
 
+export const getCommunities = () => {
+  return db
+    .collection('community')
+    .get()
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getCommunityByID = async (id) => {
   return await db
     .collection('community')
