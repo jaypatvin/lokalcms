@@ -3,11 +3,12 @@ import { ShopsService } from '../../../service'
 
 const getCommunityShops = async (req: Request, res: Response) => {
   const data = req.body
+  const { communityId } = req.params
 
-  if (!data.community_id)
-    return res.status(400).json({ status: 'error', message: 'community_id is required!' })
+  if (!communityId)
+    return res.status(400).json({ status: 'error', message: 'communityId is required!' })
 
-  const shops = await ShopsService.getShopsByCommunityID(data.community_id)
+  const shops = await ShopsService.getShopsByCommunityID(communityId)
 
   // reduce return data
   shops.forEach((shop) => {

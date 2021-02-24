@@ -2,12 +2,12 @@ import { Request, Response } from 'express'
 import { ShopsService } from '../../../service'
 
 const getUserShops = async (req: Request, res: Response) => {
-  const data = req.body
+  const { userId } = req.params
 
-  if (!data.user_id)
-    return res.status(400).json({ status: 'error', message: 'user_id is required!' })
+  if (!userId)
+    return res.status(400).json({ status: 'error', message: 'userId is required!' })
 
-  const shops = await ShopsService.getShopsByUserID(data.user_id)
+  const shops = await ShopsService.getShopsByUserID(userId)
 
   // reduce return data
   shops.forEach((shop) => {

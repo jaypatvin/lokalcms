@@ -3,11 +3,12 @@ import { ProductsService } from '../../../service'
 
 const getUserProducts = async (req: Request, res: Response) => {
   const data = req.body
+  const { userId } = req.params
 
-  if (!data.user_id)
-    return res.status(400).json({ status: 'error', message: 'user_id is required!' })
+  if (!userId)
+    return res.status(400).json({ status: 'error', message: 'userId is required!' })
 
-  const products = await ProductsService.getProductsByUserId(data.user_id)
+  const products = await ProductsService.getProductsByUserId(userId)
 
   // reduce return data
   products.forEach((product) => {
