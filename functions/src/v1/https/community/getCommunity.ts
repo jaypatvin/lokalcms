@@ -2,12 +2,12 @@ import { Request, Response } from 'express'
 import { CommunityService } from '../../../service'
 
 const getCommunity = async (req: Request, res: Response) => {
-  const data = req.body
-  if (!data.id) return res.status(400).json({ status: 'error', message: 'id is required!' })
+  const { communityId } = req.params
+  if (!communityId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
-  const result = await CommunityService.getCommunityByID(data.id)
+  const result = await CommunityService.getCommunityByID(communityId)
 
-  if (!result) return res.status(204).json({ status: 'ok', data: result, message: 'community does not exist!' })
+  if (!result) return res.status(404).json({ status: 'error', data: result, message: 'community does not exist!' })
 
   // reduce return data
   delete result.keywords
