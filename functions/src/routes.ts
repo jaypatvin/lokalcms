@@ -35,7 +35,7 @@ module.exports = (api: Express) => {
   // -- Shops routes
   api.route('/v1/shops').get(wrapAsync(ShopsAPI.getShops))
   api.route('/v1/shops').post(wrapAsync(ShopsAPI.createShop))
-  api.route('/v1/shops/:shopId').get(wrapAsync(ShopsAPI.getShopDetails))
+  api.route('/v1/shops/:shopId').get(wrapAsync(ShopsAPI.getShop))
   api.route('/v1/shops/:shopId').put(wrapAsync(ShopsAPI.updateShop))
   api.route('/v1/shops/:shopId').delete(wrapAsync(ShopsAPI.deleteShop))
 

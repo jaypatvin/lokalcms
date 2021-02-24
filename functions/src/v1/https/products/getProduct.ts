@@ -2,16 +2,16 @@ import { Request, Response } from 'express'
 import { ProductsService } from '../../../service'
 
 const getProduct = async (req: Request, res: Response) => {
-  const params = req.params
-  let _product
+  const { productId } = req.params
 
   // check if product exists
-  _product = await ProductsService.getProductByID(params.id)
-  if (!_product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
+  const product = await ProductsService.getProductByID(productId)
+  if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
 
-  let _result = await _product.get().then((doc) => doc.data())
+  // reduce return data
+  delete product.keywords
 
-  return res.status(200).json({ status: 'ok', data: _result })
+  return res.status(200).json({ status: 'ok', data: product })
 }
 
 export default getProduct

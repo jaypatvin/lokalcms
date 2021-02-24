@@ -2,7 +2,6 @@ import { Request, Response } from 'express'
 import { ProductsService } from '../../../service'
 
 const getCommunityProducts = async (req: Request, res: Response) => {
-  const data = req.body
   const { communityId } = req.params
 
   if (!communityId)
