@@ -12,6 +12,7 @@ const getUser = async (req: Request, res: Response) => {
 
   // reduce return data
   delete result.keywords
+  delete result.community
 
   return res.json({ status: 'ok', data: result })
 }
