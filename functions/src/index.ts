@@ -5,12 +5,14 @@ import * as bodyParser from 'body-parser'
 import helmet from 'helmet'
 import compression from 'compression'
 import cors from 'cors'
+import express from 'express'
 admin.initializeApp()
+
+// middlewares
+import { authMiddleware } from './middlewares'
 
 import helloRouter from './v1/https/hello.function'
 import { runCounter } from './utils/counters'
-
-import express from 'express'
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -20,6 +22,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
 app.use('/', helloRouter)
+
+app.use(authMiddleware)
 
 require('./routes')(app)
 
