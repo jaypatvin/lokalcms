@@ -18,13 +18,14 @@ export const getUserByUID = async (uid) => {
 }
 
 export const getUserByID = async (id) => {
-  return await db
+  const doc = await db
     .collection('users')
     .doc(id)
     .get()
-    .then((res) => {
-      return res.data()
-    })
+
+  const data = doc.data()
+  if (data) return { id: doc.id, ...data }
+  return data
 }
 
 export const getUsersByCommunityId = async (id: string) => {

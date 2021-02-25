@@ -15,6 +15,10 @@ const claimInvite = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Invalid Invite Code!' })
   }
 
+  if (_invite.expire_by && Date.now() > _invite.expire_by) {
+    return res.status(400).json({ status: 'error', message: 'The invite has expired.' })
+  }
+
   // check if user id is valid
   try {
     _user = await UsersService.getUserByID(data.user_id)
@@ -24,6 +28,13 @@ const claimInvite = async (req: Request, res: Response) => {
 
   if (!_user) {
     return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  } else if (_user.email !== _invite.invitee_email) {
+    return res
+      .status(400)
+      .json({
+        status: 'error',
+        message: 'The invitee email does not match the email of user claiming the invite!',
+      })
   }
 
   console.log(_user)

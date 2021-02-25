@@ -41,6 +41,7 @@ module.exports = (api: Express) => {
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
+  api.route('/v1/invite').post(wrapAsync(InvitesAPI.createInvite))
   api.route('/v1/invite/claim').post(wrapAsync(InvitesAPI.claimInvite))
 
   // -- Community routes
