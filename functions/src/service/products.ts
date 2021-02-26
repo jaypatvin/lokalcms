@@ -17,13 +17,11 @@ export const getProductsByUserId = async (id) => await getProductsBy('user_id', 
 export const getProductsByCommunityID = async (id) => await getProductsBy('community_id', id)
 
 export const getProductByID = async (id) => {
-  return await db
-    .collection('products')
-    .doc(id)
-    .get()
-    .then((res) => {
-      return res.data()
-    })
+  const product = await db.collection('products').doc(id).get()
+
+  const data = product.data()
+  if (data) return { id: product.id, ...data } as any
+  return data
 }
 
 export const createProduct = async (data) => {

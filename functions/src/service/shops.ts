@@ -19,13 +19,11 @@ export const getShopsByCommunityID = async (id: string) => {
 }
 
 export const getShopByID = async (id: string) => {
-  return await db
-    .collection('shops')
-    .doc(id)
-    .get()
-    .then((res) => {
-      return res.data()
-    })
+  const shop = await db.collection('shops').doc(id).get()
+
+  const data = shop.data()
+  if (data) return { id: shop.id, ...data } as any
+  return data
 }
 
 export const createShop = async (data) => {
