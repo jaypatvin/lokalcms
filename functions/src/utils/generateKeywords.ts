@@ -69,3 +69,15 @@ export const generateProductKeywords = (fields: ProductSearchFields) => {
   const searchValues = Object.values(fields)
   return generateKeywords(searchValues)
 }
+
+// ####### Invite #######
+
+type InviteSearchFields = {
+  code: string
+  invitee_email: string
+}
+
+export const generateInviteKeywords = (fields: InviteSearchFields) => {
+  const searchValues = Object.values(fields)
+  return generateKeywords(searchValues)
+}
