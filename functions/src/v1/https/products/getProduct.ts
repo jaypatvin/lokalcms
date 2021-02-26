@@ -6,7 +6,7 @@ const getProduct = async (req: Request, res: Response) => {
 
   // check if product exists
   const product = await ProductsService.getProductByID(productId)
-  if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
+  if (!product) return res.status(404).json({ status: 'error', message: 'Product does not exist!' })
 
   // reduce return data
   delete product.keywords
