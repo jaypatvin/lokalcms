@@ -25,7 +25,9 @@ app.use(bodyParser.json())
 
 app.use('/', helloRouter)
 
-app.use(authMiddleware)
+// NOTE:
+// - commenting for now, needs additional testing
+// app.use(authMiddleware)
 
 require('./routes')(app)
 
