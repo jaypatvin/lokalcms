@@ -54,3 +54,8 @@ exports.productCounter = functions.firestore
   .onWrite(async (change, context) => {
     return runCounter('products', change, context)
   })
+exports.inviteCounter = functions.firestore
+  .document('invites/{docId}')
+  .onWrite(async (change, context) => {
+    return runCounter('invites', change, context)
+  })
