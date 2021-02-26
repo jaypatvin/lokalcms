@@ -5,7 +5,7 @@ import sgMail from '@sendgrid/mail'
 import { UsersService, InvitesService } from '../../../service'
 import { generateInviteKeywords } from '../../../utils/generateKeywords'
 
-sgMail.setApiKey(functions.config().mailService.key)
+sgMail.setApiKey(functions.config().mail_service.key)
 
 const createInvite = async (req: Request, res: Response) => {
   const { user_id, email } = req.body
@@ -46,9 +46,9 @@ const createInvite = async (req: Request, res: Response) => {
   console.log(`sending invite to ${email}`)
   const msg = {
     to: email,
-    from: functions.config().inviteMailConfig.from,
-    'reply-to': functions.config().inviteMailConfig.reply_to,
-    subject: functions.config().inviteMailConfig.subject,
+    from: functions.config().invite_mail_config.from,
+    'reply-to': functions.config().invite_mail_config.reply_to,
+    subject: functions.config().invite_mail_config.subject,
     html: `<strong>Please use invite code ${code}</strong>`,
   }
 
