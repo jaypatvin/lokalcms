@@ -42,6 +42,7 @@ export const getInviteByCode = async (code) => {
   return await db
     .collection('invites')
     .where('code', '==', code)
+    .where('status', '==', 'enabled')
     .get()
     .then((querySnapshot) => {
       if (!querySnapshot.empty) {
