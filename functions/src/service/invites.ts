@@ -21,6 +21,23 @@ export const updateInvite = async (id, data) => {
   return await inviteRef.set(data, { merge: true })
 }
 
+export const disableInvitesByEmail = async (email: string) => {
+  const invites = await db
+    .collection('invites')
+    .where('invitee_email', '==', email)
+    .where('status', '==', 'enabled')
+    .get()
+
+  if (!invites.empty) {
+    for (let i = 0; i < invites.size; i++) {
+      const doc = invites.docs[i]
+      await doc.ref.update({ status: 'disabled' })
+    }
+  }
+
+  return invites.size
+}
+
 export const getInviteByCode = async (code) => {
   return await db
     .collection('invites')
