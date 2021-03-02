@@ -1,0 +1,11 @@
+{
+  "mail_service": {
+    "key": "API KEY"
+
+  },
+  "invite_mail_config": {
+    "from": "noreply@lokalapp.ph",
+    "reply_to": "info@lokalapp.ph",
+    "subject": "Lokal App Invitation"
+  }
+}

@@ -21,11 +21,30 @@ export type UserFilterType = 'all' | 'admin' | 'member' | 'archived'
 export type UserSortByType = 'display_name' | 'community_name' | 'status' | 'created_at'
 export const statusColorMap: any = {
   active: 'bg-green-400',
+  enabled: 'bg-green-400',
   suspended: 'bg-red-400',
   pending: 'bg-yellow-400',
   locked: 'bg-gray-400',
+  disabled: 'bg-gray-400',
 }
 
-// --- User Types --- //
-export type CommunitySortByType = 'name' | 'barangay' | 'city' | 'country' | 'state' | 'state' | 'subdivision'
+// --- Community Types --- //
+export type CommunitySortByType =
+  | 'name'
+  | 'barangay'
+  | 'city'
+  | 'country'
+  | 'state'
+  | 'state'
+  | 'subdivision'
 export type CommunityFilterType = 'all' | 'archived'
+
+// --- Invite Types --- //
+export type InviteFilterType =
+  | 'all'
+  | 'enabled'
+  | 'disabled'
+  | 'claimed'
+  | 'not_claimed'
+  | 'archived'
+export type InviteSortByType = 'invitee_email' | 'created_at' | 'status' | 'claimed' | 'expire_by'
