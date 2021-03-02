@@ -20,6 +20,7 @@ const validateFirebaseIdToken = async (req: Request, res: Response, next: NextFu
   const path = req.path
   const method = req.method.toLowerCase()
   if (nonSecurePaths.some((p) => p.path === path && p.method === method)) return next()
+  if (path.includes('/v1/api-docs/')) return next()
 
   console.log('Check if request is authorized with Firebase ID token')
 

@@ -1,4 +1,6 @@
 import { Express } from 'express'
+import swaggerUI from 'swagger-ui-express'
+import swaggerDocument from './swagger.json'
 import wrapAsync from './utils/wrapAsync'
 import { postStreamFeedCredentials } from './v1/https/streamFeedCredentials'
 
@@ -15,6 +17,9 @@ module.exports = (api: Express) => {
   /**
    * v1 API
    */
+
+  api.use('/v1/api-docs', swaggerUI.serveWithOptions({ redirect: false }))
+  api.route('/v1/api-docs').get(swaggerUI.setup(swaggerDocument))
 
   // -- Get Stream Routes
   api.route('/v1/stream/users').post(wrapAsync(StreamUsersAPI.postUsers))
