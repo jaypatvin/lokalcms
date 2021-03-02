@@ -2,9 +2,25 @@
 # from https://github.com/firebase/functions-samples/blob/master/authorized-https-endpoint/functions/index.js
 */
 
+import { NextFunction, Request, Response } from 'express'
 import admin from 'firebase-admin'
 
-const validateFirebaseIdToken = async (req, res, next) => {
+const nonSecurePaths = [
+  {
+    method: 'get',
+    path: '/v1/stream/users',
+  },
+  {
+    method: 'post',
+    path: '/v1/stream/stream-feed-credentials',
+  },
+]
+
+const validateFirebaseIdToken = async (req: Request, res: Response, next: NextFunction) => {
+  const path = req.path
+  const method = req.method.toLowerCase()
+  if (nonSecurePaths.some((p) => p.path === path && p.method === method)) return next()
+
   console.log('Check if request is authorized with Firebase ID token')
 
   if (
