@@ -8,10 +8,7 @@ import cors from 'cors'
 import express from 'express'
 admin.initializeApp()
 
-// NOTE:
-// - commenting for now, needs additional testing
-// // middlewares
-// import { authMiddleware } from './middlewares'
+import { authMiddleware } from './middlewares'
 
 import helloRouter from './v1/https/hello.function'
 import { runCounter } from './utils/counters'
@@ -25,9 +22,7 @@ app.use(bodyParser.json())
 
 app.use('/', helloRouter)
 
-// NOTE:
-// - commenting for now, needs additional testing
-// app.use(authMiddleware)
+app.use(authMiddleware)
 
 require('./routes')(app)
 
