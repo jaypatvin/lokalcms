@@ -5,6 +5,57 @@ import { generateProductKeywords } from '../../../utils/generateKeywords'
 import { required_fields } from './index'
 import { fieldIsNum } from '../../../utils/helpers'
 
+/**
+ * @openapi
+ * /v1/products:
+ *   post:
+ *     tags:
+ *       - products
+ *     security:
+ *       - bearerAuth: []
+ *     description: Create new product
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               shop_id:
+ *                 type: string
+ *               base_price:
+ *                 type: boolean
+ *               quantity:
+ *                 type: string
+ *               product_category:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *               gallery:
+ *                 type: object
+ *                 properties:
+ *                   url:
+ *                     type: string
+ *                   order:
+ *                     type: number
+ *     responses:
+ *       200:
+ *         description: The new product
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/Product'
+ */
 const createProduct = async (req: Request, res: Response) => {
   const data = req.body
   let _shop

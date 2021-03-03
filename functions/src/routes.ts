@@ -13,7 +13,7 @@ import {
   StreamUsersAPI,
 } from './v1/https'
 
-const options: swaggerJsdoc.Options = {
+const swaggerOptions: swaggerJsdoc.Options = {
   swaggerDefinition: {
     openapi: '3.0.0',
     info: {
@@ -49,7 +49,7 @@ const options: swaggerJsdoc.Options = {
   apis: ['./src/v1/https/**/*.ts'],
 }
 
-const swaggerSpec = swaggerJsdoc(options)
+const swaggerSpec = swaggerJsdoc(swaggerOptions)
 
 module.exports = (api: Express) => {
   /**

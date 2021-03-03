@@ -1,6 +1,41 @@
 import { InvitesService, UsersService } from '../../../service'
 import { Request, Response } from 'express'
 
+/**
+ * @openapi
+ * /v1/invite/claim:
+ *   post:
+ *     tags:
+ *       - invite
+ *     security:
+ *       - bearerAuth: []
+ *     description: Claim invite
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *               code:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The new invite
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 message:
+ *                   type: string
+ *                   example: Invite code is now claimed by User!
+ */
 const claimInvite = async (req: Request, res: Response) => {
   const data = req.body
   let _invite

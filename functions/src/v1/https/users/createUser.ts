@@ -5,6 +5,59 @@ import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 import { db, auth } from '../index'
 
+/**
+ * @openapi
+ * /v1/users:
+ *   post:
+ *     tags:
+ *       - users
+ *     security:
+ *       - bearerAuth: []
+ *     description: Create new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 required: true
+ *               first_name:
+ *                 type: string
+ *                 required: true
+ *               last_name:
+ *                 type: string
+ *                 required: true
+ *               street:
+ *                 type: string
+ *                 required: true
+ *               community_id:
+ *                 type: string
+ *                 required: true
+ *               display_name:
+ *                 type: string
+ *               is_admin:
+ *                 type: boolean
+ *               status:
+ *                 type: string
+ *               profile_photo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The new user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ */
 const createUser = async (req: Request, res: Response) => {
   const data = req.body
   let _authUser

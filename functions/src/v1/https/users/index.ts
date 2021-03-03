@@ -16,6 +16,8 @@
  *         email:
  *           type: string
  *           format: email
+ *         profile_photo:
+ *           type: string
  *         status:
  *           type: string
  *         birthdate:

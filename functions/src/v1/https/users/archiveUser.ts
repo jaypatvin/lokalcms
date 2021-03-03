@@ -1,6 +1,36 @@
 import { Request, Response } from 'express'
 import { UsersService, ShopsService } from '../../../service'
 
+/**
+ * @openapi
+ * /v1/users/{userId}:
+ *   delete:
+ *     tags:
+ *       - users
+ *     security:
+ *       - bearerAuth: []
+ *     description: Archive the user
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: document id of the user
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Archived user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ */
 const archiveUser = async (req: Request, res: Response) => {
   const data = req.body
   if (!data.id) return res.status(400).json({ status: 'error', message: 'User ID is required!' })

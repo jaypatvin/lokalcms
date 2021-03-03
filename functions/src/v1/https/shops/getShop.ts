@@ -1,6 +1,36 @@
 import { Request, Response } from 'express'
 import { ShopsService, ProductsService } from '../../../service'
 
+/**
+ * @openapi
+ * /v1/shops/{shopId}:
+ *   get:
+ *     tags:
+ *       - shops
+ *     security:
+ *       - bearerAuth: []
+ *     description: Return the shop
+ *     parameters:
+ *       - in: path
+ *         name: shopId
+ *         required: true
+ *         description: document id of the shop
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Single shop
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/Shop'
+ */
 const getShop = async (req: Request, res: Response) => {
   const { shopId } = req.params
 

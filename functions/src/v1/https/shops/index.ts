@@ -1,3 +1,84 @@
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Shop:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         user_id:
+ *           type: string
+ *         community_id:
+ *           type: string
+ *         is_close:
+ *           type: boolean
+ *         status:
+ *           type: string
+ *         operating_hours:
+ *           type: object
+ *           properties:
+ *             opening:
+ *               type: string
+ *             closing:
+ *               type: string
+ *             custom:
+ *               type: string
+ *             mon:
+ *               type: object
+ *               properties:
+ *                 opening:
+ *                   type: string
+ *                 closing:
+ *                   type: string
+ *             tue:
+ *               type: object
+ *               properties:
+ *                 opening:
+ *                   type: string
+ *                 closing:
+ *                   type: string
+ *             wed:
+ *               type: object
+ *               properties:
+ *                 opening:
+ *                   type: string
+ *                 closing:
+ *                   type: string
+ *             thu:
+ *               type: object
+ *               properties:
+ *                 opening:
+ *                   type: string
+ *                 closing:
+ *                   type: string
+ *             fri:
+ *               type: object
+ *               properties:
+ *                 opening:
+ *                   type: string
+ *                 closing:
+ *                   type: string
+ *             sat:
+ *               type: object
+ *               properties:
+ *                 opening:
+ *                   type: string
+ *                 closing:
+ *                   type: string
+ *             sun:
+ *               type: object
+ *               properties:
+ *                 opening:
+ *                   type: string
+ *                 closing:
+ *                   type: string
+ */
+
 export const required_fields = ['name', 'description', 'user_id', 'opening', 'closing']
 export const hourFormat = /((1[0-2]|0?[1-9]):([0-5][0-9]) ?([AaPp][Mm]))/
 
