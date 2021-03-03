@@ -5,6 +5,8 @@ import { UsersService } from '../../../service'
  * @openapi
  * /v1/users:
  *   get:
+ *     security:
+ *       - bearerAuth: []
  *     description: Returns all users
  *     responses:
  *       200:

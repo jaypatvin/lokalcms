@@ -31,6 +31,20 @@ const options: swaggerJsdoc.Options = {
         description: 'production server',
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ['./src/v1/https/**/*.ts'],
 }
