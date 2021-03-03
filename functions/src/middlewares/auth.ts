@@ -5,7 +5,7 @@
 import { NextFunction, Request, Response } from 'express'
 import admin from 'firebase-admin'
 
-const nonSecurePaths = [
+const nonSecureAPIs = [
   {
     method: 'get',
     path: '/v1/stream/users',
@@ -14,13 +14,26 @@ const nonSecurePaths = [
     method: 'post',
     path: '/v1/stream/stream-feed-credentials',
   },
+  {
+    method: 'get',
+    regexPath: /^\/v1\/invite\/check\/[a-zA-Z0-9]+$/
+  },
+  {
+    method: 'get',
+    regexPath: /^\/v1\/api-docs(\/.*)?$/,
+  }
 ]
 
 const validateFirebaseIdToken = async (req: Request, res: Response, next: NextFunction) => {
   const path = req.path
   const method = req.method.toLowerCase()
-  if (nonSecurePaths.some((p) => p.path === path && p.method === method)) return next()
-  if (path.includes('/v1/api-docs/')) return next()
+  const isNonSecure = nonSecureAPIs.some(api => {
+    let pathMatch = false
+    if (api.path) pathMatch = api.path === path
+    if (api.regexPath) pathMatch = api.regexPath.test(path)
+    return pathMatch && api.method === method
+  })
+  if (isNonSecure) return next()
 
   console.log('Check if request is authorized with Firebase ID token')
 
