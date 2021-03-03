@@ -7,8 +7,6 @@ import { Request, Response } from 'express'
  *   get:
  *     tags:
  *       - invite
- *     security:
- *       - bearerAuth: []
  *     description: Return the invite if the code matches and is valid
  *     parameters:
  *       - in: path
