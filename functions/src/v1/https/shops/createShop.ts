@@ -6,13 +6,13 @@ import { required_fields, hourFormat, timeFormatError } from './index'
 
 /**
  * @openapi
- * /v1/community:
+ * /v1/shops:
  *   post:
  *     tags:
- *       - community
+ *       - shops
  *     security:
  *       - bearerAuth: []
- *     description: Create new community
+ *     description: Create new shop
  *     requestBody:
  *       required: true
  *       content:
