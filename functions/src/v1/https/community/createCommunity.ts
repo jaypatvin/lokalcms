@@ -4,6 +4,61 @@ import { CommunityService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 
+/**
+ * @openapi
+ * /v1/community:
+ *   post:
+ *     tags:
+ *       - community
+ *     security:
+ *       - bearerAuth: []
+ *     description: Create new community
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 required: true
+ *               barangay:
+ *                 type: string
+ *                 required: true
+ *               city:
+ *                 type: string
+ *                 required: true
+ *               state:
+ *                 type: string
+ *                 required: true
+ *               subdivision:
+ *                 type: string
+ *                 required: true
+ *               zip_code:
+ *                 type: string
+ *                 required: true
+ *               country:
+ *                 type: boolean
+ *                 required: true
+ *               profile_photo:
+ *                 type: string
+ *               cover_photo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The new community
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/Community'
+ */
 const createCommunity = async (req: Request, res: Response) => {
   const data = req.body
   const error_fields = validateFields(data, required_fields)

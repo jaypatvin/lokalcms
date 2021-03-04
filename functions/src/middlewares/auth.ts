@@ -17,6 +17,10 @@ const nonSecureAPIs = [
   {
     method: 'get',
     regexPath: /^\/v1\/invite\/check\/[a-zA-Z0-9]+$/
+  },
+  {
+    method: 'get',
+    regexPath: /^\/v1\/api-docs(\/.*)?$/,
   }
 ]
 

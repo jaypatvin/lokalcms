@@ -4,6 +4,109 @@ import { validateValue } from '../../../utils/validateFields'
 import { generateShopKeywords } from '../../../utils/generateKeywords'
 import { hourFormat, timeFormatError } from './index'
 
+/**
+ * @openapi
+ * /v1/shops/{shopId}:
+ *   put:
+ *     tags:
+ *       - shops
+ *     security:
+ *       - bearerAuth: []
+ *     description: Update shop
+ *     parameters:
+ *       - in: path
+ *         name: shopId
+ *         required: true
+ *         description: document id of the shop
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               is_close:
+ *                 type: boolean
+ *               status:
+ *                 type: string
+ *               opening:
+ *                 type: string
+ *               closing:
+ *                 type: string
+ *               use_custom_hours:
+ *                 type: boolean
+ *               custom_hours:
+ *                 type: object
+ *                 properties:
+ *                   mon:
+ *                     type: object
+ *                     properties:
+ *                       opening:
+ *                         type: string
+ *                       closing:
+ *                         type: string
+ *                   tue:
+ *                     type: object
+ *                     properties:
+ *                       opening:
+ *                         type: string
+ *                       closing:
+ *                         type: string
+ *                   wed:
+ *                     type: object
+ *                     properties:
+ *                       opening:
+ *                         type: string
+ *                       closing:
+ *                         type: string
+ *                   thu:
+ *                     type: object
+ *                     properties:
+ *                       opening:
+ *                         type: string
+ *                       closing:
+ *                         type: string
+ *                   fri:
+ *                     type: object
+ *                     properties:
+ *                       opening:
+ *                         type: string
+ *                       closing:
+ *                         type: string
+ *                   sat:
+ *                     type: object
+ *                     properties:
+ *                       opening:
+ *                         type: string
+ *                       closing:
+ *                         type: string
+ *                   sun:
+ *                     type: object
+ *                     properties:
+ *                       opening:
+ *                         type: string
+ *                       closing:
+ *                         type: string
+ *     responses:
+ *       200:
+ *         description: Updated shop
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/Shop'
+ */
 const updateShop = async (req: Request, res: Response) => {
   const data = req.body
 

@@ -10,6 +10,41 @@ import validateFields from '../../../utils/validateFields'
 
 sgMail.setApiKey(functions.config().mail_service.key)
 
+/**
+ * @openapi
+ * /v1/invite:
+ *   post:
+ *     tags:
+ *       - invite
+ *     security:
+ *       - bearerAuth: []
+ *     description: Create new invite
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The new invite
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/Invite'
+ */
+
 const createInvite = async (req: Request, res: Response) => {
   const data = req.body
   const error_fields = validateFields(data, required_fields)

@@ -1,4 +1,6 @@
 import { Express } from 'express'
+import swaggerUI from 'swagger-ui-express'
+import swaggerJsdoc from 'swagger-jsdoc'
 import wrapAsync from './utils/wrapAsync'
 import { postStreamFeedCredentials } from './v1/https/streamFeedCredentials'
 
@@ -11,10 +13,51 @@ import {
   StreamUsersAPI,
 } from './v1/https'
 
+const swaggerOptions: swaggerJsdoc.Options = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Lokal App',
+      description: 'API documentation for Lokal App',
+      version: '1.0.0',
+    },
+    servers: [
+      {
+        url: 'http://localhost:5001/lokal-1baac/us-central1/api',
+        description: 'development server',
+      },
+      {
+        url: 'https://us-central1-lokal-1baac.cloudfunctions.net/api',
+        description: 'production server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
+  },
+  apis: ['./src/v1/https/**/*.ts'],
+}
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions)
+
 module.exports = (api: Express) => {
   /**
    * v1 API
    */
+
+  api.use('/v1/api-docs', swaggerUI.serveWithOptions({ redirect: false }))
+  api.route('/v1/api-docs').get(swaggerUI.setup(swaggerSpec))
 
   // -- Get Stream Routes
   api.route('/v1/stream/users').post(wrapAsync(StreamUsersAPI.postUsers))

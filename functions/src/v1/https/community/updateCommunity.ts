@@ -4,6 +4,68 @@ import { UsersService, CommunityService } from '../../../service'
 import { validateValue } from '../../../utils/validateFields'
 import { required_fields } from './index'
 
+/**
+ * @openapi
+ * /v1/community/{communityId}:
+ *   put:
+ *     tags:
+ *       - community
+ *     security:
+ *       - bearerAuth: []
+ *     description: Update community
+ *     parameters:
+ *       - in: path
+ *         name: communityId
+ *         required: true
+ *         description: document id of the community
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 required: true
+ *               barangay:
+ *                 type: string
+ *                 required: true
+ *               city:
+ *                 type: string
+ *                 required: true
+ *               state:
+ *                 type: string
+ *                 required: true
+ *               subdivision:
+ *                 type: string
+ *                 required: true
+ *               zip_code:
+ *                 type: string
+ *                 required: true
+ *               country:
+ *                 type: boolean
+ *                 required: true
+ *               profile_photo:
+ *                 type: string
+ *               cover_photo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Updated community
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/Community'
+ */
 export const updateCommunity = async (req: Request, res: Response) => {
   const data = req.body
 

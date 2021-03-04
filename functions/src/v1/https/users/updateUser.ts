@@ -5,6 +5,61 @@ import { validateValue } from '../../../utils/validateFields'
 import { required_fields } from './index'
 import { db } from '../index'
 
+/**
+ * @openapi
+ * /v1/users/{userId}:
+ *   put:
+ *     tags:
+ *       - users
+ *     security:
+ *       - bearerAuth: []
+ *     description: Update user
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: document id of the user
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               street:
+ *                 type: string
+ *               community_id:
+ *                 type: string
+ *               display_name:
+ *                 type: string
+ *               is_admin:
+ *                 type: boolean
+ *               status:
+ *                 type: string
+ *               profile_photo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Updated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ */
 const updateUser = async (req: Request, res: Response) => {
   const data = req.body
   let _community

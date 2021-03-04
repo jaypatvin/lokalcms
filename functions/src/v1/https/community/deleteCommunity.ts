@@ -1,24 +1,54 @@
 import { Request, Response } from 'express'
 import { CommunityService } from '../../../service'
 
+/**
+ * @openapi
+ * /v1/community/{communityId}:
+ *   delete:
+ *     tags:
+ *       - community
+ *     security:
+ *       - bearerAuth: []
+ *     description: Archive the community
+ *     parameters:
+ *       - in: path
+ *         name: communityId
+ *         required: true
+ *         description: document id of the community
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Archived community
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 data:
+ *                   $ref: '#/components/schemas/Community'
+ */
 const deleteCommunity = async (req: Request, res: Response) => {
-  const data = req.body
-  if (!data.id)
+  const body = req.body
+  const { communityId, name } = req.params
+  if (!communityId)
     return res.status(400).json({ status: 'error', message: 'Community ID is required!' })
-  const { id: community_id, name } = data
 
   let result: any = ''
-  if (data.hard_delete) {
-    result = await CommunityService.deleteCommunity(community_id)
+  if (body.hard_delete) {
+    result = await CommunityService.deleteCommunity(communityId)
   } else {
-    result = await CommunityService.archiveCommunity(community_id)
+    result = await CommunityService.archiveCommunity(communityId)
   }
 
   return res.json({
     status: 'ok',
     data: result,
-    message: `Community ${name || community_id} successfully ${
-      data.hard_delete ? 'deleted' : 'archived'
+    message: `Community ${name || communityId} successfully ${
+      body.hard_delete ? 'deleted' : 'archived'
     }.`,
   })
 }
