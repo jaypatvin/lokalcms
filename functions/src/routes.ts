@@ -11,6 +11,7 @@ import {
   ProductsAPI,
   InvitesAPI,
   StreamUsersAPI,
+  AuthAPI,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -45,6 +46,12 @@ const swaggerOptions: swaggerJsdoc.Options = {
         bearerAuth: [],
       },
     ],
+    tags: [
+      {
+        name: 'authentication',
+        description: 'Get your access token here.'
+      }
+    ]
   },
   apis: ['./src/v1/https/**/*.ts'],
 }
@@ -58,6 +65,9 @@ module.exports = (api: Express) => {
 
   api.use('/v1/api-docs', swaggerUI.serveWithOptions({ redirect: false }))
   api.route('/v1/api-docs').get(swaggerUI.setup(swaggerSpec))
+
+  // -- Authentication
+  api.route('/v1/getToken').post(wrapAsync(AuthAPI.getToken))
 
   // -- Get Stream Routes
   api.route('/v1/stream/users').post(wrapAsync(StreamUsersAPI.postUsers))

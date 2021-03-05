@@ -7,6 +7,10 @@ import admin from 'firebase-admin'
 
 const nonSecureAPIs = [
   {
+    method: 'post',
+    path: '/v1/getToken',
+  },
+  {
     method: 'get',
     path: '/v1/stream/users',
   },
