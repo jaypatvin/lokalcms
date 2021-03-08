@@ -32,21 +32,27 @@ import { UsersService, ShopsService } from '../../../service'
  *                   $ref: '#/components/schemas/User'
  */
 const archiveUser = async (req: Request, res: Response) => {
-  const data = req.body
-  if (!data.id) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
-  const { id: user_id, display_name } = data
+  const roles = res.locals.userRoles
+  if (!roles.admin) {
+    return res.status(403).json({
+      status: 'error',
+      message: 'The requestor does not have a permission to delete.',
+    })
+  }
+  const { userId } = req.params
+  if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
 
   // archive the user
-  const result = await UsersService.archiveUser(user_id)
+  const result = await UsersService.archiveUser(userId)
 
   // archive the shops of the user
-  const shops_update = await ShopsService.setShopsStatusOfUser(user_id, 'archived')
+  const shops_update = await ShopsService.setShopsStatusOfUser(userId, 'archived')
 
   return res.json({
     status: 'ok',
     data: result,
     shops_update,
-    message: `User ${display_name || user_id} successfully archived.`,
+    message: `User ${userId} successfully archived.`,
   })
 }
 

@@ -61,20 +61,39 @@ import { db } from '../index'
  *                   $ref: '#/components/schemas/User'
  */
 const updateUser = async (req: Request, res: Response) => {
+  const { userId } = req.params
   const data = req.body
+  const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
+  if (!roles.editor && requestorDocId !== userId)
+    return res
+      .status(403)
+      .json({
+        status: 'error',
+        message: 'The requestor does not have a permission to update another user',
+      })
+  if (!roles.admin && data.is_admin) {
+    return res
+      .status(403)
+      .json({
+        status: 'error',
+        message: 'The requestor does not have a permission to make a user an admin',
+      })
+  }
+
   let _community
 
-  if (!data.id) return res.status(400).json({ status: 'error', message: 'id is required!' })
+  if (!userId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
   // check if user id is valid
-  const _existing_user = await UsersService.getUserByID(data.id)
+  const _existing_user = await UsersService.getUserByID(userId)
   if (!_existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
   if (data.unarchive_only) {
     if (_existing_user.status !== 'archived')
       return res.json({ status: 'error', message: 'User is not archived' })
-    const _result = await UsersService.updateUser(data.id, { status: 'active' })
-    const shops_update = await ShopsService.setShopsStatusOfUser(data.id, 'previous')
+    const _result = await UsersService.updateUser(userId, { status: 'active' })
+    const shops_update = await ShopsService.setShopsStatusOfUser(userId, 'previous')
 
     return res.json({ status: 'ok', data: _result, shops_update })
   }
@@ -145,7 +164,7 @@ const updateUser = async (req: Request, res: Response) => {
   if (!Object.keys(updateData).length)
     return res.status(400).json({ status: 'error', message: 'no field for user is provided' })
 
-  const _result = await UsersService.updateUser(data.id, updateData)
+  const _result = await UsersService.updateUser(userId, updateData)
 
   return res.json({ status: 'ok', data: _result })
 }

@@ -28,9 +28,9 @@ import { fieldIsNum } from '../../../utils/helpers'
  *               shop_id:
  *                 type: string
  *               base_price:
- *                 type: boolean
+ *                 type: number
  *               quantity:
- *                 type: string
+ *                 type: number
  *               product_category:
  *                 type: string
  *               status:
@@ -81,6 +81,14 @@ const createProduct = async (req: Request, res: Response) => {
       message: `User with id ${data.user_id} is currently archived!`,
     })
 
+  const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
+  if (!roles.editor && requestorDocId !== _shop.user_id)
+    return res.status(403).json({
+      status: 'error',
+      message: 'The requestor does not have a permission to create a product for another user.',
+    })
+
   // get community from shop.communityID and validate
   _community = await CommunityService.getCommunityByID(_shop.community_id)
   // this should not happen, shop should not be created with a wrong communityID or without community
@@ -110,13 +118,16 @@ const createProduct = async (req: Request, res: Response) => {
   if (!fieldIsNum(data.quantity))
     return res.status(400).json({ status: 'error', message: 'Quantity is not a type of number' })
 
+  let gallery
   // gallery field should contain both url and order
   if (data.gallery) {
-    if (!data.gallery['url'])
+    if (!data.gallery.url)
       return res.status(400).json({ status: 'error', message: 'Missing gallery url' })
 
-    if (!fieldIsNum(data.gallery['order']))
+    if (!fieldIsNum(data.gallery.order))
       return res.status(400).json({ status: 'error', message: 'order is not a type of number' })
+
+    gallery = { url: data.gallery.url, order: +data.gallery.order }
   }
 
   const keywords = generateProductKeywords({
@@ -133,10 +144,11 @@ const createProduct = async (req: Request, res: Response) => {
     base_price: +data.base_price, // convert to number
     quantity: +data.quantity, // convert to number
     product_category: data.product_category,
-    gallery: { url: data.gallery['url'], order: +data.gallery['order'] }, // make sure that order is converted to number
     status: data.status || 'enabled',
     keywords,
   }
+
+  if (gallery) _productData.gallery = gallery
 
   const _newProduct = await ProductsService.createProduct(_productData)
 

@@ -46,7 +46,7 @@ import { required_fields } from './index'
  *                 type: string
  *                 required: true
  *               country:
- *                 type: boolean
+ *                 type: string
  *                 required: true
  *               profile_photo:
  *                 type: string
@@ -67,18 +67,27 @@ import { required_fields } from './index'
  *                   $ref: '#/components/schemas/Community'
  */
 export const updateCommunity = async (req: Request, res: Response) => {
+  const { communityId } = req.params
   const data = req.body
+  const roles = res.locals.userRoles
+  if (!roles.editor)
+    return res
+      .status(403)
+      .json({
+        status: 'error',
+        message: 'The requestor does not have a permission to update a community',
+      })
 
-  if (!data.id) return res.status(400).json({ status: 'error', message: 'id is required!' })
+  if (!communityId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
-  const _existing_community = await CommunityService.getCommunityByID(data.id)
+  const _existing_community = await CommunityService.getCommunityByID(communityId)
   if (!_existing_community)
     return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
 
   if (data.unarchive_only) {
     if (!_existing_community.archived)
       return res.status(400).json({ status: 'error', message: 'Community is not archived' })
-    const _result = await CommunityService.unarchiveCommunity(data.id)
+    const _result = await CommunityService.unarchiveCommunity(communityId)
 
     return res.json({ status: 'ok', data: _result })
   }
@@ -94,7 +103,7 @@ export const updateCommunity = async (req: Request, res: Response) => {
       zip_code: data.zip_code || _existing_community.address.zip_code,
     })
 
-    if (existing_communities.find((community) => community.id !== data.id)) {
+    if (existing_communities.find((community) => community.id !== communityId)) {
       return res.status(400).json({
         status: 'error',
         message: `Community "${data.name}" already exists with the same address.`,
@@ -127,7 +136,7 @@ export const updateCommunity = async (req: Request, res: Response) => {
       const user_id = data.admin[i]
       const user = await UsersService.getUserByID(user_id)
       if (!user) not_existing_users.push(user_id)
-      if (user && user.community_id !== data.id) different_community_users.push(user_id)
+      if (user && user.community_id !== communityId) different_community_users.push(user_id)
     }
     if (not_existing_users.length || different_community_users.length)
       return res.status(400).json({
@@ -176,7 +185,7 @@ export const updateCommunity = async (req: Request, res: Response) => {
   if (!Object.keys(updateData).length)
     return res.status(400).json({ status: 'error', message: 'no field for community is provided' })
 
-  const result = await CommunityService.updateCommunity(data.id, updateData)
+  const result = await CommunityService.updateCommunity(communityId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

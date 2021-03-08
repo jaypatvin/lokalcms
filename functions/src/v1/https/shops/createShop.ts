@@ -104,6 +104,16 @@ import { required_fields, hourFormat, timeFormatError } from './index'
  */
 const createShop = async (req: Request, res: Response) => {
   const data = req.body
+  const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
+  if (!roles.editor && requestorDocId !== data.user_id)
+    return res
+      .status(403)
+      .json({
+        status: 'error',
+        message: 'The requestor does not have a permission to create a shop for another user.',
+      })
+
   let _user
   let _community
 

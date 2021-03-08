@@ -33,9 +33,9 @@ import { fieldIsNum } from '../../../utils/helpers'
  *               shop_id:
  *                 type: string
  *               base_price:
- *                 type: boolean
+ *                 type: number
  *               quantity:
- *                 type: string
+ *                 type: number
  *               product_category:
  *                 type: string
  *               status:
@@ -62,13 +62,22 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                   $ref: '#/components/schemas/Product'
  */
 const updateProduct = async (req: Request, res: Response) => {
+  const { productId } = req.params
   const data = req.body
 
-  if (!data.id) return res.status(400).json({ status: 'error', message: 'id is required!' })
+  if (!productId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
   // check if product exists
-  const product = await ProductsService.getProductByID(data.id)
+  const product = await ProductsService.getProductByID(productId)
   if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
+
+  const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
+  if (!roles.editor && requestorDocId !== product.user_id)
+    return res.status(403).json({
+      status: 'error',
+      message: 'The requestor does not have a permission to update a product of another user.',
+    })
 
   const updateData: any = {}
 
@@ -110,7 +119,7 @@ const updateProduct = async (req: Request, res: Response) => {
   if (!Object.keys(updateData).length)
     return res.status(400).json({ status: 'error', message: 'no field for shop is provided' })
 
-  const result = await ProductsService.updateProduct(data.id, updateData)
+  const result = await ProductsService.updateProduct(productId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

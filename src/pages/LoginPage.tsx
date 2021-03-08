@@ -35,7 +35,11 @@ const LoginPage = (props: any) => {
       setErrors({})
 
       if (setRedirect) setRedirect('/')
-      if (login) await login(email, password)
+      if (login) {
+        const loggedInUser = await login(email, password)
+        const firebaseToken = await loggedInUser.user?.getIdToken()
+        console.log('firebaseToken', firebaseToken)
+      }
       // history.push("/")
     } catch (error) {
       console.log(error)
