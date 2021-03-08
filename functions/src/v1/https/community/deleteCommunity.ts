@@ -32,6 +32,13 @@ import { CommunityService } from '../../../service'
  *                   $ref: '#/components/schemas/Community'
  */
 const deleteCommunity = async (req: Request, res: Response) => {
+  const roles = res.locals.userRoles
+  if (!roles.admin) {
+    return res.status(403).json({
+      status: 'error',
+      message: 'The requestor does not have a permission to delete.',
+    })
+  }
   const body = req.body
   const { communityId, name } = req.params
   if (!communityId)

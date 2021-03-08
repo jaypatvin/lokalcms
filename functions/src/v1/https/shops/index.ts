@@ -27,7 +27,7 @@
  *             closing:
  *               type: string
  *             custom:
- *               type: string
+ *               type: boolean
  *             mon:
  *               type: object
  *               properties:

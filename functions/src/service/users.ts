@@ -14,14 +14,11 @@ export const getUserByUID = async (uid) => {
     .collection('users')
     .where('user_uids', 'array-contains', uid)
     .get()
-    .then((res) => res.docs.map((doc) => doc.data()))
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getUserByID = async (id) => {
-  const doc = await db
-    .collection('users')
-    .doc(id)
-    .get()
+  const doc = await db.collection('users').doc(id).get()
 
   const data = doc.data()
   if (data) return { id: doc.id, ...data }

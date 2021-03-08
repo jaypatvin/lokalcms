@@ -47,6 +47,8 @@
  *           properties:
  *             admin:
  *               type: boolean
+ *             editor:
+ *               type: boolean
  *             member:
  *               type: boolean
  *         registration:

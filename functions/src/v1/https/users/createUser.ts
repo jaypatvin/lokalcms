@@ -60,6 +60,20 @@ import { db, auth } from '../index'
  */
 const createUser = async (req: Request, res: Response) => {
   const data = req.body
+  const roles = res.locals.userRoles
+  if (!roles.editor)
+    return res
+      .status(403)
+      .json({ status: 'error', message: 'The requestor does not have a permission to create a user' })
+  if (!roles.admin && data.is_admin) {
+    return res
+      .status(403)
+      .json({
+        status: 'error',
+        message: 'The requestor does not have a permission to create an admin user',
+      })
+  }
+
   let _authUser
   let _community
   const error_fields = validateFields(data, required_fields)

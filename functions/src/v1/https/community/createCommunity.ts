@@ -39,7 +39,7 @@ import { required_fields } from './index'
  *                 type: string
  *                 required: true
  *               country:
- *                 type: boolean
+ *                 type: string
  *                 required: true
  *               profile_photo:
  *                 type: string
@@ -61,6 +61,15 @@ import { required_fields } from './index'
  */
 const createCommunity = async (req: Request, res: Response) => {
   const data = req.body
+  const roles = res.locals.userRoles
+  if (!roles.editor)
+    return res
+      .status(403)
+      .json({
+        status: 'error',
+        message: 'The requestor does not have a permission to create a community',
+      })
+
   const error_fields = validateFields(data, required_fields)
 
   if (error_fields.length) {

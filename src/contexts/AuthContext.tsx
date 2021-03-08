@@ -7,7 +7,7 @@ import { fetchUserByUID } from '../services/users'
 type ContextType = {
   currentUser?: firebase.User
   currentUserInfo?: any
-  login?: (email: string, password: string) => void
+  login?: (email: string, password: string) => Promise<firebase.auth.UserCredential>
   logout?: () => void
   reauthenticate?: (email: string, password: string) => Promise<any>
   withError?: boolean
