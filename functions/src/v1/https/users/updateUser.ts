@@ -70,14 +70,14 @@ const updateUser = async (req: Request, res: Response) => {
       .status(403)
       .json({
         status: 'error',
-        message: 'The requestor does not have a permission to update another user',
+        message: 'You do not have a permission to update another user',
       })
-  if (!roles.admin && data.is_admin) {
+  if (!roles.admin && data.hasOwnProperty('is_admin')) {
     return res
       .status(403)
       .json({
         status: 'error',
-        message: 'The requestor does not have a permission to make a user an admin',
+        message: 'You do not have a permission to set the admin value of any user',
       })
   }
 
@@ -142,7 +142,7 @@ const updateUser = async (req: Request, res: Response) => {
   if (data.first_name) updateData.first_name = data.first_name
   if (data.last_name) updateData.last_name = data.last_name
   if (data.display_name) updateData.display_name = data.display_name
-  if (data.is_admin) updateData['roles.admin'] = data.is_admin
+  if (data.hasOwnProperty('is_admin')) updateData['roles.admin'] = data.is_admin
   if (data.status) updateData.status = data.status
   if (keywords) updateData.keywords = keywords
   if (data.profile_photo) updateData.profile_photo = data.profile_photo

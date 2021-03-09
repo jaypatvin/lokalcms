@@ -36,7 +36,7 @@ const archiveUser = async (req: Request, res: Response) => {
   if (!roles.admin) {
     return res.status(403).json({
       status: 'error',
-      message: 'The requestor does not have a permission to delete.',
+      message: 'You do not have a permission to delete.',
     })
   }
   const { userId } = req.params

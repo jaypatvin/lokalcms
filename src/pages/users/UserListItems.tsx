@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { ConfirmationDialog } from '../../components/Dialog'
 import UserListItem from './UserListItem'
 import { useAuth } from '../../contexts/AuthContext'
+import { API_URL } from '../../config/variables'
 
 type Props = {
   users: any
@@ -9,25 +10,25 @@ type Props = {
 }
 
 const UserListItems = ({ users, openUpdateUser }: Props) => {
-  const { currentUserInfo } = useAuth()
+  const { currentUserInfo, firebaseToken } = useAuth()
   const [userToDelete, setUserToDelete] = useState<any>({})
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [userToUnarchive, setUserToUnarchive] = useState<any>({})
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   const deleteUser = async (user: any) => {
-    if (process.env.REACT_APP_API_URL) {
+    if (API_URL && firebaseToken) {
       const { id, display_name } = user
-      let url = `${process.env.REACT_APP_API_URL}/users/${id}`
+      let url = `${API_URL}/users/${id}`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
         body: JSON.stringify({ id, display_name }),
       })
       res = await res.json()
-      console.log(res)
       setIsDeleteDialogOpen(false)
       setUserToDelete({})
     } else {
@@ -41,17 +42,17 @@ const UserListItems = ({ users, openUpdateUser }: Props) => {
   }
 
   const unarchiveUser = async (user: any) => {
-    if (process.env.REACT_APP_API_URL) {
-      let url = `${process.env.REACT_APP_API_URL}/users/${user.id}`
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/users/${user.id}`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'PUT',
         body: JSON.stringify({ id: user.id, unarchive_only: true }),
       })
       res = await res.json()
-      console.log(res)
       setIsUnarchiveDialogOpen(false)
       setUserToUnarchive({})
     } else {

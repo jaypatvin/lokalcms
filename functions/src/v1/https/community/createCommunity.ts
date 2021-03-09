@@ -67,7 +67,7 @@ const createCommunity = async (req: Request, res: Response) => {
       .status(403)
       .json({
         status: 'error',
-        message: 'The requestor does not have a permission to create a community',
+        message: 'You do not have a permission to create a community',
       })
 
   const error_fields = validateFields(data, required_fields)

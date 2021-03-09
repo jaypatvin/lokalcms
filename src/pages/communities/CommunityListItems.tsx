@@ -4,6 +4,7 @@ import CommunityListItem from './CommunityListItem'
 import { useAuth } from '../../contexts/AuthContext'
 import { TextField } from '../../components/inputs'
 import { Button } from '../../components/buttons'
+import { API_URL } from '../../config/variables'
 
 type Props = {
   communities: any
@@ -11,7 +12,7 @@ type Props = {
 }
 
 const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
-  const { currentUserInfo, currentUser, reauthenticate } = useAuth()
+  const { currentUserInfo, currentUser, reauthenticate, firebaseToken } = useAuth()
   const [communityToDelete, setCommunityToDelete] = useState<any>({})
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [communityToArchive, setCommunityToArchive] = useState<any>({})
@@ -25,19 +26,18 @@ const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
   const [errorMessage, setErrorMessage] = useState('')
 
   const deleteCommunity = async (community: any) => {
-    console.log('deleting community, joke.')
-    if (process.env.REACT_APP_API_URL) {
+    if (API_URL && firebaseToken) {
       const { id, name } = community
-      let url = `${process.env.REACT_APP_API_URL}/community/${id}`
+      let url = `${API_URL}/community/${id}`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
         body: JSON.stringify({ id, name, hard_delete: true }),
       })
       res = await res.json()
-      console.log(res)
       setIsDeleteDialogOpen(false)
       setCommunityToDelete({})
       setTypedPassword('')
@@ -90,18 +90,18 @@ const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
   }
 
   const archiveCommunity = async (community: any) => {
-    if (process.env.REACT_APP_API_URL) {
+    if (API_URL && firebaseToken) {
       const { id, name } = community
-      let url = `${process.env.REACT_APP_API_URL}/community/${id}`
+      let url = `${API_URL}/community/${id}`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
         body: JSON.stringify({ id, name }),
       })
       res = await res.json()
-      console.log(res)
       setIsArchiveDialogOpen(false)
       setCommunityToArchive({})
     } else {
@@ -115,17 +115,17 @@ const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
   }
 
   const unarchiveCommunity = async (community: any) => {
-    if (process.env.REACT_APP_API_URL) {
-      let url = `${process.env.REACT_APP_API_URL}/community/${community.id}`
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/community/${community.id}`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'PUT',
         body: JSON.stringify({ id: community.id, unarchive_only: true }),
       })
       res = await res.json()
-      console.log(res)
       setIsUnarchiveDialogOpen(false)
       setCommunityToUnarchive({})
     } else {

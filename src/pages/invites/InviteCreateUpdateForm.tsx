@@ -4,6 +4,7 @@ import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
+import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
 import { statusColorMap } from '../../utils/types'
 const humanPassword = require('human-password')
@@ -28,7 +29,7 @@ const InviteCreateUpdateForm = ({
   const history = useHistory()
   const [data, setData] = useState<any>(inviteToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
-  const { currentUserInfo } = useAuth()
+  const { currentUserInfo, firebaseToken } = useAuth()
 
   useEffect(() => {
     if (mode === 'create') {
@@ -56,9 +57,8 @@ const InviteCreateUpdateForm = ({
   }
 
   const onSave = async () => {
-    console.log('data', data)
-    if (process.env.REACT_APP_API_URL) {
-      let url = `${process.env.REACT_APP_API_URL}/invite`
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/invite`
       let method = 'POST'
       if (mode === 'update' && data.id) {
         url = `${url}/${data.id}`
@@ -67,6 +67,7 @@ const InviteCreateUpdateForm = ({
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method,
         body: JSON.stringify(data),

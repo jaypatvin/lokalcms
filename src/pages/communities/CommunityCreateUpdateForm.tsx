@@ -5,6 +5,8 @@ import { TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { fetchUserByID, getUsers } from '../../services/users'
 import useOuterClick from '../../customHooks/useOuterClick'
+import { API_URL } from '../../config/variables'
+import { useAuth } from '../../contexts/AuthContext'
 
 type Props = {
   isOpen?: boolean
@@ -24,6 +26,7 @@ const CommunityCreateUpdateForm = ({
   isModal = true,
 }: Props) => {
   const history = useHistory()
+  const { firebaseToken } = useAuth()
   const [data, setData] = useState<any>(communityToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
@@ -111,14 +114,13 @@ const CommunityCreateUpdateForm = ({
     }
     newAdmins.sort((a, b) => (a.display_name.toLowerCase() < b.display_name.toLowerCase() ? -1 : 1))
     setAdmins(newAdmins)
-    const newData = { ...data, admin: newAdmins.map(admin => admin.id) }
+    const newData = { ...data, admin: newAdmins.map((admin) => admin.id) }
     setData(newData)
   }
 
   const onSave = async () => {
-    console.log('data', data)
-    if (process.env.REACT_APP_API_URL) {
-      let url = `${process.env.REACT_APP_API_URL}/community`
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/community`
       let method = 'POST'
       if (mode === 'update' && data.id) {
         url = `${url}/${data.id}`
@@ -127,6 +129,7 @@ const CommunityCreateUpdateForm = ({
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method,
         body: JSON.stringify(data),

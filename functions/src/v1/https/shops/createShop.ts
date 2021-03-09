@@ -111,7 +111,7 @@ const createShop = async (req: Request, res: Response) => {
       .status(403)
       .json({
         status: 'error',
-        message: 'The requestor does not have a permission to create a shop for another user.',
+        message: 'You do not have a permission to create a shop for another user.',
       })
 
   let _user

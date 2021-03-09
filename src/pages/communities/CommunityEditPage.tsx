@@ -38,8 +38,6 @@ const CommunityEditPage = ({ match }: Props) => {
     }
   }, [])
 
-  console.log('community', community)
-
   return (
     <div className="container">
       {community && (

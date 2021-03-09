@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { ConfirmationDialog } from '../../components/Dialog'
+import { API_URL } from '../../config/variables'
 import InviteListItem from './InviteListItem'
+import { useAuth } from '../../contexts/AuthContext'
 
 type Props = {
   invites: any
@@ -8,24 +10,25 @@ type Props = {
 }
 
 const InviteListItems = ({ invites, openUpdateInvite }: Props) => {
+  const { firebaseToken } = useAuth()
   const [inviteToDelete, setInviteToDelete] = useState<any>({})
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [inviteToUnarchive, setInviteToUnarchive] = useState<any>({})
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   const deleteInvite = async (invite: any) => {
-    if (process.env.REACT_APP_API_URL) {
+    if (API_URL && firebaseToken) {
       const { id } = invite
-      let url = `${process.env.REACT_APP_API_URL}/invite/${id}`
+      let url = `${API_URL}/invite/${id}`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
         body: JSON.stringify({ id }),
       })
       res = await res.json()
-      console.log(res)
       setIsDeleteDialogOpen(false)
       setInviteToDelete({})
     } else {
@@ -39,17 +42,17 @@ const InviteListItems = ({ invites, openUpdateInvite }: Props) => {
   }
 
   const unarchiveInvite = async (invite: any) => {
-    if (process.env.REACT_APP_API_URL) {
-      let url = `${process.env.REACT_APP_API_URL}/invite/${invite.id}`
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/invite/${invite.id}`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'PUT',
         body: JSON.stringify({ id: invite.id, unarchive_only: true }),
       })
       res = await res.json()
-      console.log(res)
       setIsUnarchiveDialogOpen(false)
       setInviteToUnarchive({})
     } else {

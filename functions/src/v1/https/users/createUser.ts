@@ -64,13 +64,13 @@ const createUser = async (req: Request, res: Response) => {
   if (!roles.editor)
     return res
       .status(403)
-      .json({ status: 'error', message: 'The requestor does not have a permission to create a user' })
+      .json({ status: 'error', message: 'You do not have a permission to create a user' })
   if (!roles.admin && data.is_admin) {
     return res
       .status(403)
       .json({
         status: 'error',
-        message: 'The requestor does not have a permission to create an admin user',
+        message: 'You do not have a permission to create an admin user',
       })
   }
 

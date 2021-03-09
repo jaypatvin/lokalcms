@@ -42,8 +42,6 @@ const UserEditPage = ({ match }: Props) => {
     }
   }, [match.path])
 
-  console.log('user', user)
-
   return (
     <div className="container">
       {user && (
