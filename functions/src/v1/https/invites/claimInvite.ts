@@ -63,13 +63,6 @@ const claimInvite = async (req: Request, res: Response) => {
 
   if (!_user) {
     return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-  } else if (_user.email !== _invite.invitee_email) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: 'The invitee email does not match the email of user claiming the invite!',
-      })
   }
 
   // update and claim the invite to the user
