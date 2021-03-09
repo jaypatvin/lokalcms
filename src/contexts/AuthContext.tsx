@@ -13,6 +13,7 @@ type ContextType = {
   withError?: boolean
   errorMsg?: string
   setRedirect?: (s: string) => void
+  firebaseToken?: string
 }
 
 const AuthContext = createContext<ContextType>({})
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [errorMsg, setErrorMsg] = useState('')
   const [redirect, setRedirect] = useState('')
   const [loading, setLoading] = useState(true)
+  const [firebaseToken, setFirebaseToken] = useState<string>()
 
   function signup(email: string, password: string) {
     return auth.createUserWithEmailAndPassword(email, password)
@@ -55,19 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function reauthenticate(email: string, password: string) {
     if (currentUser) {
-      const credential = firebase.auth.EmailAuthProvider.credential(
-        currentUserInfo.email,
-        password
-      )
-  
+      const credential = firebase.auth.EmailAuthProvider.credential(currentUserInfo.email, password)
+
       return currentUser.reauthenticateWithCredential(credential)
     }
-    return new Promise((resolve, reject) => reject({ status: "error", message: "Current user does not exist" }))
+    return new Promise((resolve, reject) =>
+      reject({ status: 'error', message: 'Current user does not exist' })
+    )
   }
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-
       if (user !== null) {
         setCurrentUser(user)
         const userRef = await fetchUserByUID(user.uid)
@@ -80,7 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // logout
           await logout()
         } else {
+          const token = await user.getIdToken()
           const userInfo = { ...userRef.data(), id: userRef.id }
+          setFirebaseToken(token)
           setCurrentUserInfo(userInfo)
         }
 
@@ -113,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     redirect,
     withError,
     errorMsg,
+    firebaseToken,
   }
 
   if (loading) {

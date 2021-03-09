@@ -123,7 +123,7 @@ const updateShop = async (req: Request, res: Response) => {
   if (!roles.editor && requestorDocId !== currentShop.user_id)
     return res.status(403).json({
       status: 'error',
-      message: 'The requestor does not have a permission to update a shop of another user.',
+      message: 'You do not have a permission to update a shop of another user.',
     })
 
   const updateData: any = {}

@@ -23,9 +23,7 @@ const BasePage = (props: Props) => {
   const [isAvatarOpen, setIsAvatarOpen] = useState(false)
   const rootEl = document.getElementById('root')
 
-  const { currentUser, currentUserInfo, logout } = useAuth()
-
-  console.log('BasePage:', currentUser, currentUserInfo)
+  const { currentUserInfo, logout } = useAuth()
 
   const isStatic = useMediaQuery({
     query: '(min-width: 1199px)',

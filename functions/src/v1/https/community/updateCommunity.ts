@@ -75,7 +75,7 @@ export const updateCommunity = async (req: Request, res: Response) => {
       .status(403)
       .json({
         status: 'error',
-        message: 'The requestor does not have a permission to update a community',
+        message: 'You do not have a permission to update a community',
       })
 
   if (!communityId) return res.status(400).json({ status: 'error', message: 'id is required!' })

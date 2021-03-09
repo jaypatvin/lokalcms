@@ -72,8 +72,6 @@ const claimInvite = async (req: Request, res: Response) => {
       })
   }
 
-  console.log(_user)
-
   // update and claim the invite to the user
   InvitesService.updateInvite(_invite.id, {
     claimed: true,

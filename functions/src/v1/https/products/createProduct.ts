@@ -86,7 +86,7 @@ const createProduct = async (req: Request, res: Response) => {
   if (!roles.editor && requestorDocId !== _shop.user_id)
     return res.status(403).json({
       status: 'error',
-      message: 'The requestor does not have a permission to create a product for another user.',
+      message: 'You do not have a permission to create a product for another user.',
     })
 
   // get community from shop.communityID and validate

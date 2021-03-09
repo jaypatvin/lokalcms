@@ -33,8 +33,6 @@ const InviteListPage = (props: any) => {
   const getInviteList = async (docs: any[]) => {
     const newList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
-    console.log('newList', newList)
-
     setInviteList(newList)
     setLastInviteOnList(docs[docs.length - 1])
     setFirstInviteOnList(docs[0])

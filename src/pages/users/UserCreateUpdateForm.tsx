@@ -4,7 +4,9 @@ import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
+import { API_URL } from '../../config/variables'
 import { statusColorMap } from '../../utils/types'
+import { useAuth } from '../../contexts/AuthContext'
 
 type Props = {
   isOpen?: boolean
@@ -24,6 +26,7 @@ const UserCreateUpdateForm = ({
   isModal = true,
 }: Props) => {
   const history = useHistory()
+  const { firebaseToken } = useAuth()
   const [data, setData] = useState<any>(userToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
@@ -57,17 +60,20 @@ const UserCreateUpdateForm = ({
   }
 
   const onSave = async () => {
-    console.log('data', data)
-    if (process.env.REACT_APP_API_URL) {
-      let url = `${process.env.REACT_APP_API_URL}/users`
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/users`
       let method = 'POST'
-      if (mode === 'update' && data.id) {
-        url = `${url}/${data.id}`
+      if (mode === 'update' && userToUpdate.id) {
+        for (let key in data) {
+          if (data[key] === userToUpdate[key]) delete data[key]
+        }
+        url = `${url}/${userToUpdate.id}`
         method = 'PUT'
       }
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
         },
         method,
         body: JSON.stringify(data),
@@ -95,8 +101,6 @@ const UserCreateUpdateForm = ({
     }
     return false
   }
-
-  console.log('data', data)
 
   if (!WrapperComponent) return null
 

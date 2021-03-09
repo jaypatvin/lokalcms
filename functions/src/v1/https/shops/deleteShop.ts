@@ -37,7 +37,7 @@ const deleteShop = async (req: Request, res: Response) => {
       .status(403)
       .json({
         status: 'error',
-        message: 'The requestor does not have a permission to delete.',
+        message: 'You do not have a permission to delete.',
       })
   }
   return res.json({ status: 'ok' })

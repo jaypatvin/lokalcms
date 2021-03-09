@@ -1,0 +1,1 @@
+export const API_URL = process.env.REACT_APP_API_URL || 'https://us-central1-lokal-1baac.cloudfunctions.net/api/v1'

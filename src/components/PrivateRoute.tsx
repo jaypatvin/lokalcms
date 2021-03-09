@@ -13,8 +13,6 @@ type Props = {
 const PrivateRoute = ({ component: RouteComponent, redirect: RedirectPath, ...rest }: Props) => {
   const { currentUser } = useAuth()
 
-  console.log('PrivateRoute:', currentUser)
-
   const renderPage = (props: any) => {
     if (currentUser) {
       if (RedirectPath) return <Redirect to={RedirectPath} />
