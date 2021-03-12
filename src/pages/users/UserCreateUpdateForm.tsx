@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { ChangeEventHandler, useEffect, useState } from 'react'
 import { Link, useHistory } from 'react-router-dom'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
@@ -7,6 +7,8 @@ import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { statusColorMap } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
+import useOuterClick from '../../customHooks/useOuterClick'
+import { fetchCommunityByID, getCommunities } from '../../services/community'
 
 type Props = {
   isOpen?: boolean
@@ -30,6 +32,11 @@ const UserCreateUpdateForm = ({
   const [data, setData] = useState<any>(userToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
+  const [community, setCommunity] = useState<any>()
+  const [communitySearchText, setCommunitySearchText] = useState('')
+  const [communitySearchResult, setCommunitySearchResult] = useState<any>([])
+  const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
+  const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
 
   useEffect(() => {
     if (isModal && setIsOpen) {
@@ -43,11 +50,22 @@ const UserCreateUpdateForm = ({
       const Component = ({ children }: any) => <>{children}</>
       setWrapperComponent(() => Component)
     }
-  }, [isModal, userToUpdate, setIsOpen, isOpen, mode])
+  }, [isModal, userToUpdate, setIsOpen, isOpen, mode, community])
+
+  const setCurrentData = async () => {
+    const { community_id } = userToUpdate
+    const communityRef = await fetchCommunityByID(community_id)
+    const communityData = communityRef.data()
+    setCommunity(communityData)
+    if (communityData) {
+      setCommunitySearchText(communityData.name)
+    }
+    setData(userToUpdate)
+  }
 
   useEffect(() => {
     if (userToUpdate) {
-      setData(userToUpdate)
+      setCurrentData()
     } else {
       setData(initialData)
     }
@@ -57,6 +75,31 @@ const UserCreateUpdateForm = ({
     const newData = { ...data }
     newData[field] = value
     setData(newData)
+  }
+
+  const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    if (e.target.value.length > 2) {
+      const communitiesRef = getCommunities({ search: e.target.value })
+      const result = await communitiesRef.get()
+      let communities = result.docs.map((doc) => {
+        const data = doc.data()
+        return { ...data, id: doc.id }
+      })
+      setCommunitySearchResult(communities)
+      setShowCommunitySearchResult(communities.length > 0)
+    } else {
+      setShowCommunitySearchResult(false)
+      setCommunitySearchResult([])
+    }
+    setCommunitySearchText(e.target.value)
+  }
+
+  const communitySelectHandler = (community: any) => {
+    const newData = { ...data, community_id: community.id }
+    setShowCommunitySearchResult(false)
+    setData(newData)
+    setCommunity(community)
+    setCommunitySearchText(community.name)
   }
 
   const onSave = async () => {
@@ -167,15 +210,36 @@ const UserCreateUpdateForm = ({
           isError={fieldIsError('profile_photo')}
           defaultValue={data.profile_photo}
         />
-        <TextField
-          required
-          label="community_id"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('community_id', e.target.value)}
-          isError={fieldIsError('community_id')}
-          defaultValue={data.community_id}
-        />
+        <div className="w-64">
+          <div ref={communitySearchResultRef} className="relative">
+            <TextField
+              label="community"
+              type="text"
+              size="small"
+              placeholder="Search"
+              onChange={communitySearchHandler}
+              defaultValue={communitySearchText}
+              onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
+            />
+            {showCommunitySearchResult && communitySearchResult.length > 0 && (
+              <div className="absolute bottom-full left-0 w-64 bg-white shadow z-10">
+                {communitySearchResult.map((community: any) => (
+                  <button
+                    className="w-full p-1 hover:bg-gray-200 block text-left"
+                    key={community.id}
+                    onClick={() => communitySelectHandler(community)}
+                  >
+                    {community.name}
+                    <span className="block text-xs text-gray-500">
+                      {community.address.subdivision}, {community.address.barangay},{' '}
+                      {community.address.city}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
         <TextField
           required
           label="street"
