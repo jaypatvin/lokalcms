@@ -27,13 +27,18 @@ const updateCountsInDoc = async (
 ) => {
   const countRef = db.doc(`${metaCol}/${collection_name}/${metaCol}/${doc_id}`)
   const countSnap = await countRef.get()
-  if (countSnap.exists) {
+  const countData = countSnap.data()
+  if (countSnap.exists && countData && countData[`${has_collection_name}_count`]) {
     await transaction.update(countRef, { [`${has_collection_name}_count`]: count })
   } else {
     db.runTransaction(async (tr: FirebaseFirestore.Transaction) => {
       const subCollectionsRef = db.collection(has_collection_name).where(foreign_key, '==', doc_id)
       const colSnap = await tr.get(subCollectionsRef)
-      tr.set(countRef, { [`${has_collection_name}_count`]: colSnap.size })
+      if (countSnap.exists) {
+        tr.update(countRef, { [`${has_collection_name}_count`]: colSnap.size })
+      } else {
+        tr.set(countRef, { [`${has_collection_name}_count`]: colSnap.size })
+      }
     })
   }
   return null
@@ -82,19 +87,42 @@ export const runCounter = async (
       switch (collection_name) {
         case 'users':
           community_id = data.community_id
-          await updateCountsInDoc(community_id, 'community', 'users', 'community_id', count, transaction)
+          await updateCountsInDoc(
+            community_id,
+            'community',
+            'users',
+            'community_id',
+            count,
+            transaction
+          )
           break
         case 'community':
           break
         case 'shops':
           // increment community shop count
           community_id = data.community_id
-          await updateCountsInDoc(community_id, 'community', 'shops', 'community_id', count, transaction)
+          await updateCountsInDoc(
+            community_id,
+            'community',
+            'shops',
+            'community_id',
+            count,
+            transaction
+          )
           // TODO: is it worth it to store shops count for users?
           break
         case 'products':
           const shop_id = data.shop_id
+          community_id = data.community_id
           await updateCountsInDoc(shop_id, 'shops', 'products', 'shop_id', count, transaction)
+          await updateCountsInDoc(
+            community_id,
+            'community',
+            'products',
+            'community_id',
+            count,
+            transaction
+          )
           break
         default:
           break

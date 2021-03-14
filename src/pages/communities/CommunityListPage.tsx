@@ -7,8 +7,9 @@ import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
 import CommunityCreateUpdateForm from './CommunityCreateUpdateForm'
 import CommunityListItems from './CommunityListItems'
-import { communityHaveMembers, getCommunities } from '../../services/community'
+import { communityHaveMembers, getCommunities, getCommunityMeta } from '../../services/community'
 import CommunityMenu from './CommunityMenu'
+import { fetchUserByID } from '../../services/users'
 
 // Init
 dayjs.extend(relativeTime)
@@ -36,6 +37,17 @@ const CommunityListPage = (props: any) => {
     for (let i = 0; i < newList.length; i++) {
       const community = newList[i]
       community.haveMembers = await communityHaveMembers(community.id)
+      community.meta = await getCommunityMeta(community.id)
+      const admins = []
+      if (community.admin && community.admin.length) {
+        for (let i = 0; i < community.admin.length; i++) {
+          const adminId = community.admin[i]
+          const admin = await fetchUserByID(adminId)
+          const adminData = admin.data()
+          if (adminData) admins.push(adminData)
+        }
+      }
+      community.admins = admins
     }
 
     setCommunityList(newList)
@@ -181,7 +193,7 @@ const CommunityListPage = (props: any) => {
                   <th>
                     <SortButton
                       className="text-xs uppercase font-bold"
-                      label="Subdivision"
+                      label="Address"
                       showSortIcons={sortBy === 'subdivision'}
                       currentSortOrder={sortOrder}
                       onClick={() => onSort('subdivision')}
@@ -190,37 +202,29 @@ const CommunityListPage = (props: any) => {
                   <th>
                     <SortButton
                       className="text-xs uppercase font-bold"
-                      label="City"
-                      showSortIcons={sortBy === 'city'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('city')}
+                      label="Admins"
+                      showSortIcons={false}
                     />
                   </th>
                   <th>
                     <SortButton
                       className="text-xs uppercase font-bold"
-                      label="Barangay"
-                      showSortIcons={sortBy === 'barangay'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('barangay')}
+                      label="# of users"
+                      showSortIcons={false}
                     />
                   </th>
                   <th>
                     <SortButton
                       className="text-xs uppercase font-bold"
-                      label="State"
-                      showSortIcons={sortBy === 'state'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('state')}
+                      label="# of shops"
+                      showSortIcons={false}
                     />
                   </th>
                   <th>
                     <SortButton
                       className="text-xs uppercase font-bold"
-                      label="Country"
-                      showSortIcons={sortBy === 'country'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('country')}
+                      label="# of products"
+                      showSortIcons={false}
                     />
                   </th>
                   <th className="action-col"></th>
