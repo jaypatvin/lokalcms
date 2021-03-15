@@ -89,15 +89,6 @@ const updateUser = async (req: Request, res: Response) => {
   const _existing_user = await UsersService.getUserByID(userId)
   if (!_existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
-  if (data.unarchive_only) {
-    if (_existing_user.status !== 'archived')
-      return res.json({ status: 'error', message: 'User is not archived' })
-    const _result = await UsersService.updateUser(userId, { status: 'active' })
-    const shops_update = await ShopsService.setShopsStatusOfUser(userId, 'previous')
-
-    return res.json({ status: 'ok', data: _result, shops_update })
-  }
-
   const error_fields: string[] = []
   required_fields.forEach((field) => {
     if (data.hasOwnProperty(field) && !validateValue(data[field])) {

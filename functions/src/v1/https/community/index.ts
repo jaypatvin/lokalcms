@@ -45,5 +45,6 @@ export const required_fields = [
 export { default as createCommunity } from './createCommunity'
 export { default as updateCommunity } from './updateCommunity'
 export { default as deleteCommunity } from './deleteCommunity'
+export { default as unarchiveCommunity } from './unarchiveCommunity'
 export { default as getCommunities } from './getCommunities'
 export { default as getCommunity } from './getCommunity'

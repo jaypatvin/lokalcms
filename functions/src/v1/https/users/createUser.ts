@@ -154,6 +154,7 @@ const createUser = async (req: Request, res: Response) => {
       country: _community.address.country,
     },
     keywords,
+    archived: false,
   }
   if (data.profile_photo) {
     _newData.profile_photo = data.profile_photo

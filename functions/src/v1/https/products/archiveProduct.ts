@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { ProductsService } from '../../../service'
 
 /**
  * @openapi
@@ -30,9 +31,15 @@ import { Request, Response } from 'express'
  *                 data:
  *                   $ref: '#/components/schemas/Product'
  */
-const deleteProduct = async (req: Request, res: Response) => {
+const archiveProduct = async (req: Request, res: Response) => {
+  const { productId } = req.params
   const roles = res.locals.userRoles
-  if (!roles.admin) {
+  const requestorDocId = res.locals.userDocId
+  const _product = await ProductsService.getProductByID(productId)
+
+  if (!_product) return res.status(403).json({ status: 'error', message: 'Product does not exist!' })
+
+  if (!roles.admin && requestorDocId !== _product.user_id) {
     return res
       .status(403)
       .json({
@@ -40,7 +47,9 @@ const deleteProduct = async (req: Request, res: Response) => {
         message: 'You do not have a permission to delete.',
       })
   }
-  return res.json({ status: 'ok' })
+
+  const result = await ProductsService.archiveProduct(productId)
+  return res.json({ status: 'ok', data: result })
 }
 
-export default deleteProduct
+export default archiveProduct

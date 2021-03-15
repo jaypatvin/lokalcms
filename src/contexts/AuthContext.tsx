@@ -81,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await logout()
         } else {
           const token = await user.getIdToken()
+          console.log('token', token)
           const userInfo = { ...userRef.data(), id: userRef.id }
           setFirebaseToken(token)
           setCurrentUserInfo(userInfo)

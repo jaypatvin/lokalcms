@@ -82,6 +82,7 @@ module.exports = (api: Express) => {
   api.route('/v1/users/:userId').get(wrapAsync(UsersAPI.getUser))
   api.route('/v1/users/:userId').put(wrapAsync(UsersAPI.updateUser))
   api.route('/v1/users/:userId').delete(wrapAsync(UsersAPI.archiveUser))
+  api.route('/v1/users/:userId/unarchive').put(wrapAsync(UsersAPI.unarchiveUser))
   api.route('/v1/users/:userId/shops').get(wrapAsync(ShopsAPI.getUserShops))
   api.route('/v1/users/:userId/products').get(wrapAsync(ProductsAPI.getUserProducts))
 
@@ -90,7 +91,8 @@ module.exports = (api: Express) => {
   api.route('/v1/shops').post(wrapAsync(ShopsAPI.createShop))
   api.route('/v1/shops/:shopId').get(wrapAsync(ShopsAPI.getShop))
   api.route('/v1/shops/:shopId').put(wrapAsync(ShopsAPI.updateShop))
-  api.route('/v1/shops/:shopId').delete(wrapAsync(ShopsAPI.deleteShop))
+  api.route('/v1/shops/:shopId').delete(wrapAsync(ShopsAPI.archiveShop))
+  api.route('/v1/shops/:shopId/unarchive').put(wrapAsync(ShopsAPI.unarchiveShop))
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
@@ -103,6 +105,7 @@ module.exports = (api: Express) => {
   api.route('/v1/community/:communityId').get(wrapAsync(CommunityAPI.getCommunity))
   api.route('/v1/community/:communityId').put(wrapAsync(CommunityAPI.updateCommunity))
   api.route('/v1/community/:communityId').delete(wrapAsync(CommunityAPI.deleteCommunity))
+  api.route('/v1/community/:communityId/unarchive').put(wrapAsync(CommunityAPI.unarchiveCommunity))
   api.route('/v1/community/:communityId/users').get(wrapAsync(UsersAPI.getUsersByCommunityId))
   api.route('/v1/community/:communityId/shops').get(wrapAsync(ShopsAPI.getCommunityShops))
   api.route('/v1/community/:communityId/products').get(wrapAsync(ProductsAPI.getCommunityProducts))
@@ -112,5 +115,6 @@ module.exports = (api: Express) => {
   api.route('/v1/products').post(wrapAsync(ProductsAPI.createProduct))
   api.route('/v1/products/:productId').get(wrapAsync(ProductsAPI.getProduct))
   api.route('/v1/products/:productId').put(wrapAsync(ProductsAPI.updateProduct))
-  api.route('/v1/products/:productId').delete(wrapAsync(ProductsAPI.deleteProduct))
+  api.route('/v1/products/:productId').delete(wrapAsync(ProductsAPI.archiveProduct))
+  api.route('/v1/products/:productId/unarchive').put(wrapAsync(ProductsAPI.unarchiveProduct))
 }
