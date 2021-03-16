@@ -9,6 +9,7 @@ import InviteCreateUpdateForm from './InviteCreateUpdateForm'
 import InviteListItems from './InviteListItems'
 import InviteMenu from './InviteMenu'
 import { getInvites } from '../../services/invites'
+import { fetchUserByID } from '../../services/users'
 
 // Init
 dayjs.extend(relativeTime)
@@ -32,7 +33,14 @@ const InviteListPage = (props: any) => {
 
   const getInviteList = async (docs: any[]) => {
     const newList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-
+    for (let i = 0; i < newList.length; i++) {
+      const invite = newList[i]
+      const inviter = await fetchUserByID(invite.inviter)
+      const inviterData = inviter.data()
+      if (inviterData) {
+        invite.inviter_email = inviterData.email
+      }
+    }
     setInviteList(newList)
     setLastInviteOnList(docs[docs.length - 1])
     setFirstInviteOnList(docs[0])
@@ -96,8 +104,8 @@ const InviteListPage = (props: any) => {
     setInviteModalMode('update')
     const data = {
       id: invite.id,
-      invitee_email: invite.invitee_email,
-      inviter: invite.inviter,
+      email: invite.invitee_email,
+      user_id: invite.inviter,
       expire_by: invite.expire_by,
       code: invite.code,
       status: invite.status,

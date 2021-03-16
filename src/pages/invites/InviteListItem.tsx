@@ -77,7 +77,7 @@ const InviteListItem = ({
         <p className="text-gray-900 whitespace-no-wrap">{invite.invitee_email}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.inviter}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{invite.inviter_email || invite.inviter}</p>
       </td>
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{invite.code}</p>

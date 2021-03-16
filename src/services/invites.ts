@@ -25,6 +25,7 @@ export const getInvites = ({
     const claimed = filter === 'claimed'
     ref = ref.where('claimed', '==', claimed)
   }
+  ref = ref.where('archived', '==', filter === 'archived')
   ref = ref.orderBy(sortBy, sortOrder).limit(limit)
 
   return ref

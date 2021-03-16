@@ -134,6 +134,7 @@ const InviteCreateUpdateForm = ({
           onChange={(e) => changeHandler('user_id', e.target.value)}
           isError={fieldIsError('user_id')}
           value={data.user_id}
+          readOnly={mode === 'update'}
         />
         <TextField
           required
@@ -143,6 +144,7 @@ const InviteCreateUpdateForm = ({
           onChange={(e) => changeHandler('code', e.target.value)}
           isError={fieldIsError('code')}
           value={data.code}
+          readOnly={mode === 'update'}
         />
       </div>
       {responseData.status === 'error' && (

@@ -51,8 +51,8 @@ const createInvite = async (req: Request, res: Response) => {
 
   if (error_fields.length) {
     return res
-    .status(400)
-    .json({ status: 'error', message: 'Required fields missing', error_fields })
+      .status(400)
+      .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
   const { user_id, email, code: invite_code } = data
@@ -78,15 +78,18 @@ const createInvite = async (req: Request, res: Response) => {
     invitee_email: email,
   })
 
+  const expire_by = Date.now() + 3600000 * 24 // in 24 hours
+
   const new_invite = {
     claimed: false,
     code: invite_code || code,
     community_id: _user.community_id,
-    expire_by: Date.now() + 3600000,
+    expire_by,
     invitee_email: email,
     inviter: _user.id,
     status: 'enabled',
     keywords,
+    archived: false,
   }
 
   const result = await InvitesService.createInvite(new_invite)
