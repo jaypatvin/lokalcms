@@ -119,29 +119,26 @@ const CommunityListItem = ({
         <div className="flex items-center">
           <Avatar url={community.profile_photo} name={community.name} size={10} />
           <div className="ml-3">
-            <p className="text-gray-900 whitespace-no-wrap">{community.name}</p>
+            <p className="text-gray-900">{community.name}</p>
           </div>
         </div>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{community.address.subdivision}</p>
-        <p className="text-gray-600 whitespace-no-wrap">{''}</p>
+        <p className="text-gray-900">{`${community.address.subdivision}, ${community.address.barangay}, ${community.address.city}, ${community.address.state}, ${community.address.country}, ${community.address.zip_code}`}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{community.address.city}</p>
-        <p className="text-gray-600 whitespace-no-wrap">{''}</p>
+        {
+          community.admins.length === 0 ? '--' : community.admins.map((admin: any) => <p className="text-gray-900">{admin.email}</p>)
+        }
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{community.address.barangay}</p>
-        <p className="text-gray-600 whitespace-no-wrap">{''}</p>
+        <p className="text-gray-900">{community.meta.users_count || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{community.address.state}</p>
-        <p className="text-gray-600 whitespace-no-wrap">{''}</p>
+        <p className="text-gray-900">{community.meta.shops_count || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{community.address.country}</p>
-        <p className="text-gray-600 whitespace-no-wrap">{''}</p>
+        <p className="text-gray-900">{community.meta.products_count || '--'}</p>
       </td>
 
       <td className="action-col">
