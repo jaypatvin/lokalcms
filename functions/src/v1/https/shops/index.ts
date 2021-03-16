@@ -88,7 +88,8 @@ export const timeFormatError = (field: string, time: string) => {
 
 export { default as createShop } from './createShop'
 export { default as updateShop } from './updateShop'
-export { default as deleteShop } from './deleteShop'
+export { default as archiveShop } from './archiveShop'
+export { default as unarchiveShop } from './unarchiveShop'
 export { default as getShops } from './getShops'
 export { default as getUserShops } from './getUserShops'
 export { default as getCommunityShops } from './getCommunityShops'

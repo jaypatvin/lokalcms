@@ -1,14 +1,15 @@
 import { Request, Response } from 'express'
+import { ProductsService, ShopsService } from '../../../service'
 
 /**
  * @openapi
- * /v1/shops/{shopId}:
- *   delete:
+ * /v1/shops/{shopId}/unarchive:
+ *   put:
  *     tags:
  *       - shops
  *     security:
  *       - bearerAuth: []
- *     description: Archive the shop
+ *     description: Unarchive the shop
  *     parameters:
  *       - in: path
  *         name: shopId
@@ -18,7 +19,7 @@ import { Request, Response } from 'express'
  *           type: string
  *     responses:
  *       200:
- *         description: Archived shop
+ *         description: Unarchived shop
  *         content:
  *           application/json:
  *             schema:
@@ -30,17 +31,26 @@ import { Request, Response } from 'express'
  *                 data:
  *                   $ref: '#/components/schemas/Shop'
  */
-const deleteShop = async (req: Request, res: Response) => {
+const unarchiveShop = async (req: Request, res: Response) => {
+  const { shopId } = req.params
   const roles = res.locals.userRoles
-  if (!roles.admin) {
+  const requestorDocId = res.locals.userDocId
+  const _shop = await ShopsService.getShopByID(shopId)
+
+  if (!_shop) return res.status(403).json({ status: 'error', message: 'Shop does not exist!' })
+
+  if (!roles.admin && requestorDocId !== _shop.user_id) {
     return res
       .status(403)
       .json({
         status: 'error',
-        message: 'You do not have a permission to delete.',
+        message: 'You do not have a permission to unarchive a shop of another user.',
       })
   }
-  return res.json({ status: 'ok' })
+
+  const result = await ShopsService.unarchiveShop(shopId)
+
+  return res.json({ status: 'ok', data: result })
 }
 
-export default deleteShop
+export default unarchiveShop

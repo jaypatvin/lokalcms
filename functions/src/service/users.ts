@@ -49,9 +49,16 @@ export const updateUser = async (id, data) => {
     .update({ ...data, updated_at: new Date() })
 }
 
-export const archiveUser = async (id) => {
+export const archiveUser = async (id: string) => {
   return await db
     .collection('users')
     .doc(id)
-    .update({ status: 'archived', archived_at: new Date(), updated_at: new Date() })
+    .update({ archived: true, archived_at: new Date(), updated_at: new Date() })
+}
+
+export const unarchiveUser = async (id: string) => {
+  return await db
+    .collection('users')
+    .doc(id)
+    .update({ archived: false, updated_at: new Date() })
 }

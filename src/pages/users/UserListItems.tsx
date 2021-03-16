@@ -18,7 +18,7 @@ const UserListItems = ({ users, openUpdateUser }: Props) => {
 
   const deleteUser = async (user: any) => {
     if (API_URL && firebaseToken) {
-      const { id, display_name } = user
+      const { id } = user
       let url = `${API_URL}/users/${id}`
       let res: any = await fetch(url, {
         headers: {
@@ -26,9 +26,9 @@ const UserListItems = ({ users, openUpdateUser }: Props) => {
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
-        body: JSON.stringify({ id, display_name }),
       })
       res = await res.json()
+      console.log('res', res)
       setIsDeleteDialogOpen(false)
       setUserToDelete({})
     } else {
@@ -43,16 +43,16 @@ const UserListItems = ({ users, openUpdateUser }: Props) => {
 
   const unarchiveUser = async (user: any) => {
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/users/${user.id}`
+      let url = `${API_URL}/users/${user.id}/unarchive`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
-        method: 'PUT',
-        body: JSON.stringify({ id: user.id, unarchive_only: true }),
+        method: 'PUT'
       })
       res = await res.json()
+      console.log('res', res)
       setIsUnarchiveDialogOpen(false)
       setUserToUnarchive({})
     } else {
@@ -95,7 +95,7 @@ const UserListItems = ({ users, openUpdateUser }: Props) => {
           onDeleteUser={() => deleteClicked(user)}
           onUnarchiveUser={() => unarchiveClicked(user)}
           hideDelete={currentUserInfo.id === user.id}
-          isArchived={user.status === 'archived'}
+          isArchived={user.archived}
         />
       ))}
     </>

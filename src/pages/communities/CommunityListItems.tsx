@@ -38,6 +38,7 @@ const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
         body: JSON.stringify({ id, name, hard_delete: true }),
       })
       res = await res.json()
+      console.log('res', res)
       setIsDeleteDialogOpen(false)
       setCommunityToDelete({})
       setTypedPassword('')
@@ -102,6 +103,7 @@ const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
         body: JSON.stringify({ id, name }),
       })
       res = await res.json()
+      console.log('res', res)
       setIsArchiveDialogOpen(false)
       setCommunityToArchive({})
     } else {
@@ -116,16 +118,16 @@ const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
 
   const unarchiveCommunity = async (community: any) => {
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/community/${community.id}`
+      let url = `${API_URL}/community/${community.id}/unarchive`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'PUT',
-        body: JSON.stringify({ id: community.id, unarchive_only: true }),
       })
       res = await res.json()
+      console.log('res', res)
       setIsUnarchiveDialogOpen(false)
       setCommunityToUnarchive({})
     } else {

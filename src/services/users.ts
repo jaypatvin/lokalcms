@@ -73,13 +73,8 @@ export const getUsers = ({
     ref = ref.where(`roles.${filter}`, '==', true)
   }
 
-  if (filter === 'archived') {
-    ref = ref.where('status', '==', 'archived')
-  } else {
-    ref = ref.where('status', '!=', 'archived').orderBy('status', sortOrder)
-  }
-
-  if (sortBy !== 'status') ref = ref.orderBy(sortBy, sortOrder)
+  ref = ref.where('archived', '==', filter === 'archived')
+  ref = ref.orderBy(sortBy, sortOrder)
   ref = ref.limit(limit)
 
   return ref

@@ -71,26 +71,16 @@ export const updateCommunity = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
   if (!roles.editor)
-    return res
-      .status(403)
-      .json({
-        status: 'error',
-        message: 'You do not have a permission to update a community',
-      })
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to update a community',
+    })
 
   if (!communityId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
   const _existing_community = await CommunityService.getCommunityByID(communityId)
   if (!_existing_community)
     return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
-
-  if (data.unarchive_only) {
-    if (!_existing_community.archived)
-      return res.status(400).json({ status: 'error', message: 'Community is not archived' })
-    const _result = await CommunityService.unarchiveCommunity(communityId)
-
-    return res.json({ status: 'ok', data: _result })
-  }
 
   let existing_communities
 

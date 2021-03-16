@@ -1,15 +1,15 @@
 import { Request, Response } from 'express'
-import { UsersService, ShopsService, ProductsService } from '../../../service'
+import { UsersService } from '../../../service'
 
 /**
  * @openapi
- * /v1/users/{userId}:
- *   delete:
+ * /v1/users/{userId}/unarchive:
+ *   put:
  *     tags:
  *       - users
  *     security:
  *       - bearerAuth: []
- *     description: Archive the user
+ *     description: Unarchive the user
  *     parameters:
  *       - in: path
  *         name: userId
@@ -19,7 +19,7 @@ import { UsersService, ShopsService, ProductsService } from '../../../service'
  *           type: string
  *     responses:
  *       200:
- *         description: Archived user
+ *         description: Unarchived user
  *         content:
  *           application/json:
  *             schema:
@@ -31,31 +31,24 @@ import { UsersService, ShopsService, ProductsService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/User'
  */
-const archiveUser = async (req: Request, res: Response) => {
+const unarchiveUser = async (req: Request, res: Response) => {
   const roles = res.locals.userRoles
   if (!roles.admin) {
     return res.status(403).json({
       status: 'error',
-      message: 'You do not have a permission to delete.',
+      message: 'You do not have a permission to unarchive.',
     })
   }
   const { userId } = req.params
   if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
 
-  // archive the user
-  const result = await UsersService.archiveUser(userId)
-
-  // archive the shops of the user
-  await ShopsService.archiveUserShops(userId)
-
-  // archive the products of the user
-  await ProductsService.archiveUserProducts(userId)
+  const result = await UsersService.unarchiveUser(userId)
 
   return res.json({
     status: 'ok',
     data: result,
-    message: `User ${userId} successfully archived.`,
+    message: `User ${userId} successfully unarchived.`,
   })
 }
 
-export default archiveUser
+export default unarchiveUser

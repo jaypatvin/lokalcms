@@ -45,7 +45,8 @@ export const required_fields = [
 
 export { default as createProduct } from './createProduct'
 export { default as updateProduct } from './updateProduct'
-export { default as deleteProduct } from './deleteProduct'
+export { default as archiveProduct } from './archiveProduct'
+export { default as unarchiveProduct } from './unarchiveProduct'
 export { default as getProduct } from './getProduct'
 export { default as getProducts } from './getProducts'
 export { default as getCommunityProducts } from './getCommunityProducts'
