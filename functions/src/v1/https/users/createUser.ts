@@ -61,18 +61,7 @@ import { db, auth } from '../index'
 const createUser = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
-  if (!roles.editor)
-    return res
-      .status(403)
-      .json({ status: 'error', message: 'You do not have a permission to create a user' })
-  if (!roles.admin && data.is_admin) {
-    return res
-      .status(403)
-      .json({
-        status: 'error',
-        message: 'You do not have a permission to create an admin user',
-      })
-  }
+  const tokenUser = req.user
 
   let _authUser
   let _community
@@ -96,6 +85,19 @@ const createUser = async (req: Request, res: Response) => {
       return res.status(400).json({ status: 'error', message: 'Invalid User UID!' })
     error_fields.push('email')
     return res.status(400).json({ status: 'error', message: 'Email not found', error_fields })
+  }
+
+  if (_authUser.uid !== tokenUser.uid) {
+    if (!roles.editor)
+      return res
+        .status(403)
+        .json({ status: 'error', message: 'You do not have a permission to create a user' })
+    if (!roles.admin && data.is_admin) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have a permission to create an admin user',
+      })
+    }
   }
 
   // check if community id is valid

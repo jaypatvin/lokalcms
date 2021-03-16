@@ -22,12 +22,14 @@ const role = async (req: Request, res: Response, next: NextFunction) => {
   let userRoles: RolesType = {}
   if (authUser && authUser.uid) {
     const userDocs = await UsersService.getUserByUID(authUser.uid)
-    const user = userDocs[0]
-    res.locals.userDocId = user.id
-    userRoles = user.roles
-    if (userRoles && userRoles.admin) {
-      // if admin, all roles should be true
-      roles.forEach(role => userRoles[role] = true)
+    if (userDocs.length) {
+      const user = userDocs[0]
+      res.locals.userDocId = user.id
+      userRoles = user.roles
+      if (userRoles && userRoles.admin) {
+        // if admin, all roles should be true
+        roles.forEach(role => userRoles[role] = true)
+      }
     }
   }
   res.locals.userRoles = userRoles
