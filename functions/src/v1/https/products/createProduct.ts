@@ -36,12 +36,15 @@ import { fieldIsNum } from '../../../utils/helpers'
  *               status:
  *                 type: string
  *               gallery:
- *                 type: object
- *                 properties:
- *                   url:
- *                     type: string
- *                   order:
- *                     type: number
+ *                 type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       url:
+ *                         type: string
+ *                       order:
+ *                         type: number
+
  *     responses:
  *       200:
  *         description: The new product
@@ -119,15 +122,26 @@ const createProduct = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Quantity is not a type of number' })
 
   let gallery
-  // gallery field should contain both url and order
   if (data.gallery) {
-    if (!data.gallery.url)
-      return res.status(400).json({ status: 'error', message: 'Missing gallery url' })
+    if (!Array.isArray(data.gallery))
+      return res.status(400).json({
+        status: 'error',
+        message: 'Gallery is not an array of type object: {url: string, order: number}',
+      })
 
-    if (!fieldIsNum(data.gallery.order))
-      return res.status(400).json({ status: 'error', message: 'order is not a type of number' })
+    for (let [i, g] of data.gallery.entries()) {
+      if (!g.url)
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'Missing gallery url for item ' + i })
 
-    gallery = { url: data.gallery.url, order: +data.gallery.order }
+      if (!fieldIsNum(g.order))
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'order is not a type of number for item ' + i })
+    }
+
+    gallery = data.gallery
   }
 
   const keywords = generateProductKeywords({
