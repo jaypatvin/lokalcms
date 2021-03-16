@@ -26,9 +26,9 @@ const InviteListItems = ({ invites, openUpdateInvite }: Props) => {
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
-        body: JSON.stringify({ id }),
       })
       res = await res.json()
+      console.log('res', res)
       setIsDeleteDialogOpen(false)
       setInviteToDelete({})
     } else {
@@ -43,16 +43,16 @@ const InviteListItems = ({ invites, openUpdateInvite }: Props) => {
 
   const unarchiveInvite = async (invite: any) => {
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/invite/${invite.id}`
+      let url = `${API_URL}/invite/${invite.id}/unarchive`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'PUT',
-        body: JSON.stringify({ id: invite.id, unarchive_only: true }),
       })
       res = await res.json()
+      console.log('res', res)
       setIsUnarchiveDialogOpen(false)
       setInviteToUnarchive({})
     } else {

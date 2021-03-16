@@ -26,6 +26,9 @@
 export const required_fields = ['email', 'user_id']
 
 export { default as createInvite } from './createInvite'
+export { default as updateInvite } from './updateInvite'
+export { default as archiveInvite } from './archiveInvite'
+export { default as unarchiveInvite } from './unarchiveInvite'
 export { default as checkInvite } from './checkInvite'
 export { default as claimInvite } from './claimInvite'
 export { default as getInvites } from './getInvites'

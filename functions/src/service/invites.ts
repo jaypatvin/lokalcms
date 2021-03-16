@@ -15,12 +15,6 @@ export const getInviteByID = async (id) => {
     })
 }
 
-export const updateInvite = async (id, data) => {
-  const inviteRef = db.collection('invites').doc(id)
-
-  return await inviteRef.set(data, { merge: true })
-}
-
 export const disableInvitesByEmail = async (email: string) => {
   const invites = await db
     .collection('invites')
@@ -57,10 +51,26 @@ export const getInviteByCode = async (code) => {
 }
 
 export const createInvite = async (data) => {
-  const docRef = await db
-    .collection('invites')
-    .add({ ...data, created_at: new Date() })
+  const docRef = await db.collection('invites').add({ ...data, created_at: new Date() })
 
   const doc = await docRef.get()
   return { id: doc.id, ...doc.data() }
+}
+
+export const updateInvite = async (id, data) => {
+  return await db
+    .collection('invites')
+    .doc(id)
+    .update({ ...data, updated_at: new Date() })
+}
+
+export const archiveInvite = async (id: string) => {
+  return await db
+    .collection('invites')
+    .doc(id)
+    .update({ archived: true, archived_at: new Date(), updated_at: new Date() })
+}
+
+export const unarchiveInvite = async (id: string) => {
+  return await db.collection('invites').doc(id).update({ archived: false, updated_at: new Date() })
 }

@@ -96,8 +96,8 @@ const InviteListPage = (props: any) => {
     setInviteModalMode('update')
     const data = {
       id: invite.id,
-      invitee_email: invite.invitee_email,
-      inviter: invite.inviter,
+      email: invite.invitee_email,
+      user_id: invite.inviter,
       expire_by: invite.expire_by,
       code: invite.code,
       status: invite.status,
