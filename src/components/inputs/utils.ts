@@ -2,7 +2,7 @@ import { ChangeEventHandler, FocusEventHandler } from 'react'
 import { Size } from '../../utils/types'
 
 export type InputProps = {
-  label: string
+  label?: string
   isError?: boolean
   errorMessage?: string
   touched?: boolean

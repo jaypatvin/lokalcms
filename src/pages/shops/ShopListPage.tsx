@@ -109,7 +109,10 @@ const ShopListPage = (props: any) => {
       description: shop.description,
       is_close: shop.is_close,
       status: shop.status,
-      operating_hours: shop.operating_hours,
+      opening: shop.operating_hours.opening,
+      closing: shop.operating_hours.closing,
+      use_custom_hours: shop.operating_hours.custom,
+      custom_hours: shop.operating_hours,
     }
     setShopToUpdate(data)
   }

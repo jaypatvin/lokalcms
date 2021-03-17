@@ -43,7 +43,7 @@ const ShopListItems = ({ shops, openUpdateShop }: Props) => {
 
   const unarchiveShop = async (shop: any) => {
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/shop/${shop.id}/unarchive`
+      let url = `${API_URL}/shops/${shop.id}/unarchive`
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
