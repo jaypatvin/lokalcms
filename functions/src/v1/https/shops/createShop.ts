@@ -178,6 +178,7 @@ const createShop = async (req: Request, res: Response) => {
     },
     status: data.status || 'enabled',
     keywords,
+    archived: false,
   }
 
   if (data.profile_photo) _newData.profile_photo = data.profile_photo

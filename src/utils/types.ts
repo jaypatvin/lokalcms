@@ -48,3 +48,13 @@ export type InviteFilterType =
   | 'not_claimed'
   | 'archived'
 export type InviteSortByType = 'invitee_email' | 'created_at' | 'status' | 'claimed' | 'expire_by'
+
+// --- Shop Types --- //
+export type ShopFilterType =
+  | 'all'
+  | 'enabled'
+  | 'disabled'
+  | 'open'
+  | 'close'
+  | 'archived'
+export type ShopSortByType = 'name' | 'is_close' | 'status' | 'created_at' | 'updated_at'
