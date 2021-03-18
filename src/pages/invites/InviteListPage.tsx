@@ -35,10 +35,12 @@ const InviteListPage = (props: any) => {
     const newList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const invite = newList[i]
-      const inviter = await fetchUserByID(invite.inviter)
-      const inviterData = inviter.data()
-      if (inviterData) {
-        invite.inviter_email = inviterData.email
+      if (invite.inviter) {
+        const inviter = await fetchUserByID(invite.inviter)
+        const inviterData = inviter.data()
+        if (inviterData) {
+          invite.inviter_email = inviterData.email
+        }
       }
     }
     setInviteList(newList)
