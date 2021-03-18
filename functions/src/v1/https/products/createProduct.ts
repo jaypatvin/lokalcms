@@ -160,6 +160,7 @@ const createProduct = async (req: Request, res: Response) => {
     product_category: data.product_category,
     status: data.status || 'enabled',
     keywords,
+    archived: false,
   }
 
   if (gallery) _productData.gallery = gallery

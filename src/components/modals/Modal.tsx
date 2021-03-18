@@ -30,10 +30,16 @@ const Modal = ({ title, isOpen, setIsOpen, children, onSave }: Props) => {
   return (
     <ReactModal isOpen={isOpen} style={customStyles}>
       <h2 className="text-2xl capitalize mb-5">{title}</h2>
-      {children}
-      <div className="flex justify-end">
-        <Button color='secondary' onClick={() => setIsOpen(false)}>close</Button>
-        {onSave && <Button color='primary' className='ml-3' onClick={handleSave}>Save</Button>}
+      <div className="max-h-96 overflow-auto">{children}</div>
+      <div className="flex justify-end mt-2">
+        <Button color="secondary" onClick={() => setIsOpen(false)}>
+          close
+        </Button>
+        {onSave && (
+          <Button color="primary" className="ml-3" onClick={handleSave}>
+            Save
+          </Button>
+        )}
       </div>
     </ReactModal>
   )

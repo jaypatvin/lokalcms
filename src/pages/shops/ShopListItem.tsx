@@ -3,42 +3,44 @@ import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
 
 type Props = {
-  invite: any
-  openUpdateInvite: () => void
-  onDeleteInvite: () => void
-  onUnarchiveInvite: () => void
+  shop: any
+  openUpdateShop: () => void
+  onDeleteShop: () => void
+  onUnarchiveShop: () => void
   hideDelete?: boolean
   isArchived?: boolean
 }
 
-const InviteListItem = ({
-  invite,
-  openUpdateInvite,
-  onDeleteInvite,
-  onUnarchiveInvite,
+const ShopListItem = ({
+  shop,
+  openUpdateShop,
+  onDeleteShop,
+  onUnarchiveShop,
   hideDelete,
   isArchived = false,
 }: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
-  let _created_at = '-'
-  let _created_at_ago = '-'
-  if (invite.created_at) {
-    _created_at = dayjs(invite.created_at.toDate()).format()
-    _created_at_ago = dayjs(_created_at).fromNow()
+  let created_at = '-'
+  let created_at_ago = '-'
+  if (shop.created_at) {
+    created_at = dayjs(shop.created_at.toDate()).format()
+    created_at_ago = dayjs(created_at).fromNow()
   }
 
-  let _expire_by = '-'
-  if (invite.expire_by) {
-    _expire_by = dayjs(invite.expire_by).fromNow()
+  let updated_at = '-'
+  let updated_at_ago = '-'
+  if (shop.updated_at) {
+    updated_at = dayjs(shop.updated_at.toDate()).format()
+    updated_at_ago = dayjs(updated_at).fromNow()
   }
 
   const OptionsComponent = isArchived ? (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          onUnarchiveInvite()
+          onUnarchiveShop()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -50,7 +52,7 @@ const InviteListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          openUpdateInvite()
+          openUpdateShop()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -61,7 +63,7 @@ const InviteListItem = ({
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            onDeleteInvite()
+            onDeleteShop()
             setIsOptionsOpen(false)
           }}
         >
@@ -74,25 +76,25 @@ const InviteListItem = ({
   return (
     <tr>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.invitee_email}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{shop.name}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.inviter_email || invite.inviter || '--'}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{shop.description}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.code}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{shop.user_email || shop.user_id}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.status}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{shop.is_close ? 'true' : 'false'}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.claimed ? 'true' : 'false'}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{shop.status}</p>
       </td>
-      <td title={_expire_by}>
-        <p className="text-gray-900 whitespace-no-wrap">{_expire_by}</p>
+      <td title={created_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>
       </td>
-      <td title={_created_at}>
-        <p className="text-gray-900 whitespace-no-wrap">{_created_at_ago}</p>
+      <td title={updated_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{updated_at_ago}</p>
       </td>
 
       <td className="action-col">
@@ -113,4 +115,4 @@ const InviteListItem = ({
   )
 }
 
-export default InviteListItem
+export default ShopListItem

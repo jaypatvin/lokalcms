@@ -48,3 +48,39 @@ export type InviteFilterType =
   | 'not_claimed'
   | 'archived'
 export type InviteSortByType = 'invitee_email' | 'created_at' | 'status' | 'claimed' | 'expire_by'
+
+// --- Shop Types --- //
+export type ShopFilterType = 'all' | 'enabled' | 'disabled' | 'open' | 'close' | 'archived'
+export type ShopSortByType = 'name' | 'is_close' | 'status' | 'created_at' | 'updated_at'
+export type DaysType = 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat'
+export type DaysSchedType = 'opening' | 'closing'
+export type CustomHoursType = {
+  sun?: {
+    closing?: string
+    opening?: string
+  }
+  mon?: {
+    closing?: string
+    opening?: string
+  }
+  tue?: {
+    closing?: string
+    opening?: string
+  }
+  wed?: {
+    closing?: string
+    opening?: string
+  }
+  thu?: {
+    closing?: string
+    opening?: string
+  }
+  fri?: {
+    closing?: string
+    opening?: string
+  }
+  sat?: {
+    closing?: string
+    opening?: string
+  }
+}

@@ -29,7 +29,7 @@ const TextField = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
 
   const styles = {
     wrapper: {
-      default: ['w-full', label && 'flex flex-col', noMargin ? 'mb-0' : 'mb-4'],
+      default: ['w-full', label ? 'flex flex-col' : '', noMargin ? 'mb-0' : 'mb-4'],
     },
     label: {
       default: ['text-gray-600', 'mb-1', size ? sizes[size].label : sizes['medium'].label],

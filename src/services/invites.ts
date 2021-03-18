@@ -1,9 +1,9 @@
-import { SortOrderType, InviteSortByType } from '../utils/types'
+import { SortOrderType, InviteSortByType, InviteFilterType } from '../utils/types'
 import { db } from './firebase'
 
 type GetInvitesParamTypes = {
   search?: string
-  filter?: string
+  filter?: InviteFilterType
   sortBy?: InviteSortByType
   sortOrder?: SortOrderType
   limit?: number
