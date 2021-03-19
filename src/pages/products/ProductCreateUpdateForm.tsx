@@ -2,45 +2,41 @@ import React, { useEffect, useState } from 'react'
 import { Link, useHistory } from 'react-router-dom'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
-import { Checkbox, TextField } from '../../components/inputs'
+import { TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
-import { CustomHoursType, DaysSchedType, DaysType, statusColorMap } from '../../utils/types'
+import { statusColorMap } from '../../utils/types'
 
 type Props = {
   isOpen?: boolean
   setIsOpen: (val: boolean) => void
   mode?: 'create' | 'update'
-  shopToUpdate?: any
+  productToUpdate?: any
   isModal?: boolean
 }
 
 const initialData = {}
-const days: DaysType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
-const ShopCreateUpdateForm = ({
+const ProductCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
-  shopToUpdate,
+  productToUpdate,
   isModal = true,
 }: Props) => {
   const history = useHistory()
-  const [data, setData] = useState<any>(shopToUpdate || initialData)
-  const [customHours, setCustomHours] = useState<CustomHoursType>(
-    shopToUpdate ? shopToUpdate.custom_hours : {}
-  )
+  const [data, setData] = useState<any>(productToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const { firebaseToken } = useAuth()
 
   useEffect(() => {
-    if (shopToUpdate) {
-      setData(shopToUpdate)
+    if (productToUpdate) {
+      setData(productToUpdate)
     } else {
       setData(initialData)
     }
-  }, [shopToUpdate])
+  }, [productToUpdate])
 
   const changeHandler = (field: string, value: string | number | boolean | null) => {
     const newData = { ...data }
@@ -48,22 +44,9 @@ const ShopCreateUpdateForm = ({
     setData(newData)
   }
 
-  const customHoursChangeHandler = (day: DaysType, field: DaysSchedType, value: string) => {
-    const newCustomHours = { ...customHours }
-    if(newCustomHours[day]) {
-      newCustomHours[day] = { ...newCustomHours[day], [field]: value }
-    } else {
-      newCustomHours[day] = { [field]: value }
-    }
-    const newData = { ...data }
-    newData.custom_hours = newCustomHours
-    setCustomHours(newCustomHours)
-    setData(newData)
-  }
-
   const onSave = async () => {
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/shops`
+      let url = `${API_URL}/products`
       let method = 'POST'
       if (mode === 'update' && data.id) {
         url = `${url}/${data.id}`
@@ -85,7 +68,7 @@ const ShopCreateUpdateForm = ({
         if (setIsOpen) {
           setIsOpen(false)
         } else if (!isModal) {
-          history.push('/shops')
+          history.push('/products')
         }
       }
     } else {
@@ -102,7 +85,7 @@ const ShopCreateUpdateForm = ({
   }
 
   return (
-    <Modal title={`${mode} Shop`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
+    <Modal title={`${mode} Product`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
       <div className="flex justify-between mb-3">
         <Dropdown
           name="Status"
@@ -111,12 +94,6 @@ const ShopCreateUpdateForm = ({
           size="small"
           onSelect={(option) => changeHandler('status', option.value)}
           buttonColor={statusColorMap[data.status]}
-        />
-        <Checkbox
-          label="Is Close"
-          onChange={(e) => changeHandler('is_close', e.target.checked)}
-          noMargin
-          value={data.is_close || false}
         />
       </div>
       <div className="grid grid-cols-2 gap-x-2">
@@ -140,66 +117,41 @@ const ShopCreateUpdateForm = ({
         />
         <TextField
           required
-          label="user"
+          label="shop"
           type="text"
           size="small"
-          onChange={(e) => changeHandler('user_id', e.target.value)}
-          isError={fieldIsError('user_id')}
-          value={data.user_id}
+          onChange={(e) => changeHandler('shop_id', e.target.value)}
+          isError={fieldIsError('shop_id')}
+          value={data.shop_id}
         />
         <TextField
           required
-          label="opening"
+          label="price"
           type="text"
           size="small"
-          onChange={(e) => changeHandler('opening', e.target.value)}
-          isError={fieldIsError('opening')}
-          value={data.opening}
+          onChange={(e) => changeHandler('base_price', e.target.value)}
+          isError={fieldIsError('base_price')}
+          value={data.base_price}
         />
         <TextField
           required
-          label="closing"
+          label="quantity"
           type="text"
           size="small"
-          onChange={(e) => changeHandler('closing', e.target.value)}
-          isError={fieldIsError('closing')}
-          value={data.closing}
+          onChange={(e) => changeHandler('quantity', e.target.value)}
+          isError={fieldIsError('quantity')}
+          value={data.quantity}
+        />
+        <TextField
+          required
+          label="category"
+          type="text"
+          size="small"
+          onChange={(e) => changeHandler('product_category', e.target.value)}
+          isError={fieldIsError('product_category')}
+          value={data.product_category}
         />
       </div>
-      <div>
-        <Checkbox
-          label="Use custom hours"
-          onChange={(e) => changeHandler('use_custom_hours', e.target.checked)}
-          noMargin
-          value={data.use_custom_hours || false}
-        />
-      </div>
-      {data.use_custom_hours &&
-        days.map((day) => (
-          <div>
-            <p>{day}</p>
-            <div className="grid grid-cols-2 gap-x-2 mb-2">
-              <TextField
-                required
-                placeholder="opening"
-                type="test"
-                size="small"
-                onChange={(e) => customHoursChangeHandler(day, 'opening', e.target.value)}
-                value={customHours[day]?.opening}
-                noMargin
-              />
-              <TextField
-                required
-                placeholder="closing"
-                type="text"
-                size="small"
-                onChange={(e) => customHoursChangeHandler(day, 'closing', e.target.value)}
-                value={customHours[day]?.closing}
-                noMargin
-              />
-            </div>
-          </div>
-        ))}
       {responseData.status === 'error' && (
         <p className="text-red-600 text-center">{responseData.message}</p>
       )}
@@ -217,4 +169,4 @@ const ShopCreateUpdateForm = ({
   )
 }
 
-export default ShopCreateUpdateForm
+export default ProductCreateUpdateForm

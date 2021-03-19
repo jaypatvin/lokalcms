@@ -65,6 +65,13 @@ const createProduct = async (req: Request, res: Response) => {
   let _community
   let _user
 
+  const error_fields = validateFields(data, required_fields)
+  if (error_fields.length) {
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'Required fields missing', error_fields })
+  }
+
   // shop ID validation
   _shop = await ShopsService.getShopByID(data.shop_id)
   if (!_shop) return res.status(400).json({ status: 'error', message: 'Invalid Shop ID!' })
@@ -106,13 +113,6 @@ const createProduct = async (req: Request, res: Response) => {
       status: 'error',
       message: `Community of shop ${_shop.name} is currently archived!`,
     })
-  }
-
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
   // check for correct number format
