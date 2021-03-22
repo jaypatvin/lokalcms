@@ -81,3 +81,13 @@ export const generateInviteKeywords = (fields: InviteSearchFields) => {
   const searchValues = Object.values(fields)
   return generateKeywords(searchValues)
 }
+
+// ####### Category #######
+type CategorySearchFields = {
+  name: string
+}
+
+export const generateCategoryKeywords = (fields: CategorySearchFields) => {
+  const searchValues = Object.values(fields)
+  return generateKeywords(searchValues)
+}

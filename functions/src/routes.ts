@@ -12,6 +12,7 @@ import {
   InvitesAPI,
   StreamUsersAPI,
   AuthAPI,
+  CategoriesAPI,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -49,9 +50,9 @@ const swaggerOptions: swaggerJsdoc.Options = {
     tags: [
       {
         name: 'authentication',
-        description: 'Get your access token here.'
-      }
-    ]
+        description: 'Get your access token here.',
+      },
+    ],
   },
   apis: ['./src/v1/https/**/*.ts'],
 }
@@ -120,4 +121,12 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId').put(wrapAsync(ProductsAPI.updateProduct))
   api.route('/v1/products/:productId').delete(wrapAsync(ProductsAPI.archiveProduct))
   api.route('/v1/products/:productId/unarchive').put(wrapAsync(ProductsAPI.unarchiveProduct))
+
+  // -- Categories routes
+  api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))
+  api.route('/v1/categories').post(wrapAsync(CategoriesAPI.createCategory))
+  api.route('/v1/categories/:categoryId').get(wrapAsync(CategoriesAPI.getCategory))
+  api.route('/v1/categories/:categoryId').put(wrapAsync(CategoriesAPI.updateCategory))
+  api.route('/v1/categories/:categoryId/').delete(wrapAsync(CategoriesAPI.deleteCategory))
+  api.route('/v1/categories/:categoryId/enable').put(wrapAsync(CategoriesAPI.enableCategory))
 }
