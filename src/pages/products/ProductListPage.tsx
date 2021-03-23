@@ -117,7 +117,7 @@ const ProductListPage = (props: any) => {
       quantity: product.quantity,
       status: product.status,
       product_category: product.product_category,
-      gallery: product.gallery,
+      gallery: product.gallery ? product.gallery.map((photo: any) => ({...photo})) : null,
     }
     setProductToUpdate(data)
   }
