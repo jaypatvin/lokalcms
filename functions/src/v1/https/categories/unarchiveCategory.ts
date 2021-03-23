@@ -4,12 +4,12 @@ import { CategoriesService } from '../../../service'
 /**
  * @openapi
  * /v1/categories/{categoryId}:
- *   delete:
+ *   put:
  *     tags:
  *       - categories
  *     security:
  *       - bearerAuth: []
- *     description: Disable the category
+ *     description: Enable the category
  *     parameters:
  *       - in: path
  *         name: categoryId
@@ -19,7 +19,7 @@ import { CategoriesService } from '../../../service'
  *           type: string
  *     responses:
  *       200:
- *         description: Disabled Category
+ *         description: Enabled Category
  *         content:
  *           application/json:
  *             schema:
@@ -31,23 +31,23 @@ import { CategoriesService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Category'
  */
-const disableCategory = async (req: Request, res: Response) => {
+const unarchiveCategory = async (req: Request, res: Response) => {
   const roles = res.locals.userRoles
   if (!roles.admin) {
     return res.status(403).json({
       status: 'error',
-      message: 'You do not have a permission to delete.',
+      message: 'You do not have a permission to unarchive.',
     })
   }
-
+  
   const { categoryId } = req.params
   const _category = await CategoriesService.getCategoryById(categoryId)
 
   if (!_category)
     return res.status(403).json({ status: 'error', message: 'Category does not exist!' })
 
-  const result = await CategoriesService.disableCategory(categoryId)
+  const result = await CategoriesService.unarchiveCategory(categoryId)
   return res.json({ status: 'ok', data: result })
 }
 
-export default disableCategory
+export default unarchiveCategory

@@ -69,6 +69,7 @@ const createCategory = async (req: Request, res: Response) => {
     cover_url: data.cover_url || '',
     status: 'enabled',
     keywords,
+    archived: false,
   }
 
   const _newCategory = await CategoriesService.createCategory(_categoryData)

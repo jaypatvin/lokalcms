@@ -33,16 +33,16 @@ export const updateCategory = async (id, data) => {
     .update({ ...data, updated_at: new Date() })
 }
 
-export const enableCategory = async (id) => {
+export const unarchiveCategory = async (id) => {
   return await db
     .collection('categories')
     .doc(id)
-    .update({ status: 'enabled', updated_at: new Date() })
+    .update({ archived: false, updated_at: new Date() })
 }
 
-export const disableCategory = async (id) => {
+export const archiveCategory = async (id) => {
   return await db
     .collection('categories')
     .doc(id)
-    .update({ status: 'disabled', updated_at: new Date() })
+    .update({ archived: true, updated_at: new Date() })
 }
