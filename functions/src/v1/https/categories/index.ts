@@ -25,7 +25,7 @@ export const required_fields = ['name']
 
 export { default as createCategory } from './createCategory'
 export { default as updateCategory } from './updateCategory'
-export { default as deleteCategory } from './archiveCategory'
+export { default as archiveCategory } from './archiveCategory'
 export { default as unarchiveCategory } from './unarchiveCategory'
 export { default as getCategory } from './getCategory'
 export { default as getCategories } from './getCategories'

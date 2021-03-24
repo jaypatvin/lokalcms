@@ -44,5 +44,5 @@ export const archiveCategory = async (id) => {
   return await db
     .collection('categories')
     .doc(id)
-    .update({ archived: true, updated_at: new Date() })
+    .update({ archived: true, updated_at: new Date(), archived_at: new Date() })
 }

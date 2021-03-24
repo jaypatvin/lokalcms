@@ -127,6 +127,6 @@ module.exports = (api: Express) => {
   api.route('/v1/categories').post(wrapAsync(CategoriesAPI.createCategory))
   api.route('/v1/categories/:categoryId').get(wrapAsync(CategoriesAPI.getCategory))
   api.route('/v1/categories/:categoryId').put(wrapAsync(CategoriesAPI.updateCategory))
-  api.route('/v1/categories/:categoryId/').delete(wrapAsync(CategoriesAPI.deleteCategory))
-  api.route('/v1/categories/:categoryId/enable').put(wrapAsync(CategoriesAPI.enableCategory))
+  api.route('/v1/categories/:categoryId/').delete(wrapAsync(CategoriesAPI.archiveCategory))
+  api.route('/v1/categories/:categoryId/enable').put(wrapAsync(CategoriesAPI.unarchiveCategory))
 }
