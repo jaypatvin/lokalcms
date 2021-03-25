@@ -20,7 +20,8 @@ export const getCategoryById = async (id) => {
 export const createCategory = async (data) => {
   return await db
     .collection('categories')
-    .add({ ...data, created_at: new Date() })
+    .doc(data.name)
+    .set({ ...data, created_at: new Date() })
     .then((res) => {
       return res
     })

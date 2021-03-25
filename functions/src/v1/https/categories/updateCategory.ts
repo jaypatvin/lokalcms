@@ -64,13 +64,10 @@ const updateCategory = async (req: Request, res: Response) => {
   if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Category Id!' })
 
   const updateData: any = {}
-  if (data.name) {
-    updateData.name = data.name
-    updateData.keywords = generateCategoryKeywords({ name: data.name })
-  }
   if (data.description) updateData.description = data.description
   if (data.icon_url) updateData.icon_url = data.icon_url
   if (data.cover_url) updateData.cover_url = data.cover_url
+  if (data.hasOwnProperty('status')) updateData.status = data.status
 
   if (!Object.keys(updateData).length)
     return res.status(400).json({ status: 'error', message: 'no field for category is provided' })
