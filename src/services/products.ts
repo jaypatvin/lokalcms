@@ -1,33 +1,30 @@
-import { SortOrderType, ShopSortByType, ShopFilterType } from '../utils/types'
+import { SortOrderType, ProductSortByType, ProductFilterType } from '../utils/types'
 import { db } from './firebase'
 
-type GetShopsParamTypes = {
+type GetProductsParamTypes = {
   search?: string
-  filter?: ShopFilterType
-  sortBy?: ShopSortByType
+  filter?: ProductFilterType
+  sortBy?: ProductSortByType
   sortOrder?: SortOrderType
   limit?: number
 }
 
-export const fetchShopByID = async (id: string) => {
-  return db.collection('shops').doc(id).get()
+export const fetchProductByID = async (id: string) => {
+  return db.collection('products').doc(id).get()
 }
 
-export const getShops = ({
+export const getProducts = ({
   search = '',
   filter = 'all',
   sortBy = 'name',
   sortOrder = 'asc',
   limit = 10,
-}: GetShopsParamTypes) => {
-  let ref: any = db.collection('shops')
+}: GetProductsParamTypes) => {
+  let ref: any = db.collection('products')
 
   if (search) ref = ref.where('keywords', 'array-contains', search.toLowerCase())
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
-  } else if (['close', 'open'].includes(filter)) {
-    const is_close = filter === 'close'
-    ref = ref.where('is_close', '==', is_close)
   }
   ref = ref.where('archived', '==', filter === 'archived')
   ref = ref.orderBy(sortBy, sortOrder).limit(limit)

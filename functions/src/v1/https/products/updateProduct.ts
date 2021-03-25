@@ -79,6 +79,26 @@ const updateProduct = async (req: Request, res: Response) => {
       message: 'You do not have a permission to update a product of another user.',
     })
 
+  if (data.gallery) {
+    if (!Array.isArray(data.gallery))
+      return res.status(400).json({
+        status: 'error',
+        message: 'Gallery is not an array of type object: {url: string, order: number}',
+      })
+
+    for (let [i, g] of data.gallery.entries()) {
+      if (!g.hasOwnProperty('url'))
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'Missing gallery url for item ' + i })
+
+      if (!fieldIsNum(g.order))
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'order is not a type of number for item ' + i })
+    }
+  }
+
   const updateData: any = {}
 
   if (data.name || data.product_category) {
@@ -105,13 +125,20 @@ const updateProduct = async (req: Request, res: Response) => {
     updateData.quantity = data.quantity
   }
   if (data.gallery) {
-    if (data.gallery['order'] != null && !fieldIsNum(data.gallery['order']))
-      return res.status(400).json({ status: 'error', message: 'order is not a type of number' })
-
-    // user can update either the order, the gallery url, or both
-    updateData.gallery = {
-      url: data.gallery['url'] ?? product.gallery['url'],
-      order: data.gallery['order'] != null ? +data.gallery['order'] : +product.gallery['order'],
+    if (product.gallery) {
+      updateData.gallery = product.gallery
+      data.gallery.forEach((new_photo: any) => {
+        const currentPhoto = updateData.gallery.find(
+          (photo: any) => photo.order === new_photo.order
+        )
+        if (currentPhoto) {
+          currentPhoto.url = new_photo.url
+        } else {
+          updateData.gallery.push(new_photo)
+        }
+      })
+    } else {
+      updateData.gallery = data.gallery
     }
   }
   if (data.product_category) updateData.product_category = data.product_category

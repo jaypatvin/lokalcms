@@ -123,7 +123,7 @@ const ShopCreateUpdateForm = ({
         <TextField
           required
           label="name"
-          type="email"
+          type="text"
           size="small"
           onChange={(e) => changeHandler('name', e.target.value)}
           isError={fieldIsError('name')}

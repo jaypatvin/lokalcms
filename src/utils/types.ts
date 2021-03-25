@@ -84,3 +84,7 @@ export type CustomHoursType = {
     opening?: string
   }
 }
+
+// --- Product Types --- //
+export type ProductFilterType = 'all' | 'enabled' | 'disabled' | 'archived'
+export type ProductSortByType = 'name' | 'base_price' | 'quantity' | 'product_category' | 'status' | 'created_at' | 'updated_at'

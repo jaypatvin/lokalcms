@@ -28,6 +28,11 @@ const menus = [
     icon: <IoIosBasket size={23} />,
   },
   {
+    key: 'products',
+    label: 'Products',
+    icon: <IoIosBasket size={23} />,
+  },
+  {
     key: 'users',
     label: 'Users',
     icon: <IoIosPeople size={23} />,
