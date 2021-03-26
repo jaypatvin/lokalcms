@@ -13,6 +13,8 @@ import {
   StreamUsersAPI,
   AuthAPI,
   CategoriesAPI,
+  ActivitiesAPI,
+  CommentsAPI,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -86,6 +88,8 @@ module.exports = (api: Express) => {
   api.route('/v1/users/:userId/unarchive').put(wrapAsync(UsersAPI.unarchiveUser))
   api.route('/v1/users/:userId/shops').get(wrapAsync(ShopsAPI.getUserShops))
   api.route('/v1/users/:userId/products').get(wrapAsync(ProductsAPI.getUserProducts))
+  api.route('/v1/users/:userId/activities').get(wrapAsync(ActivitiesAPI.getUserActivities))
+  api.route('/v1/users/:userId/comments').get(wrapAsync(CommentsAPI.getUserComments))
 
   // -- Shops routes
   api.route('/v1/shops').get(wrapAsync(ShopsAPI.getShops))
@@ -113,6 +117,7 @@ module.exports = (api: Express) => {
   api.route('/v1/community/:communityId/users').get(wrapAsync(UsersAPI.getUsersByCommunityId))
   api.route('/v1/community/:communityId/shops').get(wrapAsync(ShopsAPI.getCommunityShops))
   api.route('/v1/community/:communityId/products').get(wrapAsync(ProductsAPI.getCommunityProducts))
+  api.route('/v1/community/:communityId/activities').get(wrapAsync(ActivitiesAPI.getCommunityActivities))
 
   // -- Products routes
   api.route('/v1/products').get(wrapAsync(ProductsAPI.getProducts))
@@ -129,4 +134,20 @@ module.exports = (api: Express) => {
   api.route('/v1/categories/:categoryId').put(wrapAsync(CategoriesAPI.updateCategory))
   api.route('/v1/categories/:categoryId/').delete(wrapAsync(CategoriesAPI.archiveCategory))
   api.route('/v1/categories/:categoryId/unarchive').put(wrapAsync(CategoriesAPI.unarchiveCategory))
+
+  // -- Activities routes
+  api.route('/v1/activities').get(wrapAsync(ActivitiesAPI.getActivities))
+  api.route('/v1/activities').post(wrapAsync(ActivitiesAPI.createActivity))
+  api.route('/v1/activities/:activityId').get(wrapAsync(ActivitiesAPI.getActivity))
+  api.route('/v1/activities/:activityId').put(wrapAsync(ActivitiesAPI.updateActivity))
+  api.route('/v1/activities/:activityId').delete(wrapAsync(ActivitiesAPI.archiveActivity))
+  api.route('/v1/activities/:activityId/unarchive').put(wrapAsync(ActivitiesAPI.unarchiveActivity))
+  api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
+
+  // -- Comments routes
+  api.route('/v1/activities/:activityId/comments').post(wrapAsync(CommentsAPI.createComment))
+  api.route('/v1/activities/:activityId/comments/:commentId').get(wrapAsync(CommentsAPI.getComment))
+  api.route('/v1/activities/:activityId/comments/:commentId').put(wrapAsync(CommentsAPI.updateComment))
+  api.route('/v1/activities/:activityId/comments/:commentId').delete(wrapAsync(CommentsAPI.archiveComment))
+  api.route('/v1/activities/:activityId/comments/:commentId/unarchive').put(wrapAsync(CommentsAPI.unarchiveComment))
 }
