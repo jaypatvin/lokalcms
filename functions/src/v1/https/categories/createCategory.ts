@@ -67,16 +67,12 @@ const createCategory = async (req: Request, res: Response) => {
     description: data.description || '',
     icon_url: data.icon_url || '',
     cover_url: data.cover_url || '',
-    status: 'enabled',
+    status: data.status || 'enabled',
     keywords,
     archived: false,
   }
 
-  const _newCategory = await CategoriesService.createCategory(_categoryData)
-
-  let _result = await _newCategory.get().then((doc) => doc.data())
-  _result.id = _newCategory.id
-  delete _result.keywords
+  const _result = await CategoriesService.createCategory(_categoryData)
 
   return res.status(200).json({ status: 'ok', data: _result })
 }
