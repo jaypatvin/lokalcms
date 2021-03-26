@@ -14,6 +14,7 @@ import CommunityListPage from './pages/communities/CommunityListPage'
 import CommunityEditPage from './pages/communities/CommunityEditPage'
 import ShopListPage from './pages/shops/ShopListPage'
 import ProductListPage from './pages/products/ProductListPage'
+import CategoryListPage from './pages/categories/CategoryListPage'
 import UserListPage from './pages/users/UserListPage'
 import InviteListPage from './pages/invites/InviteListPage'
 import SettingsPage from './pages/settings/SettingsPage'
@@ -36,6 +37,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/communities/:id" component={CommunityEditPage} />
             <PrivateRoute exact path="/shops" component={ShopListPage} />
             <PrivateRoute exact path="/products" component={ProductListPage} />
+            <PrivateRoute exact path="/categories" component={CategoryListPage} />
             <PrivateRoute exact path="/users" component={UserListPage} />
             <PrivateRoute exact path="/users/:id" component={UserEditPage} />
             <PrivateRoute exact path="/invites" component={InviteListPage} />
