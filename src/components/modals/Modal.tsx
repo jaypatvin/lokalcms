@@ -18,7 +18,7 @@ const customStyles = {
 type Props = {
   title?: string
   isOpen: boolean
-  setIsOpen: (val: boolean) => void
+  setIsOpen?: (val: boolean) => void
   children?: ReactNode
   onSave?: () => void
 }
@@ -27,12 +27,15 @@ const Modal = ({ title, isOpen, setIsOpen, children, onSave }: Props) => {
   const handleSave = () => {
     if (onSave) onSave()
   }
+  const handleClose = () => {
+    if (setIsOpen) setIsOpen(false)
+  }
   return (
     <ReactModal isOpen={isOpen} style={customStyles}>
       <h2 className="text-2xl capitalize mb-5">{title}</h2>
       <div className="max-h-96 overflow-auto">{children}</div>
       <div className="flex justify-end mt-2">
-        <Button color="secondary" onClick={() => setIsOpen(false)}>
+        <Button color="secondary" onClick={handleClose}>
           close
         </Button>
         {onSave && (

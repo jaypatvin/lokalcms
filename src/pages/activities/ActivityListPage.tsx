@@ -1,16 +1,17 @@
 import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
-import { getShops } from '../../services/shops'
-import { ShopFilterType, ShopSortByType, SortOrderType } from '../../utils/types'
-import { useAuth } from '../../contexts/AuthContext'
+import { getActivities } from '../../services/activities'
+import { fetchCommunityByID } from '../../services/community'
 import { fetchUserByID } from '../../services/users'
+import { ActivityFilterType, ActivitySortByType, SortOrderType } from '../../utils/types'
+import { useAuth } from '../../contexts/AuthContext'
 
-const ShopListPage = (props: any) => {
+const ActivityListPage = (props: any) => {
   const { firebaseToken } = useAuth()
-  const [filter, setFilter] = useState<ShopFilterType>('all')
-  const [sortBy, setSortBy] = useState<ShopSortByType>('name')
-  const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
+  const [filter, setFilter] = useState<ActivityFilterType>('all')
+  const [sortBy, setSortBy] = useState<ActivitySortByType>('created_at')
+  const [sortOrder, setSortOrder] = useState<SortOrderType>('desc')
   const menuOptions = [
     {
       key: 'all',
@@ -25,89 +26,64 @@ const ShopListPage = (props: any) => {
       name: 'Disabled',
     },
     {
-      key: 'close',
-      name: 'Close',
-    },
-    {
-      key: 'open',
-      name: 'Open',
-    },
-    {
       key: 'archived',
       name: 'Archived',
     },
   ]
   const columns = [
     {
-      label: '"Name"',
-      fieldName: 'name',
-      sortable: true,
-    },
-    {
-      label: '"Description"',
-      fieldName: 'description',
-      sortable: false,
-    },
-    {
-      label: '"Owner"',
+      label: 'User',
       fieldName: 'user_id',
-      sortable: false,
+      sortable: false
     },
     {
-      label: '"Is Close"',
-      fieldName: 'is_close',
-      sortable: true,
+      label: 'Message',
+      fieldName: 'message',
+      sortable: true
     },
     {
-      label: '"Status"',
+      label: 'Status',
       fieldName: 'status',
-      sortable: true,
+      sortable: true
     },
     {
-      label: '"Created At"',
+      label: 'Created At',
       fieldName: 'created_at',
-      sortable: true,
+      sortable: true
     },
     {
-      label: '"Updated At"',
+      label: 'Updated At',
       fieldName: 'updated_at',
-      sortable: true,
+      sortable: true
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]) => {
     const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
-      const data = newList[i]
-      const user = await fetchUserByID(data.user_id)
+      const activity = newList[i]
+      const user = await fetchUserByID(activity.user_id)
       const userData = user.data()
       if (userData) {
-        data.user_email = userData.email
+        activity.user_email = userData.email
       }
     }
     return newList
   }
-  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
-    return {
-      id: data.id,
-      user_id: data.user_id,
-      name: data.name,
-      description: data.description,
-      is_close: data.is_close,
-      status: data.status,
-      opening: data.operating_hours.opening,
-      closing: data.operating_hours.closing,
-      use_custom_hours: data.operating_hours.custom,
-      custom_hours: data.operating_hours,
+  const normalizeData = (activity: firebase.default.firestore.DocumentData) => {
+    const data = {
+      id: activity.id,
+      message: activity.message,
+      user_id: activity.user_id,
+      status: activity.status,
     }
+    return data
   }
 
-  const onArchive = async (data: any) => {
+  const onArchive = async (activity: any) => {
     let res: any
     if (API_URL && firebaseToken) {
-      const { id } = data
-      let url = `${API_URL}/shops/${id}`
+      const { id } = activity
+      let url = `${API_URL}/activities/${id}`
       res = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -122,10 +98,10 @@ const ShopListPage = (props: any) => {
     return res
   }
 
-  const onUnarchive = async (data: any) => {
+  const onUnarchive = async (activity: any) => {
     let res: any
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/shops/${data.id}/unarchive`
+      let url = `${API_URL}/activities/${activity.id}/unarchive`
       res = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -142,10 +118,10 @@ const ShopListPage = (props: any) => {
   }
   return (
     <ListPage
-      name="shops"
-      menuName="Shops"
+      name="activities"
+      menuName="Activities"
       filterMenuOptions={menuOptions}
-      createLabel="New Shop"
+      createLabel="New Activity"
       columns={columns}
       filter={filter}
       onChangeFilter={setFilter}
@@ -153,7 +129,7 @@ const ShopListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getShops}
+      getData={getActivities}
       setupDataList={setupDataList}
       normalizeDataToUpdate={normalizeData}
       onArchive={onArchive}
@@ -162,4 +138,4 @@ const ShopListPage = (props: any) => {
   )
 }
 
-export default ShopListPage
+export default ActivityListPage

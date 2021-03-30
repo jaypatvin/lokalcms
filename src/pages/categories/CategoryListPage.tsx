@@ -125,7 +125,7 @@ const CategoryListPage = (props: any) => {
         <CategoryCreateUpdateForm
           isOpen={isCreateCategoryOpen}
           setIsOpen={setIsCreateCategoryOpen}
-          categoryToUpdate={categoryToUpdate}
+          dataToUpdate={categoryToUpdate}
           mode={categoryModalMode}
         />
       )}

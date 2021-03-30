@@ -122,7 +122,7 @@ const InviteListPage = (props: any) => {
         <InviteCreateUpdateForm
           isOpen={isCreateInviteOpen}
           setIsOpen={setIsCreateInviteOpen}
-          inviteToUpdate={inviteToUpdate}
+          dataToUpdate={inviteToUpdate}
           mode={inviteModalMode}
         />
       )}

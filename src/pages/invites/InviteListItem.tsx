@@ -1,44 +1,36 @@
 import React, { useState } from 'react'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
-
-type Props = {
-  invite: any
-  openUpdateInvite: () => void
-  onDeleteInvite: () => void
-  onUnarchiveInvite: () => void
-  hideDelete?: boolean
-  isArchived?: boolean
-}
+import { ListItemProps } from '../../utils/types'
 
 const InviteListItem = ({
-  invite,
-  openUpdateInvite,
-  onDeleteInvite,
-  onUnarchiveInvite,
+  data,
+  openUpdate,
+  onDelete,
+  onUnarchive,
   hideDelete,
   isArchived = false,
-}: Props) => {
+}: ListItemProps) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
   let _created_at = '-'
   let _created_at_ago = '-'
-  if (invite.created_at) {
-    _created_at = dayjs(invite.created_at.toDate()).format()
+  if (data.created_at) {
+    _created_at = dayjs(data.created_at.toDate()).format()
     _created_at_ago = dayjs(_created_at).fromNow()
   }
 
   let _expire_by = '-'
-  if (invite.expire_by) {
-    _expire_by = dayjs(invite.expire_by).fromNow()
+  if (data.expire_by) {
+    _expire_by = dayjs(data.expire_by).fromNow()
   }
 
   const OptionsComponent = isArchived ? (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          onUnarchiveInvite()
+          onUnarchive()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -50,7 +42,7 @@ const InviteListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          openUpdateInvite()
+          openUpdate()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -61,7 +53,7 @@ const InviteListItem = ({
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            onDeleteInvite()
+            if (onDelete) onDelete()
             setIsOptionsOpen(false)
           }}
         >
@@ -74,19 +66,19 @@ const InviteListItem = ({
   return (
     <tr>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.invitee_email}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.invitee_email}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.inviter_email || invite.inviter || '--'}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.inviter_email || data.inviter || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.code}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.code}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.status}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.status}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{invite.claimed ? 'true' : 'false'}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.claimed ? 'true' : 'false'}</p>
       </td>
       <td title={_expire_by}>
         <p className="text-gray-900 whitespace-no-wrap">{_expire_by}</p>

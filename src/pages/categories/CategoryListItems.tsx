@@ -90,10 +90,10 @@ const CategoryListItems = ({ categories, openUpdateCategory }: Props) => {
       {categories.map((category: any) => (
         <CategoryListItem
           key={category.id}
-          category={category}
-          openUpdateCategory={() => openUpdateCategory(category)}
-          onDeleteCategory={() => deleteClicked(category)}
-          onUnarchiveCategory={() => unarchiveClicked(category)}
+          data={category}
+          openUpdate={() => openUpdateCategory(category)}
+          onArchive={() => deleteClicked(category)}
+          onUnarchive={() => unarchiveClicked(category)}
           isArchived={category.archived}
         />
       ))}

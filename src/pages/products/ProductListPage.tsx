@@ -128,7 +128,7 @@ const ProductListPage = (props: any) => {
         <ProductCreateUpdateForm
           isOpen={isCreateProductOpen}
           setIsOpen={setIsCreateProductOpen}
-          productToUpdate={productToUpdate}
+          dataToUpdate={productToUpdate}
           mode={productModalMode}
         />
       )}

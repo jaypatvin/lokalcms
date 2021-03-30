@@ -3,44 +3,42 @@ import dayjs from 'dayjs'
 import Avatar from '../../components/Avatar'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { Link } from 'react-router-dom'
-
-type Props = {
-  user: any
-  openUpdateUser: () => void
-  onDeleteUser: () => void
-  onUnarchiveUser: () => void
-  hideDelete?: boolean
-  isArchived?: boolean
-}
+import { ListItemProps } from '../../utils/types'
 
 const UserListItem = ({
-  user,
-  openUpdateUser,
-  onDeleteUser,
-  onUnarchiveUser,
+  data,
+  openUpdate,
+  onDelete,
+  onUnarchive,
   hideDelete,
   isArchived = false,
-}: Props) => {
+}: ListItemProps) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
-  let _created_at = '-'
-  let _created_at_ago = '-'
-  if (user.created_at) {
-    //_created_at = new Date(user.created_at.seconds * 1000).toLocaleDateString("en-US")
-    _created_at = dayjs(user.created_at.toDate()).format()
-    _created_at_ago = dayjs(_created_at).fromNow()
+  let created_at = '-'
+  let created_at_ago = '-'
+  if (data.created_at) {
+    created_at = dayjs(data.created_at.toDate()).format()
+    created_at_ago = dayjs(created_at).fromNow()
+  }
+
+  let updated_at = '-'
+  let updated_at_ago = '-'
+  if (data.updated_at) {
+    updated_at = dayjs(data.updated_at.toDate()).format()
+    updated_at_ago = dayjs(updated_at).fromNow()
   }
 
   const display_name =
-    String(user.display_name).trim().length > 0 && typeof user.display_name !== 'undefined'
-      ? user.display_name
-      : user.first_name + ' ' + user.last_name
+    String(data.display_name).trim().length > 0 && typeof data.display_name !== 'undefined'
+      ? data.display_name
+      : data.first_name + ' ' + data.last_name
   let statusColor = 'gray'
   let statusText = 'Active'
   const _status =
-    String(user.status).trim().length > 0 && typeof user.status !== 'undefined'
-      ? user.status
+    String(data.status).trim().length > 0 && typeof data.status !== 'undefined'
+      ? data.status
       : 'undefined'
 
   switch (String(_status).toLowerCase()) {
@@ -73,7 +71,7 @@ const UserListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          onUnarchiveUser()
+          onUnarchive()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -85,21 +83,21 @@ const UserListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          openUpdateUser()
+          openUpdate()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
       >
         Quick Edit
       </button>
-      <Link to={`/users/${user.id}`} className="block w-full p-2 hover:bg-gray-100 text-center">
+      <Link to={`/users/${data.id}`} className="block w-full p-2 hover:bg-gray-100 text-center">
         Edit
       </Link>
       {!hideDelete && (
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            onDeleteUser()
+            if (onDelete) onDelete()
             setIsOptionsOpen(false)
           }}
         >
@@ -114,19 +112,19 @@ const UserListItem = ({
       <td>
         <div className="flex">
           <Avatar
-            url={user.profile_photo}
+            url={data.profile_photo}
             name={display_name}
             size={10}
             statusColor={statusColor}
           />
           <div className="ml-3">
             <p className="text-gray-900 whitespace-no-wrap">{display_name}</p>
-            <p className="text-gray-600 whitespace-no-wrap">{user.email}</p>
+            <p className="text-gray-600 whitespace-no-wrap">{data.email}</p>
           </div>
         </div>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{user.community_name}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.community_name}</p>
         <p className="text-gray-600 whitespace-no-wrap">{''}</p>
       </td>
       <td>
@@ -144,9 +142,11 @@ const UserListItem = ({
           <span className="relative">{statusText}</span>
         </span>
       </td>
-      <td title={_created_at}>
-        <p className="text-gray-900 whitespace-no-wrap">{_created_at_ago}</p>
-        <p className="text-gray-600 whitespace-no-wrap">{''}</p>
+      <td title={created_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>
+      </td>
+      <td title={updated_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{updated_at_ago}</p>
       </td>
 
       <td className="action-col">

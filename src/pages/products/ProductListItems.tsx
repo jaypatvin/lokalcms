@@ -90,10 +90,10 @@ const ProductListItems = ({ products, openUpdateProduct }: Props) => {
       {products.map((product: any) => (
         <ProductListItem
           key={product.id}
-          product={product}
-          openUpdateProduct={() => openUpdateProduct(product)}
-          onDeleteProduct={() => deleteClicked(product)}
-          onUnarchiveProduct={() => unarchiveClicked(product)}
+          data={product}
+          openUpdate={() => openUpdateProduct(product)}
+          onArchive={() => deleteClicked(product)}
+          onUnarchive={() => unarchiveClicked(product)}
           isArchived={product.archived}
         />
       ))}

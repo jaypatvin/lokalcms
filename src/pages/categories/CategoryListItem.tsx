@@ -1,38 +1,30 @@
 import React, { useState } from 'react'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
-
-type Props = {
-  category: any
-  openUpdateCategory: () => void
-  onDeleteCategory: () => void
-  onUnarchiveCategory: () => void
-  hideDelete?: boolean
-  isArchived?: boolean
-}
+import { ListItemProps } from '../../utils/types'
 
 const CategoryListItem = ({
-  category,
-  openUpdateCategory,
-  onDeleteCategory,
-  onUnarchiveCategory,
+  data,
+  openUpdate,
+  onDelete,
+  onUnarchive,
   hideDelete,
   isArchived = false,
-}: Props) => {
+}: ListItemProps) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
   let created_at = '-'
   let created_at_ago = '-'
-  if (category.created_at) {
-    created_at = dayjs(category.created_at.toDate()).format()
+  if (data.created_at) {
+    created_at = dayjs(data.created_at.toDate()).format()
     created_at_ago = dayjs(created_at).fromNow()
   }
 
   let updated_at = '-'
   let updated_at_ago = '-'
-  if (category.updated_at) {
-    updated_at = dayjs(category.updated_at.toDate()).format()
+  if (data.updated_at) {
+    updated_at = dayjs(data.updated_at.toDate()).format()
     updated_at_ago = dayjs(updated_at).fromNow()
   }
 
@@ -40,7 +32,7 @@ const CategoryListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          onUnarchiveCategory()
+          onUnarchive()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -52,7 +44,7 @@ const CategoryListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          openUpdateCategory()
+          openUpdate()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -63,7 +55,7 @@ const CategoryListItem = ({
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            onDeleteCategory()
+            if (onDelete) onDelete()
             setIsOptionsOpen(false)
           }}
         >
@@ -76,13 +68,13 @@ const CategoryListItem = ({
   return (
     <tr>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{category.name}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.name}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{category.description}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.description}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{category.status}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.status}</p>
       </td>
       <td title={created_at}>
         <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>

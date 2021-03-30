@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { ListItemProps } from '../../utils/types'
 
-const ShopListItem = ({
+const ActivityListItem = ({
   data,
   openUpdate,
   onDelete,
@@ -68,16 +68,10 @@ const ShopListItem = ({
   return (
     <tr>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data.name}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.user_email}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data.description}</p>
-      </td>
-      <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data.user_email || data.user_id}</p>
-      </td>
-      <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data.is_close ? 'true' : 'false'}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.message}</p>
       </td>
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.status}</p>
@@ -107,4 +101,4 @@ const ShopListItem = ({
   )
 }
 
-export default ShopListItem
+export default ActivityListItem

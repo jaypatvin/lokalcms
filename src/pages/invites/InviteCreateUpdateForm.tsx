@@ -6,16 +6,8 @@ import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
-import { statusColorMap } from '../../utils/types'
+import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 const humanPassword = require('human-password')
-
-type Props = {
-  isOpen?: boolean
-  setIsOpen: (val: boolean) => void
-  mode?: 'create' | 'update'
-  inviteToUpdate?: any
-  isModal?: boolean
-}
 
 const initialData = {}
 
@@ -23,11 +15,11 @@ const InviteCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
-  inviteToUpdate,
+  dataToUpdate,
   isModal = true,
-}: Props) => {
+}: CreateUpdateFormProps) => {
   const history = useHistory()
-  const [data, setData] = useState<any>(inviteToUpdate || initialData)
+  const [data, setData] = useState<any>(dataToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const { currentUserInfo, firebaseToken } = useAuth()
 
@@ -43,12 +35,12 @@ const InviteCreateUpdateForm = ({
   }, [])
 
   useEffect(() => {
-    if (inviteToUpdate) {
-      setData(inviteToUpdate)
+    if (dataToUpdate) {
+      setData(dataToUpdate)
     } else {
       setData(initialData)
     }
-  }, [inviteToUpdate])
+  }, [dataToUpdate])
 
   const changeHandler = (field: string, value: string | number | boolean | null) => {
     const newData = { ...data }

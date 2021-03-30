@@ -128,7 +128,7 @@ const CommunityListPage = (props: any) => {
         <CommunityCreateUpdateForm
           isOpen={isCreateCommunityOpen}
           setIsOpen={setIsCreateCommunityOpen}
-          communityToUpdate={communityToUpdate}
+          dataToUpdate={communityToUpdate}
           mode={communityModalMode}
         />
       )}

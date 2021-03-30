@@ -7,14 +7,7 @@ import { fetchUserByID, getUsers } from '../../services/users'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
-
-type Props = {
-  isOpen?: boolean
-  setIsOpen?: (val: boolean) => void
-  mode?: 'create' | 'update'
-  communityToUpdate?: any
-  isModal?: boolean
-}
+import { CreateUpdateFormProps } from '../../utils/types'
 
 const initialData = {}
 
@@ -22,12 +15,12 @@ const CommunityCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
-  communityToUpdate,
+  dataToUpdate,
   isModal = true,
-}: Props) => {
+}: CreateUpdateFormProps) => {
   const history = useHistory()
   const { firebaseToken } = useAuth()
-  const [data, setData] = useState<any>(communityToUpdate || initialData)
+  const [data, setData] = useState<any>(dataToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
   const [userSearchText, setUserSearchText] = useState('')
@@ -48,27 +41,27 @@ const CommunityCreateUpdateForm = ({
       const Component = ({ children }: any) => <>{children}</>
       setWrapperComponent(() => Component)
     }
-  }, [isModal, communityToUpdate, setIsOpen, isOpen, mode])
+  }, [isModal, dataToUpdate, setIsOpen, isOpen, mode])
 
   useEffect(() => {
-    if (communityToUpdate) {
-      setData(communityToUpdate)
+    if (dataToUpdate) {
+      setData(dataToUpdate)
     } else {
       setData(initialData)
     }
-  }, [communityToUpdate])
+  }, [dataToUpdate])
 
   useEffect(() => {
     if (
       !isModal &&
-      communityToUpdate &&
-      communityToUpdate.admin &&
-      communityToUpdate.admin.length
+      dataToUpdate &&
+      dataToUpdate.admin &&
+      dataToUpdate.admin.length
     ) {
       const getAdminUsers = async () => {
         const fetchedAdmins = []
-        for (let i = 0; i < communityToUpdate.admin.length; i++) {
-          const userId = communityToUpdate.admin[i]
+        for (let i = 0; i < dataToUpdate.admin.length; i++) {
+          const userId = dataToUpdate.admin[i]
           const user = await fetchUserByID(userId)
           if (user) fetchedAdmins.push({ id: user.id, ...user.data() })
         }
@@ -89,7 +82,7 @@ const CommunityCreateUpdateForm = ({
 
   const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     if (e.target.value.length > 2) {
-      const usersRef = getUsers({ search: e.target.value, community: communityToUpdate.id })
+      const usersRef = getUsers({ search: e.target.value, community: dataToUpdate.id })
       const result = await usersRef.get()
       let users = result.docs.map((doc) => {
         const data = doc.data()

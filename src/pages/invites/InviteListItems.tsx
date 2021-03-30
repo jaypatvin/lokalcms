@@ -90,10 +90,10 @@ const InviteListItems = ({ invites, openUpdateInvite }: Props) => {
       {invites.map((invite: any) => (
         <InviteListItem
           key={invite.id}
-          invite={invite}
-          openUpdateInvite={() => openUpdateInvite(invite)}
-          onDeleteInvite={() => deleteClicked(invite)}
-          onUnarchiveInvite={() => unarchiveClicked(invite)}
+          data={invite}
+          openUpdate={() => openUpdateInvite(invite)}
+          onArchive={() => deleteClicked(invite)}
+          onUnarchive={() => unarchiveClicked(invite)}
           isArchived={invite.archived}
         />
       ))}
