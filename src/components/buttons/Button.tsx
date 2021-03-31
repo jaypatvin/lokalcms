@@ -43,6 +43,7 @@ const Button = (props: ButtonProps) => {
         size ? buttonSizes[size] : buttonSizes['medium'],
         (customColor || color),
         block ? 'w-full block' : 'w-auto',
+        disabled ? 'pointer-events-none' : ''
       ],
     },
   }
