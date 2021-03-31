@@ -8,15 +8,7 @@ import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
 import { storage } from '../../services/firebase'
-import { statusColorMap } from '../../utils/types'
-
-type Props = {
-  isOpen?: boolean
-  setIsOpen: (val: boolean) => void
-  mode?: 'create' | 'update'
-  productToUpdate?: any
-  isModal?: boolean
-}
+import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 
 const initialData = {}
 const maxNumOfPhotos = 6 // TODO: this should be configurable on the CMS
@@ -25,21 +17,21 @@ const ProductCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
-  productToUpdate,
+  dataToUpdate,
   isModal = true,
-}: Props) => {
+}: CreateUpdateFormProps) => {
   const history = useHistory()
-  const [data, setData] = useState<any>(productToUpdate || initialData)
+  const [data, setData] = useState<any>(dataToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const { firebaseToken } = useAuth()
 
   useEffect(() => {
-    if (productToUpdate) {
-      setData(productToUpdate)
+    if (dataToUpdate) {
+      setData(dataToUpdate)
     } else {
       setData(initialData)
     }
-  }, [productToUpdate])
+  }, [dataToUpdate])
 
   const changeHandler = (field: string, value: string | number | boolean | null) => {
     const newData = { ...data }

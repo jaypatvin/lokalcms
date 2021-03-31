@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import dayjs from 'dayjs'
-import Avatar from '../../components/Avatar'
 import useOuterClick from '../../customHooks/useOuterClick'
-import { Link } from 'react-router-dom'
 import { ListItemProps } from '../../utils/types'
 
-const UserListItem = ({
+const ActivityListItem = ({
   data,
   openUpdate,
   onArchive,
@@ -30,43 +28,6 @@ const UserListItem = ({
     updated_at_ago = dayjs(updated_at).fromNow()
   }
 
-  const display_name =
-    String(data.display_name).trim().length > 0 && typeof data.display_name !== 'undefined'
-      ? data.display_name
-      : data.first_name + ' ' + data.last_name
-  let statusColor = 'gray'
-  let statusText = 'Active'
-  const _status =
-    String(data.status).trim().length > 0 && typeof data.status !== 'undefined'
-      ? data.status
-      : 'undefined'
-
-  switch (String(_status).toLowerCase()) {
-    case 'active':
-      statusColor = 'green'
-      statusText = 'Active'
-      break
-    case 'suspended':
-      statusColor = 'red'
-      statusText = 'Suspended'
-      break
-    case 'pending':
-      statusColor = 'yellow'
-      statusText = 'Pending'
-      break
-    case 'locked':
-      statusColor = 'gray'
-      statusText = 'Locked'
-      break
-    case 'archived':
-      statusColor = 'black'
-      statusText = 'Archived'
-      break
-    default:
-      statusColor = 'gray'
-      break
-  }
-
   const OptionsComponent = isArchived ? (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
@@ -88,11 +49,8 @@ const UserListItem = ({
         }}
         className="block w-full p-2 hover:bg-gray-100"
       >
-        Quick Edit
-      </button>
-      <Link to={`/users/${data.id}`} className="block w-full p-2 hover:bg-gray-100 text-center">
         Edit
-      </Link>
+      </button>
       {!hideDelete && (
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
@@ -110,37 +68,16 @@ const UserListItem = ({
   return (
     <tr>
       <td>
-        <div className="flex">
-          <Avatar
-            url={data.profile_photo}
-            name={display_name}
-            size={10}
-            statusColor={statusColor}
-          />
-          <div className="ml-3">
-            <p className="text-gray-900 whitespace-no-wrap">{display_name}</p>
-            <p className="text-gray-600 whitespace-no-wrap">{data.email}</p>
-          </div>
-        </div>
+        <p className="text-gray-900 whitespace-no-wrap">{data.user_email || data.user_id}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data.community_name}</p>
-        <p className="text-gray-600 whitespace-no-wrap">{''}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.community_name || data.community_id}</p>
       </td>
       <td>
-        <span
-          className={
-            'relative inline-block px-3 py-1 font-semibold text-' +
-            statusColor +
-            '-900 leading-tight'
-          }
-        >
-          <span
-            aria-hidden
-            className={'absolute inset-0 bg-' + statusColor + '-200 opacity-50 rounded-full'}
-          ></span>
-          <span className="relative">{statusText}</span>
-        </span>
+        <p className="text-gray-900 whitespace-no-wrap">{data.message}</p>
+      </td>
+      <td>
+        <p className="text-gray-900 whitespace-no-wrap">{data.status}</p>
       </td>
       <td title={created_at}>
         <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>
@@ -167,4 +104,4 @@ const UserListItem = ({
   )
 }
 
-export default UserListItem
+export default ActivityListItem

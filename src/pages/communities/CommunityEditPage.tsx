@@ -43,7 +43,7 @@ const CommunityEditPage = ({ match }: Props) => {
       {community && (
         <>
           <h2 className="text-3xl mb-3">Community Edit</h2>
-          <CommunityCreateUpdateForm communityToUpdate={community} isModal={false} mode="update" />
+          <CommunityCreateUpdateForm dataToUpdate={community} isModal={false} mode="update" />
         </>
       )}
     </div>

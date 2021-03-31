@@ -5,18 +5,10 @@ import Dropdown from '../../components/Dropdown'
 import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
-import { statusColorMap } from '../../utils/types'
+import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { fetchCommunityByID, getCommunities } from '../../services/community'
-
-type Props = {
-  isOpen?: boolean
-  setIsOpen?: (val: boolean) => void
-  mode?: 'create' | 'update'
-  userToUpdate?: any
-  isModal?: boolean
-}
 
 const initialData = { status: 'active' }
 
@@ -24,12 +16,12 @@ const UserCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
-  userToUpdate,
+  dataToUpdate,
   isModal = true,
-}: Props) => {
+}: CreateUpdateFormProps) => {
   const history = useHistory()
   const { firebaseToken } = useAuth()
-  const [data, setData] = useState<any>(userToUpdate || initialData)
+  const [data, setData] = useState<any>(dataToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
   const [community, setCommunity] = useState<any>()
@@ -50,26 +42,26 @@ const UserCreateUpdateForm = ({
       const Component = ({ children }: any) => <>{children}</>
       setWrapperComponent(() => Component)
     }
-  }, [isModal, userToUpdate, setIsOpen, isOpen, mode, community])
+  }, [isModal, dataToUpdate, setIsOpen, isOpen, mode, community])
 
   const setCurrentData = async () => {
-    const { community_id } = userToUpdate
+    const { community_id } = dataToUpdate
     const communityRef = await fetchCommunityByID(community_id)
     const communityData = communityRef.data()
     setCommunity(communityData)
     if (communityData) {
       setCommunitySearchText(communityData.name)
     }
-    setData(userToUpdate)
+    setData(dataToUpdate)
   }
 
   useEffect(() => {
-    if (userToUpdate) {
+    if (dataToUpdate) {
       setCurrentData()
     } else {
       setData(initialData)
     }
-  }, [userToUpdate])
+  }, [dataToUpdate])
 
   const changeHandler = (field: string, value: string | number | boolean | null) => {
     const newData = { ...data }
@@ -106,11 +98,11 @@ const UserCreateUpdateForm = ({
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/users`
       let method = 'POST'
-      if (mode === 'update' && userToUpdate.id) {
+      if (mode === 'update' && dataToUpdate.id) {
         for (let key in data) {
-          if (data[key] === userToUpdate[key]) delete data[key]
+          if (data[key] === dataToUpdate[key]) delete data[key]
         }
-        url = `${url}/${userToUpdate.id}`
+        url = `${url}/${dataToUpdate.id}`
         method = 'PUT'
       }
       let res: any = await fetch(url, {

@@ -210,11 +210,11 @@ const CommunityListItems = ({ communities, openUpdateCommunity }: Props) => {
       {communities.map((community: any) => (
         <CommunityListItem
           key={community.id}
-          community={community}
-          openUpdateCommunity={() => openUpdateCommunity(community)}
-          onDeleteCommunity={() => deleteClicked(community)}
-          onArchiveCommunity={() => archiveClicked(community)}
-          onUnarchiveCommunity={() => unarchiveClicked(community)}
+          data={community}
+          openUpdate={() => openUpdateCommunity(community)}
+          onDelete={() => deleteClicked(community)}
+          onArchive={() => archiveClicked(community)}
+          onUnarchive={() => unarchiveClicked(community)}
           hideDelete={currentUserInfo.community_id === community.id}
           disableDelete={community.haveMembers}
           isArchived={community.archived}

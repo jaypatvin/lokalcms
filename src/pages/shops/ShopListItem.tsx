@@ -1,38 +1,30 @@
 import React, { useState } from 'react'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
-
-type Props = {
-  shop: any
-  openUpdateShop: () => void
-  onDeleteShop: () => void
-  onUnarchiveShop: () => void
-  hideDelete?: boolean
-  isArchived?: boolean
-}
+import { ListItemProps } from '../../utils/types'
 
 const ShopListItem = ({
-  shop,
-  openUpdateShop,
-  onDeleteShop,
-  onUnarchiveShop,
+  data,
+  openUpdate,
+  onArchive,
+  onUnarchive,
   hideDelete,
   isArchived = false,
-}: Props) => {
+}: ListItemProps) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
   let created_at = '-'
   let created_at_ago = '-'
-  if (shop.created_at) {
-    created_at = dayjs(shop.created_at.toDate()).format()
+  if (data.created_at) {
+    created_at = dayjs(data.created_at.toDate()).format()
     created_at_ago = dayjs(created_at).fromNow()
   }
 
   let updated_at = '-'
   let updated_at_ago = '-'
-  if (shop.updated_at) {
-    updated_at = dayjs(shop.updated_at.toDate()).format()
+  if (data.updated_at) {
+    updated_at = dayjs(data.updated_at.toDate()).format()
     updated_at_ago = dayjs(updated_at).fromNow()
   }
 
@@ -40,7 +32,7 @@ const ShopListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          onUnarchiveShop()
+          onUnarchive()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -52,7 +44,7 @@ const ShopListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          openUpdateShop()
+          openUpdate()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -63,7 +55,7 @@ const ShopListItem = ({
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            onDeleteShop()
+            if (onArchive) onArchive()
             setIsOptionsOpen(false)
           }}
         >
@@ -76,19 +68,19 @@ const ShopListItem = ({
   return (
     <tr>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{shop.name}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.name}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{shop.description}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.description}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{shop.user_email || shop.user_id}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.user_email || data.user_id}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{shop.is_close ? 'true' : 'false'}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.is_close ? 'true' : 'false'}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{shop.status}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.status}</p>
       </td>
       <td title={created_at}>
         <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>

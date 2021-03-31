@@ -6,15 +6,7 @@ import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
-import { CustomHoursType, DaysSchedType, DaysType, statusColorMap } from '../../utils/types'
-
-type Props = {
-  isOpen?: boolean
-  setIsOpen: (val: boolean) => void
-  mode?: 'create' | 'update'
-  shopToUpdate?: any
-  isModal?: boolean
-}
+import { CreateUpdateFormProps, CustomHoursType, DaysSchedType, DaysType, statusColorMap } from '../../utils/types'
 
 const initialData = {}
 const days: DaysType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
@@ -23,24 +15,24 @@ const ShopCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
-  shopToUpdate,
+  dataToUpdate,
   isModal = true,
-}: Props) => {
+}: CreateUpdateFormProps) => {
   const history = useHistory()
-  const [data, setData] = useState<any>(shopToUpdate || initialData)
+  const [data, setData] = useState<any>(dataToUpdate || initialData)
   const [customHours, setCustomHours] = useState<CustomHoursType>(
-    shopToUpdate ? shopToUpdate.custom_hours : {}
+    dataToUpdate ? dataToUpdate.custom_hours : {}
   )
   const [responseData, setResponseData] = useState<any>({})
   const { firebaseToken } = useAuth()
 
   useEffect(() => {
-    if (shopToUpdate) {
-      setData(shopToUpdate)
+    if (dataToUpdate) {
+      setData(dataToUpdate)
     } else {
       setData(initialData)
     }
-  }, [shopToUpdate])
+  }, [dataToUpdate])
 
   const changeHandler = (field: string, value: string | number | boolean | null) => {
     const newData = { ...data }

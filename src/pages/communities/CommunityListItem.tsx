@@ -1,37 +1,42 @@
 import React, { useState } from 'react'
+import dayjs from 'dayjs'
 import Avatar from '../../components/Avatar'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { Link } from 'react-router-dom'
-
-type Props = {
-  community: any
-  openUpdateCommunity: () => void
-  onDeleteCommunity: () => void
-  onArchiveCommunity: () => void
-  onUnarchiveCommunity: () => void
-  hideDelete?: boolean
-  disableDelete?: boolean
-  isArchived?: boolean
-}
+import { ListItemProps } from '../../utils/types'
 
 const CommunityListItem = ({
-  community,
-  openUpdateCommunity,
-  onDeleteCommunity,
-  onArchiveCommunity,
-  onUnarchiveCommunity,
+  data,
+  openUpdate,
+  onDelete,
+  onArchive,
+  onUnarchive,
   hideDelete,
   disableDelete = false,
   isArchived = false,
-}: Props) => {
+}: ListItemProps) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
+
+  let created_at = '-'
+  let created_at_ago = '-'
+  if (data.created_at) {
+    created_at = dayjs(data.created_at.toDate()).format()
+    created_at_ago = dayjs(created_at).fromNow()
+  }
+
+  let updated_at = '-'
+  let updated_at_ago = '-'
+  if (data.updated_at) {
+    updated_at = dayjs(data.updated_at.toDate()).format()
+    updated_at_ago = dayjs(updated_at).fromNow()
+  }
 
   const OptionsComponent = isArchived ? (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          onUnarchiveCommunity()
+          onUnarchive()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -47,7 +52,7 @@ const CommunityListItem = ({
             disableDelete
               ? undefined
               : () => {
-                  onDeleteCommunity()
+                  if (onDelete) onDelete()
                   setIsOptionsOpen(false)
                 }
           }
@@ -61,7 +66,7 @@ const CommunityListItem = ({
     <div className="absolute bottom-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          openUpdateCommunity()
+          openUpdate()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -69,7 +74,7 @@ const CommunityListItem = ({
         Quick Edit
       </button>
       <Link
-        to={`/communities/${community.id}`}
+        to={`/communities/${data.id}`}
         className="block w-full p-2 hover:bg-gray-100 text-center"
       >
         Edit
@@ -84,7 +89,7 @@ const CommunityListItem = ({
               disableDelete
                 ? undefined
                 : () => {
-                    onArchiveCommunity()
+                    onArchive()
                     setIsOptionsOpen(false)
                   }
             }
@@ -100,7 +105,7 @@ const CommunityListItem = ({
               disableDelete
                 ? undefined
                 : () => {
-                    onDeleteCommunity()
+                    if (onDelete) onDelete()
                     setIsOptionsOpen(false)
                   }
             }
@@ -117,28 +122,34 @@ const CommunityListItem = ({
     <tr>
       <td>
         <div className="flex items-center">
-          <Avatar url={community.profile_photo} name={community.name} size={10} />
+          <Avatar url={data.profile_photo} name={data.name} size={10} />
           <div className="ml-3">
-            <p className="text-gray-900">{community.name}</p>
+            <p className="text-gray-900">{data.name}</p>
           </div>
         </div>
       </td>
       <td>
-        <p className="text-gray-900">{`${community.address.subdivision}, ${community.address.barangay}, ${community.address.city}, ${community.address.state}, ${community.address.country}, ${community.address.zip_code}`}</p>
+        <p className="text-gray-900">{`${data.address.subdivision}, ${data.address.barangay}, ${data.address.city}, ${data.address.state}, ${data.address.country}, ${data.address.zip_code}`}</p>
       </td>
       <td>
-        {
-          community.admins.length === 0 ? '--' : community.admins.map((admin: any) => <p className="text-gray-900">{admin.email}</p>)
-        }
+        {data.admins.length === 0
+          ? '--'
+          : data.admins.map((admin: any) => <p className="text-gray-900">{admin.email}</p>)}
       </td>
       <td>
-        <p className="text-gray-900">{community.meta.users_count || '--'}</p>
+        <p className="text-gray-900">{data.meta.users_count || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900">{community.meta.shops_count || '--'}</p>
+        <p className="text-gray-900">{data.meta.shops_count || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900">{community.meta.products_count || '--'}</p>
+        <p className="text-gray-900">{data.meta.products_count || '--'}</p>
+      </td>
+      <td title={created_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>
+      </td>
+      <td title={updated_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{updated_at_ago}</p>
       </td>
 
       <td className="action-col">

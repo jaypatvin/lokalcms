@@ -1,38 +1,30 @@
 import React, { useState } from 'react'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
-
-type Props = {
-  product: any
-  openUpdateProduct: () => void
-  onDeleteProduct: () => void
-  onUnarchiveProduct: () => void
-  hideDelete?: boolean
-  isArchived?: boolean
-}
+import { ListItemProps } from '../../utils/types'
 
 const ProductListItem = ({
-  product,
-  openUpdateProduct,
-  onDeleteProduct,
-  onUnarchiveProduct,
+  data,
+  openUpdate,
+  onArchive,
+  onUnarchive,
   hideDelete,
   isArchived = false,
-}: Props) => {
+}: ListItemProps) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
   let created_at = '-'
   let created_at_ago = '-'
-  if (product.created_at) {
-    created_at = dayjs(product.created_at.toDate()).format()
+  if (data.created_at) {
+    created_at = dayjs(data.created_at.toDate()).format()
     created_at_ago = dayjs(created_at).fromNow()
   }
 
   let updated_at = '-'
   let updated_at_ago = '-'
-  if (product.updated_at) {
-    updated_at = dayjs(product.updated_at.toDate()).format()
+  if (data.updated_at) {
+    updated_at = dayjs(data.updated_at.toDate()).format()
     updated_at_ago = dayjs(updated_at).fromNow()
   }
 
@@ -40,7 +32,7 @@ const ProductListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          onUnarchiveProduct()
+          onUnarchive()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -52,7 +44,7 @@ const ProductListItem = ({
     <div className="absolute top-0 right-full shadow w-36 bg-white">
       <button
         onClick={() => {
-          openUpdateProduct()
+          openUpdate()
           setIsOptionsOpen(false)
         }}
         className="block w-full p-2 hover:bg-gray-100"
@@ -63,7 +55,7 @@ const ProductListItem = ({
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            onDeleteProduct()
+            if (onArchive) onArchive()
             setIsOptionsOpen(false)
           }}
         >
@@ -76,28 +68,28 @@ const ProductListItem = ({
   return (
     <tr>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{product.name}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.name}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{product.description}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.description}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{product.user_email || product.user_id}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.user_email || data.user_id}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{product.shop_name || product.shop_id}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.shop_name || data.shop_id}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{product.base_price}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.base_price}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{product.quantity}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.quantity}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{product.product_category}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.product_category}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{product.status}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.status}</p>
       </td>
       <td title={created_at}>
         <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>

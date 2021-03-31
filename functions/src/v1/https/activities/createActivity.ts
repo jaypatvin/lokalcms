@@ -76,15 +76,6 @@ const createActivity = async (req: Request, res: Response) => {
       message: `User with id ${data.user_id} is currently archived!`,
     })
 
-  _community = await CommunityService.getCommunityByID(data.community_id)
-  if (!_community)
-    return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
-  if (_community.archived)
-    return res.status(406).json({
-      status: 'error',
-      message: `Community ${_community.name} is currently archived`,
-    })
-
   let images
   if (data.images) {
     if (!Array.isArray(data.images))
@@ -112,7 +103,7 @@ const createActivity = async (req: Request, res: Response) => {
   const _activityData: any = {
     message: data.message || '',
     user_id: data.user_id,
-    community_id: data.community_id,
+    community_id: _user.community_id,
     status: data.status || 'enabled',
     archived: false,
   }

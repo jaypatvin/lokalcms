@@ -1,250 +1,168 @@
-import React, { useState, useEffect } from 'react'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import { Button } from '../../components/buttons'
-import { InviteFilterType, InviteSortByType, LimitType, SortOrderType } from '../../utils/types'
-import SortButton from '../../components/buttons/SortButton'
-import Dropdown from '../../components/Dropdown'
-import InviteCreateUpdateForm from './InviteCreateUpdateForm'
-import InviteListItems from './InviteListItems'
-import InviteMenu from './InviteMenu'
-import { getInvites } from '../../services/invites'
+import React, { useState } from 'react'
+import ListPage from '../../components/pageComponents/ListPage'
+import { API_URL } from '../../config/variables'
+import { InviteFilterType, InviteSortByType, SortOrderType } from '../../utils/types'
+import { useAuth } from '../../contexts/AuthContext'
 import { fetchUserByID } from '../../services/users'
-
-// Init
-dayjs.extend(relativeTime)
+import { getInvites } from '../../services/invites'
 
 const InviteListPage = (props: any) => {
-  const [inviteList, setInviteList] = useState<any>([])
-  const [search, setSearch] = useState('')
+  const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<InviteFilterType>('all')
   const [sortBy, setSortBy] = useState<InviteSortByType>('created_at')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('desc')
-  const [limit, setLimit] = useState<LimitType>(10)
-  const [pageNum, setPageNum] = useState(1)
-  const [invitesRef, setInvitesRef] = useState<any>()
-  const [snapshot, setSnapshot] = useState<any>()
-  const [firstInviteOnList, setFirstInviteOnList] = useState<any>()
-  const [lastInviteOnList, setLastInviteOnList] = useState<any>()
-  const [isLastPage, setIsLastPage] = useState(false)
-  const [isCreateInviteOpen, setIsCreateInviteOpen] = useState(false)
-  const [inviteModalMode, setInviteModalMode] = useState<'create' | 'update'>('create')
-  const [inviteToUpdate, setInviteToUpdate] = useState<any>()
-
-  const getInviteList = async (docs: any[]) => {
-    const newList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const menuOptions = [
+    {
+      key: 'all',
+      name: 'All',
+    },
+    {
+      key: 'enabled',
+      name: 'Enabled',
+    },
+    {
+      key: 'disabled',
+      name: 'Disabled',
+    },
+    {
+      key: 'claimed',
+      name: 'Claimed',
+    },
+    {
+      key: 'not_claimed',
+      name: 'Not Claimed',
+    },
+    {
+      key: 'archived',
+      name: 'Archived',
+    },
+  ]
+  const columns = [
+    {
+      label: 'Invitee Email',
+      fieldName: 'invitee_email',
+      sortable: true,
+    },
+    {
+      label: 'Inviter',
+      fieldName: 'user_id',
+      sortable: false,
+    },
+    {
+      label: 'Code',
+      fieldName: 'code',
+      sortable: false,
+    },
+    {
+      label: 'Status',
+      fieldName: 'status',
+      sortable: true,
+    },
+    {
+      label: 'Claimed',
+      fieldName: 'claimed',
+      sortable: true,
+    },
+    {
+      label: 'Expire by',
+      fieldName: 'expire_by',
+      sortable: true,
+    },
+    {
+      label: 'Created At',
+      fieldName: 'created_at',
+      sortable: true,
+    },
+    {
+      label: 'Updated At',
+      fieldName: 'updated_at',
+      sortable: true,
+    },
+  ]
+  const setupDataList = async (
+    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
+  ) => {
+    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
-      const invite = newList[i]
-      if (invite.inviter) {
-        const inviter = await fetchUserByID(invite.inviter)
+      const data = newList[i]
+      if (data.inviter) {
+        const inviter = await fetchUserByID(data.inviter)
         const inviterData = inviter.data()
         if (inviterData) {
-          invite.inviter_email = inviterData.email
+          data.inviter_email = inviterData.email
         }
       }
     }
-    setInviteList(newList)
-    setLastInviteOnList(docs[docs.length - 1])
-    setFirstInviteOnList(docs[0])
+    return newList
   }
-
-  useEffect(() => {
-    const newInvitesRef = getInvites({ search, filter, sortBy, sortOrder, limit })
-    if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = newInvitesRef.onSnapshot((snapshot: any) => {
-      getInviteList(snapshot.docs)
-    })
-    setSnapshot({ unsubscribe: newUnsubscribe })
-    setInvitesRef(newInvitesRef)
-    setPageNum(1)
-    setIsLastPage(false)
-  }, [search, filter, sortBy, sortOrder, limit])
-
-  const onNextPage = () => {
-    if (invitesRef && lastInviteOnList) {
-      const newInvitesRef = invitesRef.startAfter(lastInviteOnList).limit(limit)
-      newInvitesRef.onSnapshot(async (snapshot: any) => {
-        if (snapshot.docs.length) {
-          getInviteList(snapshot.docs)
-          setPageNum(pageNum + 1)
-        } else if (!isLastPage) {
-          setIsLastPage(true)
-        }
-      })
+  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+    return {
+      id: data.id,
+      email: data.invitee_email,
+      user_id: data.inviter,
+      expire_by: data.expire_by,
+      code: data.code,
+      status: data.status,
+      claimed: data.claimed,
     }
   }
 
-  const onPreviousPage = () => {
-    const newPageNum = pageNum - 1
-    if (invitesRef && firstInviteOnList && newPageNum > 0) {
-      const newInvitesRef = invitesRef.endBefore(firstInviteOnList).limitToLast(limit)
-      newInvitesRef.onSnapshot(async (snapshot: any) => {
-        getInviteList(snapshot.docs)
+  const onArchive = async (data: any) => {
+    let res: any
+    if (API_URL && firebaseToken) {
+      const { id } = data
+      let url = `${API_URL}/invite/${id}`
+      res = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'DELETE',
       })
-    }
-    setIsLastPage(false)
-    setPageNum(Math.max(1, newPageNum))
-  }
-
-  const onSort = (sortName: InviteSortByType) => {
-    if (sortName === sortBy) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+      res = await res.json()
     } else {
-      setSortBy(sortName)
-      setSortOrder('asc')
+      console.error('environment variable for the api does not exist.')
     }
+    return res
   }
 
-  const openCreateInvite = () => {
-    setIsCreateInviteOpen(true)
-    setInviteModalMode('create')
-    setInviteToUpdate(undefined)
-  }
-
-  const openUpdateInvite = (invite: any) => {
-    setIsCreateInviteOpen(true)
-    setInviteModalMode('update')
-    const data = {
-      id: invite.id,
-      email: invite.invitee_email,
-      user_id: invite.inviter,
-      expire_by: invite.expire_by,
-      code: invite.code,
-      status: invite.status,
-      claimed: invite.claimed,
+  const onUnarchive = async (data: any) => {
+    let res: any
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/invite/${data.id}/unarchive`
+      res = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'PUT',
+      })
+      res = await res.json()
+      console.log('res', res)
+    } else {
+      console.error('environment variable for the api does not exist.')
     }
-    setInviteToUpdate(data)
+    return res
   }
-
   return (
-    <div className="flex flex-row w-full">
-      {isCreateInviteOpen && (
-        <InviteCreateUpdateForm
-          isOpen={isCreateInviteOpen}
-          setIsOpen={setIsCreateInviteOpen}
-          inviteToUpdate={inviteToUpdate}
-          mode={inviteModalMode}
-        />
-      )}
-      <InviteMenu selected={filter} onSelect={setFilter} />
-      <div className="pb-8 flex-grow">
-        <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
-          <div className="flex items-center">
-            <input
-              className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
-              id="inline-searcg"
-              type="text"
-              placeholder="Search"
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <div className="flex justify-between align-middle ml-4">
-              <div className="flex items-center">
-                Show:{' '}
-                <Dropdown
-                  className="ml-1"
-                  simpleOptions={[10, 25, 50, 100]}
-                  onSelect={(option: any) => setLimit(option.value)}
-                  currentValue={limit}
-                  size="small"
-                />
-              </div>
-              <Button
-                className="ml-5"
-                icon="arrowBack"
-                size="small"
-                color={pageNum === 1 ? 'secondary' : 'primary'}
-                onClick={onPreviousPage}
-              />
-              <Button
-                className="ml-3"
-                icon="arrowForward"
-                size="small"
-                color={isLastPage ? 'secondary' : 'primary'}
-                onClick={onNextPage}
-              />
-            </div>
-          </div>
-          <div className="flex items-center">
-            <Button icon="add" size="small" onClick={openCreateInvite}>
-              Invite
-            </Button>
-          </div>
-        </div>
-        <div className="table-wrapper">
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Invitee Email"
-                      showSortIcons={sortBy === 'invitee_email'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('invitee_email')}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Inviter"
-                      showSortIcons={false}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Code"
-                      showSortIcons={false}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Status"
-                      showSortIcons={sortBy === 'status'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('status')}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Claimed"
-                      showSortIcons={sortBy === 'claimed'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('claimed')}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Expire By"
-                      showSortIcons={sortBy === 'expire_by'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('expire_by')}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Created At"
-                      showSortIcons={sortBy === 'created_at'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('created_at')}
-                    />
-                  </th>
-                  <th className="action-col"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <InviteListItems invites={inviteList} openUpdateInvite={openUpdateInvite} />
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ListPage
+      name="invites"
+      menuName="Invites"
+      filterMenuOptions={menuOptions}
+      createLabel="New Invite"
+      columns={columns}
+      filter={filter}
+      onChangeFilter={setFilter}
+      sortBy={sortBy}
+      onChangeSortBy={setSortBy}
+      sortOrder={sortOrder}
+      onChangeSortOrder={setSortOrder}
+      getData={getInvites}
+      setupDataList={setupDataList}
+      normalizeDataToUpdate={normalizeData}
+      onArchive={onArchive}
+      onUnarchive={onUnarchive}
+    />
   )
 }
 

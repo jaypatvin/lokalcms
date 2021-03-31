@@ -1,226 +1,145 @@
-import React, { useState, useEffect } from 'react'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import { Button } from '../../components/buttons'
+import React, { useState } from 'react'
+import ListPage from '../../components/pageComponents/ListPage'
+import { API_URL } from '../../config/variables'
 import { getUsers } from '../../services/users'
-import { LimitType, SortOrderType, UserFilterType, UserSortByType } from '../../utils/types'
-import UserRoleMenu from './UserRoleMenu'
-import SortButton from '../../components/buttons/SortButton'
-import Dropdown from '../../components/Dropdown'
-import UserCreateUpdateForm from './UserCreateUpdateForm'
-import UserListItems from './UserListItems'
-
-// Init
-dayjs.extend(relativeTime)
+import { SortOrderType, UserFilterType, UserSortByType } from '../../utils/types'
+import { useAuth } from '../../contexts/AuthContext'
 
 const UserListPage = (props: any) => {
-  const [userList, setUserList] = useState<any>([])
+  const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<UserFilterType>('all')
-  const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<UserSortByType>('display_name')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
-  const [limit, setLimit] = useState<LimitType>(10)
-  const [pageNum, setPageNum] = useState(1)
-  const [usersRef, setUsersRef] = useState<any>()
-  const [snapshot, setSnapshot] = useState<any>()
-  const [firstUserOnList, setFirstUserOnList] = useState<any>()
-  const [lastUserOnList, setLastUserOnList] = useState<any>()
-  const [isLastPage, setIsLastPage] = useState(false)
-  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
-  const [userModalMode, setUserModalMode] = useState<'create' | 'update'>('create')
-  const [userToUpdate, setUserToUpdate] = useState<any>()
-
-  const getUserList = async (docs: any[]) => {
-    const newUserList = []
-    for (let i = 0; i < docs.length; i++) {
-      const doc = docs[i]
-      const _data = doc.data()
-      _data.id = doc.id
-      const community = await _data.community.get()
-      const _community = community.data()
-      _data.community_name = _community.name
-      newUserList.push(_data)
+  const menuOptions = [
+    {
+      key: 'all',
+      name: 'All Users',
+    },
+    {
+      key: 'archived',
+      name: 'Archived Users',
+    },
+    {
+      key: 'admins',
+      name: 'Admins',
+    },
+    {
+      key: 'members',
+      name: 'Members',
+    },
+  ]
+  const columns = [
+    {
+      label: 'User',
+      fieldName: 'display_name',
+      sortable: true,
+    },
+    {
+      label: 'Community',
+      fieldName: 'community_id',
+      sortable: false,
+    },
+    {
+      label: 'Status',
+      fieldName: 'status',
+      sortable: true,
+    },
+    {
+      label: 'Member Since',
+      fieldName: 'created_at',
+      sortable: true,
+    },
+    {
+      label: 'Updated',
+      fieldName: 'updated_at',
+      sortable: true,
+    },
+  ]
+  const setupDataList = async (
+    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
+  ) => {
+    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+    for (let i = 0; i < newList.length; i++) {
+      const user = newList[i]
+      const community = await user.community.get()
+      const communityData = community.data()
+      if (communityData) {
+        user.community_name = communityData.name
+      }
     }
-    setUserList(newUserList)
-    setLastUserOnList(docs[docs.length - 1])
-    setFirstUserOnList(docs[0])
+    return newList
+  }
+  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+    return {
+      id: data.id,
+      status: data.status,
+      email: data.email,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      display_name: data.display_name,
+      community_id: data.community_id,
+      profile_photo: data.profile_photo,
+      street: data.address.street,
+      is_admin: data.roles.admin,
+    }
   }
 
-  useEffect(() => {
-    const newUsersRef = getUsers({ filter, search, sortBy, sortOrder, limit })
-    if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = newUsersRef.onSnapshot(async (snapshot) => {
-      getUserList(snapshot.docs)
-    })
-    setSnapshot({ unsubscribe: newUnsubscribe })
-    setUsersRef(newUsersRef)
-    setPageNum(1)
-    setIsLastPage(false)
-  }, [filter, search, sortBy, sortOrder, limit])
-
-  const onNextPage = () => {
-    if (usersRef && lastUserOnList) {
-      const newUsersRef = usersRef.startAfter(lastUserOnList).limit(limit)
-      newUsersRef.onSnapshot(async (snapshot: any) => {
-        if (snapshot.docs.length) {
-          getUserList(snapshot.docs)
-          setPageNum(pageNum + 1)
-        } else if (!isLastPage) {
-          setIsLastPage(true)
-        }
+  const onArchive = async (user: any) => {
+    let res: any
+    if (API_URL && firebaseToken) {
+      const { id } = user
+      let url = `${API_URL}/users/${id}`
+      res = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'DELETE',
       })
-    }
-  }
-
-  const onPreviousPage = () => {
-    const newPageNum = pageNum - 1
-    if (usersRef && firstUserOnList && newPageNum > 0) {
-      const newUsersRef = usersRef.endBefore(firstUserOnList).limitToLast(limit)
-      newUsersRef.onSnapshot(async (snapshot: any) => {
-        getUserList(snapshot.docs)
-      })
-    }
-    setIsLastPage(false)
-    setPageNum(Math.max(1, newPageNum))
-  }
-
-  const onSort = (sortName: UserSortByType) => {
-    if (sortName === sortBy) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+      res = await res.json()
     } else {
-      setSortBy(sortName)
-      setSortOrder('asc')
+      console.error('environment variable for the api does not exist.')
     }
+    return res
   }
 
-  const openCreateUser = () => {
-    setIsCreateUserOpen(true)
-    setUserModalMode('create')
-    setUserToUpdate(undefined)
-  }
-
-  const openUpdateUser = (user: any) => {
-    setIsCreateUserOpen(true)
-    setUserModalMode('update')
-    const data = {
-      id: user.id,
-      status: user.status,
-      email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      display_name: user.display_name,
-      community_id: user.community_id,
-      profile_photo: user.profile_photo,
-      street: user.address.street,
-      is_admin: user.roles.admin,
+  const onUnarchive = async (user: any) => {
+    let res: any
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/users/${user.id}/unarchive`
+      res = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'PUT',
+      })
+      res = await res.json()
+      console.log('res', res)
+    } else {
+      console.error('environment variable for the api does not exist.')
     }
-    setUserToUpdate(data)
+    return res
   }
-
   return (
-    <div className="flex flex-row w-full">
-      {isCreateUserOpen && (
-        <UserCreateUpdateForm
-          isOpen={isCreateUserOpen}
-          setIsOpen={setIsCreateUserOpen}
-          userToUpdate={userToUpdate}
-          mode={userModalMode}
-        />
-      )}
-      <UserRoleMenu selected={filter} onSelect={setFilter} />
-      <div className="pb-8 flex-grow">
-        <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
-          <div className="flex items-center">
-            <input
-              className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
-              id="inline-searcg"
-              type="text"
-              placeholder="Search"
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <div className="flex justify-between align-middle ml-4">
-              <div className="flex items-center">
-                Show:{' '}
-                <Dropdown
-                  className="ml-1"
-                  simpleOptions={[10, 25, 50, 100]}
-                  onSelect={(option: any) => setLimit(option.value)}
-                  currentValue={limit}
-                  size="small"
-                />
-              </div>
-              <Button
-                className="ml-5"
-                icon="arrowBack"
-                size="small"
-                color={pageNum === 1 ? 'secondary' : 'primary'}
-                onClick={onPreviousPage}
-              />
-              <Button
-                className="ml-3"
-                icon="arrowForward"
-                size="small"
-                color={isLastPage ? 'secondary' : 'primary'}
-                onClick={onNextPage}
-              />
-            </div>
-          </div>
-          <div className="flex items-center">
-            <Button icon="add" size="small" onClick={openCreateUser}>
-              New User
-            </Button>
-          </div>
-        </div>
-        <div className="table-wrapper">
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="User"
-                      showSortIcons={sortBy === 'display_name'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('display_name')}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Community"
-                      showSortIcons={false}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Status"
-                      showSortIcons={sortBy === 'status'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('status')}
-                    />
-                  </th>
-                  <th>
-                    <SortButton
-                      className="text-xs uppercase font-bold"
-                      label="Member Since"
-                      showSortIcons={sortBy === 'created_at'}
-                      currentSortOrder={sortOrder}
-                      onClick={() => onSort('created_at')}
-                    />
-                  </th>
-                  <th className="action-col"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <UserListItems users={userList} openUpdateUser={openUpdateUser} />
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ListPage
+      name="users"
+      menuName="Users"
+      filterMenuOptions={menuOptions}
+      createLabel="New User"
+      columns={columns}
+      filter={filter}
+      onChangeFilter={setFilter}
+      sortBy={sortBy}
+      onChangeSortBy={setSortBy}
+      sortOrder={sortOrder}
+      onChangeSortOrder={setSortOrder}
+      getData={getUsers}
+      setupDataList={setupDataList}
+      normalizeDataToUpdate={normalizeData}
+      onArchive={onArchive}
+      onUnarchive={onUnarchive}
+    />
   )
 }
 

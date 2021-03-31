@@ -12,6 +12,7 @@ import TestPage from './pages/TestPage'
 // Pages
 import CommunityListPage from './pages/communities/CommunityListPage'
 import CommunityEditPage from './pages/communities/CommunityEditPage'
+import ActivityListPage from './pages/activities/ActivityListPage'
 import ShopListPage from './pages/shops/ShopListPage'
 import ProductListPage from './pages/products/ProductListPage'
 import CategoryListPage from './pages/categories/CategoryListPage'
@@ -35,6 +36,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/dashboard" component={DashboardPage} />
             <PrivateRoute exact path="/communities" component={CommunityListPage} />
             <PrivateRoute exact path="/communities/:id" component={CommunityEditPage} />
+            <PrivateRoute exact path="/activities" component={ActivityListPage} />
             <PrivateRoute exact path="/shops" component={ShopListPage} />
             <PrivateRoute exact path="/products" component={ProductListPage} />
             <PrivateRoute exact path="/categories" component={CategoryListPage} />
