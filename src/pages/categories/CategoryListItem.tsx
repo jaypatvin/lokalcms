@@ -6,7 +6,7 @@ import { ListItemProps } from '../../utils/types'
 const CategoryListItem = ({
   data,
   openUpdate,
-  onDelete,
+  onArchive,
   onUnarchive,
   hideDelete,
   isArchived = false,
@@ -55,7 +55,7 @@ const CategoryListItem = ({
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            if (onDelete) onDelete()
+            if (onArchive) onArchive()
             setIsOptionsOpen(false)
           }}
         >

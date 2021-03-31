@@ -39,37 +39,37 @@ const ShopListPage = (props: any) => {
   ]
   const columns = [
     {
-      label: '"Name"',
+      label: 'Name',
       fieldName: 'name',
       sortable: true,
     },
     {
-      label: '"Description"',
+      label: 'Description',
       fieldName: 'description',
       sortable: false,
     },
     {
-      label: '"Owner"',
+      label: 'Owner',
       fieldName: 'user_id',
       sortable: false,
     },
     {
-      label: '"Is Close"',
+      label: 'Is Close',
       fieldName: 'is_close',
       sortable: true,
     },
     {
-      label: '"Status"',
+      label: 'Status',
       fieldName: 'status',
       sortable: true,
     },
     {
-      label: '"Created At"',
+      label: 'Created At',
       fieldName: 'created_at',
       sortable: true,
     },
     {
-      label: '"Updated At"',
+      label: 'Updated At',
       fieldName: 'updated_at',
       sortable: true,
     },

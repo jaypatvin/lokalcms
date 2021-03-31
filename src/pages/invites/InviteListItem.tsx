@@ -6,7 +6,7 @@ import { ListItemProps } from '../../utils/types'
 const InviteListItem = ({
   data,
   openUpdate,
-  onDelete,
+  onArchive,
   onUnarchive,
   hideDelete,
   isArchived = false,
@@ -14,16 +14,23 @@ const InviteListItem = ({
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
-  let _created_at = '-'
-  let _created_at_ago = '-'
+  let created_at = '-'
+  let created_at_ago = '-'
   if (data.created_at) {
-    _created_at = dayjs(data.created_at.toDate()).format()
-    _created_at_ago = dayjs(_created_at).fromNow()
+    created_at = dayjs(data.created_at.toDate()).format()
+    created_at_ago = dayjs(created_at).fromNow()
   }
 
-  let _expire_by = '-'
+  let updated_at = '-'
+  let updated_at_ago = '-'
+  if (data.updated_at) {
+    updated_at = dayjs(data.updated_at.toDate()).format()
+    updated_at_ago = dayjs(updated_at).fromNow()
+  }
+
+  let expire_by = '-'
   if (data.expire_by) {
-    _expire_by = dayjs(data.expire_by).fromNow()
+    expire_by = dayjs(data.expire_by).fromNow()
   }
 
   const OptionsComponent = isArchived ? (
@@ -53,7 +60,7 @@ const InviteListItem = ({
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            if (onDelete) onDelete()
+            if (onArchive) onArchive()
             setIsOptionsOpen(false)
           }}
         >
@@ -80,11 +87,14 @@ const InviteListItem = ({
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.claimed ? 'true' : 'false'}</p>
       </td>
-      <td title={_expire_by}>
-        <p className="text-gray-900 whitespace-no-wrap">{_expire_by}</p>
+      <td title={expire_by}>
+        <p className="text-gray-900 whitespace-no-wrap">{expire_by}</p>
       </td>
-      <td title={_created_at}>
-        <p className="text-gray-900 whitespace-no-wrap">{_created_at_ago}</p>
+      <td title={created_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>
+      </td>
+      <td title={updated_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{updated_at_ago}</p>
       </td>
 
       <td className="action-col">

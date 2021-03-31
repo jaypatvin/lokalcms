@@ -37,6 +37,11 @@ const ActivityListPage = (props: any) => {
       sortable: false
     },
     {
+      label: 'Community',
+      fieldName: 'community_id',
+      sortable: false
+    },
+    {
       label: 'Message',
       fieldName: 'message',
       sortable: true
@@ -65,6 +70,11 @@ const ActivityListPage = (props: any) => {
       const userData = user.data()
       if (userData) {
         activity.user_email = userData.email
+      }
+      const community = await fetchCommunityByID(activity.community_id)
+      const communityData = community.data()
+      if (communityData) {
+        activity.community_name = communityData.name
       }
     }
     return newList

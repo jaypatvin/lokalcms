@@ -13,7 +13,7 @@ const FiltersMenu = ({ name, options, onSelect, selected }: Props) => {
   const menuOptions = options.map((option) => ({ ...option, onClick: () => onSelect(option.key) }))
 
   return (
-    <div className="flex flex-row w-52 hidden mdl:block">
+    <div className="flex flex-row flex-shrink-0 w-1/6 hidden mdl:block">
       <div className="pb-5">
         <h2 className="text-2xl font-semibold leading-tight">{name}</h2>
       </div>

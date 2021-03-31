@@ -27,9 +27,9 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
     setDataToDelete({})
   }
 
-  const deleteClicked = (user: any) => {
+  const deleteClicked = (data: any) => {
     setIsDeleteDialogOpen(true)
-    setDataToDelete(user)
+    setDataToDelete(data)
   }
 
   const unarchiveData = async (data: firebase.default.firestore.DocumentData) => {
@@ -37,9 +37,9 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
     setDataToUnarchive({})
   }
 
-  const unarchiveClicked = (user: any) => {
+  const unarchiveClicked = (data: any) => {
     setIsUnarchiveDialogOpen(true)
-    setDataToUnarchive(user)
+    setDataToUnarchive(data)
   }
 
   return (
@@ -50,7 +50,9 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
         onAccept={() => deleteData(dataToDelete)}
         color="danger"
         title="Delete"
-        descriptions={`Are you sure you want to delete ${dataToDelete.email}?`}
+        descriptions={`Are you sure you want to delete ${
+          dataToDelete.email || dataToDelete.name || dataToDelete.id
+        }?`}
         acceptLabel="Delete"
         cancelLabel="Cancel"
       />
@@ -60,7 +62,9 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
         onAccept={() => unarchiveData(dataToUnarchive)}
         color="primary"
         title="Unarchive"
-        descriptions={`Are you sure you want to unarchive ${dataToUnarchive.email}?`}
+        descriptions={`Are you sure you want to unarchive ${
+          dataToUnarchive.email || dataToUnarchive.name || dataToUnarchive.id
+        }?`}
         acceptLabel="Unarchive"
         cancelLabel="Cancel"
       />

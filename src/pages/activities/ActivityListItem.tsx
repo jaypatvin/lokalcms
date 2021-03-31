@@ -6,7 +6,7 @@ import { ListItemProps } from '../../utils/types'
 const ActivityListItem = ({
   data,
   openUpdate,
-  onDelete,
+  onArchive,
   onUnarchive,
   hideDelete,
   isArchived = false,
@@ -55,7 +55,7 @@ const ActivityListItem = ({
         <button
           className="block w-full p-2 hover:bg-gray-100 text-red-600"
           onClick={() => {
-            if (onDelete) onDelete()
+            if (onArchive) onArchive()
             setIsOptionsOpen(false)
           }}
         >
@@ -68,7 +68,10 @@ const ActivityListItem = ({
   return (
     <tr>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data.user_email}</p>
+        <p className="text-gray-900 whitespace-no-wrap">{data.user_email || data.user_id}</p>
+      </td>
+      <td>
+        <p className="text-gray-900 whitespace-no-wrap">{data.community_name || data.community_id}</p>
       </td>
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.message}</p>

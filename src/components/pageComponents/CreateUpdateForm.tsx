@@ -6,6 +6,7 @@ import InviteCreateUpdateForm from '../../pages/invites/InviteCreateUpdateForm'
 import ShopCreateUpdateForm from '../../pages/shops/ShopCreateUpdateForm'
 import ProductCreateUpdateForm from '../../pages/products/ProductCreateUpdateForm'
 import CategoryCreateUpdateForm from '../../pages/categories/CategoryCreateUpdateForm'
+import ActivityCreateUpdateForm from '../../pages/activities/ActivityCreateUpdateForm'
 
 type Props = {
   name: PageNames
@@ -44,6 +45,9 @@ const CreateUpdateForm = ({
       break
     case 'categories':
       FormComponent = CategoryCreateUpdateForm
+      break
+    case 'activities':
+      FormComponent = ActivityCreateUpdateForm
       break
     default:
       break

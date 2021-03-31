@@ -176,7 +176,7 @@ const ListPage = ({
         selected={filter}
         onSelect={onChangeFilter}
       />
-      <div className="pb-8 flex-grow">
+      <div className="pb-8 w-5/6">
         <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
           <div className="flex items-center">
             <input
@@ -219,7 +219,7 @@ const ListPage = ({
             </Button>
           </div>
         </div>
-        <div className="table-wrapper">
+        <div className="table-wrapper w-full overflow-x-auto">
           <div className="table-container">
             <table>
               <thead>

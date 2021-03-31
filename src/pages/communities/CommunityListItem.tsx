@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import dayjs from 'dayjs'
 import Avatar from '../../components/Avatar'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { Link } from 'react-router-dom'
@@ -16,6 +17,20 @@ const CommunityListItem = ({
 }: ListItemProps) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
+
+  let created_at = '-'
+  let created_at_ago = '-'
+  if (data.created_at) {
+    created_at = dayjs(data.created_at.toDate()).format()
+    created_at_ago = dayjs(created_at).fromNow()
+  }
+
+  let updated_at = '-'
+  let updated_at_ago = '-'
+  if (data.updated_at) {
+    updated_at = dayjs(data.updated_at.toDate()).format()
+    updated_at_ago = dayjs(updated_at).fromNow()
+  }
 
   const OptionsComponent = isArchived ? (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
@@ -117,9 +132,9 @@ const CommunityListItem = ({
         <p className="text-gray-900">{`${data.address.subdivision}, ${data.address.barangay}, ${data.address.city}, ${data.address.state}, ${data.address.country}, ${data.address.zip_code}`}</p>
       </td>
       <td>
-        {
-          data.admins.length === 0 ? '--' : data.admins.map((admin: any) => <p className="text-gray-900">{admin.email}</p>)
-        }
+        {data.admins.length === 0
+          ? '--'
+          : data.admins.map((admin: any) => <p className="text-gray-900">{admin.email}</p>)}
       </td>
       <td>
         <p className="text-gray-900">{data.meta.users_count || '--'}</p>
@@ -129,6 +144,12 @@ const CommunityListItem = ({
       </td>
       <td>
         <p className="text-gray-900">{data.meta.products_count || '--'}</p>
+      </td>
+      <td title={created_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>
+      </td>
+      <td title={updated_at}>
+        <p className="text-gray-900 whitespace-no-wrap">{updated_at_ago}</p>
       </td>
 
       <td className="action-col">
