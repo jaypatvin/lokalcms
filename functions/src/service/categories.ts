@@ -34,16 +34,14 @@ export const updateCategory = async (id, data) => {
     .update({ ...data, updated_at: new Date() })
 }
 
-export const unarchiveCategory = async (id) => {
-  return await db
-    .collection('categories')
-    .doc(id)
-    .update({ archived: false, updated_at: new Date() })
+export const archiveCategory = async (id: string, data?: any) => {
+  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('categories').doc(id).update(updateData)
 }
 
-export const archiveCategory = async (id) => {
-  return await db
-    .collection('categories')
-    .doc(id)
-    .update({ archived: true, updated_at: new Date(), archived_at: new Date() })
+export const unarchiveCategory = async (id: string, data?: any) => {
+  let updateData = { archived: false, updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('categories').doc(id).update(updateData)
 }

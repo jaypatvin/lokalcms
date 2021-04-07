@@ -32,7 +32,9 @@ import { UsersService } from '../../../service'
  *                   $ref: '#/components/schemas/User'
  */
 const unarchiveUser = async (req: Request, res: Response) => {
+  const data = req.body
   const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
   if (!roles.admin) {
     return res.status(403).json({
       status: 'error',
@@ -42,7 +44,12 @@ const unarchiveUser = async (req: Request, res: Response) => {
   const { userId } = req.params
   if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
 
-  const result = await UsersService.unarchiveUser(userId)
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
+  const result = await UsersService.unarchiveUser(userId, requestData)
 
   return res.json({
     status: 'ok',

@@ -12,6 +12,7 @@ import { authMiddleware, roleMiddleware } from './middlewares'
 
 import helloRouter from './v1/https/hello.function'
 import { runCounter } from './utils/counters'
+import logActivity from './utils/logActivity'
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -33,25 +34,30 @@ exports.api = functions.https.onRequest(app)
 exports.userCounter = functions.firestore
   .document('users/{docId}')
   .onWrite(async (change, context) => {
+    logActivity(change)
     return runCounter('users', change, context)
   })
 exports.communityCounter = functions.firestore
   .document('community/{docId}')
   .onWrite(async (change, context) => {
+    logActivity(change)
     return runCounter('community', change, context)
   })
 exports.shopCounter = functions.firestore
   .document('shops/{docId}')
   .onWrite(async (change, context) => {
+    logActivity(change)
     return runCounter('shops', change, context)
   })
 exports.productCounter = functions.firestore
   .document('products/{docId}')
   .onWrite(async (change, context) => {
+    logActivity(change)
     return runCounter('products', change, context)
   })
 exports.inviteCounter = functions.firestore
   .document('invites/{docId}')
   .onWrite(async (change, context) => {
+    logActivity(change)
     return runCounter('invites', change, context)
   })

@@ -66,19 +66,15 @@ const updateUser = async (req: Request, res: Response) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDocId
   if (!roles.editor && requestorDocId !== userId)
-    return res
-      .status(403)
-      .json({
-        status: 'error',
-        message: 'You do not have a permission to update another user',
-      })
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to update another user',
+    })
   if (!roles.admin && data.hasOwnProperty('is_admin')) {
-    return res
-      .status(403)
-      .json({
-        status: 'error',
-        message: 'You do not have a permission to set the admin value of any user',
-      })
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to set the admin value of any user',
+    })
   }
 
   let _community
@@ -128,7 +124,10 @@ const updateUser = async (req: Request, res: Response) => {
     })
   }
 
-  const updateData: any = {}
+  const updateData: any = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
 
   if (data.first_name) updateData.first_name = data.first_name
   if (data.last_name) updateData.last_name = data.last_name

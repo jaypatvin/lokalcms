@@ -47,6 +47,7 @@ sgMail.setApiKey(functions.config().mail_service.key)
 
 const createInvite = async (req: Request, res: Response) => {
   const data = req.body
+  const requestorDocId = res.locals.userDocId
   const error_fields = validateFields(data, required_fields)
 
   if (error_fields.length) {
@@ -90,6 +91,8 @@ const createInvite = async (req: Request, res: Response) => {
     status: 'enabled',
     keywords,
     archived: false,
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
   }
 
   const result = await InvitesService.createInvite(new_invite)

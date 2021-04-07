@@ -64,13 +64,14 @@ export const updateInvite = async (id, data) => {
     .update({ ...data, updated_at: new Date() })
 }
 
-export const archiveInvite = async (id: string) => {
-  return await db
-    .collection('invites')
-    .doc(id)
-    .update({ archived: true, archived_at: new Date(), updated_at: new Date() })
+export const archiveInvite = async (id: string, data?: any) => {
+  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('invites').doc(id).update(updateData)
 }
 
-export const unarchiveInvite = async (id: string) => {
-  return await db.collection('invites').doc(id).update({ archived: false, updated_at: new Date() })
+export const unarchiveInvite = async (id: string, data?: any) => {
+  let updateData = { archived: false, updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('invites').doc(id).update(updateData)
 }

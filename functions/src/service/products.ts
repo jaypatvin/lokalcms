@@ -40,28 +40,26 @@ export const updateProduct = async (id, data) => {
     .update({ ...data, updated_at: new Date() })
 }
 
-export const archiveProduct = async (id: string) => {
-  return await db
-    .collection('products')
-    .doc(id)
-    .update({ archived: true, archived_at: new Date(), updated_at: new Date() })
+export const archiveProduct = async (id: string, data?: any) => {
+  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('products').doc(id).update(updateData)
 }
 
-export const unarchiveProduct = async (id: string) => {
-  return await db.collection('products').doc(id).update({ archived: false, updated_at: new Date() })
+export const unarchiveProduct = async (id: string, data?: any) => {
+  let updateData = { archived: false, updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('products').doc(id).update(updateData)
 }
 
-export const archiveUserProducts = async (user_id: string) => {
+export const archiveUserProducts = async (user_id: string, data?: any) => {
+  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
   const productsRef = await db.collection('products').where('user_id', '==', user_id).get()
 
   const batch = db.batch()
   productsRef.forEach((product) => {
     const productRef = product.ref
-    const updateData: any = {
-      archived: true,
-      archived_at: new Date(),
-      updated_at: new Date(),
-    }
     batch.update(productRef, updateData)
   })
   const result = await batch.commit()

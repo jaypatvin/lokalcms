@@ -32,6 +32,8 @@ import { CommunityService } from '../../../service'
  *                   $ref: '#/components/schemas/Community'
  */
 const unarchiveCommunity = async (req: Request, res: Response) => {
+  const data = req.body
+  const requestorDocId = res.locals.userDocId
   const roles = res.locals.userRoles
   if (!roles.admin) {
     return res.status(403).json({
@@ -43,8 +45,13 @@ const unarchiveCommunity = async (req: Request, res: Response) => {
   if (!communityId)
     return res.status(400).json({ status: 'error', message: 'Community ID is required!' })
 
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
   let result: any = ''
-  result = await CommunityService.unarchiveCommunity(communityId)
+  result = await CommunityService.unarchiveCommunity(communityId, requestData)
 
   return res.json({
     status: 'ok',

@@ -39,23 +39,29 @@ const deleteCommunity = async (req: Request, res: Response) => {
       message: 'You do not have a permission to delete.',
     })
   }
-  const body = req.body
+  const data = req.body
+  const requestorDocId = res.locals.userDocId
   const { communityId, name } = req.params
   if (!communityId)
     return res.status(400).json({ status: 'error', message: 'Community ID is required!' })
 
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
   let result: any = ''
-  if (body.hard_delete) {
+  if (data.hard_delete) {
     result = await CommunityService.deleteCommunity(communityId)
   } else {
-    result = await CommunityService.archiveCommunity(communityId)
+    result = await CommunityService.archiveCommunity(communityId, requestData)
   }
 
   return res.json({
     status: 'ok',
     data: result,
     message: `Community ${name || communityId} successfully ${
-      body.hard_delete ? 'deleted' : 'archived'
+      data.hard_delete ? 'deleted' : 'archived'
     }.`,
   })
 }
