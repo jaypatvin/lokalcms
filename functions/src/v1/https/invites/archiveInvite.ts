@@ -32,6 +32,8 @@ import { InvitesService } from '../../../service'
  *                   $ref: '#/components/schemas/Invite'
  */
 const archiveInvite = async (req: Request, res: Response) => {
+  const data = req.body
+  const requestorDocId = res.locals.userDocId
   const { inviteId } = req.params
   const roles = res.locals.userRoles
   const _invite = await InvitesService.getInviteByID(inviteId)
@@ -45,7 +47,12 @@ const archiveInvite = async (req: Request, res: Response) => {
     })
   }
 
-  const result = await InvitesService.archiveInvite(inviteId)
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
+  const result = await InvitesService.archiveInvite(inviteId, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

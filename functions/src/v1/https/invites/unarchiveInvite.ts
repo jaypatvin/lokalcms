@@ -32,6 +32,8 @@ import { InvitesService } from '../../../service'
  *                   $ref: '#/components/schemas/Invite'
  */
 const unarchiveProduct = async (req: Request, res: Response) => {
+  const data = req.body
+  const requestorDocId = res.locals.userDocId
   const { inviteId } = req.params
   const roles = res.locals.userRoles
   const _invite = await InvitesService.getInviteByID(inviteId)
@@ -39,15 +41,18 @@ const unarchiveProduct = async (req: Request, res: Response) => {
   if (!_invite) return res.status(403).json({ status: 'error', message: 'Invite does not exist!' })
 
   if (!roles.admin) {
-    return res
-      .status(403)
-      .json({
-        status: 'error',
-        message: 'You do not have a permission to unarchive an invite',
-      })
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to unarchive an invite',
+    })
   }
 
-  const result = await InvitesService.unarchiveInvite(inviteId)
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
+  const result = await InvitesService.unarchiveInvite(inviteId, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

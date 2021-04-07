@@ -32,7 +32,9 @@ import { UsersService, ShopsService, ProductsService } from '../../../service'
  *                   $ref: '#/components/schemas/User'
  */
 const archiveUser = async (req: Request, res: Response) => {
+  const data = req.body
   const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
   if (!roles.admin) {
     return res.status(403).json({
       status: 'error',
@@ -42,14 +44,19 @@ const archiveUser = async (req: Request, res: Response) => {
   const { userId } = req.params
   if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
 
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
   // archive the user
-  const result = await UsersService.archiveUser(userId)
+  const result = await UsersService.archiveUser(userId, requestData)
 
   // archive the shops of the user
-  await ShopsService.archiveUserShops(userId)
+  await ShopsService.archiveUserShops(userId, requestData)
 
   // archive the products of the user
-  await ProductsService.archiveUserProducts(userId)
+  await ProductsService.archiveUserProducts(userId, requestData)
 
   return res.json({
     status: 'ok',

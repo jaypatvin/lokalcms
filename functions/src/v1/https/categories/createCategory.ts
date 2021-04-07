@@ -45,6 +45,7 @@ import { required_fields } from './index'
 const createCategory = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
   if (!roles.admin)
     return res.status(403).json({
       status: 'error',
@@ -70,6 +71,8 @@ const createCategory = async (req: Request, res: Response) => {
     status: data.status || 'enabled',
     keywords,
     archived: false,
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
   }
 
   const _result = await CategoriesService.createCategory(_categoryData)

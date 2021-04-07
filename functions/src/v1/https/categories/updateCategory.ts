@@ -51,6 +51,7 @@ const updateCategory = async (req: Request, res: Response) => {
   const { categoryId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
   if (!roles.admin)
     return res.status(403).json({
       status: 'error',
@@ -63,7 +64,10 @@ const updateCategory = async (req: Request, res: Response) => {
   const product = await CategoriesService.getCategoryById(categoryId)
   if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Category Id!' })
 
-  const updateData: any = {}
+  const updateData: any = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
   if (data.description) updateData.description = data.description
   if (data.icon_url) updateData.icon_url = data.icon_url
   if (data.cover_url) updateData.cover_url = data.cover_url

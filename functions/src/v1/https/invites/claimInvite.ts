@@ -38,6 +38,7 @@ import { Request, Response } from 'express'
  */
 const claimInvite = async (req: Request, res: Response) => {
   const data = req.body
+  const requestorDocId = res.locals.userDocId
   let _invite
   let _user
   try {
@@ -69,6 +70,8 @@ const claimInvite = async (req: Request, res: Response) => {
   InvitesService.updateInvite(_invite.id, {
     claimed: true,
     invitee: data.user_id,
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
   })
 
   return res.json({

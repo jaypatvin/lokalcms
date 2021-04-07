@@ -91,3 +91,16 @@ export const generateCategoryKeywords = (fields: CategorySearchFields) => {
   const searchValues = Object.values(fields)
   return generateKeywords(searchValues)
 }
+
+// ####### Category #######
+type HistoryLogsSearchField = {
+  collection_name: string
+  actor_id: string
+  document_id: string
+  community_id: string
+}
+
+export const generateHistoryKeywords = (fields: HistoryLogsSearchField) => {
+  const searchValues = Object.values(fields)
+  return generateKeywords(searchValues)
+}

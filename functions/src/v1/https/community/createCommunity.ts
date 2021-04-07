@@ -62,13 +62,12 @@ import { required_fields } from './index'
 const createCommunity = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
   if (!roles.editor)
-    return res
-      .status(403)
-      .json({
-        status: 'error',
-        message: 'You do not have a permission to create a community',
-      })
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to create a community',
+    })
 
   const error_fields = validateFields(data, required_fields)
 
@@ -118,6 +117,8 @@ const createCommunity = async (req: Request, res: Response) => {
     },
     keywords,
     archived: false,
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
   }
   if (data.profile_photo) {
     _newData.profile_photo = data.profile_photo

@@ -161,6 +161,8 @@ const createProduct = async (req: Request, res: Response) => {
     status: data.status || 'enabled',
     keywords,
     archived: false,
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
   }
 
   if (gallery) _productData.gallery = gallery

@@ -32,6 +32,8 @@ import { CategoriesService } from '../../../service'
  *                   $ref: '#/components/schemas/Category'
  */
 const archiveCategory = async (req: Request, res: Response) => {
+  const data = req.body
+  const requestorDocId = res.locals.userDocId
   const roles = res.locals.userRoles
   if (!roles.admin) {
     return res.status(403).json({
@@ -46,7 +48,12 @@ const archiveCategory = async (req: Request, res: Response) => {
   if (!_category)
     return res.status(403).json({ status: 'error', message: 'Category does not exist!' })
 
-  const result = await CategoriesService.archiveCategory(categoryId)
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
+  const result = await CategoriesService.archiveCategory(categoryId, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

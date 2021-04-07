@@ -61,6 +61,7 @@ import { db, auth } from '../index'
 const createUser = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
   const tokenUser = req.user
 
   let _authUser
@@ -157,6 +158,8 @@ const createUser = async (req: Request, res: Response) => {
     },
     keywords,
     archived: false,
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
   }
   if (data.profile_photo) {
     _newData.profile_photo = data.profile_photo

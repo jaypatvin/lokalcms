@@ -99,7 +99,10 @@ const updateProduct = async (req: Request, res: Response) => {
     }
   }
 
-  const updateData: any = {}
+  const updateData: any = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
 
   if (data.name || data.product_category) {
     const keywords = generateProductKeywords({

@@ -32,6 +32,8 @@ import { CategoriesService } from '../../../service'
  *                   $ref: '#/components/schemas/Category'
  */
 const unarchiveCategory = async (req: Request, res: Response) => {
+  const data = req.body
+  const requestorDocId = res.locals.userDocId
   const roles = res.locals.userRoles
   if (!roles.admin) {
     return res.status(403).json({
@@ -39,14 +41,19 @@ const unarchiveCategory = async (req: Request, res: Response) => {
       message: 'You do not have a permission to unarchive.',
     })
   }
-  
+
   const { categoryId } = req.params
   const _category = await CategoriesService.getCategoryById(categoryId)
 
   if (!_category)
     return res.status(403).json({ status: 'error', message: 'Category does not exist!' })
 
-  const result = await CategoriesService.unarchiveCategory(categoryId)
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
+  const result = await CategoriesService.unarchiveCategory(categoryId, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

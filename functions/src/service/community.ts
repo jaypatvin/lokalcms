@@ -61,18 +61,16 @@ export const updateCommunity = async (id, data) => {
     .update({ ...data, updated_at: new Date() })
 }
 
-export const archiveCommunity = async (id) => {
-  return await db
-    .collection('community')
-    .doc(id)
-    .update({ archived: true, archived_at: new Date(), updated_at: new Date() })
+export const archiveCommunity = async (id: string, data?: any) => {
+  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('community').doc(id).update(updateData)
 }
 
-export const unarchiveCommunity = async (id) => {
-  return await db
-    .collection('community')
-    .doc(id)
-    .update({ archived: false, updated_at: new Date() })
+export const unarchiveCommunity = async (id: string, data?: any) => {
+  let updateData = { archived: false, updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('community').doc(id).update(updateData)
 }
 
 export const deleteCommunity = async (id) => {

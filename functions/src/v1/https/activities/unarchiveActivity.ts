@@ -32,6 +32,7 @@ import { ActivitiesService, CommentsService } from '../../../service'
  *                   $ref: '#/components/schemas/Activity'
  */
 const unarchiveActivity = async (req: Request, res: Response) => {
+  const data = req.body
   const { activityId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDocId
@@ -47,7 +48,12 @@ const unarchiveActivity = async (req: Request, res: Response) => {
     })
   }
 
-  const result = await ActivitiesService.unarchiveActivity(activityId)
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
+  const result = await ActivitiesService.unarchiveActivity(activityId, requestData)
 
   // unarchive the comments of the activity
   await CommentsService.unarchiveActivityComments(activityId)

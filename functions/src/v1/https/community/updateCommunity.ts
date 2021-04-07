@@ -70,6 +70,7 @@ export const updateCommunity = async (req: Request, res: Response) => {
   const { communityId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
   if (!roles.editor)
     return res.status(403).json({
       status: 'error',
@@ -137,7 +138,10 @@ export const updateCommunity = async (req: Request, res: Response) => {
       })
   }
 
-  const updateData: any = {}
+  const updateData: any = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
 
   if (
     data.name ||

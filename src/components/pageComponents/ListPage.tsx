@@ -231,7 +231,7 @@ const ListPage = ({
                         label={column.label}
                         showSortIcons={column.sortable && sortBy === column.fieldName}
                         currentSortOrder={sortOrder}
-                        onClick={() => onSort(column.fieldName)}
+                        onClick={column.sortable ? () => onSort(column.fieldName) : undefined}
                       />
                     </th>
                   ))}

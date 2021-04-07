@@ -126,7 +126,10 @@ const updateShop = async (req: Request, res: Response) => {
       message: 'You do not have a permission to update a shop of another user.',
     })
 
-  const updateData: any = {}
+  const updateData: any = {
+    updated_by: requestorDocId,
+    updated_from: data.source || ''
+  }
   if (data.name) {
     updateData.name = data.name
     updateData.keywords = generateShopKeywords({ name: data.name })

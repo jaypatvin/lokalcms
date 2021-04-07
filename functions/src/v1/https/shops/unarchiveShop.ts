@@ -32,6 +32,7 @@ import { ProductsService, ShopsService } from '../../../service'
  *                   $ref: '#/components/schemas/Shop'
  */
 const unarchiveShop = async (req: Request, res: Response) => {
+  const data = req.body
   const { shopId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDocId
@@ -40,15 +41,18 @@ const unarchiveShop = async (req: Request, res: Response) => {
   if (!_shop) return res.status(403).json({ status: 'error', message: 'Shop does not exist!' })
 
   if (!roles.admin && requestorDocId !== _shop.user_id) {
-    return res
-      .status(403)
-      .json({
-        status: 'error',
-        message: 'You do not have a permission to unarchive a shop of another user.',
-      })
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to unarchive a shop of another user.',
+    })
   }
 
-  const result = await ShopsService.unarchiveShop(shopId)
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
+  const result = await ShopsService.unarchiveShop(shopId, requestData)
 
   return res.json({ status: 'ok', data: result })
 }

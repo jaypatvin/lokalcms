@@ -31,29 +31,34 @@ import { ActivitiesService, CommentsService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Activity'
  */
- const archiveActivity = async (req: Request, res: Response) => {
-    const { activityId } = req.params
-    const roles = res.locals.userRoles
-    const requestorDocId = res.locals.userDocId
-    const _activity = await ActivitiesService.getActivityById(activityId)
-  
-    if (!_activity) return res.status(403).json({ status: 'error', message: 'Activity does not exist!' })
-  
-    if (!roles.admin && requestorDocId !== _activity.user_id) {
-      return res
-        .status(403)
-        .json({
-          status: 'error',
-          message: 'You do not have a permission to delete.',
-        })
-    }
-  
-    const result = await ActivitiesService.archiveActivity(activityId)
-  
-    // archive the comments of the activity
-    await CommentsService.archiveActivityComments(activityId)
-  
-    return res.json({ status: 'ok', data: result })
+const archiveActivity = async (req: Request, res: Response) => {
+  const data = req.body
+  const { activityId } = req.params
+  const roles = res.locals.userRoles
+  const requestorDocId = res.locals.userDocId
+  const _activity = await ActivitiesService.getActivityById(activityId)
+
+  if (!_activity)
+    return res.status(403).json({ status: 'error', message: 'Activity does not exist!' })
+
+  if (!roles.admin && requestorDocId !== _activity.user_id) {
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to delete.',
+    })
   }
-  
-  export default archiveActivity
+
+  const requestData = {
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  }
+
+  const result = await ActivitiesService.archiveActivity(activityId, requestData)
+
+  // archive the comments of the activity
+  await CommentsService.archiveActivityComments(activityId)
+
+  return res.json({ status: 'ok', data: result })
+}
+
+export default archiveActivity
