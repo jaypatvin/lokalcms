@@ -4,7 +4,7 @@ import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
 
 const db = admin.firestore()
 
-type collections = 'users' | 'community' | 'shops' | 'products' | 'invites'
+type collections = 'users' | 'community' | 'shops' | 'products' | 'invites' | 'categories' | 'activities'
 const eventsCol = '_events'
 const metaCol = '_meta'
 

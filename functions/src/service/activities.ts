@@ -65,22 +65,26 @@ export const updateActivity = async (id, data) => {
     .update({ ...data, updated_at: new Date(), updated_content_at: new Date() })
 }
 
-export const archiveActivity = async (id) => {
-  return await db.collection('activities').doc(id).update({
+export const archiveActivity = async (id: string, data?: any) => {
+  let updateData = {
     archived: true,
     updated_at: new Date(),
     archived_at: new Date(),
     unarchived_at: admin.firestore.FieldValue.delete(),
-  })
+  }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('activities').doc(id).update(updateData)
 }
 
-export const unarchiveActivity = async (id) => {
-  return await db.collection('activities').doc(id).update({
+export const unarchiveActivity = async (id: string, data?: any) => {
+  let updateData = {
     archived: false,
     updated_at: new Date(),
     archived_at: admin.firestore.FieldValue.delete(),
     unarchived_at: new Date(),
-  })
+  }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('activities').doc(id).update(updateData)
 }
 
 export const archiveUserActivities = async (user_id) =>

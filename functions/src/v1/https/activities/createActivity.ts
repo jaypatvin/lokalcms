@@ -52,6 +52,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  */
 const createActivity = async (req: Request, res: Response) => {
   const data = req.body
+  const requestorDocId = res.locals.userDocId
   let _community
   let _user
 
@@ -106,6 +107,8 @@ const createActivity = async (req: Request, res: Response) => {
     community_id: _user.community_id,
     status: data.status || 'enabled',
     archived: false,
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
   }
 
   if (images) _activityData.images = images

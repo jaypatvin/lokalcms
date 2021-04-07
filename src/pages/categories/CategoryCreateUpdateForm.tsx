@@ -95,7 +95,7 @@ const CategoryCreateUpdateForm = ({
           Authorization: `Bearer ${firebaseToken}`,
         },
         method,
-        body: JSON.stringify(data),
+        body: JSON.stringify({...data, source: 'cms'}),
       })
       res = await res.json()
       setResponseData(res)

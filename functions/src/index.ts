@@ -61,3 +61,15 @@ exports.inviteCounter = functions.firestore
     logActivity(change)
     return runCounter('invites', change, context)
   })
+exports.categoryCounter = functions.firestore
+  .document('categories/{docId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('categories', change, context)
+  })
+exports.activityCounter = functions.firestore
+  .document('activities/{docId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('activities', change, context)
+  })

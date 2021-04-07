@@ -91,7 +91,11 @@ const updateActivity = async (req: Request, res: Response) => {
     })
   }
 
-  const _result = await ActivitiesService.updateActivity(activityId, { message: data.message })
+  const _result = await ActivitiesService.updateActivity(activityId, {
+    message: data.message,
+    updated_by: requestorDocId,
+    updated_from: data.source || '',
+  })
 
   return res.status(200).json({ status: 'ok', data: _result })
 }
