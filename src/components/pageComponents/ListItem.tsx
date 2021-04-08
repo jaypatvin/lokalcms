@@ -7,6 +7,7 @@ import ShopListItem from '../../pages/shops/ShopListItem'
 import ProductListItem from '../../pages/products/ProductListItem'
 import CategoryListItem from '../../pages/categories/CategoryListItem'
 import ActivityListItem from '../../pages/activities/ActivityListItem'
+import HistoryListItem from '../../pages/history/HistoryListItem'
 
 type Props = ListItemProps & { name: string }
 
@@ -19,7 +20,7 @@ const ListItem = ({
   onUnarchive,
   hideDelete,
   disableDelete = false,
-  isArchived = false
+  isArchived = false,
 }: Props) => {
   let ListItemComponent = null
 
@@ -44,6 +45,9 @@ const ListItem = ({
       break
     case 'activities':
       ListItemComponent = ActivityListItem
+      break
+    case 'history_logs':
+      ListItemComponent = HistoryListItem
       break
     default:
       break

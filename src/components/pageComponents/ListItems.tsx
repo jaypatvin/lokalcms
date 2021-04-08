@@ -7,8 +7,8 @@ import { PageNames } from '../../utils/types'
 type Props = {
   name: PageNames
   onDelete?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  onArchive: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  onUnarchive: (arg: firebase.default.firestore.DocumentData) => Promise<any>
+  onArchive?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
+  onUnarchive?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
   dataList: firebase.default.firestore.DocumentData[]
   openUpdate: (arg: firebase.default.firestore.DocumentData) => void
 }
@@ -21,10 +21,12 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   const deleteData = async (data: firebase.default.firestore.DocumentData) => {
-    const res = await onArchive(data)
-    console.log('res', res)
-    setIsDeleteDialogOpen(false)
-    setDataToDelete({})
+    if (onArchive) {
+      const res = await onArchive(data)
+      console.log('res', res)
+      setIsDeleteDialogOpen(false)
+      setDataToDelete({})
+    }
   }
 
   const deleteClicked = (data: any) => {
