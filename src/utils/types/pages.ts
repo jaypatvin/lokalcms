@@ -85,3 +85,8 @@ export type CategorySortByType = 'name' | 'status' | 'created_at' | 'updated_at'
 // --- Activity Types --- //
 export type ActivityFilterType = 'all' | 'enabled' | 'disabled' | 'archived'
 export type ActivitySortByType = 'message' | 'status' | 'created_at' | 'updated_at'
+
+// --- History Log Types --- //
+export type HistoryLogFilterType = 'all' | 'create' | 'update' | 'archive' | 'delete'
+export type HistoryLogSourceType = 'all' | 'cms'
+export type HistoryLogSortByType = 'message' | 'status' | 'created_at' | 'updated_at'

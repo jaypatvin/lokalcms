@@ -19,6 +19,7 @@ import CategoryListPage from './pages/categories/CategoryListPage'
 import UserListPage from './pages/users/UserListPage'
 import InviteListPage from './pages/invites/InviteListPage'
 import SettingsPage from './pages/settings/SettingsPage'
+import HistoryListPage from './pages/history/HistoryListPage'
 
 // User Edit for MyAccount
 import UserEditPage from './pages/users/UserEditPage'
@@ -44,6 +45,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/users/:id" component={UserEditPage} />
             <PrivateRoute exact path="/invites" component={InviteListPage} />
             <PrivateRoute exact path="/settings" component={SettingsPage} />
+            <PrivateRoute exact path="/history" component={HistoryListPage} />
             <PrivateRoute exact path="/myaccount" component={UserEditPage} useCurrentUser={true} />
           </Switch>
         </Router>

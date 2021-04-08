@@ -57,6 +57,11 @@ const menus = [
     label: 'Setting',
     icon: <IoMdSettings size={23} />,
   },
+  {
+    key: 'history',
+    label: 'History Logs',
+    icon: <IoMdSettings size={23} />,
+  },
 ]
 
 type Props = {

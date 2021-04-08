@@ -29,7 +29,7 @@ type ListColumns = ListColumn[]
 type Props = {
   name: PageNames
   menuName: string
-  createLabel: string
+  createLabel?: string
   columns: ListColumns
   filter: string
   filterMenuOptions: MenuItemType[]
@@ -38,18 +38,17 @@ type Props = {
   onChangeSortBy: (arg: any) => void
   sortOrder: SortOrderType
   onChangeSortOrder: (arg: SortOrderType) => void
-  getData: (
-    arg: any
-  ) => firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
+  getData: (arg: any) => firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
   setupDataList: (
     arg: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
   ) => Promise<firebase.default.firestore.DocumentData[]>
-  normalizeDataToUpdate: (
+  normalizeDataToUpdate?: (
     arg: firebase.default.firestore.DocumentData
   ) => firebase.default.firestore.DocumentData
   onDelete?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  onArchive: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  onUnarchive: (arg: firebase.default.firestore.DocumentData) => Promise<any>
+  onArchive?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
+  onUnarchive?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
+  noActions?: boolean
 }
 
 const ListPage = ({
@@ -70,6 +69,7 @@ const ListPage = ({
   onDelete,
   onArchive,
   onUnarchive,
+  noActions,
 }: Props) => {
   const [dataList, setDataList] = useState<firebase.default.firestore.DocumentData[]>([])
   const [search, setSearch] = useState('')
@@ -155,7 +155,8 @@ const ListPage = ({
   const openUpdate = (currentData: firebase.default.firestore.DocumentData) => {
     setIsCreateOpen(true)
     setModalMode('update')
-    const data = normalizeDataToUpdate(currentData)
+    let data = currentData
+    if (normalizeDataToUpdate) data = normalizeDataToUpdate(currentData)
     setDataToUpdate(data)
   }
 
@@ -213,11 +214,15 @@ const ListPage = ({
               />
             </div>
           </div>
-          <div className="flex items-center">
-            <Button icon="add" size="small" onClick={openCreate}>
-              {createLabel}
-            </Button>
-          </div>
+          {createLabel ? (
+            <div className="flex items-center">
+              <Button icon="add" size="small" onClick={openCreate}>
+                {createLabel}
+              </Button>
+            </div>
+          ) : (
+            ''
+          )}
         </div>
         <div className="table-wrapper w-full overflow-x-auto">
           <div className="table-container">
@@ -235,7 +240,7 @@ const ListPage = ({
                       />
                     </th>
                   ))}
-                  <th className="action-col"></th>
+                  {!noActions && <th className="action-col"></th>}
                 </tr>
               </thead>
               <tbody>
