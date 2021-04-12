@@ -15,6 +15,7 @@ import {
   CategoriesAPI,
   ActivitiesAPI,
   CommentsAPI,
+  LikesAPI,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -150,4 +151,8 @@ module.exports = (api: Express) => {
   api.route('/v1/activities/:activityId/comments/:commentId').put(wrapAsync(CommentsAPI.updateComment))
   api.route('/v1/activities/:activityId/comments/:commentId').delete(wrapAsync(CommentsAPI.archiveComment))
   api.route('/v1/activities/:activityId/comments/:commentId/unarchive').put(wrapAsync(CommentsAPI.unarchiveComment))
+
+  // -- Likes routes
+  api.route('/v1/activities/:activityId/like').post(wrapAsync(LikesAPI.likeActivity))
+  api.route('/v1/activities/:activityId/unlike').delete(wrapAsync(LikesAPI.unlikeActivity))
 }
