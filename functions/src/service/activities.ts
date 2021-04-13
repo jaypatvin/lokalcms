@@ -132,3 +132,27 @@ const archiveActivityBy = async (status: boolean, idType: string, id: string) =>
   const result = await batch.commit()
   return result
 }
+
+export const incrementActivityCommentCount = async (id: string) => {
+  return await db.collection('activities').doc(id).update({
+    '_meta.comment_count': admin.firestore.FieldValue.increment(1)
+  })
+}
+
+export const deccrementActivityCommentCount = async (id: string) => {
+  return await db.collection('activities').doc(id).update({
+    '_meta.comment_count': admin.firestore.FieldValue.increment(-1)
+  })
+}
+
+export const incrementActivityLikeCount = async (id: string) => {
+  return await db.collection('activities').doc(id).update({
+    '_meta.liked_count': admin.firestore.FieldValue.increment(1)
+  })
+}
+
+export const deccrementActivityLikeCount = async (id: string) => {
+  return await db.collection('activities').doc(id).update({
+    '_meta.liked_count': admin.firestore.FieldValue.increment(-1)
+  })
+}

@@ -56,7 +56,7 @@ const archiveComment = async (req: Request, res: Response) => {
   }
 
   const result = await CommentsService.archiveComment(activityId, commentId)
-
+  await ActivitiesService.deccrementActivityCommentCount(activityId)
   return res.json({ status: 'ok', data: result })
 }
 

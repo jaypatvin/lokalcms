@@ -56,7 +56,7 @@ const unarchiveComment = async (req: Request, res: Response) => {
   }
 
   const result = await CommentsService.unarchiveComment(activityId, commentId)
-
+  await ActivitiesService.incrementActivityCommentCount(activityId)
   return res.json({ status: 'ok', data: result })
 }
 

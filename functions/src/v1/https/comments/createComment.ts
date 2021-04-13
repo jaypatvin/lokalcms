@@ -136,6 +136,7 @@ const createComment = async (req: Request, res: Response) => {
       result.images = res.docs.map((doc) => doc.data())
     })
   result.id = newComment.id
+  await ActivitiesService.incrementActivityCommentCount(activityId)
   return res.status(200).json({ status: 'ok', data: result })
 }
 
