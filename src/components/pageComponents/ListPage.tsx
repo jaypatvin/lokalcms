@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { Button } from '../buttons'
 import {
+  FilterGroupsType,
   GetFilterProps,
   LimitType,
   MenuItemType,
@@ -32,7 +33,8 @@ type Props = {
   createLabel?: string
   columns: ListColumns
   filter: string
-  filterMenuOptions: MenuItemType[]
+  filterMenuOptions?: MenuItemType[]
+  filterMenus?: FilterGroupsType
   onChangeFilter: (arg: any) => void
   sortBy: string
   onChangeSortBy: (arg: any) => void
@@ -54,7 +56,8 @@ type Props = {
 const ListPage = ({
   name,
   menuName,
-  filterMenuOptions,
+  filterMenuOptions = [],
+  filterMenus,
   createLabel,
   columns,
   filter,
@@ -173,6 +176,7 @@ const ListPage = ({
       )}
       <FiltersMenu
         options={filterMenuOptions}
+        groupOptions={filterMenus}
         name={menuName}
         selected={filter}
         onSelect={onChangeFilter}

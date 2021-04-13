@@ -1,4 +1,12 @@
-export type PageNames = 'users' | 'communities' | 'invites' | 'shops' | 'products' | 'categories' | 'activities' | 'history_logs'
+export type PageNames =
+  | 'users'
+  | 'communities'
+  | 'invites'
+  | 'shops'
+  | 'products'
+  | 'categories'
+  | 'activities'
+  | 'history_logs'
 export type Size = 'small' | 'medium' | 'large'
 export type Color = 'primary' | 'danger' | 'warning' | 'secondary'
 export type ItemType = { key: string; label: string }
@@ -23,3 +31,8 @@ export type GetFilterProps = {
   sortOrder: string
   limit: number
 }
+export type FilterGroupType = {
+  selected: string
+  options: MenuItemType[]
+}
+export type FilterGroupsType = FilterGroupType[]

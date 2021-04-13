@@ -88,5 +88,5 @@ export type ActivitySortByType = 'message' | 'status' | 'created_at' | 'updated_
 
 // --- History Log Types --- //
 export type HistoryLogFilterType = 'all' | 'create' | 'update' | 'archive' | 'delete'
-export type HistoryLogSourceType = 'all' | 'cms'
+export type HistoryLogSourceType = 'all_sources' | 'cms' | 'mobile_app' | 'api' | 'db'
 export type HistoryLogSortByType = 'message' | 'status' | 'created_at' | 'updated_at'
