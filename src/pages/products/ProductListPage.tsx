@@ -2,7 +2,12 @@ import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
 import { getProducts } from '../../services/products'
-import { ProductFilterType, ProductSortByType, SortOrderType } from '../../utils/types'
+import {
+  GenericGetArgType,
+  ProductFilterType,
+  ProductSortByType,
+  SortOrderType,
+} from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { fetchUserByID } from '../../services/users'
 import { fetchShopByID } from '../../services/shops'
@@ -152,6 +157,10 @@ const ProductListPage = (props: any) => {
     }
     return res
   }
+
+  const getData = ({ search, limit }: GenericGetArgType) =>
+    getProducts({ filter, sortBy, sortOrder, search, limit })
+
   return (
     <ListPage
       name="products"
@@ -165,7 +174,7 @@ const ProductListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getProducts}
+      getData={getData}
       setupDataList={setupDataList}
       normalizeDataToUpdate={normalizeData}
       onArchive={onArchive}

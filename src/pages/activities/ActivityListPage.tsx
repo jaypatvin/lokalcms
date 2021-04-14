@@ -4,7 +4,12 @@ import { API_URL } from '../../config/variables'
 import { getActivities } from '../../services/activities'
 import { fetchCommunityByID } from '../../services/community'
 import { fetchUserByID } from '../../services/users'
-import { ActivityFilterType, ActivitySortByType, SortOrderType } from '../../utils/types'
+import {
+  ActivityFilterType,
+  ActivitySortByType,
+  GenericGetArgType,
+  SortOrderType,
+} from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 
 const ActivityListPage = (props: any) => {
@@ -34,35 +39,37 @@ const ActivityListPage = (props: any) => {
     {
       label: 'User',
       fieldName: 'user_id',
-      sortable: false
+      sortable: false,
     },
     {
       label: 'Community',
       fieldName: 'community_id',
-      sortable: false
+      sortable: false,
     },
     {
       label: 'Message',
       fieldName: 'message',
-      sortable: true
+      sortable: true,
     },
     {
       label: 'Status',
       fieldName: 'status',
-      sortable: true
+      sortable: true,
     },
     {
       label: 'Created At',
       fieldName: 'created_at',
-      sortable: true
+      sortable: true,
     },
     {
       label: 'Updated At',
       fieldName: 'updated_at',
-      sortable: true
+      sortable: true,
     },
   ]
-  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]) => {
+  const setupDataList = async (
+    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
+  ) => {
     const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const activity = newList[i]
@@ -126,6 +133,10 @@ const ActivityListPage = (props: any) => {
     }
     return res
   }
+
+  const getData = ({ search, limit }: GenericGetArgType) =>
+    getActivities({ filter, sortBy, sortOrder, search, limit })
+
   return (
     <ListPage
       name="activities"
@@ -139,7 +150,7 @@ const ActivityListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getActivities}
+      getData={getData}
       setupDataList={setupDataList}
       normalizeDataToUpdate={normalizeData}
       onArchive={onArchive}

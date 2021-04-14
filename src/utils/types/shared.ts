@@ -36,3 +36,4 @@ export type FilterGroupType = {
   options: MenuItemType[]
 }
 export type FilterGroupsType = FilterGroupType[]
+export type GenericGetArgType = { search?: string; limit?: number }

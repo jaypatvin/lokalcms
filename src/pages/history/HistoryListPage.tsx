@@ -1,6 +1,13 @@
 import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
-import { FilterGroupsType, HistoryLogFilterType, HistoryLogSortByType, HistoryLogSourceType, SortOrderType } from '../../utils/types'
+import {
+  FilterGroupsType,
+  GenericGetArgType,
+  HistoryLogFilterType,
+  HistoryLogSortByType,
+  HistoryLogSourceType,
+  SortOrderType,
+} from '../../utils/types'
 import { getHistoryLogs } from '../../services/historyLog'
 import { fetchUserByID } from '../../services/users'
 import { fetchCommunityByID } from '../../services/community'
@@ -17,27 +24,27 @@ const HistoryListPage = (props: any) => {
         {
           key: 'all',
           name: 'All Methods',
-          onClick: () => setFilter('all')
+          onClick: () => setFilter('all'),
         },
         {
           key: 'create',
           name: 'Create',
-          onClick: () => setFilter('create')
+          onClick: () => setFilter('create'),
         },
         {
           key: 'update',
           name: 'Update',
-          onClick: () => setFilter('update')
+          onClick: () => setFilter('update'),
         },
         {
           key: 'archive',
           name: 'Archive',
-          onClick: () => setFilter('archive')
+          onClick: () => setFilter('archive'),
         },
         {
           key: 'delete',
           name: 'Delete',
-          onClick: () => setFilter('delete')
+          onClick: () => setFilter('delete'),
         },
       ],
     },
@@ -47,7 +54,7 @@ const HistoryListPage = (props: any) => {
         {
           key: 'all_sources',
           name: 'All Sources',
-          onClick: () => setSourceFilter('all_sources')
+          onClick: () => setSourceFilter('all_sources'),
         },
         {
           key: 'cms',
@@ -133,6 +140,9 @@ const HistoryListPage = (props: any) => {
     return newList
   }
 
+  const getData = ({ search, limit }: GenericGetArgType) =>
+    getHistoryLogs({ filter, sourceFilter, sortBy, sortOrder, search, limit })
+
   return (
     <ListPage
       name="history_logs"
@@ -145,7 +155,7 @@ const HistoryListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getHistoryLogs}
+      getData={getData}
       setupDataList={setupDataList}
     />
   )

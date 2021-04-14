@@ -32,7 +32,7 @@ const FiltersMenu = ({ name, options = [], groupOptions = [], onSelect, selected
       </div>
       <div>
         {
-          !options.length && menuGroupOptions.length > 0 && menuGroupOptions.map(group => <MenuList items={group.options} selected={group.selected} />)
+          !options.length && menuGroupOptions.length > 0 && menuGroupOptions.map((group, i) => <MenuList key={i} items={group.options} selected={group.selected} />)
         }
         {
           options.length > 0 && !menuGroupOptions.length && <MenuList items={menuOptions} selected={selected} />

@@ -40,7 +40,7 @@ type Props = {
   onChangeSortBy: (arg: any) => void
   sortOrder: SortOrderType
   onChangeSortOrder: (arg: SortOrderType) => void
-  getData: (arg: any) => firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
+  getData: ({ search, limit }: { search?: string, limit?: number }) => firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
   setupDataList: (
     arg: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
   ) => Promise<firebase.default.firestore.DocumentData[]>
@@ -103,7 +103,7 @@ const ListPage = ({
   }
 
   useEffect(() => {
-    const newDataRef = getData({ filter, search, sortBy, sortOrder, limit })
+    const newDataRef = getData({ search, limit })
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = newDataRef.onSnapshot(async (snapshot) => {
       getDataList(snapshot.docs)
@@ -112,7 +112,7 @@ const ListPage = ({
     setDataRef(newDataRef)
     setPageNum(1)
     setIsLastPage(false)
-  }, [filter, search, sortBy, sortOrder, limit])
+  }, [filter, filterMenus, search, sortBy, sortOrder, limit])
 
   const onNextPage = () => {
     if (dataRef && lastDataOnList) {
@@ -234,7 +234,7 @@ const ListPage = ({
               <thead>
                 <tr>
                   {columns.map((column) => (
-                    <th>
+                    <th key={column.fieldName}>
                       <SortButton
                         className="text-xs uppercase font-bold"
                         label={column.label}

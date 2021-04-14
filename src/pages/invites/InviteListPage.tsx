@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
-import { InviteFilterType, InviteSortByType, SortOrderType } from '../../utils/types'
+import {
+  GenericGetArgType,
+  InviteFilterType,
+  InviteSortByType,
+  SortOrderType,
+} from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { fetchUserByID } from '../../services/users'
 import { getInvites } from '../../services/invites'
@@ -144,6 +149,10 @@ const InviteListPage = (props: any) => {
     }
     return res
   }
+
+  const getData = ({ search, limit }: GenericGetArgType) =>
+    getInvites({ filter, sortBy, sortOrder, search, limit })
+
   return (
     <ListPage
       name="invites"
@@ -157,7 +166,7 @@ const InviteListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getInvites}
+      getData={getData}
       setupDataList={setupDataList}
       normalizeDataToUpdate={normalizeData}
       onArchive={onArchive}
