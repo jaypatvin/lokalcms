@@ -1,34 +1,82 @@
 import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
-import { HistoryLogFilterType, HistoryLogSortByType, SortOrderType } from '../../utils/types'
+import {
+  FilterGroupsType,
+  GenericGetArgType,
+  HistoryLogFilterType,
+  HistoryLogSortByType,
+  HistoryLogSourceType,
+  SortOrderType,
+} from '../../utils/types'
 import { getHistoryLogs } from '../../services/historyLog'
 import { fetchUserByID } from '../../services/users'
 import { fetchCommunityByID } from '../../services/community'
 
 const HistoryListPage = (props: any) => {
   const [filter, setFilter] = useState<HistoryLogFilterType>('all')
+  const [sourceFilter, setSourceFilter] = useState<HistoryLogSourceType>('all_sources')
   const [sortBy, setSortBy] = useState<HistoryLogSortByType>('created_at')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('desc')
-  const menuOptions = [
+  const filterMenus: FilterGroupsType = [
     {
-      key: 'all',
-      name: 'All Methods',
+      selected: filter,
+      options: [
+        {
+          key: 'all',
+          name: 'All Methods',
+          onClick: () => setFilter('all'),
+        },
+        {
+          key: 'create',
+          name: 'Create',
+          onClick: () => setFilter('create'),
+        },
+        {
+          key: 'update',
+          name: 'Update',
+          onClick: () => setFilter('update'),
+        },
+        {
+          key: 'archive',
+          name: 'Archive',
+          onClick: () => setFilter('archive'),
+        },
+        {
+          key: 'delete',
+          name: 'Delete',
+          onClick: () => setFilter('delete'),
+        },
+      ],
     },
     {
-      key: 'create',
-      name: 'Create',
-    },
-    {
-      key: 'update',
-      name: 'Update',
-    },
-    {
-      key: 'archive',
-      name: 'Archive',
-    },
-    {
-      key: 'delete',
-      name: 'Delete',
+      selected: sourceFilter,
+      options: [
+        {
+          key: 'all_sources',
+          name: 'All Sources',
+          onClick: () => setSourceFilter('all_sources'),
+        },
+        {
+          key: 'cms',
+          name: 'CMS',
+          onClick: () => setSourceFilter('cms'),
+        },
+        {
+          key: 'mobile_app',
+          name: 'Mobile App',
+          onClick: () => setSourceFilter('mobile_app'),
+        },
+        {
+          key: 'api',
+          name: 'Direct API calls',
+          onClick: () => setSourceFilter('api'),
+        },
+        {
+          key: 'db',
+          name: 'Direct from Database',
+          onClick: () => setSourceFilter('db'),
+        },
+      ],
     },
   ]
   const columns = [
@@ -92,11 +140,14 @@ const HistoryListPage = (props: any) => {
     return newList
   }
 
+  const getData = ({ search, limit }: GenericGetArgType) =>
+    getHistoryLogs({ filter, sourceFilter, sortBy, sortOrder, search, limit })
+
   return (
     <ListPage
       name="history_logs"
       menuName="History"
-      filterMenuOptions={menuOptions}
+      filterMenus={filterMenus}
       columns={columns}
       filter={filter}
       onChangeFilter={setFilter}
@@ -104,7 +155,7 @@ const HistoryListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getHistoryLogs}
+      getData={getData}
       setupDataList={setupDataList}
     />
   )

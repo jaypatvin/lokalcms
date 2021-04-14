@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
-import { CategoryFilterType, CategorySortByType, SortOrderType } from '../../utils/types'
+import {
+  CategoryFilterType,
+  CategorySortByType,
+  GenericGetArgType,
+  SortOrderType,
+} from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { getCategories } from '../../services/categories'
 
@@ -108,6 +113,10 @@ const CategoryListPage = (props: any) => {
     }
     return res
   }
+
+  const getData = ({ search, limit }: GenericGetArgType) =>
+    getCategories({ filter, sortBy, sortOrder, search, limit })
+
   return (
     <ListPage
       name="categories"
@@ -121,7 +130,7 @@ const CategoryListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getCategories}
+      getData={getData}
       setupDataList={setupDataList}
       normalizeDataToUpdate={normalizeData}
       onArchive={onArchive}

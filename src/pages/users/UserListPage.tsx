@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
 import { getUsers } from '../../services/users'
-import { SortOrderType, UserFilterType, UserSortByType } from '../../utils/types'
+import { GenericGetArgType, SortOrderType, UserFilterType, UserSortByType } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 
 const UserListPage = (props: any) => {
@@ -121,6 +121,10 @@ const UserListPage = (props: any) => {
     }
     return res
   }
+
+  const getData = ({ search, limit }: GenericGetArgType) =>
+    getUsers({ filter, sortBy, sortOrder, search, limit })
+
   return (
     <ListPage
       name="users"
@@ -134,7 +138,7 @@ const UserListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getUsers}
+      getData={getData}
       setupDataList={setupDataList}
       normalizeDataToUpdate={normalizeData}
       onArchive={onArchive}

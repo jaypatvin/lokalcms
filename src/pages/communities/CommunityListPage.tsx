@@ -1,15 +1,20 @@
 import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
-import { CategoryFilterType, CategorySortByType, SortOrderType } from '../../utils/types'
+import {
+  CommunityFilterType,
+  CommunitySortByType,
+  GenericGetArgType,
+  SortOrderType,
+} from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { communityHaveMembers, getCommunities, getCommunityMeta } from '../../services/community'
 import { fetchUserByID } from '../../services/users'
 
 const CommunityListPage = (props: any) => {
   const { firebaseToken } = useAuth()
-  const [filter, setFilter] = useState<CategoryFilterType>('all')
-  const [sortBy, setSortBy] = useState<CategorySortByType>('name')
+  const [filter, setFilter] = useState<CommunityFilterType>('all')
+  const [sortBy, setSortBy] = useState<CommunitySortByType>('name')
   const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
   const menuOptions = [
     {
@@ -132,6 +137,10 @@ const CommunityListPage = (props: any) => {
     }
     return res
   }
+
+  const getData = ({ search, limit }: GenericGetArgType) =>
+    getCommunities({ filter, sortBy, sortOrder, search, limit })
+
   return (
     <ListPage
       name="communities"
@@ -145,7 +154,7 @@ const CommunityListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getCommunities}
+      getData={getData}
       setupDataList={setupDataList}
       normalizeDataToUpdate={normalizeData}
       onArchive={onArchive}
