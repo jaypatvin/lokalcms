@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import JSONPretty from 'react-json-pretty'
 import dayjs from 'dayjs'
 import { ListItemProps } from '../../utils/types'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
@@ -100,7 +99,6 @@ const HistoryListItem = ({ data }: ListItemProps) => {
               <div className="w-1/2 flex-grow-0 flex-wrap">
                 Before:
                 <br />
-                {/* {data.before ? <JSONPretty id="json-pretty" data={data.before}></JSONPretty> : ''} */}
                 {data.before ? (
                   <div dangerouslySetInnerHTML={{ __html: beforeRenderString }} />
                 ) : (
@@ -110,7 +108,6 @@ const HistoryListItem = ({ data }: ListItemProps) => {
               <div className="w-1/2 flex-grow-0 flex-wrap">
                 After:
                 <br />
-                {/* {data.after ? <JSONPretty id="json-pretty" data={data.after}></JSONPretty> : ''} */}
                 {data.after ? <div dangerouslySetInnerHTML={{ __html: afterRenderString }} /> : ''}
               </div>
             </div>
