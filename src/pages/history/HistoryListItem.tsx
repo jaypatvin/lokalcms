@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import JSONPretty from 'react-json-pretty'
 import dayjs from 'dayjs'
 import { ListItemProps } from '../../utils/types'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
@@ -29,6 +28,35 @@ const HistoryListItem = ({ data }: ListItemProps) => {
   }
 
   const ArrowIcon = expanded ? IoIosArrowUp : IoIosArrowDown
+
+  const getObjectDiffWithStyle = (
+    main: any,
+    other: any = {},
+    color: 'green' | 'red',
+    indent = 0
+  ) => {
+    let diffString = ''
+    Object.entries(main).forEach(([key, val]) => {
+      if (['string', 'number', 'boolean'].includes(typeof val)) {
+        if (!other.hasOwnProperty(key) || other[key] !== val) {
+          diffString += `<p class="text-${color}-500 pl-${indent}">${key}: ${val}</p>`
+        } else {
+          diffString += `<p class="pl-${indent}">${key}: ${val}</p>`
+        }
+      } else {
+        diffString += `<p class="pl-${indent}">${key}:</p>`
+        diffString += getObjectDiffWithStyle(val, other[key], color, indent + 4)
+      }
+    })
+    return diffString
+  }
+
+  const beforeRenderString = data.before
+    ? getObjectDiffWithStyle(data.before, data.after, 'red')
+    : ''
+  const afterRenderString = data.after
+    ? getObjectDiffWithStyle(data.after, data.before, 'green')
+    : ''
 
   return (
     <>
@@ -67,16 +95,20 @@ const HistoryListItem = ({ data }: ListItemProps) => {
       {expanded && (
         <tr>
           <td colSpan={8}>
-            <div className="flex w-full">
+            <div className="flex w-full bg-secondary-50 p-2 shadow">
               <div className="w-1/2 flex-grow-0 flex-wrap">
                 Before:
                 <br />
-                {data.before ? <JSONPretty id="json-pretty" data={data.before}></JSONPretty> : ''}
+                {data.before ? (
+                  <div dangerouslySetInnerHTML={{ __html: beforeRenderString }} />
+                ) : (
+                  ''
+                )}
               </div>
               <div className="w-1/2 flex-grow-0 flex-wrap">
                 After:
                 <br />
-                {data.after ? <JSONPretty id="json-pretty" data={data.after}></JSONPretty> : ''}
+                {data.after ? <div dangerouslySetInnerHTML={{ __html: afterRenderString }} /> : ''}
               </div>
             </div>
           </td>
