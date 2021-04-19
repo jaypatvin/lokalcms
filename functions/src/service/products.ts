@@ -114,3 +114,15 @@ export const unarchiveShopProducts = async (shop_id: string) => {
   const result = await batch.commit()
   return result
 }
+
+export const searchProducts = async ({
+  search,
+  category,
+  community_id
+}) => {
+  let ref: admin.firestore.Query<admin.firestore.DocumentData> = db.collection('products')
+  if (search) ref = ref.where('keywords', 'array-contains', search)
+  if (category) ref = ref.where('product_category', '==', category)
+  if (community_id) ref = ref.where('community_id', '==', community_id)
+  return await ref.get()
+}
