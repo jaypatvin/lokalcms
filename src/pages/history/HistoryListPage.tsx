@@ -103,7 +103,7 @@ const HistoryListPage = (props: any) => {
     {
       label: 'Collection',
       fieldName: 'collection_name',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Document',

@@ -20,11 +20,11 @@ const UserListPage = (props: any) => {
       name: 'Archived Users',
     },
     {
-      key: 'admins',
+      key: 'admin',
       name: 'Admins',
     },
     {
-      key: 'members',
+      key: 'member',
       name: 'Members',
     },
   ]
@@ -42,7 +42,7 @@ const UserListPage = (props: any) => {
     {
       label: 'Status',
       fieldName: 'status',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Member Since',

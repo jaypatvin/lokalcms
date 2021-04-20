@@ -20,17 +20,17 @@ export const getShops = ({
   sortOrder = 'asc',
   limit = 10,
 }: GetShopsParamTypes) => {
-  let ref: any = db.collection('shops')
-
-  if (search) ref = ref.where('keywords', 'array-contains', search.toLowerCase())
+  let ref = db.collection('shops').where('keywords', 'array-contains', search.toLowerCase())
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
   } else if (['close', 'open'].includes(filter)) {
     const is_close = filter === 'close'
     ref = ref.where('is_close', '==', is_close)
   }
-  ref = ref.where('archived', '==', filter === 'archived')
-  ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+  ref = ref
+    .where('archived', '==', filter === 'archived')
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
 
   return ref
 }

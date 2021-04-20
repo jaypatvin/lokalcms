@@ -59,7 +59,7 @@ export const getUsers = ({
   sortBy = 'display_name',
   sortOrder = 'asc',
   limit = 50,
-  community
+  community,
 }: GetUsersParamTypes) => {
   let ref = db.collection('users').where('keywords', 'array-contains', search.toLowerCase())
 
@@ -73,9 +73,10 @@ export const getUsers = ({
     ref = ref.where(`roles.${filter}`, '==', true)
   }
 
-  ref = ref.where('archived', '==', filter === 'archived')
-  ref = ref.orderBy(sortBy, sortOrder)
-  ref = ref.limit(limit)
+  ref = ref
+    .where('archived', '==', filter === 'archived')
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
 
   return ref
 }

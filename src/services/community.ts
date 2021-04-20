@@ -20,21 +20,12 @@ export const getCommunities = ({
   sortOrder = 'asc',
   limit = 50,
 }: GetCommunitiesParamTypes) => {
-  let ref = db.collection('community').where('keywords', 'array-contains', search.toLowerCase())
-
-  if (filter === 'archived') {
-    ref = ref.where('archived', '==', true)
-  } else {
-    ref = ref.where('archived', '==', false)
-  }
-
-  if (sortBy === 'name') {
-    ref = ref.orderBy('name', sortOrder).limit(limit)
-  } else {
-    ref = ref.orderBy(`address.${sortBy}`, sortOrder).limit(limit)
-  }
-
-  return ref
+  return db
+    .collection('community')
+    .where('keywords', 'array-contains', search.toLowerCase())
+    .where('archived', '==', filter === 'archived')
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
 }
 
 export const communityHaveMembers = async (id: string) => {

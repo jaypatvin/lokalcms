@@ -61,12 +61,12 @@ const InviteListPage = (props: any) => {
     {
       label: 'Status',
       fieldName: 'status',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Claimed',
       fieldName: 'claimed',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Expire by',

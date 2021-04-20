@@ -47,7 +47,7 @@ const CategoryListPage = (props: any) => {
     {
       label: 'Status',
       fieldName: 'status',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Created At',

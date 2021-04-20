@@ -69,12 +69,12 @@ const ProductListPage = (props: any) => {
     {
       label: 'Category',
       fieldName: 'product_category',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Status',
       fieldName: 'status',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Created At',
