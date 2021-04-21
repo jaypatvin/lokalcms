@@ -49,12 +49,12 @@ const ActivityListPage = (props: any) => {
     {
       label: 'Message',
       fieldName: 'message',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Status',
       fieldName: 'status',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Created At',

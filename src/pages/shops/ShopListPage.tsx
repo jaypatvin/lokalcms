@@ -56,12 +56,12 @@ const ShopListPage = (props: any) => {
     {
       label: 'Is Close',
       fieldName: 'is_close',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Status',
       fieldName: 'status',
-      sortable: true,
+      sortable: false,
     },
     {
       label: 'Created At',

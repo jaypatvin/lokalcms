@@ -34,7 +34,7 @@ const CommunityListPage = (props: any) => {
     },
     {
       label: 'Address',
-      fieldName: 'subdivision',
+      fieldName: 'address.subdivision',
       sortable: true,
     },
     {

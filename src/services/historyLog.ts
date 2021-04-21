@@ -23,9 +23,7 @@ export const getHistoryLogs = ({
   sortOrder = 'desc',
   limit = 10,
 }: GetActivitiesParamTypes) => {
-  let ref: any = db.collection('history_logs')
-
-  if (search) ref = ref.where('keywords', 'array-contains', search.toLowerCase())
+  let ref = db.collection('history_logs').where('keywords', 'array-contains', search.toLowerCase())
   if (['create', 'update', 'archive', 'delete'].includes(filter)) {
     ref = ref.where('method', '==', filter)
   }

@@ -16,17 +16,17 @@ export const getInvites = ({
   sortOrder = 'desc',
   limit = 10,
 }: GetInvitesParamTypes) => {
-  let ref: any = db.collection('invites')
-
-  if (search) ref = ref.where('keywords', 'array-contains', search.toLowerCase())
+  let ref = db.collection('invites').where('keywords', 'array-contains', search.toLowerCase())
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
   } else if (['claimed', 'not_claimed'].includes(filter)) {
     const claimed = filter === 'claimed'
     ref = ref.where('claimed', '==', claimed)
   }
-  ref = ref.where('archived', '==', filter === 'archived')
-  ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+  ref = ref
+    .where('archived', '==', filter === 'archived')
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
 
   return ref
 }

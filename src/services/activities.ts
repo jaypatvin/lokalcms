@@ -21,13 +21,13 @@ export const getActivities = ({
   limit = 10,
 }: GetActivitiesParamTypes) => {
   let ref: any = db.collection('activities')
-
-  if (search) ref = ref.where('keywords', 'array-contains', search.toLowerCase())
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
   }
-  ref = ref.where('archived', '==', filter === 'archived')
-  ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+  ref = ref
+    .where('archived', '==', filter === 'archived')
+    .orderBy(sortBy, sortOrder)
+    .limit(limit)
 
   return ref
 }

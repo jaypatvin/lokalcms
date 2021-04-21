@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import ReactLoading from 'react-loading'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { Button } from '../buttons'
@@ -40,7 +41,13 @@ type Props = {
   onChangeSortBy: (arg: any) => void
   sortOrder: SortOrderType
   onChangeSortOrder: (arg: SortOrderType) => void
-  getData: ({ search, limit }: { search?: string, limit?: number }) => firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
+  getData: ({
+    search,
+    limit,
+  }: {
+    search?: string
+    limit?: number
+  }) => firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
   setupDataList: (
     arg: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
   ) => Promise<firebase.default.firestore.DocumentData[]>
@@ -92,6 +99,7 @@ const ListPage = ({
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'update'>('create')
   const [dataToUpdate, setDataToUpdate] = useState<firebase.default.firestore.DocumentData>()
+  const [loading, setLoading] = useState(false)
 
   const getDataList = async (
     docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
@@ -100,9 +108,11 @@ const ListPage = ({
     setDataList(newDataList)
     setLastDataOnList(docs[docs.length - 1])
     setFirstDataOnList(docs[0])
+    setLoading(false)
   }
 
   useEffect(() => {
+    setLoading(true)
     const newDataRef = getData({ search, limit })
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = newDataRef.onSnapshot(async (snapshot) => {
@@ -229,36 +239,46 @@ const ListPage = ({
           )}
         </div>
         <div className="table-wrapper w-full overflow-x-auto">
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  {columns.map((column) => (
-                    <th key={column.fieldName}>
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label={column.label}
-                        showSortIcons={column.sortable && sortBy === column.fieldName}
-                        currentSortOrder={sortOrder}
-                        onClick={column.sortable ? () => onSort(column.fieldName) : undefined}
-                      />
-                    </th>
-                  ))}
-                  {!noActions && <th className="action-col"></th>}
-                </tr>
-              </thead>
-              <tbody>
-                <ListItems
-                  name={name}
-                  dataList={dataList}
-                  openUpdate={openUpdate}
-                  onDelete={onDelete}
-                  onArchive={onArchive}
-                  onUnarchive={onUnarchive}
-                />
-              </tbody>
-            </table>
-          </div>
+          {loading ? (
+            <div className="h-96 w-full relative">
+              <ReactLoading
+                type="spin"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                color="gray"
+              />
+            </div>
+          ) : (
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    {columns.map((column) => (
+                      <th key={column.fieldName}>
+                        <SortButton
+                          className="text-xs uppercase font-bold"
+                          label={column.label}
+                          showSortIcons={column.sortable && sortBy === column.fieldName}
+                          currentSortOrder={sortOrder}
+                          onClick={column.sortable ? () => onSort(column.fieldName) : undefined}
+                        />
+                      </th>
+                    ))}
+                    {!noActions && <th className="action-col"></th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  <ListItems
+                    name={name}
+                    dataList={dataList}
+                    openUpdate={openUpdate}
+                    onDelete={onDelete}
+                    onArchive={onArchive}
+                    onUnarchive={onUnarchive}
+                  />
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
