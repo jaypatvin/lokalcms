@@ -158,7 +158,7 @@ const createUser = async (req: Request, res: Response) => {
     },
     keywords,
     archived: false,
-    updated_by: requestorDocId,
+    updated_by: requestorDocId || '',
     updated_from: data.source || '',
   }
   if (data.profile_photo) {
