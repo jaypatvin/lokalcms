@@ -13,6 +13,30 @@ import { authMiddleware, roleMiddleware } from './middlewares'
 import helloRouter from './v1/https/hello.function'
 import { runCounter } from './utils/counters'
 import logActivity from './utils/logActivity'
+import generateSchedule from './utils/generateSchedule'
+
+// TEMPORARY
+// JUST FOR TESTING
+const schedTest = generateSchedule({
+  start_time: '09:00 am',
+  end_time: '06:00 pm',
+  start_dates: [new Date('2021-04-19'), new Date('2021-04-21'), new Date('2021-04-23')],
+  repeat: 'every_other_week',
+  unavailable_dates: [
+    new Date('2021-05-03')
+  ],
+  custom_dates: [
+    {
+      date: new Date('2021-04-26')
+    },
+    {
+      date: new Date('2021-05-05'),
+      start_time: '12:00 pm'
+    }
+  ]
+})
+
+console.log('schedTest', schedTest)
 
 const app = express()
 app.use(cors({ origin: true }))
