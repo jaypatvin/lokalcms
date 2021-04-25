@@ -3,13 +3,13 @@ import dayjs from 'dayjs'
 type Days = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
 const DayKeyVal: { [x: number]: Days } = {
+  0: 'sun',
   1: 'mon',
   2: 'tue',
   3: 'wed',
   4: 'thu',
   5: 'fri',
   6: 'sat',
-  7: 'sun',
 }
 
 type RepeatType =
@@ -19,10 +19,9 @@ type RepeatType =
   | 'every_week'
   | 'every_other_week'
   | 'every_month'
-  | 'every_day_month'
 
 type CustomDate = {
-  date: Date
+  date: string
   start_time?: string
   end_time?: string
 }
@@ -52,9 +51,9 @@ type ScheduleType = {
 type Fields = {
   start_time: string
   end_time: string
-  start_dates: Date[]
+  start_dates: string[]
   repeat: RepeatType
-  unavailable_dates?: Date[]
+  unavailable_dates?: string[]
   custom_dates?: CustomDate[]
 }
 
@@ -69,17 +68,16 @@ const generateSchedule = ({
   const schedule: ScheduleType = {}
 
   start_dates.forEach((date) => {
-    const start_date = dayjs(date).format('YYYY-MM-DD')
     if (repeat === 'none') {
       if (!schedule.custom) schedule.custom = {}
-      schedule.custom[start_date] = {
+      schedule.custom[date] = {
         start_time,
         end_time,
       }
     } else {
-      const day = DayKeyVal[date.getDay()]
+      const day = DayKeyVal[dayjs(date).day()]
       schedule[day] = {
-        start_date,
+        start_date: date,
         repeat,
       }
     }
@@ -87,9 +85,8 @@ const generateSchedule = ({
 
   if (unavailable_dates && unavailable_dates.length) {
     unavailable_dates.forEach((date) => {
-      const formattedDate = dayjs(date).format('YYYY-MM-DD')
       if (!schedule.custom) schedule.custom = {}
-      schedule.custom[formattedDate] = {
+      schedule.custom[date] = {
         unavailable: true,
       }
     })
@@ -98,9 +95,8 @@ const generateSchedule = ({
   if (custom_dates && custom_dates.length) {
     custom_dates.forEach((custom_date) => {
       const { date, start_time: start, end_time: end } = custom_date
-      const formattedDate = dayjs(date).format('YYYY-MM-DD')
       if (!schedule.custom) schedule.custom = {}
-      schedule.custom[formattedDate] = {
+      schedule.custom[date] = {
         start_time: start || start_time,
         end_time: end || end_time,
       }

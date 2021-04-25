@@ -37,14 +37,14 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 type: string
  *               gallery:
  *                 type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       url:
- *                         type: string
- *                       order:
- *                         type: number
-
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     url:
+ *                       type: string
+ *                     order:
+ *                       type: number
+ *
  *     responses:
  *       200:
  *         description: The new product

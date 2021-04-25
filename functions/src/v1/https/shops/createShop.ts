@@ -1,8 +1,11 @@
 import { Request, Response } from 'express'
+import _ from 'lodash'
 import { UsersService, ShopsService, CommunityService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { generateShopKeywords } from '../../../utils/generateKeywords'
-import { required_fields, hourFormat, timeFormatError } from './index'
+import { required_fields, hourFormat, dateFormat, timeFormatError, repeatValues } from './index'
+import dayjs from 'dayjs'
+import generateSchedule from '../../../utils/generateSchedule'
 
 /**
  * @openapi
@@ -30,64 +33,35 @@ import { required_fields, hourFormat, timeFormatError } from './index'
  *                 type: boolean
  *               status:
  *                 type: string
- *               opening:
- *                 type: string
- *               closing:
- *                 type: string
- *               use_custom_hours:
- *                 type: boolean
- *               custom_hours:
+ *               operating_hours:
  *                 type: object
  *                 properties:
- *                   mon:
- *                     type: object
- *                     properties:
- *                       opening:
- *                         type: string
- *                       closing:
- *                         type: string
- *                   tue:
- *                     type: object
- *                     properties:
- *                       opening:
- *                         type: string
- *                       closing:
- *                         type: string
- *                   wed:
- *                     type: object
- *                     properties:
- *                       opening:
- *                         type: string
- *                       closing:
- *                         type: string
- *                   thu:
- *                     type: object
- *                     properties:
- *                       opening:
- *                         type: string
- *                       closing:
- *                         type: string
- *                   fri:
- *                     type: object
- *                     properties:
- *                       opening:
- *                         type: string
- *                       closing:
- *                         type: string
- *                   sat:
- *                     type: object
- *                     properties:
- *                       opening:
- *                         type: string
- *                       closing:
- *                         type: string
- *                   sun:
- *                     type: object
- *                     properties:
- *                       opening:
- *                         type: string
- *                       closing:
- *                         type: string
+ *                   start_time:
+ *                     type: string
+ *                   end_time:
+ *                     type: string
+ *                   start_dates:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   repeat:
+ *                     type: string
+ *                     enum: [none, every_day, every_other_day, every_week, every_other_week, every_month]
+ *                   unavailable_dates:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   custom_dates:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         date:
+ *                           type: string
+ *                         start_time:
+ *                           type: string
+ *                         end_time:
+ *                           type: string
  *     responses:
  *       200:
  *         description: The new shop
@@ -104,26 +78,35 @@ import { required_fields, hourFormat, timeFormatError } from './index'
  */
 const createShop = async (req: Request, res: Response) => {
   const data = req.body
+  const {
+    user_id,
+    operating_hours,
+    name,
+    description,
+    is_close,
+    status,
+    source,
+    profile_photo,
+    cover_photo,
+  } = data
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDocId
-  if (!roles.editor && requestorDocId !== data.user_id)
-    return res
-      .status(403)
-      .json({
-        status: 'error',
-        message: 'You do not have a permission to create a shop for another user.',
-      })
+  if (!roles.editor && requestorDocId !== user_id)
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to create a shop for another user.',
+    })
 
   let _user
   let _community
 
   // check if user id is valid
   try {
-    _user = await UsersService.getUserByID(data.user_id)
+    _user = await UsersService.getUserByID(user_id)
     if (_user.status === 'archived')
       return res.status(400).json({
         status: 'error',
-        message: `User with id ${data.user_id} is currently archived!`,
+        message: `User with id ${user_id} is currently archived!`,
       })
   } catch (e) {
     return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
@@ -151,59 +134,140 @@ const createShop = async (req: Request, res: Response) => {
       .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
-  // check if correct time format
-  if (!hourFormat.test(data.opening))
-    return res.status(400).json({
-      status: 'error',
-      message: timeFormatError('opening', data.opening),
-    })
-  if (!hourFormat.test(data.closing))
-    return res.status(400).json({
-      status: 'error',
-      message: timeFormatError('closing', data.closing),
-    })
+  const { start_time, end_time, start_dates, repeat, unavailable_dates, custom_dates } =
+    operating_hours || {}
 
-  const keywords = generateShopKeywords({ name: data.name })
-
-  const _newData: any = {
-    name: data.name,
-    description: data.description,
-    user_id: data.user_id,
-    community_id: _user.community_id,
-    is_close: data.is_close || false,
-    operating_hours: {
-      opening: data.opening,
-      closing: data.closing,
-      custom: data.use_custom_hours || false,
-    },
-    status: data.status || 'enabled',
-    keywords,
-    archived: false,
-    updated_by: requestorDocId,
-    updated_from: data.source || ''
-  }
-
-  if (data.profile_photo) _newData.profile_photo = data.profile_photo
-  if (data.cover_photo) _newData.cover_photo = data.cover_photo
-
-  if (typeof data.custom_hours === 'object') {
-    const custom_hours_errors = []
-    for (let key in data.custom_hours) {
-      if (['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(key)) {
-        const opening = data.custom_hours[key].opening
-        const closing = data.custom_hours[key].closing
-        if (!hourFormat.test(opening))
-          custom_hours_errors.push(timeFormatError(`${key}.opening`, opening))
-        if (!hourFormat.test(closing))
-          custom_hours_errors.push(timeFormatError(`${key}.closing`, opening))
-        if (custom_hours_errors.length === 0) _newData.operating_hours[key] = { opening, closing }
-      }
+  if (!_.isEmpty(operating_hours)) {
+    const errors = []
+    if (_.isEmpty(start_time)) {
+      errors.push('start_time is missing.')
     }
-    if (custom_hours_errors.length)
+    if (_.isEmpty(end_time)) {
+      errors.push('end_time is missing.')
+    }
+    if (_.isEmpty(start_dates)) {
+      errors.push('start_dates is missing.')
+    }
+    if (_.isEmpty(repeat)) {
+      errors.push('repeat is missing.')
+    }
+    if (!_.isEmpty(errors)) {
+      return res.status(400).json({ status: 'error', message: 'Required fields missing', errors })
+    }
+
+    // check if correct time format
+    if (!hourFormat.test(start_time))
+      return res.status(400).json({
+        status: 'error',
+        message: timeFormatError('start_time', start_time),
+      })
+    if (!hourFormat.test(end_time))
+      return res.status(400).json({
+        status: 'error',
+        message: timeFormatError('end_time', end_time),
+      })
+
+    _.forEach(start_dates, (date) => {
+      if (!_.isString(date) || !dateFormat.test(date)) {
+        errors.push(`Starting date ${date} is not a valid format. Please follow format "2021-12-31`)
+      }
+      if (!dayjs(date).isValid()) {
+        errors.push(`Starting date ${date} is not a valid date.`)
+      }
+    })
+
+    if (errors.length) {
+      return res.status(400).json({ status: 'error', message: 'Invalid starting dates', errors })
+    }
+
+    if (!_.includes(repeatValues, repeat)) {
       return res
         .status(400)
-        .json({ status: 'error', message: 'Incorrect time format', custom_hours_errors })
+        .json({ status: 'error', message: `Repeat can only be one of ${repeatValues}` })
+    }
+
+    if (!_.isEmpty(unavailable_dates)) {
+      _.forEach(unavailable_dates, (date) => {
+        if (!_.isString(date) || !dateFormat.test(date)) {
+          errors.push(
+            `Unavailable date ${date} is not a valid format. Please follow format "2021-12-31`
+          )
+        }
+        if (!dayjs(date).isValid()) {
+          errors.push(`Unavailable date ${date} is not a valid date.`)
+        }
+      })
+
+      if (errors.length) {
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'Invalid unavailable dates', errors })
+      }
+    }
+
+    if (!_.isEmpty(custom_dates)) {
+      _.forEach(custom_dates, (custom_date) => {
+        if (typeof custom_date !== 'object') {
+          errors.push('custom date must be an object')
+        }
+        if (!custom_date.date) {
+          errors.push('custom date must have a date field')
+        }
+        if (!_.isString(custom_date.date) || !dateFormat.test(custom_date.date)) {
+          errors.push(
+            `custom date ${custom_date.date} is not a valid format. Please follow format "2021-12-31`
+          )
+        }
+        if (!dayjs(custom_date.date).isValid()) {
+          errors.push(`custom date ${custom_date.date} is not a valid date.`)
+        }
+        if (custom_date.start_time && !hourFormat.test(custom_date.start_time))
+          errors.push(timeFormatError('start_time', custom_date.start_time))
+        if (custom_date.end_time && !hourFormat.test(custom_date.end_time))
+          errors.push(timeFormatError('end_time', custom_date.end_time))
+      })
+      if (errors.length) {
+        return res.status(400).json({ status: 'error', message: 'Invalid custom dates', errors })
+      }
+    }
+  } else {
+    return res.status(400).json({
+      status: 'error',
+      message: 'operating_hours is required',
+    })
   }
+
+  const keywords = generateShopKeywords({ name })
+
+  const _newData: any = {
+    name,
+    description,
+    user_id,
+    community_id: _user.community_id,
+    is_close: is_close || false,
+    operating_hours: {
+      start_time,
+      end_time,
+      start_dates,
+      repeat,
+      schedule: generateSchedule({
+        start_time,
+        end_time,
+        start_dates,
+        repeat,
+        unavailable_dates,
+        custom_dates,
+      }),
+    },
+    status: status || 'enabled',
+    keywords,
+    archived: false,
+    updated_by: requestorDocId || '',
+    updated_from: source || '',
+  }
+
+  if (profile_photo) _newData.profile_photo = profile_photo
+  if (cover_photo) _newData.cover_photo = cover_photo
 
   const _newShop = await ShopsService.createShop(_newData)
 
