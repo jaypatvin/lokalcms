@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
 import _ from 'lodash'
+import dayjs from 'dayjs'
 import { UsersService, ShopsService, CommunityService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { generateShopKeywords } from '../../../utils/generateKeywords'
 import { required_fields, hourFormat, dateFormat, timeFormatError, repeatValues } from './index'
-import dayjs from 'dayjs'
 import generateSchedule from '../../../utils/generateSchedule'
 
 /**
