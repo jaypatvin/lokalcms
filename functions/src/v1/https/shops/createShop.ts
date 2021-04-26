@@ -15,7 +15,81 @@ import generateSchedule from '../../../utils/generateSchedule'
  *       - shops
  *     security:
  *       - bearerAuth: []
- *     description: Create new shop
+ *     description: |
+ *       # Examples
+ *       ## Creating a shop that is open only on 2021-04-28
+ *       ```
+ *       {
+ *         "name": "local shop",
+ *         "description": "descccc",
+ *         "user_id": "ROi3hEkD1qJVmrGuoJR0",
+ *         "is_close": true,
+ *         "status": "enabled",
+ *         "operating_hours": {
+ *           "start_time": "09:00 AM",
+ *           "end_time": "03:00 PM",
+ *           "start_dates": [
+ *             "2021-04-28"
+ *           ],
+ *           "repeat": "none"
+ *         }
+ *       }
+ *       ```
+ *
+ *       ## Creating a shop that is open on mon, wed, fri starting at 2021-04-26, 2021-04-28, 2021-04-30, every other week and also one time open on 2021-04-29
+ *       ```
+ *       {
+ *         "name": "local shop 2",
+ *         "description": "descccc",
+ *         "user_id": "ROi3hEkD1qJVmrGuoJR0",
+ *         "is_close": true,
+ *         "status": "enabled",
+ *         "operating_hours": {
+ *           "start_time": "08:00 AM",
+ *           "end_time": "04:00 PM",
+ *           "start_dates": [
+ *             "2021-04-26",
+ *             "2021-04-28",
+ *             "2021-04-30"
+ *           ],
+ *           "repeat": "every_other_week",
+ *           "custom_dates": [
+ *             {
+ *               "date": "2021-04-29"
+ *             }
+ *           ]
+ *         }
+ *       }
+ *       ```
+ *
+ *       ## Creating a shop that is open on mon, wed starting at 2021-05-03, 2021-05-05, every week, but not open on 2021-05-10, and have an early closing time on 2021-05-19
+ *       ```
+ *       {
+ *         "name": "local shop 3",
+ *         "description": "descccc",
+ *         "user_id": "ROi3hEkD1qJVmrGuoJR0",
+ *         "is_close": true,
+ *         "status": "enabled",
+ *         "operating_hours": {
+ *           "start_time": "08:00 AM",
+ *           "end_time": "04:00 PM",
+ *           "start_dates": [
+ *             "2021-05-03",
+ *             "2021-05-05"
+ *           ],
+ *           "repeat": "every_week",
+ *           "unavailable_dates": [
+ *             "2021-05-10"
+ *           ],
+ *           "custom_dates": [
+ *             {
+ *               "date": "2021-05-19",
+ *               "end_time": "01:00 PM"
+ *             }
+ *           ]
+ *         }
+ *       }
+ *       ```
  *     requestBody:
  *       required: true
  *       content:
