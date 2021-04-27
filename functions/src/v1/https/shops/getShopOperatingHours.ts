@@ -49,6 +49,7 @@ const getShopOperatingHours = async (req: Request, res: Response) => {
     output.start_dates = start_dates
 
     if (schedule && schedule.custom) {
+      output.schedule = schedule
       const unavailable_dates = []
       const custom_dates = []
       Object.entries(schedule.custom).forEach(([key, val]: any) => {
