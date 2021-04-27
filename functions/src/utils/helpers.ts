@@ -7,3 +7,19 @@ const stringIsNum = (input) => {
 export const fieldIsNum = (input) => {
   return typeof input == 'number' || stringIsNum(input)
 }
+
+export const required_fields = ['name', 'description', 'user_id', 'operating_hours']
+export const hourFormat = /((1[0-2]|0[1-9]):([0-5][0-9]) ([AaPp][Mm]))/
+export const dateFormat = /^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$/
+export const repeatValues = [
+  'none',
+  'every_day',
+  'every_other_day',
+  'every_week',
+  'every_other_week',
+  'every_month',
+]
+
+export const timeFormatError = (field: string, time: string) => {
+  return `Incorrect time format for field "${field}": "${time}". Please follow format "12:00 PM"`
+}

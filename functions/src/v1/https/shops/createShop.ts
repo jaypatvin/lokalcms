@@ -1,11 +1,8 @@
 import { Request, Response } from 'express'
-import _ from 'lodash'
-import dayjs from 'dayjs'
 import { UsersService, ShopsService, CommunityService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { generateShopKeywords } from '../../../utils/generateKeywords'
-import { required_fields, hourFormat, dateFormat, timeFormatError, repeatValues } from './index'
-import generateSchedule from '../../../utils/generateSchedule'
+import { required_fields } from './index'
 
 /**
  * @openapi
@@ -15,81 +12,7 @@ import generateSchedule from '../../../utils/generateSchedule'
  *       - shops
  *     security:
  *       - bearerAuth: []
- *     description: |
- *       # Examples
- *       ## Creating a shop that is open only on 2021-04-28
- *       ```
- *       {
- *         "name": "local shop",
- *         "description": "descccc",
- *         "user_id": "ROi3hEkD1qJVmrGuoJR0",
- *         "is_close": true,
- *         "status": "enabled",
- *         "operating_hours": {
- *           "start_time": "09:00 AM",
- *           "end_time": "03:00 PM",
- *           "start_dates": [
- *             "2021-04-28"
- *           ],
- *           "repeat": "none"
- *         }
- *       }
- *       ```
- *
- *       ## Creating a shop that is open on mon, wed, fri starting at 2021-04-26, 2021-04-28, 2021-04-30, every other week and also one time open on 2021-04-29
- *       ```
- *       {
- *         "name": "local shop 2",
- *         "description": "descccc",
- *         "user_id": "ROi3hEkD1qJVmrGuoJR0",
- *         "is_close": true,
- *         "status": "enabled",
- *         "operating_hours": {
- *           "start_time": "08:00 AM",
- *           "end_time": "04:00 PM",
- *           "start_dates": [
- *             "2021-04-26",
- *             "2021-04-28",
- *             "2021-04-30"
- *           ],
- *           "repeat": "every_other_week",
- *           "custom_dates": [
- *             {
- *               "date": "2021-04-29"
- *             }
- *           ]
- *         }
- *       }
- *       ```
- *
- *       ## Creating a shop that is open on mon, wed starting at 2021-05-03, 2021-05-05, every week, but not open on 2021-05-10, and have an early closing time on 2021-05-19
- *       ```
- *       {
- *         "name": "local shop 3",
- *         "description": "descccc",
- *         "user_id": "ROi3hEkD1qJVmrGuoJR0",
- *         "is_close": true,
- *         "status": "enabled",
- *         "operating_hours": {
- *           "start_time": "08:00 AM",
- *           "end_time": "04:00 PM",
- *           "start_dates": [
- *             "2021-05-03",
- *             "2021-05-05"
- *           ],
- *           "repeat": "every_week",
- *           "unavailable_dates": [
- *             "2021-05-10"
- *           ],
- *           "custom_dates": [
- *             {
- *               "date": "2021-05-19",
- *               "end_time": "01:00 PM"
- *             }
- *           ]
- *         }
- *       }
- *       ```
+ *     description: Create shop
  *     requestBody:
  *       required: true
  *       content:
@@ -107,35 +30,6 @@ import generateSchedule from '../../../utils/generateSchedule'
  *                 type: boolean
  *               status:
  *                 type: string
- *               operating_hours:
- *                 type: object
- *                 properties:
- *                   start_time:
- *                     type: string
- *                   end_time:
- *                     type: string
- *                   start_dates:
- *                     type: array
- *                     items:
- *                       type: string
- *                   repeat:
- *                     type: string
- *                     enum: [none, every_day, every_other_day, every_week, every_other_week, every_month]
- *                   unavailable_dates:
- *                     type: array
- *                     items:
- *                       type: string
- *                   custom_dates:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         date:
- *                           type: string
- *                         start_time:
- *                           type: string
- *                         end_time:
- *                           type: string
  *     responses:
  *       200:
  *         description: The new shop
@@ -152,17 +46,7 @@ import generateSchedule from '../../../utils/generateSchedule'
  */
 const createShop = async (req: Request, res: Response) => {
   const data = req.body
-  const {
-    user_id,
-    operating_hours,
-    name,
-    description,
-    is_close,
-    status,
-    source,
-    profile_photo,
-    cover_photo,
-  } = data
+  const { user_id, name, description, is_close, status, source, profile_photo, cover_photo } = data
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDocId
   if (!roles.editor && requestorDocId !== user_id)
@@ -208,109 +92,6 @@ const createShop = async (req: Request, res: Response) => {
       .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
-  const { start_time, end_time, start_dates, repeat, unavailable_dates, custom_dates } =
-    operating_hours || {}
-
-  if (!_.isEmpty(operating_hours)) {
-    const errors = []
-    if (_.isEmpty(start_time)) {
-      errors.push('start_time is missing.')
-    }
-    if (_.isEmpty(end_time)) {
-      errors.push('end_time is missing.')
-    }
-    if (_.isEmpty(start_dates)) {
-      errors.push('start_dates is missing.')
-    }
-    if (_.isEmpty(repeat)) {
-      errors.push('repeat is missing.')
-    }
-    if (!_.isEmpty(errors)) {
-      return res.status(400).json({ status: 'error', message: 'Required fields missing', errors })
-    }
-
-    // check if correct time format
-    if (!hourFormat.test(start_time))
-      return res.status(400).json({
-        status: 'error',
-        message: timeFormatError('start_time', start_time),
-      })
-    if (!hourFormat.test(end_time))
-      return res.status(400).json({
-        status: 'error',
-        message: timeFormatError('end_time', end_time),
-      })
-
-    _.forEach(start_dates, (date) => {
-      if (!_.isString(date) || !dateFormat.test(date)) {
-        errors.push(`Starting date ${date} is not a valid format. Please follow format "2021-12-31`)
-      }
-      if (!dayjs(date).isValid()) {
-        errors.push(`Starting date ${date} is not a valid date.`)
-      }
-    })
-
-    if (errors.length) {
-      return res.status(400).json({ status: 'error', message: 'Invalid starting dates', errors })
-    }
-
-    if (!_.includes(repeatValues, repeat)) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `Repeat can only be one of ${repeatValues}` })
-    }
-
-    if (!_.isEmpty(unavailable_dates)) {
-      _.forEach(unavailable_dates, (date) => {
-        if (!_.isString(date) || !dateFormat.test(date)) {
-          errors.push(
-            `Unavailable date ${date} is not a valid format. Please follow format "2021-12-31`
-          )
-        }
-        if (!dayjs(date).isValid()) {
-          errors.push(`Unavailable date ${date} is not a valid date.`)
-        }
-      })
-
-      if (errors.length) {
-        return res
-          .status(400)
-          .json({ status: 'error', message: 'Invalid unavailable dates', errors })
-      }
-    }
-
-    if (!_.isEmpty(custom_dates)) {
-      _.forEach(custom_dates, (custom_date) => {
-        if (typeof custom_date !== 'object') {
-          errors.push('custom date must be an object')
-        }
-        if (!custom_date.date) {
-          errors.push('custom date must have a date field')
-        }
-        if (!_.isString(custom_date.date) || !dateFormat.test(custom_date.date)) {
-          errors.push(
-            `custom date ${custom_date.date} is not a valid format. Please follow format "2021-12-31`
-          )
-        }
-        if (!dayjs(custom_date.date).isValid()) {
-          errors.push(`custom date ${custom_date.date} is not a valid date.`)
-        }
-        if (custom_date.start_time && !hourFormat.test(custom_date.start_time))
-          errors.push(timeFormatError('start_time', custom_date.start_time))
-        if (custom_date.end_time && !hourFormat.test(custom_date.end_time))
-          errors.push(timeFormatError('end_time', custom_date.end_time))
-      })
-      if (errors.length) {
-        return res.status(400).json({ status: 'error', message: 'Invalid custom dates', errors })
-      }
-    }
-  } else {
-    return res.status(400).json({
-      status: 'error',
-      message: 'operating_hours is required',
-    })
-  }
-
   const keywords = generateShopKeywords({ name })
 
   const _newData: any = {
@@ -319,20 +100,6 @@ const createShop = async (req: Request, res: Response) => {
     user_id,
     community_id: _user.community_id,
     is_close: is_close || false,
-    operating_hours: {
-      start_time,
-      end_time,
-      start_dates,
-      repeat,
-      schedule: generateSchedule({
-        start_time,
-        end_time,
-        start_dates,
-        repeat,
-        unavailable_dates,
-        custom_dates,
-      }),
-    },
     status: status || 'enabled',
     keywords,
     archived: false,
