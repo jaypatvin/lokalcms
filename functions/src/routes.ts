@@ -100,6 +100,8 @@ module.exports = (api: Express) => {
   api.route('/v1/shops/:shopId').put(wrapAsync(ShopsAPI.updateShop))
   api.route('/v1/shops/:shopId').delete(wrapAsync(ShopsAPI.archiveShop))
   api.route('/v1/shops/:shopId/unarchive').put(wrapAsync(ShopsAPI.unarchiveShop))
+  api.route('/v1/shops/:shopId/operatingHours').get(wrapAsync(ShopsAPI.getShopOperatingHours))
+  api.route('/v1/shops/:shopId/operatingHours').put(wrapAsync(ShopsAPI.addShopOperatingHours))
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
@@ -128,6 +130,8 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId').put(wrapAsync(ProductsAPI.updateProduct))
   api.route('/v1/products/:productId').delete(wrapAsync(ProductsAPI.archiveProduct))
   api.route('/v1/products/:productId/unarchive').put(wrapAsync(ProductsAPI.unarchiveProduct))
+  api.route('/v1/products/:productId/availability').get(wrapAsync(ProductsAPI.getProductAvailability))
+  api.route('/v1/products/:productId/availability').put(wrapAsync(ProductsAPI.addProductAvailability))
 
   // -- Categories routes
   api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))
