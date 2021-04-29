@@ -10,6 +10,31 @@ const getProductsBy = async (idType, id) => {
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
+export const getCommunityProductsWhere = async (
+  community_id: string,
+  wheres: [string, FirebaseFirestore.WhereFilterOp, any][]
+) => {
+  let res = db
+    .collection('products')
+    .where('community_id', '==', community_id)
+    .where('archived', '==', false)
+  wheres.forEach((where) => {
+    res = res.where(where[0], where[1], where[2])
+  })
+
+  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
+export const getCommunityProductsOrderFilter = async (community_id: string, filter: string) => {
+  return await db
+    .collection('products')
+    .where('community_id', '==', community_id)
+    .where('archived', '==', false)
+    .orderBy(filter, 'asc')
+    .get()
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getProductsByShopID = async (id) => await getProductsBy('shop_id', id)
 
 export const getProductsByUserId = async (id) => await getProductsBy('user_id', id)
@@ -115,11 +140,7 @@ export const unarchiveShopProducts = async (shop_id: string) => {
   return result
 }
 
-export const searchProducts = async ({
-  search,
-  category,
-  community_id
-}) => {
+export const searchProducts = async ({ search, category, community_id }) => {
   let ref: admin.firestore.Query<admin.firestore.DocumentData> = db.collection('products')
   if (search) ref = ref.where('keywords', 'array-contains', search)
   if (category) ref = ref.where('product_category', '==', category)
