@@ -124,7 +124,8 @@ module.exports = (api: Express) => {
   api.route('/v1/community/:communityId/activities').get(wrapAsync(ActivitiesAPI.getCommunityActivities))
 
   // -- Products routes
-  api.route('/v1/products').get(wrapAsync(ProductsAPI.getAvailableProducts))
+  api.route('/v1/availableProducts').get(wrapAsync(ProductsAPI.getAvailableProducts))
+  api.route('/v1/products').get(wrapAsync(ProductsAPI.getProducts))
   api.route('/v1/products').post(wrapAsync(ProductsAPI.createProduct))
   api.route('/v1/products/:productId').get(wrapAsync(ProductsAPI.getProduct))
   api.route('/v1/products/:productId').put(wrapAsync(ProductsAPI.updateProduct))

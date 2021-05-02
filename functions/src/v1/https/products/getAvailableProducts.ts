@@ -6,7 +6,7 @@ import { dateFormat, DayKeyVal } from '../../../utils/helpers'
 
 /**
  * @openapi
- * /v1/products:
+ * /v1/availableProducts:
  *   get:
  *     tags:
  *       - products
