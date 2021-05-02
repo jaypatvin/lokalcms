@@ -32,6 +32,83 @@
  *               type: string
  *             order:
  *               type: number
+ *         availability:
+ *           type: object
+ *           properties:
+ *             start_time:
+ *               type: string
+ *             end_time:
+ *               type: string
+ *             repeat:
+ *               type: string
+ *             start_dates:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             schedule:
+ *               type: object
+ *               properties:
+ *                 custom:
+ *                   type: object
+ *                   properties:
+ *                     YYYY-MM-DD:
+ *                       type: object
+ *                       properties:
+ *                         unavailable:
+ *                           type: boolean
+ *                         start_time:
+ *                           type: string
+ *                         end_time:
+ *                           type: string
+ *                 mon:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 tue:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 wed:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 thu:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 fri:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 sat:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 sun:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
  */
 
 export const required_fields = [

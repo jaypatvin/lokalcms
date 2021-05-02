@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { Request, Response } from 'express'
 import _ from 'lodash'
 import { ProductsService } from '../../../service'
-import { DayKeyVal } from '../../../utils/helpers'
+import { dateFormat, DayKeyVal } from '../../../utils/helpers'
 
 /**
  * @openapi
@@ -23,7 +23,7 @@ import { DayKeyVal } from '../../../utils/helpers'
  *         name: date
  *         schema:
  *           type: string
- *         description: The date where the products are available
+ *         description: The date where the products are available. Format should be YYYY-MM-DD. Default value is current date.
  *       - in: query
  *         name: category
  *         schema:
@@ -52,7 +52,7 @@ import { DayKeyVal } from '../../../utils/helpers'
  */
 const getProducts = async (req: Request, res: Response) => {
   const {
-    q,
+    q = '',
     date = dayjs(new Date()).format('YYYY-MM-DD'),
     category,
     community_id,
@@ -61,64 +61,80 @@ const getProducts = async (req: Request, res: Response) => {
   if (!community_id)
     return res.status(400).json({ status: 'error', message: 'community_id is required.' })
 
+  if (!dateFormat.test(date))
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'Incorrect date format. Please follow format YYYY-MM-DD.' })
+
+  const initialWheres = []
+  if (q) initialWheres.push(['keywords', 'array-contains', q])
+  if (category) initialWheres.push(['product_category', '==', category])
+
   const day = DayKeyVal[dayjs(date).day()]
 
-  let everyday = await ProductsService.getCommunityProductsWhere(community_id, [
-    ['availability.repeat', '==', 'every_day'],
-  ])
-  everyday = everyday.filter((product) => {
+  let everyDay = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: [...initialWheres, ['availability.repeat', '==', 'every_day']],
+  })
+  everyDay = everyDay.filter((product) => {
     const start_date = product.availability.start_dates[0]
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
 
-  let everyweek = await ProductsService.getCommunityProductsWhere(community_id, [
-    [`availability.schedule.${day}.repeat`, '==', 'every_week'],
-  ])
-  everyweek = everyweek.filter((product) => {
+  let everyWeek = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: [...initialWheres, [`availability.schedule.${day}.repeat`, '==', 'every_week']],
+  })
+  everyWeek = everyWeek.filter((product) => {
     const start_date = _.get(product, `availability.schedule.${day}.start_date`)
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
 
-  let customAvailable = await ProductsService.getCommunityProductsOrderFilter(
+  let customAvailable = await ProductsService.getCommunityProductsWithFilter({
     community_id,
-    `availability.schedule.custom.${date}.start_time`
-  )
+    wheres: initialWheres,
+    orderBy: `availability.schedule.custom.${date}.start_time`,
+  })
 
-  let everyOtherDay = await ProductsService.getCommunityProductsWhere(community_id, [
-    ['availability.repeat', '==', 'every_other_day'],
-  ])
+  let everyOtherDay = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: [...initialWheres, ['availability.repeat', '==', 'every_other_day']],
+  })
   everyOtherDay = everyOtherDay.filter((product) => {
     const start_date = product.availability.start_dates[0]
     const isValid = dayjs(start_date).diff(date, 'days') % 2 === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
-  let everyOtherWeek = await ProductsService.getCommunityProductsWhere(community_id, [
-    [`availability.schedule.${day}.repeat`, '==', 'every_other_week'],
-  ])
+  let everyOtherWeek = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: [...initialWheres, [`availability.schedule.${day}.repeat`, '==', 'every_other_week']],
+  })
   everyOtherWeek = everyOtherWeek.filter((product) => {
     const start_date = _.get(product, `availability.schedule.${day}.start_date`)
     const isValid = dayjs(start_date).diff(date, 'days') % 14 === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
-  let everyOtherMonth = await ProductsService.getCommunityProductsWhere(community_id, [
-    ['availability.repeat', '==', 'every_month'],
-  ])
+  let everyOtherMonth = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: [...initialWheres, ['availability.repeat', '==', 'every_month']],
+  })
   everyOtherMonth = everyOtherMonth.filter((product) => {
     const start_date = product.availability.start_dates[0]
     const isValid = dayjs(start_date).date === dayjs(date).date
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
-  const unavailable = await ProductsService.getCommunityProductsWhere(community_id, [
-    [`availability.schedule.custom.${date}.unavailable`, '==', true],
-  ])
+  const unavailable = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: [...initialWheres, [`availability.schedule.custom.${date}.unavailable`, '==', true]],
+  })
   const unavailableIds = unavailable.map((product) => product.id)
 
   const result = [
-    ...everyday,
-    ...everyweek,
+    ...everyDay,
+    ...everyWeek,
     ...customAvailable,
     ...everyOtherDay,
     ...everyOtherWeek,

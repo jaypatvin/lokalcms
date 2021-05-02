@@ -10,10 +10,17 @@ const getProductsBy = async (idType, id) => {
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
-export const getCommunityProductsWhere = async (
-  community_id: string,
-  wheres: [string, FirebaseFirestore.WhereFilterOp, any][]
-) => {
+export const getCommunityProductsWithFilter = async ({
+  community_id,
+  wheres = [],
+  orderBy,
+  sortOrder = 'asc',
+}: {
+  community_id: string
+  wheres?: [string, FirebaseFirestore.WhereFilterOp, any][]
+  orderBy?: string
+  sortOrder?: FirebaseFirestore.OrderByDirection
+}) => {
   let res = db
     .collection('products')
     .where('community_id', '==', community_id)
@@ -22,17 +29,11 @@ export const getCommunityProductsWhere = async (
     res = res.where(where[0], where[1], where[2])
   })
 
-  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
-}
+  if (orderBy) {
+    res = res.orderBy(orderBy, sortOrder)
+  }
 
-export const getCommunityProductsOrderFilter = async (community_id: string, filter: string) => {
-  return await db
-    .collection('products')
-    .where('community_id', '==', community_id)
-    .where('archived', '==', false)
-    .orderBy(filter, 'asc')
-    .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getProductsByShopID = async (id) => await getProductsBy('shop_id', id)
