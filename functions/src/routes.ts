@@ -94,6 +94,7 @@ module.exports = (api: Express) => {
   api.route('/v1/users/:userId/comments').get(wrapAsync(CommentsAPI.getUserComments))
 
   // -- Shops routes
+  api.route('/v1/availableShops').get(wrapAsync(ShopsAPI.getAvailableShops))
   api.route('/v1/shops').get(wrapAsync(ShopsAPI.getShops))
   api.route('/v1/shops').post(wrapAsync(ShopsAPI.createShop))
   api.route('/v1/shops/:shopId').get(wrapAsync(ShopsAPI.getShop))

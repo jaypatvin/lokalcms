@@ -22,61 +22,80 @@
  *         operating_hours:
  *           type: object
  *           properties:
- *             opening:
+ *             start_time:
  *               type: string
- *             closing:
+ *             end_time:
  *               type: string
- *             custom:
- *               type: boolean
- *             mon:
+ *             repeat:
+ *               type: string
+ *             start_dates:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             schedule:
  *               type: object
  *               properties:
- *                 opening:
- *                   type: string
- *                 closing:
- *                   type: string
- *             tue:
- *               type: object
- *               properties:
- *                 opening:
- *                   type: string
- *                 closing:
- *                   type: string
- *             wed:
- *               type: object
- *               properties:
- *                 opening:
- *                   type: string
- *                 closing:
- *                   type: string
- *             thu:
- *               type: object
- *               properties:
- *                 opening:
- *                   type: string
- *                 closing:
- *                   type: string
- *             fri:
- *               type: object
- *               properties:
- *                 opening:
- *                   type: string
- *                 closing:
- *                   type: string
- *             sat:
- *               type: object
- *               properties:
- *                 opening:
- *                   type: string
- *                 closing:
- *                   type: string
- *             sun:
- *               type: object
- *               properties:
- *                 opening:
- *                   type: string
- *                 closing:
- *                   type: string
+ *                 custom:
+ *                   type: object
+ *                   properties:
+ *                     YYYY-MM-DD:
+ *                       type: object
+ *                       properties:
+ *                         unavailable:
+ *                           type: boolean
+ *                         start_time:
+ *                           type: string
+ *                         end_time:
+ *                           type: string
+ *                 mon:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 tue:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 wed:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 thu:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 fri:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 sat:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
+ *                 sun:
+ *                   type: object
+ *                   properties:
+ *                     start_date:
+ *                       type: string
+ *                     repeat:
+ *                       type: string
  */
 
 export const required_fields = ['name', 'description', 'user_id', 'operating_hours']
@@ -86,6 +105,7 @@ export { default as updateShop } from './updateShop'
 export { default as archiveShop } from './archiveShop'
 export { default as unarchiveShop } from './unarchiveShop'
 export { default as getShops } from './getShops'
+export { default as getAvailableShops } from './getAvailableShops'
 export { default as getUserShops } from './getUserShops'
 export { default as getCommunityShops } from './getCommunityShops'
 export { default as getShop } from './getShop'
