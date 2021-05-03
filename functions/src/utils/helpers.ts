@@ -19,6 +19,16 @@ export const repeatValues = [
   'every_other_week',
   'every_month',
 ]
+export type Days = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
+export const DayKeyVal: { [x: number]: Days } = {
+  0: 'sun',
+  1: 'mon',
+  2: 'tue',
+  3: 'wed',
+  4: 'thu',
+  5: 'fri',
+  6: 'sat',
+}
 
 export const timeFormatError = (field: string, time: string) => {
   return `Incorrect time format for field "${field}": "${time}". Please follow format "12:00 PM"`

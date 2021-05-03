@@ -165,6 +165,8 @@ const createProduct = async (req: Request, res: Response) => {
     updated_from: data.source || '',
   }
 
+  if (_shop.operating_hours) _productData.availability = _shop.operating_hours
+
   if (gallery) _productData.gallery = gallery
 
   const _newProduct = await ProductsService.createProduct(_productData)
