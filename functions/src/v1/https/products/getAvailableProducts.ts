@@ -116,13 +116,13 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
-  let everyOtherMonth = await ProductsService.getCommunityProductsWithFilter({
+  let everyMonth = await ProductsService.getCommunityProductsWithFilter({
     community_id,
     wheres: [...initialWheres, ['availability.repeat', '==', 'every_month']],
   })
-  everyOtherMonth = everyOtherMonth.filter((product) => {
+  everyMonth = everyMonth.filter((product) => {
     const start_date = product.availability.start_dates[0]
-    const isValid = dayjs(start_date).date === dayjs(date).date
+    const isValid = dayjs(start_date).date() === dayjs(date).date()
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
@@ -138,7 +138,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     ...customAvailable,
     ...everyOtherDay,
     ...everyOtherWeek,
-    ...everyOtherMonth,
+    ...everyMonth,
   ].filter((product) => !_.includes(unavailableIds, product.id))
 
   result.forEach((product) => {

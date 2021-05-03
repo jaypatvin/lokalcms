@@ -18,6 +18,32 @@ export const getShopsByCommunityID = async (id: string) => {
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
+export const getCommunityShopsWithFilter = async ({
+  community_id,
+  wheres = [],
+  orderBy,
+  sortOrder = 'asc',
+}: {
+  community_id: string
+  wheres?: [string, FirebaseFirestore.WhereFilterOp, any][]
+  orderBy?: string
+  sortOrder?: FirebaseFirestore.OrderByDirection
+}) => {
+  let res = db
+    .collection('shops')
+    .where('community_id', '==', community_id)
+    .where('archived', '==', false)
+  wheres.forEach((where) => {
+    res = res.where(where[0], where[1], where[2])
+  })
+
+  if (orderBy) {
+    res = res.orderBy(orderBy, sortOrder)
+  }
+
+  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getShopByID = async (id: string) => {
   const shop = await db.collection('shops').doc(id).get()
 
