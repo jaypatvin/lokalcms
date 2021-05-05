@@ -208,7 +208,11 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     if (availabilityFound) {
       product.nextAvailable = availabilityFound
       product.nextAvailableDay = DayKeyVal[dayjs(availabilityFound).day()]
-      product.availableMessage = `Available on ${availabilityFound}`
+      if (dayjs(availabilityFound).diff(dayjs(date), 'days') === 1) {
+        product.availableMessage = `Available tomorrow`
+      } else {
+        product.availableMessage = `Available on ${availabilityFound}`
+      }
     } else if (repeat === 'none' && dayjs(firstStartDate).isBefore(date)) {
       product.nextAvailable = 'none'
       product.availableMessage = `Not available anymore`
