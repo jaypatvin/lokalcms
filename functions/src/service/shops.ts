@@ -34,7 +34,8 @@ export const getCommunityShopsWithFilter = async ({
     .where('community_id', '==', community_id)
     .where('archived', '==', false)
   wheres.forEach((where) => {
-    res = res.where(where[0], where[1], where[2])
+    let key = where[0] === 'id' ? admin.firestore.FieldPath.documentId() : where[0]
+    res = res.where(key, where[1], where[2])
   })
 
   if (orderBy) {
