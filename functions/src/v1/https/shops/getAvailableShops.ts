@@ -44,6 +44,10 @@ import { dateFormat, DayKeyVal } from '../../../utils/helpers'
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Shop'
+ *                 unavailable_shops:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Shop'
  */
 const getAvailableShops = async (req: Request, res: Response) => {
   const { q = '', date = dayjs(new Date()).format('YYYY-MM-DD'), community_id }: any = req.query
@@ -59,6 +63,7 @@ const getAvailableShops = async (req: Request, res: Response) => {
   const initialWheres = []
   if (q) initialWheres.push(['keywords', 'array-contains', q])
 
+  const maxRangeDays = 30
   const day = DayKeyVal[dayjs(date).day()]
 
   let everyDay = await ShopsService.getCommunityShopsWithFilter({
@@ -124,21 +129,101 @@ const getAvailableShops = async (req: Request, res: Response) => {
   })
   const unavailableIds = unavailable.map((shop) => shop.id)
 
-  const result = [
+  const allAvailable = [
     ...everyDay,
     ...everyWeek,
     ...customAvailable,
     ...everyOtherDay,
     ...everyOtherWeek,
     ...everyMonth,
-  ].filter((shop) => !_.includes(unavailableIds, shop.id))
+  ]
+  const result = _.chain(allAvailable)
+    .filter((shop) => !_.includes(unavailableIds, shop.id))
+    .uniqBy((shop) => shop.id)
+    .value()
+
+  const availableIds = _.map(result, (shop) => shop.id)
 
   result.forEach((shop) => {
     delete shop.keywords
     delete shop.operating_hours
   })
 
-  return res.status(200).json({ status: 'ok', data: result })
+  const allUnavailableFilter = availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds]] : null
+  const unavailable_shops = await ShopsService.getCommunityShopsWithFilter({
+    community_id,
+    wheres: allUnavailableFilter || initialWheres,
+  })
+
+
+  unavailable_shops.forEach((shop) => {
+    const operating_hours = shop.operating_hours
+    const repeat = operating_hours.repeat
+    const firstStartDate = operating_hours.start_dates[0]
+    let availabilityFound
+    let i = 1
+    while (!availabilityFound && i <= maxRangeDays) {
+      const dateToCheck = dayjs(date).add(i, 'days')
+      const dateToCheckFormat = dateToCheck.format('YYYY-MM-DD')
+      const dateToCheckDay = DayKeyVal[dateToCheck.day()]
+      if (
+        !_.get(operating_hours, `schedule.custom.${dateToCheckFormat}.unavailable`) ||
+        (repeat === 'none' && dayjs(firstStartDate).isBefore(date))
+      ) {
+        const weekAvailabilityStartDate = _.get(
+          operating_hours,
+          `schedule.${dateToCheckDay}.start_date`
+        )
+        if (
+          _.get(operating_hours, `schedule.custom.${dateToCheckFormat}.start_time`) ||
+          repeat === 'every_day' ||
+          (repeat === 'every_week' &&
+            weekAvailabilityStartDate &&
+            (dayjs(weekAvailabilityStartDate).isBefore(dateToCheck) ||
+              dayjs(weekAvailabilityStartDate).isSame(dateToCheck))) ||
+          (repeat === 'every_month' &&
+            dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
+            (dayjs(firstStartDate).isBefore(dateToCheck) ||
+              dayjs(firstStartDate).isSame(dateToCheck))) ||
+          (repeat === 'every_other_day' &&
+            dayjs(firstStartDate).diff(dateToCheck, 'days') % 2 === 0 &&
+            (dayjs(firstStartDate).isBefore(dateToCheck) ||
+              dayjs(firstStartDate).isSame(dateToCheck))) ||
+          (repeat === 'every_other_week' &&
+            dayjs(firstStartDate).diff(dateToCheck, 'days') % 14 === 0 &&
+            (dayjs(firstStartDate).isBefore(dateToCheck) ||
+              dayjs(firstStartDate).isSame(dateToCheck)))
+        ) {
+          availabilityFound = dateToCheckFormat
+        }
+      }
+      i++
+    }
+    if (availabilityFound) {
+      shop.nextAvailable = availabilityFound
+      shop.nextAvailableDay = DayKeyVal[dayjs(availabilityFound).day()]
+      if (dayjs(availabilityFound).diff(dayjs(date), 'days') === 1) {
+        shop.availableMessage = `Available tomorrow`
+      } else {
+        shop.availableMessage = `Available on ${availabilityFound}`
+      }
+    } else if (repeat === 'none' && dayjs(firstStartDate).isBefore(date)) {
+      shop.nextAvailable = 'none'
+      shop.availableMessage = `Not available anymore`
+    } else {
+      shop.nextAvailable = `more than ${maxRangeDays} days`
+      shop.availableMessage = `Available in ${maxRangeDays}+ days`
+    }
+
+    delete shop.keywords
+    delete shop.operating_hours
+  })
+
+  unavailable_shops.sort((a, b) => {
+    return a.nextAvailable < b.nextAvailable ? -1 : 1
+  })
+
+  return res.status(200).json({ status: 'ok', data: result, unavailable_shops })
 }
 
 export default getAvailableShops

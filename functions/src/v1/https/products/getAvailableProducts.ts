@@ -152,15 +152,17 @@ const getAvailableProducts = async (req: Request, res: Response) => {
 
   const availableIds = _.map(result, (product) => product.id)
 
-  const unavailable_products = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [...initialWheres, ['id', 'not-in', availableIds]],
-  })
-
   result.forEach((product) => {
     delete product.keywords
     delete product.availability
   })
+
+  const allUnavailableFilter = availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds]] : null
+  const unavailable_products = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: allUnavailableFilter || initialWheres,
+  })
+
 
   unavailable_products.forEach((product) => {
     const availability = product.availability
