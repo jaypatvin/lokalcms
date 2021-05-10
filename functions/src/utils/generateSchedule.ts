@@ -12,6 +12,8 @@ const DayKeyVal: { [x: number]: Days } = {
   6: 'sat',
 }
 
+type RepeatUnit = number
+
 type RepeatType =
   | 'none'
   | 'every_day'
@@ -28,7 +30,8 @@ type CustomDate = {
 
 type DayType = {
   start_date: string
-  repeat: RepeatType
+  repeat_unit: RepeatUnit
+  repeat_type: RepeatType
 }
 
 type ScheduleType = {
@@ -52,7 +55,8 @@ type Fields = {
   start_time: string
   end_time: string
   start_dates: string[]
-  repeat: RepeatType
+  repeat_unit: RepeatUnit
+  repeat_type: RepeatType
   unavailable_dates?: string[]
   custom_dates?: CustomDate[]
 }
@@ -61,14 +65,15 @@ const generateSchedule = ({
   start_time,
   end_time,
   start_dates,
-  repeat,
+  repeat_unit,
+  repeat_type,
   unavailable_dates,
   custom_dates,
 }: Fields) => {
   const schedule: ScheduleType = {}
 
   start_dates.forEach((date) => {
-    if (repeat === 'none') {
+    if (repeat_unit === 0) {
       if (!schedule.custom) schedule.custom = {}
       schedule.custom[date] = {
         start_time,
@@ -78,7 +83,8 @@ const generateSchedule = ({
       const day = DayKeyVal[dayjs(date).day()]
       schedule[day] = {
         start_date: date,
-        repeat,
+        repeat_unit,
+        repeat_type,
       }
     }
   })

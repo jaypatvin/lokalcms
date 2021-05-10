@@ -79,56 +79,89 @@ const getAvailableProducts = async (req: Request, res: Response) => {
 
   let everyDay = await ProductsService.getCommunityProductsWithFilter({
     community_id,
-    wheres: [...initialWheres, ['availability.repeat', '==', 'every_day']],
+    wheres: [
+      ...initialWheres,
+      ['availability.repeat_unit', '==', 1],
+      ['availability.repeat_type', '==', 'day'],
+    ],
   })
   everyDay = everyDay.filter((product) => {
     const start_date = product.availability.start_dates[0]
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
 
+  let everyNDay = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: [
+      ...initialWheres,
+      ['availability.repeat_unit', 'not-in', [0, 1]],
+      ['availability.repeat_type', '==', 'day'],
+    ],
+  })
+  everyNDay = everyNDay.filter((product) => {
+    const start_date = product.availability.start_dates[0]
+    const isValid = dayjs(date).diff(start_date, 'days') % 2 === 0
+    return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
+  })
+
   let everyWeek = await ProductsService.getCommunityProductsWithFilter({
     community_id,
-    wheres: [...initialWheres, [`availability.schedule.${day}.repeat`, '==', 'every_week']],
+    wheres: [
+      ...initialWheres,
+      [`availability.schedule.${day}.repeat_unit`, '==', 1],
+      [`availability.schedule.${day}.repeat_type`, '==', 'week'],
+    ],
   })
   everyWeek = everyWeek.filter((product) => {
     const start_date = _.get(product, `availability.schedule.${day}.start_date`)
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
 
-  let customAvailable = await ProductsService.getCommunityProductsWithFilter({
+  let everyNWeek = await ProductsService.getCommunityProductsWithFilter({
     community_id,
-    wheres: initialWheres,
-    orderBy: `availability.schedule.custom.${date}.start_time`,
+    wheres: [
+      ...initialWheres,
+      [`availability.schedule.${day}.repeat_unit`, 'not-in', [0, 1]],
+      [`availability.schedule.${day}.repeat_type`, '==', 'week'],
+    ],
   })
-
-  let everyOtherDay = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [...initialWheres, ['availability.repeat', '==', 'every_other_day']],
-  })
-  everyOtherDay = everyOtherDay.filter((product) => {
-    const start_date = product.availability.start_dates[0]
-    const isValid = dayjs(start_date).diff(date, 'days') % 2 === 0
-    return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
-  })
-
-  let everyOtherWeek = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [...initialWheres, [`availability.schedule.${day}.repeat`, '==', 'every_other_week']],
-  })
-  everyOtherWeek = everyOtherWeek.filter((product) => {
+  everyNWeek = everyNWeek.filter((product) => {
     const start_date = _.get(product, `availability.schedule.${day}.start_date`)
-    const isValid = dayjs(start_date).diff(date, 'days') % 14 === 0
+    const isValid =
+      dayjs(date).diff(start_date, 'weeks') % _.get(product, 'availability.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
   let everyMonth = await ProductsService.getCommunityProductsWithFilter({
     community_id,
-    wheres: [...initialWheres, ['availability.repeat', '==', 'every_month']],
+    wheres: [...initialWheres, ['availability.repeat_type', '==', 'every_month']],
   })
   everyMonth = everyMonth.filter((product) => {
     const start_date = product.availability.start_dates[0]
     const isValid = dayjs(start_date).date() === dayjs(date).date()
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
+  })
+
+  let everyNMonth = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: [
+      ...initialWheres,
+      [`availability.repeat_unit`, 'not-in', [0, 1]],
+      [`availability.repeat_type`, '==', 'month'],
+    ],
+  })
+  everyNMonth = everyNMonth.filter((product) => {
+    const start_date = product.availability.start_dates[0]
+    const isValid =
+      dayjs(start_date).date() === dayjs(date).date() &&
+      dayjs(date).diff(start_date, 'months') % _.get(product, 'availability.repeat_unit') === 0
+    return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
+  })
+
+  let customAvailable = await ProductsService.getCommunityProductsWithFilter({
+    community_id,
+    wheres: initialWheres,
+    orderBy: `availability.schedule.custom.${date}.start_time`,
   })
 
   const unavailable = await ProductsService.getCommunityProductsWithFilter({
@@ -139,11 +172,12 @@ const getAvailableProducts = async (req: Request, res: Response) => {
 
   const allAvailable = [
     ...everyDay,
+    ...everyNDay,
     ...everyWeek,
-    ...customAvailable,
-    ...everyOtherDay,
-    ...everyOtherWeek,
+    ...everyNWeek,
     ...everyMonth,
+    ...everyNMonth,
+    ...customAvailable,
   ]
   const result = _.chain(allAvailable)
     .filter((product) => !_.includes(unavailableIds, product.id))
@@ -157,16 +191,17 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     delete product.availability
   })
 
-  const allUnavailableFilter = availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds]] : null
+  const allUnavailableFilter =
+    availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds]] : null
   const unavailable_products = await ProductsService.getCommunityProductsWithFilter({
     community_id,
     wheres: allUnavailableFilter || initialWheres,
   })
 
-
   unavailable_products.forEach((product) => {
     const availability = product.availability
-    const repeat = availability.repeat
+    const repeat_unit = availability.repeat_unit
+    const repeat_type = availability.repeat_type
     const firstStartDate = availability.start_dates[0]
     let availabilityFound
     let i = 1
@@ -176,7 +211,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
       const dateToCheckDay = DayKeyVal[dateToCheck.day()]
       if (
         !_.get(availability, `schedule.custom.${dateToCheckFormat}.unavailable`) ||
-        (repeat === 'none' && dayjs(firstStartDate).isBefore(date))
+        (repeat_unit === 0 && dayjs(firstStartDate).isBefore(date))
       ) {
         const weekAvailabilityStartDate = _.get(
           availability,
@@ -184,21 +219,31 @@ const getAvailableProducts = async (req: Request, res: Response) => {
         )
         if (
           _.get(availability, `schedule.custom.${dateToCheckFormat}.start_time`) ||
-          repeat === 'every_day' ||
-          (repeat === 'every_week' &&
+          (repeat_unit === 1 && repeat_type === 'day') ||
+          (repeat_unit === 1 &&
+            repeat_type === 'week' &&
             weekAvailabilityStartDate &&
             (dayjs(weekAvailabilityStartDate).isBefore(dateToCheck) ||
               dayjs(weekAvailabilityStartDate).isSame(dateToCheck))) ||
-          (repeat === 'every_month' &&
+          (repeat_unit === 1 &&
+            repeat_type === 'month' &&
             dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck))) ||
-          (repeat === 'every_other_day' &&
-            dayjs(firstStartDate).diff(dateToCheck, 'days') % 2 === 0 &&
+          (repeat_unit !== 1 &&
+            repeat_type === 'day' &&
+            dayjs(dateToCheck).diff(firstStartDate, 'days') % repeat_unit === 0 &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck))) ||
-          (repeat === 'every_other_week' &&
-            dayjs(firstStartDate).diff(dateToCheck, 'days') % 14 === 0 &&
+          (repeat_unit !== 1 &&
+            repeat_type === 'week' &&
+            dayjs(dateToCheck).diff(weekAvailabilityStartDate, 'weeks') % repeat_unit === 0 &&
+            (dayjs(weekAvailabilityStartDate).isBefore(dateToCheck) ||
+              dayjs(weekAvailabilityStartDate).isSame(dateToCheck))) ||
+          (repeat_unit !== 1 &&
+            repeat_type === 'month' &&
+            dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
+            dayjs(dateToCheck).diff(firstStartDate, 'months') % repeat_unit === 0 &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck)))
         ) {
@@ -215,7 +260,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
       } else {
         product.availableMessage = `Available on ${availabilityFound}`
       }
-    } else if (repeat === 'none' && dayjs(firstStartDate).isBefore(date)) {
+    } else if (repeat_unit === 0 && dayjs(firstStartDate).isBefore(date)) {
       product.nextAvailable = 'none'
       product.availableMessage = `Not available anymore`
     } else {
