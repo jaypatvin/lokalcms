@@ -12,7 +12,6 @@ const DayKeyVal: { [x: number]: Days } = {
   6: 'sat',
 }
 
-type RepeatUnit = number
 
 type RepeatType =
   | 'none'
@@ -30,7 +29,7 @@ type CustomDate = {
 
 type DayType = {
   start_date: string
-  repeat_unit: RepeatUnit
+  repeat_unit: number
   repeat_type: RepeatType
 }
 
