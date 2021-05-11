@@ -14,12 +14,9 @@ const DayKeyVal: { [x: number]: Days } = {
 
 
 type RepeatType =
-  | 'none'
-  | 'every_day'
-  | 'every_other_day'
-  | 'every_week'
-  | 'every_other_week'
-  | 'every_month'
+  | 'day'
+  | 'week'
+  | 'month'
 
 type CustomDate = {
   date: string
