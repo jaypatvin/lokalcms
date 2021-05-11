@@ -123,7 +123,11 @@ const getAvailableShops = async (req: Request, res: Response) => {
 
   let everyMonth = await ShopsService.getCommunityShopsWithFilter({
     community_id,
-    wheres: [...initialWheres, ['operating_hours.repeat_type', '==', 'every_month']],
+    wheres: [
+      ...initialWheres,
+      ['operating_hours.repeat_unit', '==', 1],
+      ['operating_hours.repeat_type', '==', 'month'],
+    ],
   })
   everyMonth = everyMonth.filter((shop) => {
     const start_date = shop.operating_hours.start_dates[0]

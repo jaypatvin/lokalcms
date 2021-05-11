@@ -134,7 +134,11 @@ const getAvailableProducts = async (req: Request, res: Response) => {
 
   let everyMonth = await ProductsService.getCommunityProductsWithFilter({
     community_id,
-    wheres: [...initialWheres, ['availability.repeat_type', '==', 'every_month']],
+    wheres: [
+      ...initialWheres,
+      ['availability.repeat_unit', '==', 1],
+      ['availability.repeat_type', '==', 'month'],
+    ],
   })
   everyMonth = everyMonth.filter((product) => {
     const start_date = product.availability.start_dates[0]

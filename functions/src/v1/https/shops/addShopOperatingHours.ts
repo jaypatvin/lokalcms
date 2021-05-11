@@ -83,7 +83,7 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *           "start_time": "08:00 AM",
  *           "end_time": "04:00 PM",
  *           "start_dates": [
- *             "2021-05-03",
+ *             "2021-05-03"
  *           ],
  *           "repeat_unit": 1,
  *           "repeat_type": "month"
