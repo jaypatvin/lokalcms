@@ -54,7 +54,7 @@ type Fields = {
   start_time: string
   end_time: string
   start_dates: string[]
-  repeat_unit: RepeatUnit
+  repeat_unit: number
   repeat_type: RepeatType
   unavailable_dates?: string[]
   custom_dates?: CustomDate[]
