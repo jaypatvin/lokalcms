@@ -28,7 +28,7 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *             properties:
  *               user_id:
  *                 type: string
- *               users:
+ *               members:
  *                 type: array
  *                 items:
  *                   type: string
@@ -67,7 +67,7 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  */
 const createChat = async (req: Request, res: Response) => {
   const data = req.body
-  const { user_id, users, title, shop_id, product_id, message, media } = data
+  const { user_id, members, title, shop_id, product_id, message, media } = data
   let requestorDocId = res.locals.userDocId
   let requestorCommunityId = res.locals.userCommunityId
 
@@ -88,7 +88,7 @@ const createChat = async (req: Request, res: Response) => {
     }
   }
 
-  const chatId = hashArrayOfStrings(users)
+  const chatId = hashArrayOfStrings(members)
   let chat = await ChatsService.getChatById(chatId)
   if (!chat) {
     let newChatTitle = title
@@ -101,16 +101,16 @@ const createChat = async (req: Request, res: Response) => {
       newChatTitle += `: ${product.name}`
     }
     if (!shop_id && !product_id && !newChatTitle) {
-      const user_names = []
-      for (let i = 0; i < users.length; i++) {
-        const user = await UsersService.getUserByID(users[i])
-        user_names.push(user.display_name)
+      const member_names = []
+      for (let i = 0; i < members.length; i++) {
+        const user = await UsersService.getUserByID(members[i])
+        member_names.push(user.display_name)
       }
-      newChatTitle = user_names.join(', ')
+      newChatTitle = member_names.join(', ')
     }
     const newChat: any = {
       title: newChatTitle,
-      users,
+      members,
       community_id: requestorCommunityId,
       archived: false,
     }

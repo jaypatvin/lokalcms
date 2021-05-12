@@ -9,7 +9,7 @@
  *           type: string
  *         title:
  *           type: string
- *         users:
+ *         members:
  *           type: array
  *           items:
  *             type: string

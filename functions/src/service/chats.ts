@@ -21,7 +21,7 @@ export const getChatById = async (id) => {
 export const createChat = async (data) => {
   return await db
     .collection('chats')
-    .doc(hashArrayOfStrings(data.users))
+    .doc(hashArrayOfStrings(data.members))
     .set({ ...data, created_at: new Date() })
     .then((res) => {
       return res
