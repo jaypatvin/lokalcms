@@ -25,6 +25,7 @@ const role = async (req: Request, res: Response, next: NextFunction) => {
     if (userDocs.length) {
       const user = userDocs[0]
       res.locals.userDocId = user.id
+      res.locals.userCommunityId = user.community_id
       userRoles = user.roles
       if (userRoles && userRoles.admin) {
         // if admin, all roles should be true

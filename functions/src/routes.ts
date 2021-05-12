@@ -16,7 +16,8 @@ import {
   ActivitiesAPI,
   CommentsAPI,
   LikesAPI,
-  SearchAPI
+  SearchAPI,
+  ChatsAPI
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -165,4 +166,7 @@ module.exports = (api: Express) => {
 
   // -- Utilities routes
   api.route('/v1/search').get(wrapAsync(SearchAPI.mainSearch))
+
+  // -- Chats routes
+  api.route('/v1/chats').post(wrapAsync(ChatsAPI.createChat))
 }
