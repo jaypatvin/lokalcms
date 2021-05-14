@@ -63,6 +63,24 @@ import { fieldIsNum } from '../../../utils/helpers'
  *         "product_id": "product-id-1"
  *       }
  *       ```
+ *
+ *       ## User _user-id-1_ chatting about specific product _product-id-1_ of shop _shop-id-1_ with image
+ *       ```
+ *       {
+ *         "user_id": "user-id-1",
+ *         "members": ["user-id-1", "shop-id-1", "product-id-1"],
+ *         "message": "This cake doesn't taste good.",
+ *         "media": [
+ *           {
+ *             "type": "image",
+ *             "url": "https://image.shutterstock.com/image-vector/sample-stamp-grunge-texture-vector-260nw-1389188336.jpg",
+ *             "order": 1
+ *           }
+ *         ],
+ *         "shop_id": "shop-id-1",
+ *         "product_id": "product-id-1"
+ *       }
+ *       ```
  *     requestBody:
  *       required: true
  *       content:
