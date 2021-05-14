@@ -68,59 +68,93 @@ const getAvailableShops = async (req: Request, res: Response) => {
 
   let everyDay = await ShopsService.getCommunityShopsWithFilter({
     community_id,
-    wheres: [...initialWheres, ['operating_hours.repeat', '==', 'every_day']],
+    wheres: [
+      ...initialWheres,
+      ['operating_hours.repeat_unit', '==', 1],
+      ['operating_hours.repeat_type', '==', 'day'],
+    ],
   })
   everyDay = everyDay.filter((shop) => {
     const start_date = shop.operating_hours.start_dates[0]
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
 
+  let everyNDay = await ShopsService.getCommunityShopsWithFilter({
+    community_id,
+    wheres: [
+      ...initialWheres,
+      ['operating_hours.repeat_unit', 'not-in', [0, 1]],
+      ['operating_hours.repeat_type', '==', 'day'],
+    ],
+  })
+  everyNDay = everyNDay.filter((shop) => {
+    const start_date = shop.operating_hours.start_dates[0]
+    const isValid = dayjs(date).diff(start_date, 'days') % 2 === 0
+    return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
+  })
+
   let everyWeek = await ShopsService.getCommunityShopsWithFilter({
     community_id,
-    wheres: [...initialWheres, [`operating_hours.schedule.${day}.repeat`, '==', 'every_week']],
+    wheres: [
+      ...initialWheres,
+      [`operating_hours.schedule.${day}.repeat_unit`, '==', 1],
+      [`operating_hours.schedule.${day}.repeat_type`, '==', 'week'],
+    ],
   })
   everyWeek = everyWeek.filter((shop) => {
     const start_date = _.get(shop, `operating_hours.schedule.${day}.start_date`)
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
 
-  let customAvailable = await ShopsService.getCommunityShopsWithFilter({
-    community_id,
-    wheres: initialWheres,
-    orderBy: `operating_hours.schedule.custom.${date}.start_time`,
-  })
-
-  let everyOtherDay = await ShopsService.getCommunityShopsWithFilter({
-    community_id,
-    wheres: [...initialWheres, ['operating_hours.repeat', '==', 'every_other_day']],
-  })
-  everyOtherDay = everyOtherDay.filter((shop) => {
-    const start_date = shop.operating_hours.start_dates[0]
-    const isValid = dayjs(start_date).diff(date, 'days') % 2 === 0
-    return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
-  })
-
-  let everyOtherWeek = await ShopsService.getCommunityShopsWithFilter({
+  let everyNWeek = await ShopsService.getCommunityShopsWithFilter({
     community_id,
     wheres: [
       ...initialWheres,
-      [`operating_hours.schedule.${day}.repeat`, '==', 'every_other_week'],
+      [`operating_hours.schedule.${day}.repeat_unit`, 'not-in', [0, 1]],
+      [`operating_hours.schedule.${day}.repeat_type`, '==', 'week'],
     ],
   })
-  everyOtherWeek = everyOtherWeek.filter((shop) => {
+  everyNWeek = everyNWeek.filter((shop) => {
     const start_date = _.get(shop, `operating_hours.schedule.${day}.start_date`)
-    const isValid = dayjs(start_date).diff(date, 'days') % 14 === 0
+    const isValid =
+      dayjs(date).diff(start_date, 'weeks') % _.get(shop, 'operating_hours.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
   let everyMonth = await ShopsService.getCommunityShopsWithFilter({
     community_id,
-    wheres: [...initialWheres, ['operating_hours.repeat', '==', 'every_month']],
+    wheres: [
+      ...initialWheres,
+      ['operating_hours.repeat_unit', '==', 1],
+      ['operating_hours.repeat_type', '==', 'month'],
+    ],
   })
   everyMonth = everyMonth.filter((shop) => {
     const start_date = shop.operating_hours.start_dates[0]
     const isValid = dayjs(start_date).date() === dayjs(date).date()
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
+  })
+
+  let everyNMonth = await ShopsService.getCommunityShopsWithFilter({
+    community_id,
+    wheres: [
+      ...initialWheres,
+      [`operating_hours.repeat_unit`, 'not-in', [0, 1]],
+      [`operating_hours.repeat_type`, '==', 'month'],
+    ],
+  })
+  everyNMonth = everyNMonth.filter((shop) => {
+    const start_date = shop.operating_hours.start_dates[0]
+    const isValid =
+      dayjs(start_date).date() === dayjs(date).date() &&
+      dayjs(date).diff(start_date, 'months') % _.get(shop, 'operating_hours.repeat_unit') === 0
+    return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
+  })
+
+  let customAvailable = await ShopsService.getCommunityShopsWithFilter({
+    community_id,
+    wheres: initialWheres,
+    orderBy: `operating_hours.schedule.custom.${date}.start_time`,
   })
 
   const unavailable = await ShopsService.getCommunityShopsWithFilter({
@@ -131,11 +165,12 @@ const getAvailableShops = async (req: Request, res: Response) => {
 
   const allAvailable = [
     ...everyDay,
+    ...everyNDay,
     ...everyWeek,
-    ...customAvailable,
-    ...everyOtherDay,
-    ...everyOtherWeek,
+    ...everyNWeek,
     ...everyMonth,
+    ...everyNMonth,
+    ...customAvailable,
   ]
   const result = _.chain(allAvailable)
     .filter((shop) => !_.includes(unavailableIds, shop.id))
@@ -149,16 +184,17 @@ const getAvailableShops = async (req: Request, res: Response) => {
     delete shop.operating_hours
   })
 
-  const allUnavailableFilter = availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds]] : null
+  const allUnavailableFilter =
+    availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds]] : null
   const unavailable_shops = await ShopsService.getCommunityShopsWithFilter({
     community_id,
     wheres: allUnavailableFilter || initialWheres,
   })
 
-
   unavailable_shops.forEach((shop) => {
     const operating_hours = shop.operating_hours
-    const repeat = operating_hours.repeat
+    const repeat_unit = operating_hours.repeat_unit
+    const repeat_type = operating_hours.repeat_type
     const firstStartDate = operating_hours.start_dates[0]
     let availabilityFound
     let i = 1
@@ -168,7 +204,7 @@ const getAvailableShops = async (req: Request, res: Response) => {
       const dateToCheckDay = DayKeyVal[dateToCheck.day()]
       if (
         !_.get(operating_hours, `schedule.custom.${dateToCheckFormat}.unavailable`) ||
-        (repeat === 'none' && dayjs(firstStartDate).isBefore(date))
+        (repeat_unit === 0 && dayjs(firstStartDate).isBefore(date))
       ) {
         const weekAvailabilityStartDate = _.get(
           operating_hours,
@@ -176,21 +212,31 @@ const getAvailableShops = async (req: Request, res: Response) => {
         )
         if (
           _.get(operating_hours, `schedule.custom.${dateToCheckFormat}.start_time`) ||
-          repeat === 'every_day' ||
-          (repeat === 'every_week' &&
+          (repeat_unit === 1 && repeat_type === 'day') ||
+          (repeat_unit === 1 &&
+            repeat_type === 'week' &&
             weekAvailabilityStartDate &&
             (dayjs(weekAvailabilityStartDate).isBefore(dateToCheck) ||
               dayjs(weekAvailabilityStartDate).isSame(dateToCheck))) ||
-          (repeat === 'every_month' &&
+          (repeat_unit === 1 &&
+            repeat_type === 'month' &&
             dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck))) ||
-          (repeat === 'every_other_day' &&
-            dayjs(firstStartDate).diff(dateToCheck, 'days') % 2 === 0 &&
+          (repeat_unit !== 1 &&
+            repeat_type === 'day' &&
+            dayjs(dateToCheck).diff(firstStartDate, 'days') % repeat_unit === 0 &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck))) ||
-          (repeat === 'every_other_week' &&
-            dayjs(firstStartDate).diff(dateToCheck, 'days') % 14 === 0 &&
+          (repeat_unit !== 1 &&
+            repeat_type === 'week' &&
+            dayjs(dateToCheck).diff(weekAvailabilityStartDate, 'weeks') % repeat_unit === 0 &&
+            (dayjs(weekAvailabilityStartDate).isBefore(dateToCheck) ||
+              dayjs(weekAvailabilityStartDate).isSame(dateToCheck))) ||
+          (repeat_unit !== 1 &&
+            repeat_type === 'month' &&
+            dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
+            dayjs(dateToCheck).diff(firstStartDate, 'months') % repeat_unit === 0 &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck)))
         ) {
@@ -207,7 +253,7 @@ const getAvailableShops = async (req: Request, res: Response) => {
       } else {
         shop.availableMessage = `Available on ${availabilityFound}`
       }
-    } else if (repeat === 'none' && dayjs(firstStartDate).isBefore(date)) {
+    } else if (repeat_unit === 0 && dayjs(firstStartDate).isBefore(date)) {
       shop.nextAvailable = 'none'
       shop.availableMessage = `Not available anymore`
     } else {

@@ -1,13 +1,14 @@
 import dayjs from 'dayjs'
 import _ from 'lodash'
-import { dateFormat, hourFormat, repeatValues, timeFormatError } from './helpers'
+import { dateFormat, hourFormat, repeatTypeValues, timeFormatError } from './helpers'
 
 const validateOperatingHours = (operating_hours: any) => {
   const {
     start_time,
     end_time,
     start_dates,
-    repeat,
+    repeat_unit,
+    repeat_type,
     unavailable_dates,
     custom_dates,
   } = operating_hours
@@ -21,8 +22,11 @@ const validateOperatingHours = (operating_hours: any) => {
   if (_.isEmpty(start_dates)) {
     errors.push('start_dates is missing.')
   }
-  if (_.isEmpty(repeat)) {
-    errors.push('repeat is missing.')
+  if (!_.isNumber(repeat_unit)) {
+    errors.push('repeat_unit is missing or not a number.')
+  }
+  if (_.isEmpty(repeat_type)) {
+    errors.push('repeat_type is missing.')
   }
   if (!_.isEmpty(errors)) {
     return { valid: false, message: 'Required fields missing', errors }
@@ -53,8 +57,12 @@ const validateOperatingHours = (operating_hours: any) => {
     return { valid: false, message: 'Invalid starting dates', errors }
   }
 
-  if (!_.includes(repeatValues, repeat)) {
-    return { valid: false, message: `Repeat can only be one of ${repeatValues}` }
+  if (!_.includes(repeatTypeValues, repeat_type)) {
+    return { valid: false, message: `repeat_type can only be one of ${repeatTypeValues}` }
+  }
+
+  if (_.isNaN(repeat_unit)) {
+    return { valid: false, message: 'repeat_unit can only be a number' }
   }
 
   if (!_.isEmpty(unavailable_dates)) {
