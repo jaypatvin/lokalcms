@@ -208,7 +208,7 @@ const createChat = async (req: Request, res: Response) => {
   }
 
   const chatMessage: any = {
-    user_id: requestorDocId,
+    sender_id: requestorDocId,
     sent_at: new Date(),
     archived: false,
   }
