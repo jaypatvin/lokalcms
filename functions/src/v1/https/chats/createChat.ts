@@ -9,6 +9,7 @@ import {
 import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
+import { fieldIsNum } from '../../../utils/helpers'
 
 /**
  * @openapi
@@ -18,7 +19,50 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *       - chats
  *     security:
  *       - bearerAuth: []
- *     description: Create chat
+ *     description: |
+ *       The document ID of the chat to be created will be the hash of the members field, and will be the same regardless of order.
+ *       If a chat document with the hash id does not exist yet, it will be created.
+ *       Otherwise, there will be just new entry on the conversation field of the chat document
+ *       # Examples
+ *       ## User _user-id-1_ chatting with users _user-id-2_ and _user-id-3_
+ *       ```
+ *       {
+ *         "user_id": "user-id-1",
+ *         "members": ["user-id-1", "user-id-2", "user-id-3"],
+ *         "message": "Hello there."
+ *       }
+ *       ```
+ *
+ *       ## User _user-id-1_ starting a chat with users _user-id-2_ and _user-id-3_ with custom title
+ *       ```
+ *       {
+ *         "user_id": "user-id-1",
+ *         "members": ["user-id-1", "user-id-2", "user-id-3"],
+ *         "title": "Peaky Blinders",
+ *         "message": "Hello there."
+ *       }
+ *       ```
+ *
+ *       ## User _user-id-1_ chatting with shop _shop-id-1
+ *       ```
+ *       {
+ *         "user_id": "user-id-1",
+ *         "members": ["user-id-1", "shop-id-1"],
+ *         "message": "Hello there shop.",
+ *         "shop_id": "shop-id-1"
+ *       }
+ *       ```
+ *
+ *       ## User _user-id-1_ chatting about specific product _product-id-1_ of shop _shop-id-1_
+ *       ```
+ *       {
+ *         "user_id": "user-id-1",
+ *         "members": ["user-id-1", "shop-id-1", "product-id-1"],
+ *         "message": "Hello there shop.",
+ *         "shop_id": "shop-id-1",
+ *         "product_id": "product-id-1"
+ *       }
+ *       ```
  *     requestBody:
  *       required: true
  *       content:
@@ -88,6 +132,32 @@ const createChat = async (req: Request, res: Response) => {
     }
   }
 
+  let messageMedia
+  if (media) {
+    if (!Array.isArray(media))
+      return res.status(400).json({
+        status: 'error',
+        message: 'Media is not an array of type object: {url: string, order: number, type: string}',
+      })
+
+    for (let [i, g] of media.entries()) {
+      if (!g.url)
+        return res.status(400).json({ status: 'error', message: 'Missing media url for item ' + i })
+      if (!g.type)
+        return res.status(400).json({ status: 'error', message: 'Missing type for item ' + i })
+
+      if (!fieldIsNum(g.order))
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'order is not a type of number for item ' + i })
+    }
+
+    messageMedia = media
+  }
+
+  if (!message && !messageMedia)
+    return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
+
   const chatId = hashArrayOfStrings(members)
   let chat = await ChatsService.getChatById(chatId)
   if (!chat) {
@@ -121,10 +191,12 @@ const createChat = async (req: Request, res: Response) => {
 
   const chatMessage: any = {
     user_id: requestorDocId,
-    message,
     sent_at: new Date(),
     archived: false,
   }
+
+  if (message) chatMessage.message = message
+  if (messageMedia) chatMessage.media = media
 
   const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
 

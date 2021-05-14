@@ -17,7 +17,7 @@ const hashArrayOfStrings = (arrayOfStrings: string[]) => {
       sum = sum + 65027 / cs
     }
   }
-  return ('' + sum).slice(0, 16)
+  return ('' + sum).slice(0, 16).replace('.', '')
 }
 
 export default hashArrayOfStrings
