@@ -45,7 +45,7 @@ import { required_fields } from './index'
 const createCategory = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   if (!roles.admin)
     return res.status(403).json({
       status: 'error',

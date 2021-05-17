@@ -38,7 +38,7 @@ import { Request, Response } from 'express'
  */
 const claimInvite = async (req: Request, res: Response) => {
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   let _invite
   let _user
   try {

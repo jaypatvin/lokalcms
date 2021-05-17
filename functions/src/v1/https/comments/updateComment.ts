@@ -57,7 +57,7 @@ import { fieldIsNum } from '../../../utils/helpers'
 const updateComment = async (req: Request, res: Response) => {
   const { activityId, commentId } = req.params
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
 
   const _activity = await ActivitiesService.getActivityById(activityId)
 

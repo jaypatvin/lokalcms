@@ -48,7 +48,7 @@ const createShop = async (req: Request, res: Response) => {
   const data = req.body
   const { user_id, name, description, is_close, status, source, profile_photo, cover_photo } = data
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== user_id)
     return res.status(403).json({
       status: 'error',

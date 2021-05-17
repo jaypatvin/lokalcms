@@ -111,6 +111,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                       type: string
  *                     type:
  *                       type: string
+ *                       enum: [image, audio, video]
  *                     order:
  *                       type: number
  *     responses:
@@ -130,8 +131,9 @@ import { fieldIsNum } from '../../../utils/helpers'
 const createChat = async (req: Request, res: Response) => {
   const data = req.body
   const { user_id, members, title, shop_id, product_id, message, media } = data
-  let requestorDocId = res.locals.userDocId
-  let requestorCommunityId = res.locals.userCommunityId
+  let requestorDocId = res.locals.userDoc.id
+  let requestorName = res.locals.userDoc.display_name
+  let requestorCommunityId = res.locals.userDoc.community_id
 
   const error_fields = validateFields(data, required_fields)
   if (error_fields.length) {
@@ -144,6 +146,7 @@ const createChat = async (req: Request, res: Response) => {
     if (user_id) {
       const user = await UsersService.getUserByID(user_id)
       requestorDocId = user.id
+      requestorName = user.display_name
       requestorCommunityId = user.community_id
     } else {
       return res.status(400).json({ status: 'error', message: 'Sender information is missing' })
@@ -176,6 +179,24 @@ const createChat = async (req: Request, res: Response) => {
   if (!message && !messageMedia)
     return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
 
+  const last_message: any = {}
+  let content = message
+  if (media && !content) {
+    const numOfMedia = media.length
+    if (media[0].type === 'image') {
+      content = `sent ${media.length} photo${numOfMedia > 1 ? 's' : ''}`
+    } else if (media[0].type === 'video') {
+      content = `sent ${media.length} video${numOfMedia > 1 ? 's' : ''}`
+    } else if (media[0].type === 'audio') {
+      content = `sent an audio`
+    } else {
+      content = 'sent a message'
+    }
+  }
+  last_message.content = content
+  last_message.sender = requestorName
+  last_message.created_at = new Date()
+
   const chatId = hashArrayOfStrings(members)
   let chat = await ChatsService.getChatById(chatId)
   if (!chat) {
@@ -201,10 +222,13 @@ const createChat = async (req: Request, res: Response) => {
       members,
       community_id: requestorCommunityId,
       archived: false,
+      last_message,
     }
     if (shop_id) newChat.shop_id = shop_id
     if (product_id) newChat.product_id = product_id
     chat = await ChatsService.createChat(newChat)
+  } else {
+    await ChatsService.updateChat(chatId, { last_message })
   }
 
   const chatMessage: any = {

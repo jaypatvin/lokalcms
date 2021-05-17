@@ -20,12 +20,12 @@ const roles = [
 const role = async (req: Request, res: Response, next: NextFunction) => {
   const authUser = req.user
   let userRoles: RolesType = {}
+  res.locals.userDoc = {}
   if (authUser && authUser.uid) {
     const userDocs = await UsersService.getUserByUID(authUser.uid)
     if (userDocs.length) {
       const user = userDocs[0]
-      res.locals.userDocId = user.id
-      res.locals.userCommunityId = user.community_id
+      res.locals.userDoc = user
       userRoles = user.roles
       if (userRoles && userRoles.admin) {
         // if admin, all roles should be true

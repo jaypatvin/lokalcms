@@ -161,7 +161,7 @@ const addShopOperatingHours = async (req: Request, res: Response) => {
   if (!shop) return res.status(404).json({ status: 'error', message: 'Invalid Shop Id!' })
 
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== shop.user_id)
     return res.status(403).json({
       status: 'error',
