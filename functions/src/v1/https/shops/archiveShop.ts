@@ -35,7 +35,7 @@ const archiveShop = async (req: Request, res: Response) => {
   const data = req.body
   const { shopId } = req.params
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   const _shop = await ShopsService.getShopByID(shopId)
 
   if (!_shop) return res.status(403).json({ status: 'error', message: 'Shop does not exist!' })

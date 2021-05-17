@@ -52,7 +52,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  */
 const createActivity = async (req: Request, res: Response) => {
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   let _community
   let _user
 

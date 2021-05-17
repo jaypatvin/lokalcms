@@ -70,7 +70,7 @@ export const updateCommunity = async (req: Request, res: Response) => {
   const { communityId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   if (!roles.editor)
     return res.status(403).json({
       status: 'error',

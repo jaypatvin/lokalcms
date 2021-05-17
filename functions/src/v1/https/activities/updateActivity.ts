@@ -46,7 +46,7 @@ import { fieldIsNum } from '../../../utils/helpers'
 const updateActivity = async (req: Request, res: Response) => {
   const { activityId } = req.params
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
 
   if (!activityId)
     return res.status(400).json({ status: 'error', message: 'activity id is required!' })

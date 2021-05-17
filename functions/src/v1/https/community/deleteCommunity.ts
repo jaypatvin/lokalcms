@@ -40,7 +40,7 @@ const deleteCommunity = async (req: Request, res: Response) => {
     })
   }
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   const { communityId, name } = req.params
   if (!communityId)
     return res.status(400).json({ status: 'error', message: 'Community ID is required!' })

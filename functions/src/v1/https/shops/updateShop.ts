@@ -61,7 +61,7 @@ const updateShop = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Shop does not exist!' })
 
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== currentShop.user_id)
     return res.status(403).json({
       status: 'error',

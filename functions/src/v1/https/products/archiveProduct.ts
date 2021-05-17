@@ -35,7 +35,7 @@ const archiveProduct = async (req: Request, res: Response) => {
   const data = req.body
   const { productId } = req.params
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   const _product = await ProductsService.getProductByID(productId)
 
   if (!_product)

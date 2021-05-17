@@ -40,7 +40,7 @@ import { ActivitiesService, CommentsService } from '../../../service'
 const unarchiveComment = async (req: Request, res: Response) => {
   const { activityId, commentId } = req.params
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
 
   const activity = await ActivitiesService.getActivityById(activityId)
   if (!activity) return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })

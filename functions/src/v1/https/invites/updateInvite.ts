@@ -48,7 +48,7 @@ import { generateInviteKeywords } from '../../../utils/generateKeywords'
 const updateInvite = async (req: Request, res: Response) => {
   const { inviteId } = req.params
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
 
   if (!inviteId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 

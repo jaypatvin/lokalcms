@@ -47,7 +47,7 @@ sgMail.setApiKey(functions.config().mail_service.key)
 
 const createInvite = async (req: Request, res: Response) => {
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   const error_fields = validateFields(data, required_fields)
 
   if (error_fields.length) {

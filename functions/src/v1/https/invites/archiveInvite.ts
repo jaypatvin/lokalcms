@@ -33,7 +33,7 @@ import { InvitesService } from '../../../service'
  */
 const archiveInvite = async (req: Request, res: Response) => {
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   const { inviteId } = req.params
   const roles = res.locals.userRoles
   const _invite = await InvitesService.getInviteByID(inviteId)

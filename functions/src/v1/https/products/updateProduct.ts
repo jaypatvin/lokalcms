@@ -72,7 +72,7 @@ const updateProduct = async (req: Request, res: Response) => {
   if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
 
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== product.user_id)
     return res.status(403).json({
       status: 'error',

@@ -33,7 +33,7 @@ import { CategoriesService } from '../../../service'
  */
 const unarchiveCategory = async (req: Request, res: Response) => {
   const data = req.body
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   const roles = res.locals.userRoles
   if (!roles.admin) {
     return res.status(403).json({

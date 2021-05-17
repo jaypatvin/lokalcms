@@ -35,7 +35,7 @@ const unarchiveActivity = async (req: Request, res: Response) => {
   const data = req.body
   const { activityId } = req.params
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   const _activity = await ActivitiesService.getActivityById(activityId)
 
   if (!_activity)

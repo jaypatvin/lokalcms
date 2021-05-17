@@ -61,7 +61,7 @@ import { db, auth } from '../index'
 const createUser = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDocId
+  const requestorDocId = res.locals.userDoc.id
   const tokenUser = req.user
 
   let _authUser
