@@ -17,77 +17,69 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *       ## available on 2021-04-28 and every 3 days after
  *       ```
  *       {
- *         "operating_hours": {
- *           "start_time": "09:00 AM",
- *           "end_time": "03:00 PM",
- *           "start_dates": [
- *             "2021-04-28"
- *           ],
- *           "repeat_unit": 3,
- *           "repeat_type": "day"
- *         }
+ *         "start_time": "09:00 AM",
+ *         "end_time": "03:00 PM",
+ *         "start_dates": [
+ *           "2021-04-28"
+ *         ],
+ *         "repeat_unit": 3,
+ *         "repeat_type": "day"
  *       }
  *       ```
  *
  *       ## available on mon, wed, fri starting at 2021-04-26, 2021-04-28, 2021-04-30, every other week and also one time available on 2021-04-29
  *       ```
  *       {
- *         "operating_hours": {
- *           "start_time": "08:00 AM",
- *           "end_time": "04:00 PM",
- *           "start_dates": [
- *             "2021-04-26",
- *             "2021-04-28",
- *             "2021-04-30"
- *           ],
- *           "repeat_unit": 2,
- *           "repeat_type": "week",
- *           "custom_dates": [
- *             {
- *               "date": "2021-04-29"
- *             }
- *           ]
- *         }
+ *         "start_time": "08:00 AM",
+ *         "end_time": "04:00 PM",
+ *         "start_dates": [
+ *           "2021-04-26",
+ *           "2021-04-28",
+ *           "2021-04-30"
+ *         ],
+ *         "repeat_unit": 2,
+ *         "repeat_type": "week",
+ *         "custom_dates": [
+ *           {
+ *             "date": "2021-04-29"
+ *           }
+ *         ]
  *       }
  *       ```
  *
  *       ## available on mon, wed starting at 2021-05-03, 2021-05-05, every week, but not on 2021-05-10, and have an early end time on 2021-05-19
  *       ```
  *       {
- *         "operating_hours": {
- *           "start_time": "08:00 AM",
- *           "end_time": "04:00 PM",
- *           "start_dates": [
- *             "2021-05-03",
- *             "2021-05-05"
- *           ],
- *           "repeat_unit": 1,
- *           "repeat_type": "week",
- *           "unavailable_dates": [
- *             "2021-05-10"
- *           ],
- *           "custom_dates": [
- *             {
- *               "date": "2021-05-19",
- *               "end_time": "01:00 PM"
- *             }
- *           ]
- *         }
+ *         "start_time": "08:00 AM",
+ *         "end_time": "04:00 PM",
+ *         "start_dates": [
+ *           "2021-05-03",
+ *           "2021-05-05"
+ *         ],
+ *         "repeat_unit": 1,
+ *         "repeat_type": "week",
+ *         "unavailable_dates": [
+ *           "2021-05-10"
+ *         ],
+ *         "custom_dates": [
+ *           {
+ *             "date": "2021-05-19",
+ *             "end_time": "01:00 PM"
+ *           }
+ *         ]
  *       }
  *       ```
  *
  *       ## available on 2021-05-03 and every month
  *       ```
  *       {
- *         "operating_hours": {
- *           "start_time": "08:00 AM",
- *           "end_time": "04:00 PM",
- *           "start_dates": [
- *             "2021-05-03"
- *           ],
- *           "repeat_unit": 1,
- *           "repeat_type": "month"
- *         }
+ *         "start_time": "08:00 AM",
+ *         "end_time": "04:00 PM",
+ *         "start_dates": [
+ *           "2021-05-03"
+ *         ],
+ *         "repeat_unit": 1,
+ *         "repeat_type": "month"
  *       }
  *       ```
  *     parameters:
@@ -104,37 +96,34 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *           schema:
  *             type: object
  *             properties:
- *               operating_hours:
- *                 type: object
- *                 properties:
- *                   start_time:
- *                     type: string
- *                   end_time:
- *                     type: string
- *                   start_dates:
- *                     type: array
- *                     items:
+ *               start_time:
+ *                 type: string
+ *               end_time:
+ *                 type: string
+ *               start_dates:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               repeat_unit:
+ *                 type: number
+ *               repeat_type:
+ *                 type: string
+ *                 enum: [day, week, month]
+ *               unavailable_dates:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               custom_dates:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     date:
  *                       type: string
- *                   repeat_unit:
- *                     type: number
- *                   repeat_type:
- *                     type: string
- *                     enum: [day, week, month]
- *                   unavailable_dates:
- *                     type: array
- *                     items:
+ *                     start_time:
  *                       type: string
- *                   custom_dates:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         date:
- *                           type: string
- *                         start_time:
- *                           type: string
- *                         end_time:
- *                           type: string
+ *                     end_time:
+ *                       type: string
  *     responses:
  *       200:
  *         description: Updated shop
@@ -152,7 +141,6 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
 const addShopOperatingHours = async (req: Request, res: Response) => {
   const { shopId } = req.params
   const data = req.body
-  const operating_hours = data.operating_hours
 
   if (!shopId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
@@ -162,19 +150,19 @@ const addShopOperatingHours = async (req: Request, res: Response) => {
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== shop.user_id)
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to update a shop of another user.',
-    })
+  // if (!roles.editor && requestorDocId !== shop.user_id)
+  //   return res.status(403).json({
+  //     status: 'error',
+  //     message: 'You do not have a permission to update a shop of another user.',
+  //   })
 
   const updateData: any = {
     updated_by: requestorDocId || '',
     updated_from: data.source || '',
   }
 
-  if (!_.isEmpty(operating_hours)) {
-    const validation = validateOperatingHours(operating_hours)
+  if (!_.isEmpty(data)) {
+    const validation = validateOperatingHours(data)
     if (!validation.valid)
       return res.status(400).json({
         status: 'error',
@@ -189,7 +177,7 @@ const addShopOperatingHours = async (req: Request, res: Response) => {
       repeat_type,
       unavailable_dates,
       custom_dates,
-    } = operating_hours
+    } = data
 
     updateData.operating_hours = {
       start_time,
