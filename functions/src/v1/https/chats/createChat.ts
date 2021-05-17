@@ -111,6 +111,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                       type: string
  *                     type:
  *                       type: string
+ *                       enum: [image, audio, video]
  *                     order:
  *                       type: number
  *     responses:
