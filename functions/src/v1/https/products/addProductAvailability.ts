@@ -150,11 +150,11 @@ const addProductAvailability = async (req: Request, res: Response) => {
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  // if (!roles.editor && requestorDocId !== product.user_id)
-  //   return res.status(403).json({
-  //     status: 'error',
-  //     message: 'You do not have a permission to update a product of another user.',
-  //   })
+  if (!roles.editor && requestorDocId !== product.user_id)
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to update a product of another user.',
+    })
 
   const updateData: any = {
     updated_by: requestorDocId || '',
