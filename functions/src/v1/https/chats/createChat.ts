@@ -100,6 +100,8 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 type: string
  *               product_id:
  *                 type: string
+ *               reply_to:
+ *                 type: string
  *               message:
  *                 type: string
  *               media:
@@ -116,7 +118,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                       type: number
  *     responses:
  *       200:
- *         description: The new chat
+ *         description: The new chat message
  *         content:
  *           application/json:
  *             schema:
@@ -126,11 +128,11 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                   type: string
  *                   example: ok
  *                 data:
- *                   $ref: '#/components/schemas/Chat'
+ *                   $ref: '#/components/schemas/ChatMessage'
  */
 const createChat = async (req: Request, res: Response) => {
   const data = req.body
-  const { user_id, members, title, shop_id, product_id, message, media } = data
+  const { user_id, members, title, shop_id, product_id, message, media, reply_to } = data
   let requestorDocId = res.locals.userDoc.id
   let requestorName = res.locals.userDoc.display_name
   let requestorCommunityId = res.locals.userDoc.community_id
@@ -179,6 +181,11 @@ const createChat = async (req: Request, res: Response) => {
   if (!message && !messageMedia)
     return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
 
+  if (reply_to && !members.includes(reply_to))
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'User replying to is not included on the chat.' })
+
   const last_message: any = {}
   let content = message
   if (media && !content) {
@@ -201,11 +208,14 @@ const createChat = async (req: Request, res: Response) => {
   let chat = await ChatsService.getChatById(chatId)
   if (!chat) {
     let newChatTitle = title
+    let customerName
     if (shop_id) {
+      customerName = requestorName
       const shop = await ShopsService.getShopByID(shop_id)
       newChatTitle = shop.name
     }
     if (shop_id && product_id) {
+      customerName = requestorName
       const product = await ProductsService.getProductByID(product_id)
       newChatTitle += `: ${product.name}`
     }
@@ -226,6 +236,7 @@ const createChat = async (req: Request, res: Response) => {
     }
     if (shop_id) newChat.shop_id = shop_id
     if (product_id) newChat.product_id = product_id
+    if (customerName) newChat.customer_name = customerName
     chat = await ChatsService.createChat(newChat)
   } else {
     await ChatsService.updateChat(chatId, { last_message })
@@ -239,6 +250,7 @@ const createChat = async (req: Request, res: Response) => {
 
   if (message) chatMessage.message = message
   if (messageMedia) chatMessage.media = media
+  if (reply_to) chatMessage.reply_to = reply_to
 
   const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
 

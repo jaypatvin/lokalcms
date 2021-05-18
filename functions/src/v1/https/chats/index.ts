@@ -30,8 +30,30 @@
  *                 type: string
  *               sent_at:
  *                 type: string
+ *     ChatMessage:
+ *       type: object
+ *       properties:
+ *         user_id:
+ *           type: string
+ *         message:
+ *           type: string
+ *         media:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               url:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               order:
+ *                 type: number
+ *         sent_at:
+ *           type: string
  */
 
 export const required_fields = ['members']
 
 export { default as createChat } from './createChat'
+export { default as updateChatTitle } from './updateChatTitle'
+export { default as archiveChatMessage } from './archiveChatMessage'
