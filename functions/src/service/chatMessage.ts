@@ -9,7 +9,7 @@ export const getAllChatMessages = async () => {
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
-export const getChatMessageById = async (id, chat_id) => {
+export const getChatMessageById = async (chat_id, id) => {
   const message = await db.collection('chats').doc(chat_id).collection('conversation').doc(id).get()
 
   const data = message.data()

@@ -169,4 +169,6 @@ module.exports = (api: Express) => {
 
   // -- Chats routes
   api.route('/v1/chats').post(wrapAsync(ChatsAPI.createChat))
+  api.route('/v1/chats/:chatId/updateTitle').put(wrapAsync(ChatsAPI.updateChatTitle))
+  api.route('/v1/chats/:chatId/conversation/:messageId').delete(wrapAsync(ChatsAPI.archiveChatMessage))
 }
