@@ -125,13 +125,15 @@ const ListPage = ({
   }, [filter, filterMenus, search, sortBy, sortOrder, limit])
 
   const onNextPage = () => {
-    if (dataRef && lastDataOnList) {
+    if (dataRef && lastDataOnList && !isLastPage) {
+      setLoading(true)
       const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
       newDataRef.onSnapshot(async (snapshot: any) => {
         if (snapshot.docs.length) {
           getDataList(snapshot.docs)
           setPageNum(pageNum + 1)
         } else if (!isLastPage) {
+          setLoading(false)
           setIsLastPage(true)
         }
       })
@@ -141,6 +143,7 @@ const ListPage = ({
   const onPreviousPage = () => {
     const newPageNum = pageNum - 1
     if (dataRef && firstDataOnList && newPageNum > 0) {
+      setLoading(true)
       const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
       newDataRef.onSnapshot(async (snapshot: any) => {
         getDataList(snapshot.docs)
