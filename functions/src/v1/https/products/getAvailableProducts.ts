@@ -100,7 +100,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
   })
   everyNDay = everyNDay.filter((product) => {
     const start_date = product.availability.start_dates[0]
-    const isValid = dayjs(date).diff(start_date, 'days') % 2 === 0
+    const isValid = dayjs(date).diff(start_date, 'days') % _.get(product, 'availability.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 

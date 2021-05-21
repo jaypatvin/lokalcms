@@ -89,7 +89,7 @@ const getAvailableShops = async (req: Request, res: Response) => {
   })
   everyNDay = everyNDay.filter((shop) => {
     const start_date = shop.operating_hours.start_dates[0]
-    const isValid = dayjs(date).diff(start_date, 'days') % 2 === 0
+    const isValid = dayjs(date).diff(start_date, 'days') % _.get(shop, 'operating_hours.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
