@@ -9,6 +9,7 @@ import {
   IoMdArrowDropup,
   IoIosArrowBack,
   IoIosArrowForward,
+  IoMdCalendar,
 } from 'react-icons/io'
 import { colors } from '../../theme'
 
@@ -49,6 +50,7 @@ const buttonIcons = {
   caretUp: <IoMdArrowDropup size={16} />,
   arrowBack: <IoIosArrowBack size={24} />,
   arrowForward: <IoIosArrowForward size={24} />,
+  calendar: <IoMdCalendar size={24} />,
 }
 
 const buttonSizes = {

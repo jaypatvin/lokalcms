@@ -54,6 +54,11 @@ const ShopListPage = (props: any) => {
       sortable: false,
     },
     {
+      label: 'Operating hours',
+      fieldName: 'operating_hours',
+      sortable: false,
+    },
+    {
       label: 'Is Close',
       fieldName: 'is_close',
       sortable: false,

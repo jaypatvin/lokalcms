@@ -21,6 +21,7 @@ export type ButtonIcon =
   | 'caretUp'
   | 'arrowBack'
   | 'arrowForward'
+  | 'calendar'
 export type ErrorType = { field: string; message: string }
 export type SortOrderType = 'asc' | 'desc'
 export type LimitType = 10 | 25 | 50 | 100
@@ -37,3 +38,14 @@ export type FilterGroupType = {
 }
 export type FilterGroupsType = FilterGroupType[]
 export type GenericGetArgType = { search?: string; limit?: number }
+
+export type Days = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
+export const DayKeyVal: { [x: number]: Days } = {
+  0: 'sun',
+  1: 'mon',
+  2: 'tue',
+  3: 'wed',
+  4: 'thu',
+  5: 'fri',
+  6: 'sat',
+}

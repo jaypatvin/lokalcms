@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
 import dayjs from 'dayjs'
+import advancedFormat from 'dayjs/plugin/advancedFormat'
+import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
 import useOuterClick from '../../customHooks/useOuterClick'
-import { ListItemProps } from '../../utils/types'
+import { DayKeyVal, ListItemProps } from '../../utils/types'
+import { OutlineButton } from '../../components/buttons'
+
+dayjs.extend(advancedFormat)
 
 const ShopListItem = ({
   data,
@@ -12,7 +17,9 @@ const ShopListItem = ({
   isArchived = false,
 }: ListItemProps) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
+  const calendarRef = useOuterClick(() => setShowCalendar(false))
 
   let created_at = '-'
   let created_at_ago = '-'
@@ -26,6 +33,85 @@ const ShopListItem = ({
   if (data.updated_at) {
     updated_at = dayjs(data.updated_at.toDate()).format()
     updated_at_ago = dayjs(updated_at).fromNow()
+  }
+
+  let operating_hours = '-'
+  if (data.operating_hours) {
+    const {
+      start_dates,
+      repeat_unit,
+      repeat_type,
+      schedule: { mon, tue, wed, thu, fri, sat, sun },
+    } = data.operating_hours
+    if (repeat_unit === 0) {
+      operating_hours = start_dates[0]
+    } else if (repeat_unit > 0) {
+      const daysAvailable = []
+      if (mon) daysAvailable.push('monday')
+      if (tue) daysAvailable.push('tuesday')
+      if (wed) daysAvailable.push('wednesday')
+      if (thu) daysAvailable.push('thursday')
+      if (fri) daysAvailable.push('friday')
+      if (sat) daysAvailable.push('saturday')
+      if (sun) daysAvailable.push('sunday')
+      if (repeat_unit === 1) {
+        if (repeat_type === 'day') operating_hours = 'Every day'
+        if (repeat_type === 'week') operating_hours = `Every week on ${daysAvailable}`
+        if (repeat_type === 'month')
+          operating_hours = `Every ${dayjs(start_dates[0]).format('Do')} of the month`
+      } else if (repeat_unit > 1) {
+        if (repeat_type === 'day') operating_hours = `Every ${repeat_unit} days`
+        if (repeat_type === 'week')
+          operating_hours = `Every ${repeat_unit} weeks on ${daysAvailable}`
+        if (repeat_type === 'month')
+          operating_hours = `Every ${dayjs(start_dates[0]).format(
+            'Do'
+          )} of every ${repeat_unit} months`
+      }
+    }
+  }
+
+  const getTileClass = ({ date }: CalendarTileProperties) => {
+    const { start_dates, repeat_unit, repeat_type, schedule } = data.operating_hours
+    const firstDate = start_dates[0]
+    const tileDate = dayjs(date)
+    const day = DayKeyVal[tileDate.day()]
+    const schedDay = schedule[day]
+    let customDate
+    let tileClass = null
+    if (schedule.custom) {
+      customDate = schedule.custom[tileDate.format('YYYY-MM-DD')]
+    }
+    if (customDate && customDate.unavailable) {
+      tileClass = 'gray'
+    } else if (customDate && customDate.start_time && customDate.end_time) {
+      tileClass = 'yellow'
+    } else {
+      if (repeat_type === 'day') {
+        const isValid = dayjs(date).diff(firstDate, 'days') % repeat_unit === 0
+        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
+          tileClass = 'orange'
+        }
+      }
+      if (repeat_type === 'week' && schedDay) {
+        const isValid = dayjs(date).diff(schedDay.start_date, 'weeks') % repeat_unit === 0
+        if (
+          isValid &&
+          (dayjs(schedDay.start_date).isBefore(date) || dayjs(schedDay.start_date).isSame(date))
+        ) {
+          tileClass = 'orange'
+        }
+      }
+      if (repeat_type === 'month') {
+        const isValid =
+          dayjs(firstDate).date() === dayjs(date).date() &&
+          dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
+        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
+          tileClass = 'orange'
+        }
+      }
+    }
+    return tileClass
   }
 
   const OptionsComponent = isArchived ? (
@@ -75,6 +161,22 @@ const ShopListItem = ({
       </td>
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.user_email || data.user_id}</p>
+      </td>
+      <td ref={calendarRef} className="relative">
+        <p className="text-gray-900 whitespace-no-wrap flex">
+          <OutlineButton
+            className="h-8 text-primary-500 mr-1"
+            size="small"
+            icon="calendar"
+            onClick={() => setShowCalendar(true)}
+          />
+          {operating_hours}
+        </p>
+        {showCalendar && (
+          <div className="w-64 absolute z-10 shadow">
+            <ReactCalendar tileClassName={getTileClass} onChange={() => null} />
+          </div>
+        )}
       </td>
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.is_close ? 'true' : 'false'}</p>
