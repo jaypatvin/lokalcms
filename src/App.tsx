@@ -21,8 +21,8 @@ import InviteListPage from './pages/invites/InviteListPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import HistoryListPage from './pages/history/HistoryListPage'
 
-// User Edit for MyAccount
 import UserEditPage from './pages/users/UserEditPage'
+import DiscoverPage from './pages/discover/DiscoverPage'
 
 class App extends React.Component {
   render() {
@@ -46,6 +46,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/invites" component={InviteListPage} />
             <PrivateRoute exact path="/settings" component={SettingsPage} />
             <PrivateRoute exact path="/history" component={HistoryListPage} />
+            <PrivateRoute exact path="/discover" component={DiscoverPage} />
             <PrivateRoute exact path="/myaccount" component={UserEditPage} useCurrentUser={true} />
           </Switch>
         </Router>

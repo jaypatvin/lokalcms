@@ -168,7 +168,7 @@ const ShopListItem = ({
             className="h-8 text-primary-500 mr-1"
             size="small"
             icon="calendar"
-            onClick={() => setShowCalendar(true)}
+            onClick={() => setShowCalendar(!showCalendar)}
           />
           {operating_hours}
         </p>

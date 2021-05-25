@@ -89,7 +89,8 @@ const getAvailableShops = async (req: Request, res: Response) => {
   })
   everyNDay = everyNDay.filter((shop) => {
     const start_date = shop.operating_hours.start_dates[0]
-    const isValid = dayjs(date).diff(start_date, 'days') % _.get(shop, 'operating_hours.repeat_unit') === 0
+    const isValid =
+      dayjs(date).diff(start_date, 'days') % _.get(shop, 'operating_hours.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
@@ -151,15 +152,14 @@ const getAvailableShops = async (req: Request, res: Response) => {
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
-  let customAvailable = await ShopsService.getCommunityShopsWithFilter({
-    community_id,
-    wheres: initialWheres,
-    orderBy: `operating_hours.schedule.custom.${date}.start_time`,
+  let customAvailable = await ShopsService.getCustomAvailableShopsByDate(date)
+  customAvailable = customAvailable.filter((s) => {
+    return !s.archived && s.community_id === community_id && (!q || s.keywords.includes(q))
   })
 
-  const unavailable = await ShopsService.getCommunityShopsWithFilter({
-    community_id,
-    wheres: [...initialWheres, [`operating_hours.schedule.custom.${date}.unavailable`, '==', true]],
+  let unavailable = await ShopsService.getCustomUnavailableShopsByDate(date)
+  unavailable = unavailable.filter((s) => {
+    return !s.archived && s.community_id === community_id && (!q || s.keywords.includes(q))
   })
   const unavailableIds = unavailable.map((shop) => shop.id)
 
@@ -185,11 +185,12 @@ const getAvailableShops = async (req: Request, res: Response) => {
   })
 
   const allUnavailableFilter =
-    availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds]] : null
-  const unavailable_shops = await ShopsService.getCommunityShopsWithFilter({
+    availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds.slice(0, 10)]] : null
+  let unavailable_shops = await ShopsService.getCommunityShopsWithFilter({
     community_id,
     wheres: allUnavailableFilter || initialWheres,
   })
+  unavailable_shops = unavailable_shops.filter((s) => !availableIds.includes(s.id))
 
   unavailable_shops.forEach((shop) => {
     const operating_hours = shop.operating_hours
