@@ -10,10 +10,15 @@ export const getActivityComments = async (activityId: string) => {
   return await Promise.all(
     comments.docs.map(async (commentDoc) => {
       const images = await commentsRef.doc(commentDoc.id).collection('images').get()
+      const likes = await commentsRef.doc(commentDoc.id).collection('comment_likes').get()
       return {
         id: commentDoc.id,
         ...commentDoc.data(),
         images: images.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })),
+        likes: likes.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })),
@@ -50,11 +55,23 @@ export const getUserComments = async (userId: string) => {
             .collection('images')
             .get()
 
+          const likes = await db
+            .collection('activities')
+            .doc(activity.id)
+            .collection('comments')
+            .doc(commentDoc.id)
+            .collection('comment_likes')
+            .get()
+
           return {
             activityId: activity.id,
             commentId: commentDoc.id,
             ...commentDoc.data(),
             images: images.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            })),
+            likes: likes.docs.map((doc) => ({
               id: doc.id,
               ...doc.data(),
             })),
@@ -83,6 +100,7 @@ export const getCommentById = async (activityId: string, commentId: string) => {
     .doc(commentId)
   const comment = await commentRef.get()
   const images = await commentRef.collection('images').get()
+  const likes = await commentRef.collection('comment_likes').get()
   const data = comment.data()
 
   if (data)
@@ -92,6 +110,10 @@ export const getCommentById = async (activityId: string, commentId: string) => {
       images: images.docs.map((doc): any => {
         return { id: doc.id, ...doc.data() }
       }),
+      likes: likes.docs.map((doc): any => ({
+        id: doc.id,
+        ...doc.data(),
+      })),
     } as any
 
   return data

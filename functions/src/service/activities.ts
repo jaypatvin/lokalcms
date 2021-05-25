@@ -9,12 +9,16 @@ export const getActivityById = async (id) => {
   const activityRef = db.collection('activities').doc(id)
   const activity = await activityRef.get()
   const images = await activityRef.collection('images').get()
+  const likes = await activityRef.collection('likes').get()
   const data = activity.data()
   if (data)
     return {
       id: activity.id,
       ...data,
       images: images.docs.map((doc): any => {
+        return { id: doc.id, ...doc.data() }
+      }),
+      likes: likes.docs.map((doc): any => {
         return { id: doc.id, ...doc.data() }
       }),
     } as any
@@ -24,15 +28,19 @@ export const getActivityById = async (id) => {
 
 export const getAllActivities = async () => {
   const activityRef = db.collection('activities')
-  const activities = await db.collection('activities').get()
+  const activities = await activityRef.orderBy('created_at', 'desc').get()
 
   return await Promise.all(
     activities.docs.map(async (activityDoc) => {
       const images = await activityRef.doc(activityDoc.id).collection('images').get()
+      const likes = await activityRef.doc(activityDoc.id).collection('likes').get()
       return {
         id: activityDoc.id,
         ...activityDoc.data(),
         images: images.docs.map((doc): any => {
+          return { id: doc.id, ...doc.data() }
+        }),
+        likes: likes.docs.map((doc): any => {
           return { id: doc.id, ...doc.data() }
         }),
       }
@@ -101,15 +109,23 @@ export const unarchiveCommunityActivities = async (community_id) =>
 
 const getActivitiesBy = async (idType, id) => {
   const activityRef = db.collection('activities')
-  const activities = await db.collection('activities').where(idType, '==', id).get()
+  const activities = await db
+    .collection('activities')
+    .where(idType, '==', id)
+    .orderBy('created_at', 'desc')
+    .get()
 
   return await Promise.all(
     activities.docs.map(async (activityDoc) => {
       const images = await activityRef.doc(activityDoc.id).collection('images').get()
+      const likes = await activityRef.doc(activityDoc.id).collection('likes').get()
       return {
         id: activityDoc.id,
         ...activityDoc.data(),
         images: images.docs.map((doc): any => {
+          return { id: doc.id, ...doc.data() }
+        }),
+        likes: likes.docs.map((doc): any => {
           return { id: doc.id, ...doc.data() }
         }),
       }
@@ -134,25 +150,37 @@ const archiveActivityBy = async (status: boolean, idType: string, id: string) =>
 }
 
 export const incrementActivityCommentCount = async (id: string) => {
-  return await db.collection('activities').doc(id).update({
-    '_meta.comment_count': admin.firestore.FieldValue.increment(1)
-  })
+  return await db
+    .collection('activities')
+    .doc(id)
+    .update({
+      '_meta.comment_count': admin.firestore.FieldValue.increment(1),
+    })
 }
 
 export const deccrementActivityCommentCount = async (id: string) => {
-  return await db.collection('activities').doc(id).update({
-    '_meta.comment_count': admin.firestore.FieldValue.increment(-1)
-  })
+  return await db
+    .collection('activities')
+    .doc(id)
+    .update({
+      '_meta.comment_count': admin.firestore.FieldValue.increment(-1),
+    })
 }
 
 export const incrementActivityLikeCount = async (id: string) => {
-  return await db.collection('activities').doc(id).update({
-    '_meta.liked_count': admin.firestore.FieldValue.increment(1)
-  })
+  return await db
+    .collection('activities')
+    .doc(id)
+    .update({
+      '_meta.likes_count': admin.firestore.FieldValue.increment(1),
+    })
 }
 
 export const deccrementActivityLikeCount = async (id: string) => {
-  return await db.collection('activities').doc(id).update({
-    '_meta.liked_count': admin.firestore.FieldValue.increment(-1)
-  })
+  return await db
+    .collection('activities')
+    .doc(id)
+    .update({
+      '_meta.likes_count': admin.firestore.FieldValue.increment(-1),
+    })
 }
