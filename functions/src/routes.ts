@@ -163,6 +163,8 @@ module.exports = (api: Express) => {
   // -- Likes routes
   api.route('/v1/activities/:activityId/like').post(wrapAsync(LikesAPI.likeActivity))
   api.route('/v1/activities/:activityId/unlike').delete(wrapAsync(LikesAPI.unlikeActivity))
+  api.route('/v1/activities/:activityId/comments/:commentId/like').post(wrapAsync(LikesAPI.likeComment))
+  api.route('/v1/activities/:activityId/comments/:commentId/unlike').delete(wrapAsync(LikesAPI.unlikeComment))
 
   // -- Utilities routes
   api.route('/v1/search').get(wrapAsync(SearchAPI.mainSearch))
