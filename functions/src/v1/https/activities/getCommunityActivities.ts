@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ActivitiesService, CommunityService, UsersService } from '../../../service'
+import { ActivitiesService } from '../../../service'
 
 /**
  * @openapi
@@ -36,7 +36,8 @@ import { ActivitiesService, CommunityService, UsersService } from '../../../serv
 const getCommunityActivities = async (req: Request, res: Response) => {
   const { communityId } = req.params
 
-  if (!communityId) return res.status(400).json({ status: 'error', message: 'userId is required!' })
+  if (!communityId)
+    return res.status(400).json({ status: 'error', message: 'communityId is required!' })
   const activities = await ActivitiesService.getActivitiesByCommunityID(communityId)
 
   return res.status(200).json({ status: 'ok', data: activities })

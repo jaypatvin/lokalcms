@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ActivitiesService, UsersService } from '../../../service'
+import { ActivitiesService } from '../../../service'
 
 /**
  * @openapi
