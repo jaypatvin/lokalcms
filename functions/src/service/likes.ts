@@ -2,6 +2,16 @@ import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
 
+export const getActivityLike = async (activity_id: string, user_id: string) => {
+  const like = await db
+    .collection('activities')
+    .doc(activity_id)
+    .collection('likes')
+    .doc(`${activity_id}_${user_id}_like`)
+    .get()
+  return like.data()
+}
+
 export const addActivityLike = async (activity_id: string, user_id: string) => {
   const likeRef = db
     .collection('activities')
