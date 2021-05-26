@@ -1,6 +1,12 @@
 import dayjs from 'dayjs'
 import _ from 'lodash'
-import { dateFormat, hourFormat, repeatTypeValues, timeFormatError } from './helpers'
+import {
+  dateFormat,
+  hourFormat,
+  nthDayOfMonthFormat,
+  repeatTypeValues,
+  timeFormatError,
+} from './helpers'
 
 const validateOperatingHours = (operating_hours: any) => {
   const {
@@ -57,8 +63,11 @@ const validateOperatingHours = (operating_hours: any) => {
     return { valid: false, message: 'Invalid starting dates', errors }
   }
 
-  if (!_.includes(repeatTypeValues, repeat_type)) {
-    return { valid: false, message: `repeat_type can only be one of ${repeatTypeValues}` }
+  if (!_.includes(repeatTypeValues, repeat_type) && !nthDayOfMonthFormat.test(repeat_type)) {
+    return {
+      valid: false,
+      message: `repeat_type can only be one of ${repeatTypeValues} or n-day e.g. 3-wed (third wednesday), 1-tue (first tuesday)`,
+    }
   }
 
   if (_.isNaN(repeat_unit)) {

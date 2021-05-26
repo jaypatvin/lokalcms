@@ -75,7 +75,7 @@ const generateSchedule = ({
         start_time,
         end_time,
       }
-    } else {
+    } else if (['day', 'week', 'month'].includes(repeat_type)) {
       const day = DayKeyVal[dayjs(date).day()]
       schedule[day] = {
         start_date: date,

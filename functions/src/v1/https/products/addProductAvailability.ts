@@ -82,6 +82,19 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *         "repeat_type": "month"
  *       }
  *       ```
+ *
+ *       ## available on every 2nd monday of every month
+ *       ```
+ *       {
+ *         "start_time": "08:00 AM",
+ *         "end_time": "04:00 PM",
+ *         "start_dates": [
+ *           "2021-05-10"
+ *         ],
+ *         "repeat_unit": 1,
+ *         "repeat_type": "2-mon"
+ *       }
+ *       ```
  *     parameters:
  *       - in: path
  *         name: productId
