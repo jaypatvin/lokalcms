@@ -100,7 +100,8 @@ const getAvailableProducts = async (req: Request, res: Response) => {
   })
   everyNDay = everyNDay.filter((product) => {
     const start_date = product.availability.start_dates[0]
-    const isValid = dayjs(date).diff(start_date, 'days') % _.get(product, 'availability.repeat_unit') === 0
+    const isValid =
+      dayjs(date).diff(start_date, 'days') % _.get(product, 'availability.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
@@ -162,15 +163,24 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
-  let customAvailable = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: initialWheres,
-    orderBy: `availability.schedule.custom.${date}.start_time`,
+  let customAvailable = await ProductsService.getCustomAvailableProductsByDate(date)
+  customAvailable = customAvailable.filter((p) => {
+    return (
+      !p.archived &&
+      p.community_id === community_id &&
+      (!category || p.product_category === category) &&
+      (!q || p.keywords.includes(q))
+    )
   })
 
-  const unavailable = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [...initialWheres, [`availability.schedule.custom.${date}.unavailable`, '==', true]],
+  let unavailable = await ProductsService.getCustomUnavailableProductsByDate(date)
+  unavailable = unavailable.filter((p) => {
+    return (
+      !p.archived &&
+      p.community_id === community_id &&
+      (!category || p.product_category === category) &&
+      (!q || p.keywords.includes(q))
+    )
   })
   const unavailableIds = unavailable.map((product) => product.id)
 
@@ -196,11 +206,12 @@ const getAvailableProducts = async (req: Request, res: Response) => {
   })
 
   const allUnavailableFilter =
-    availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds]] : null
-  const unavailable_products = await ProductsService.getCommunityProductsWithFilter({
+    availableIds.length > 0 ? [...initialWheres, ['id', 'not-in', availableIds.slice(0, 10)]] : null
+  let unavailable_products = await ProductsService.getCommunityProductsWithFilter({
     community_id,
     wheres: allUnavailableFilter || initialWheres,
   })
+  unavailable_products = unavailable_products.filter((p) => !availableIds.includes(p.id))
 
   unavailable_products.forEach((product) => {
     const availability = product.availability

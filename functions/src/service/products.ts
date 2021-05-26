@@ -37,6 +37,22 @@ export const getCommunityProductsWithFilter = async ({
   return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
+export const getCustomAvailableProductsByDate = async (date: string) => {
+  let res = db
+    .collection('products')
+    .orderBy(`availability.schedule.custom.${date}.start_time`)
+
+  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
+export const getCustomUnavailableProductsByDate = async (date: string) => {
+  let res = db
+    .collection('products')
+    .orderBy(`availability.schedule.custom.${date}.unavailable`)
+
+  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getProductsByShopID = async (id) => await getProductsBy('shop_id', id)
 
 export const getProductsByUserId = async (id) => await getProductsBy('user_id', id)

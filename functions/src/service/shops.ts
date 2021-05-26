@@ -45,6 +45,23 @@ export const getCommunityShopsWithFilter = async ({
   return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
+
+export const getCustomAvailableShopsByDate = async (date: string) => {
+  let res = db
+    .collection('shops')
+    .orderBy(`operating_hours.schedule.custom.${date}.start_time`)
+
+  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
+export const getCustomUnavailableShopsByDate = async (date: string) => {
+  let res = db
+    .collection('shops')
+    .orderBy(`operating_hours.schedule.custom.${date}.unavailable`)
+
+  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getShopByID = async (id: string) => {
   const shop = await db.collection('shops').doc(id).get()
 

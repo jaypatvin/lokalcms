@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import useOuterClick from '../customHooks/useOuterClick'
 import { Color, ItemType, Size } from '../utils/types'
-import { Button } from './buttons'
+import { Button, OutlineButton } from './buttons'
 
 type OptionType = {
   key: string | number
@@ -27,9 +27,9 @@ const Dropdown = ({
   onSelect,
   currentValue,
   className = '',
-  size='medium',
+  size = 'medium',
   color,
-  buttonColor = ''
+  buttonColor = '',
 }: Props) => {
   const [open, setOpen] = useState(false)
   const ref = useOuterClick(() => setOpen(false))
@@ -59,15 +59,23 @@ const Dropdown = ({
     const optionObj = { key, value }
     return (
       <li key={optionObj.key}>
-        <button className="p-2 hover:bg-gray-100 w-full" onClick={() => handleSelect(optionObj)}>{optionObj.value}</button>
+        <button className="p-2 hover:bg-gray-100 w-full" onClick={() => handleSelect(optionObj)}>
+          {optionObj.value}
+        </button>
       </li>
     )
   }
 
   return (
-    <div ref={ref} className={`${className} relative`}>
-      <Button customColor={buttonColor} size={size} onClick={() => setOpen(!open)}>{displayName}</Button>
-      {open && <ul className="absolute top-full left-3 max-h-52 max-w-xs overflow-y-auto bg-white shadow">{displayedOptions.map(renderOption)}</ul>}
+    <div ref={ref} className={`${className} relative ${color ? `text-${color}-300` : ''}`}>
+      <OutlineButton customColor={buttonColor} size={size} onClick={() => setOpen(!open)}>
+        {displayName}
+      </OutlineButton>
+      {open && (
+        <ul className="absolute top-full left-3 max-h-52 max-w-xs overflow-y-auto bg-white shadow">
+          {displayedOptions.map(renderOption)}
+        </ul>
+      )}
     </div>
   )
 }

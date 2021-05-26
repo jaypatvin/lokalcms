@@ -28,6 +28,11 @@ const menus = [
     icon: <IoIosContacts size={23} />,
   },
   {
+    key: 'discover',
+    label: 'Discover',
+    icon: <IoIosContacts size={23} />,
+  },
+  {
     key: 'shops',
     label: 'Shops',
     icon: <IoIosBasket size={23} />,
