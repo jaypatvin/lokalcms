@@ -35,10 +35,11 @@ import { ActivitiesService } from '../../../service'
  */
 const getUserActivities = async (req: Request, res: Response) => {
   const { userId } = req.params
+  const requestorDocId = res.locals.userDoc.id
 
   if (!userId) return res.status(400).json({ status: 'error', message: 'userId is required!' })
 
-  const activities = await ActivitiesService.getActivitiesByUserID(userId)
+  const activities = await ActivitiesService.getActivitiesByUserID(userId, requestorDocId)
   return res.status(200).json({ status: 'ok', data: activities })
 }
 

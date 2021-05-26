@@ -2,14 +2,22 @@ import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
 
-export const getActivitiesByUserID = async (id) => await getActivitiesBy('user_id', id)
-export const getActivitiesByCommunityID = async (id) => await getActivitiesBy('community_id', id)
+export const getActivitiesByUserID = async (id, userId = '') =>
+  await getActivitiesBy('user_id', id, userId)
+export const getActivitiesByCommunityID = async (id, userId = '') =>
+  await getActivitiesBy('community_id', id, userId)
 
-export const getActivityById = async (id) => {
+export const getActivityById = async (id, userId = '') => {
   const activityRef = db.collection('activities').doc(id)
   const activity = await activityRef.get()
   const images = await activityRef.collection('images').get()
-  const likes = await activityRef.collection('likes').get()
+
+  let liked = false
+  if (userId) {
+    const likeDoc = await activityRef.collection('likes').doc(`${id}_${userId}_like`).get()
+    liked = likeDoc.exists
+  }
+
   const data = activity.data()
   if (data)
     return {
@@ -18,31 +26,35 @@ export const getActivityById = async (id) => {
       images: images.docs.map((doc): any => {
         return { id: doc.id, ...doc.data() }
       }),
-      likes: likes.docs.map((doc): any => {
-        return { id: doc.id, ...doc.data() }
-      }),
+      liked,
     } as any
 
   return data
 }
 
-export const getAllActivities = async () => {
+export const getAllActivities = async (userId = '') => {
   const activityRef = db.collection('activities')
   const activities = await activityRef.orderBy('created_at', 'desc').get()
 
   return await Promise.all(
     activities.docs.map(async (activityDoc) => {
       const images = await activityRef.doc(activityDoc.id).collection('images').get()
-      const likes = await activityRef.doc(activityDoc.id).collection('likes').get()
+      let liked = false
+      if (userId) {
+        const likeDoc = await activityRef
+          .doc(activityDoc.id)
+          .collection('likes')
+          .doc(`${activityDoc.id}_${userId}_like`)
+          .get()
+        liked = likeDoc.exists
+      }
       return {
         id: activityDoc.id,
         ...activityDoc.data(),
         images: images.docs.map((doc): any => {
           return { id: doc.id, ...doc.data() }
         }),
-        likes: likes.docs.map((doc): any => {
-          return { id: doc.id, ...doc.data() }
-        }),
+        liked,
       }
     })
   )
@@ -107,7 +119,7 @@ export const unarchiveUserActivities = async (user_id) =>
 export const unarchiveCommunityActivities = async (community_id) =>
   await archiveActivityBy(false, 'community_id', community_id)
 
-const getActivitiesBy = async (idType, id) => {
+const getActivitiesBy = async (idType, id, userId = '') => {
   const activityRef = db.collection('activities')
   const activities = await db
     .collection('activities')
@@ -118,16 +130,22 @@ const getActivitiesBy = async (idType, id) => {
   return await Promise.all(
     activities.docs.map(async (activityDoc) => {
       const images = await activityRef.doc(activityDoc.id).collection('images').get()
-      const likes = await activityRef.doc(activityDoc.id).collection('likes').get()
+      let liked = false
+      if (userId) {
+        const likeDoc = await activityRef
+          .doc(activityDoc.id)
+          .collection('likes')
+          .doc(`${activityDoc.id}_${userId}_like`)
+          .get()
+        liked = likeDoc.exists
+      }
       return {
         id: activityDoc.id,
         ...activityDoc.data(),
         images: images.docs.map((doc): any => {
           return { id: doc.id, ...doc.data() }
         }),
-        likes: likes.docs.map((doc): any => {
-          return { id: doc.id, ...doc.data() }
-        }),
+        liked,
       }
     })
   )

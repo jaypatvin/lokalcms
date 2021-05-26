@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
 import { ActivitiesService } from '../../../service'
 
-
 /**
  * @openapi
  * /v1/activities:
@@ -28,7 +27,8 @@ import { ActivitiesService } from '../../../service'
  *                     $ref: '#/components/schemas/Activity'
  */
 const getActivities = async (req: Request, res: Response) => {
-  const activities = await ActivitiesService.getAllActivities()
+  const requestorDocId = res.locals.userDoc.id
+  const activities = await ActivitiesService.getAllActivities(requestorDocId)
 
   return res.status(200).json({ status: 'ok', data: activities })
 }

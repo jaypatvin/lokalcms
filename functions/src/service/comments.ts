@@ -3,14 +3,22 @@ import { UsersService } from '.'
 
 const db = admin.firestore()
 
-export const getActivityComments = async (activityId: string) => {
+export const getActivityComments = async (activityId: string, userId = '') => {
   const commentsRef = db.collection('activities').doc(activityId).collection('comments')
   const comments = await commentsRef.get()
 
   return await Promise.all(
     comments.docs.map(async (commentDoc) => {
       const images = await commentsRef.doc(commentDoc.id).collection('images').get()
-      const likes = await commentsRef.doc(commentDoc.id).collection('comment_likes').get()
+      let liked = false
+      if (userId) {
+        const likeDoc = await commentsRef
+          .doc(commentDoc.id)
+          .collection('likes')
+          .doc(`${commentDoc.id}_${userId}_like`)
+          .get()
+        liked = likeDoc.exists
+      }
       return {
         id: commentDoc.id,
         ...commentDoc.data(),
@@ -18,10 +26,7 @@ export const getActivityComments = async (activityId: string) => {
           id: doc.id,
           ...doc.data(),
         })),
-        likes: likes.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
+        liked,
       }
     })
   )
@@ -55,13 +60,18 @@ export const getUserComments = async (userId: string) => {
             .collection('images')
             .get()
 
-          const likes = await db
-            .collection('activities')
-            .doc(activity.id)
-            .collection('comments')
-            .doc(commentDoc.id)
-            .collection('comment_likes')
-            .get()
+          let liked = false
+          if (userId) {
+            const likeDoc = await db
+              .collection('activities')
+              .doc(activity.id)
+              .collection('comments')
+              .doc(commentDoc.id)
+              .collection('likes')
+              .doc(`${commentDoc.id}_${userId}_like`)
+              .get()
+            liked = likeDoc.exists
+          }
 
           return {
             activityId: activity.id,
@@ -71,10 +81,7 @@ export const getUserComments = async (userId: string) => {
               id: doc.id,
               ...doc.data(),
             })),
-            likes: likes.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            })),
+            liked,
           }
         }
       }
@@ -90,7 +97,7 @@ export const getAllComments = async () => {
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
-export const getCommentById = async (activityId: string, commentId: string) => {
+export const getCommentById = async (activityId: string, commentId: string, userId = '') => {
   // alternatively, we can use db.collectionGroup to query from all subcollections of 'comments'
   // however, we need to add a field for 'id' inside of 'comments' documents for querying
   const commentRef = db
@@ -100,7 +107,11 @@ export const getCommentById = async (activityId: string, commentId: string) => {
     .doc(commentId)
   const comment = await commentRef.get()
   const images = await commentRef.collection('images').get()
-  const likes = await commentRef.collection('comment_likes').get()
+  let liked = false
+  if (userId) {
+    const likeDoc = await commentRef.collection('likes').doc(`${commentId}_${userId}_like`).get()
+    liked = likeDoc.exists
+  }
   const data = comment.data()
 
   if (data)
@@ -110,10 +121,7 @@ export const getCommentById = async (activityId: string, commentId: string) => {
       images: images.docs.map((doc): any => {
         return { id: doc.id, ...doc.data() }
       }),
-      likes: likes.docs.map((doc): any => ({
-        id: doc.id,
-        ...doc.data(),
-      })),
+      liked,
     } as any
 
   return data
