@@ -1,16 +1,17 @@
 import { Request, Response } from 'express'
-import { UsersService, ActivitiesService, LikesService } from '../../../service'
+import { UsersService, ActivitiesService, LikesService, CommentsService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 
 /**
  * @openapi
- * /v1/activities/{activityId}/unlike:
- *   delete:
+ * /v1/activities/{activityId}/comments/{commentId}/like:
+ *   post:
  *     tags:
- *       - activities
+ *       - comments
+ *       - likes
  *     security:
  *       - bearerAuth: []
- *     description: Unlike an activity
+ *     description: Like a comment
  *     parameters:
  *       - in: path
  *         name: activityId
@@ -18,6 +19,12 @@ import validateFields from '../../../utils/validateFields'
  *         description: document id of the activity
  *         schema:
  *           type: string
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         description: document id of the comment
+ *         schema:
+ *           type: string 
  *     requestBody:
  *       required: true
  *       content:
@@ -30,7 +37,7 @@ import validateFields from '../../../utils/validateFields'
 
  *     responses:
  *       200:
- *         description: Unlike status
+ *         description: The like
  *         content:
  *           application/json:
  *             schema:
@@ -42,8 +49,10 @@ import validateFields from '../../../utils/validateFields'
  *                 data:
  *                   $ref: '#/components/schemas/Activities/Like'
  */
-const unlikeActivity = async (req: Request, res: Response) => {
-  const { activityId } = req.params
+
+// this has too many GET queries just for checking validity; maybe for refactoring
+const likeComment = async (req: Request, res: Response) => {
+  const { activityId, commentId } = req.params
   const data = req.body
 
   if (!activityId)
@@ -57,6 +66,20 @@ const unlikeActivity = async (req: Request, res: Response) => {
       })
   } catch (e) {
     return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+  }
+
+  if (!commentId)
+    return res.status(400).json({ status: 'error', message: 'comment id is required!' })
+
+  try {
+    const _comment = await CommentsService.getCommentById(activityId, commentId)
+    if (_comment.archived)
+      return res.status(400).json({
+        status: 'error',
+        message: `Comment with id ${commentId} is currently archived!`,
+      })
+  } catch (e) {
+    return res.status(400).json({ status: 'error', message: 'Invalid comment ID!' })
   }
 
   const error_fields = validateFields(data, ['user_id'])
@@ -78,14 +101,8 @@ const unlikeActivity = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
   }
 
-  // since delete always succeeds even if the doc does not exist
-  // we should check first if we are removing an existing like
-  // before decrementing likeCount
-  const exists = await LikesService.getActivityLike(activityId, data.user_id)
-  if (exists) await ActivitiesService.deccrementActivityLikeCount(activityId)
-
-  const result = await LikesService.removeActivityLike(activityId, data.user_id)
+  const result = await LikesService.addCommentLike(activityId, commentId, data.user_id)
   return res.status(200).json({ status: 'ok', data: result })
 }
 
-export default unlikeActivity
+export default likeComment

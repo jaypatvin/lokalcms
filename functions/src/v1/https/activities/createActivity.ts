@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { UsersService, CommunityService, ActivitiesService } from '../../../service'
+import { UsersService, ActivitiesService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 import { fieldIsNum } from '../../../utils/helpers'
@@ -53,7 +53,6 @@ import { fieldIsNum } from '../../../utils/helpers'
 const createActivity = async (req: Request, res: Response) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
-  let _community
   let _user
 
   const error_fields = validateFields(data, required_fields)

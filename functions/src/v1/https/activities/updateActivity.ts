@@ -1,8 +1,5 @@
 import { Request, Response } from 'express'
 import { UsersService, CommunityService, ActivitiesService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
-import { required_fields } from './index'
-import { fieldIsNum } from '../../../utils/helpers'
 
 /**
  * @openapi
