@@ -257,6 +257,9 @@ const getAvailableProducts = async (req: Request, res: Response) => {
       const dateToCheck = dayjs(date).add(i, 'days')
       const dateToCheckFormat = dateToCheck.format('YYYY-MM-DD')
       const dateToCheckDay = DayKeyVal[dateToCheck.day()]
+      const dateNumToCheck = dayjs(dateToCheck).date()
+      const nthWeekToCheck = Math.ceil(dateNumToCheck / 7)
+      const nthDayOfMonthToCheck = `${nthWeekToCheck}-${dateToCheckDay}`
       if (
         !_.get(availability, `schedule.custom.${dateToCheckFormat}.unavailable`) ||
         (repeat_unit === 0 && dayjs(firstStartDate).isBefore(date))
@@ -278,6 +281,10 @@ const getAvailableProducts = async (req: Request, res: Response) => {
             dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck))) ||
+          (repeat_unit === 1 &&
+            repeat_type === nthDayOfMonthToCheck &&
+            (dayjs(firstStartDate).isBefore(dateToCheck) ||
+              dayjs(firstStartDate).isSame(dateToCheck))) ||
           (repeat_unit !== 1 &&
             repeat_type === 'day' &&
             dayjs(dateToCheck).diff(firstStartDate, 'days') % repeat_unit === 0 &&
@@ -291,6 +298,11 @@ const getAvailableProducts = async (req: Request, res: Response) => {
           (repeat_unit !== 1 &&
             repeat_type === 'month' &&
             dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
+            dayjs(dateToCheck).diff(firstStartDate, 'months') % repeat_unit === 0 &&
+            (dayjs(firstStartDate).isBefore(dateToCheck) ||
+              dayjs(firstStartDate).isSame(dateToCheck))) ||
+          (repeat_unit !== 1 &&
+            repeat_type === nthDayOfMonthToCheck &&
             dayjs(dateToCheck).diff(firstStartDate, 'months') % repeat_unit === 0 &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck)))
