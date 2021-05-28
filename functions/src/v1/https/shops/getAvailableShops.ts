@@ -65,6 +65,9 @@ const getAvailableShops = async (req: Request, res: Response) => {
 
   const maxRangeDays = 30
   const day = DayKeyVal[dayjs(date).day()]
+  const dateNum = dayjs(date).date()
+  const nthWeek = Math.ceil(dateNum / 7)
+  const nthDayOfMonth = `${nthWeek}-${day}`
 
   let everyDay = await ShopsService.getCommunityShopsWithFilter({
     community_id,
@@ -132,7 +135,7 @@ const getAvailableShops = async (req: Request, res: Response) => {
   })
   everyMonth = everyMonth.filter((shop) => {
     const start_date = shop.operating_hours.start_dates[0]
-    const isValid = dayjs(start_date).date() === dayjs(date).date()
+    const isValid = dayjs(start_date).date() === dateNum
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
 
@@ -147,7 +150,35 @@ const getAvailableShops = async (req: Request, res: Response) => {
   everyNMonth = everyNMonth.filter((shop) => {
     const start_date = shop.operating_hours.start_dates[0]
     const isValid =
-      dayjs(start_date).date() === dayjs(date).date() &&
+      dayjs(start_date).date() === dateNum &&
+      dayjs(date).diff(start_date, 'months') % _.get(shop, 'operating_hours.repeat_unit') === 0
+    return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
+  })
+
+  let everyNthDayOfMonth = await ShopsService.getCommunityShopsWithFilter({
+    community_id,
+    wheres: [
+      ...initialWheres,
+      ['operating_hours.repeat_unit', '==', 1],
+      ['operating_hours.repeat_type', '==', nthDayOfMonth],
+    ],
+  })
+  everyNthDayOfMonth = everyNthDayOfMonth.filter((shop) => {
+    const start_date = shop.operating_hours.start_dates[0]
+    return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
+  })
+
+  let everyNthDayOfNMonth = await ShopsService.getCommunityShopsWithFilter({
+    community_id,
+    wheres: [
+      ...initialWheres,
+      ['operating_hours.repeat_unit', 'not-in', [0, 1]],
+      ['operating_hours.repeat_type', '==', nthDayOfMonth],
+    ],
+  })
+  everyNthDayOfNMonth = everyNthDayOfNMonth.filter((shop) => {
+    const start_date = shop.operating_hours.start_dates[0]
+    const isValid =
       dayjs(date).diff(start_date, 'months') % _.get(shop, 'operating_hours.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
@@ -170,6 +201,8 @@ const getAvailableShops = async (req: Request, res: Response) => {
     ...everyNWeek,
     ...everyMonth,
     ...everyNMonth,
+    ...everyNthDayOfMonth,
+    ...everyNthDayOfNMonth,
     ...customAvailable,
   ]
   const result = _.chain(allAvailable)
@@ -203,6 +236,9 @@ const getAvailableShops = async (req: Request, res: Response) => {
       const dateToCheck = dayjs(date).add(i, 'days')
       const dateToCheckFormat = dateToCheck.format('YYYY-MM-DD')
       const dateToCheckDay = DayKeyVal[dateToCheck.day()]
+      const dateNumToCheck = dayjs(dateToCheck).date()
+      const nthWeekToCheck = Math.ceil(dateNumToCheck / 7)
+      const nthDayOfMonthToCheck = `${nthWeekToCheck}-${dateToCheckDay}`
       if (
         !_.get(operating_hours, `schedule.custom.${dateToCheckFormat}.unavailable`) ||
         (repeat_unit === 0 && dayjs(firstStartDate).isBefore(date))
@@ -224,6 +260,10 @@ const getAvailableShops = async (req: Request, res: Response) => {
             dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck))) ||
+          (repeat_unit === 1 &&
+            repeat_type === nthDayOfMonthToCheck &&
+            (dayjs(firstStartDate).isBefore(dateToCheck) ||
+              dayjs(firstStartDate).isSame(dateToCheck))) ||
           (repeat_unit !== 1 &&
             repeat_type === 'day' &&
             dayjs(dateToCheck).diff(firstStartDate, 'days') % repeat_unit === 0 &&
@@ -237,6 +277,11 @@ const getAvailableShops = async (req: Request, res: Response) => {
           (repeat_unit !== 1 &&
             repeat_type === 'month' &&
             dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
+            dayjs(dateToCheck).diff(firstStartDate, 'months') % repeat_unit === 0 &&
+            (dayjs(firstStartDate).isBefore(dateToCheck) ||
+              dayjs(firstStartDate).isSame(dateToCheck))) ||
+          (repeat_unit !== 1 &&
+            repeat_type === nthDayOfMonthToCheck &&
             dayjs(dateToCheck).diff(firstStartDate, 'months') % repeat_unit === 0 &&
             (dayjs(firstStartDate).isBefore(dateToCheck) ||
               dayjs(firstStartDate).isSame(dateToCheck)))
