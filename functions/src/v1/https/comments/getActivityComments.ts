@@ -33,11 +33,12 @@ import { ActivitiesService, CommentsService } from '../../../service'
  */
 const getActivityComments = async (req: Request, res: Response) => {
   const { activityId } = req.params
+  const requestorDocId = res.locals.userDoc.id
 
   const activity = await ActivitiesService.getActivityById(activityId)
   if (!activity) return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
 
-  const comments = await CommentsService.getActivityComments(activityId)
+  const comments = await CommentsService.getActivityComments(activityId, requestorDocId)
 
   return res.status(200).json({ status: 'ok', data: comments })
 }
