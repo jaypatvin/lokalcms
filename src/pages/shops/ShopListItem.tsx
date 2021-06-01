@@ -8,6 +8,8 @@ import { OutlineButton } from '../../components/buttons'
 
 dayjs.extend(advancedFormat)
 
+const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
+
 const ShopListItem = ({
   data,
   openUpdate,
@@ -59,6 +61,12 @@ const ShopListItem = ({
         if (repeat_type === 'week') operating_hours = `Every week on ${daysAvailable}`
         if (repeat_type === 'month')
           operating_hours = `Every ${dayjs(start_dates[0]).format('Do')} of the month`
+        if (nthDayOfMonthFormat.test(repeat_type)) {
+          const [nth] = repeat_type.split('-')
+          operating_hours = `Every ${dayjs(`2021-01-${nth}`).format('Do')} ${dayjs(
+            start_dates[0]
+          ).format('dddd')}`
+        }
       } else if (repeat_unit > 1) {
         if (repeat_type === 'day') operating_hours = `Every ${repeat_unit} days`
         if (repeat_type === 'week')
@@ -67,6 +75,12 @@ const ShopListItem = ({
           operating_hours = `Every ${dayjs(start_dates[0]).format(
             'Do'
           )} of every ${repeat_unit} months`
+        if (nthDayOfMonthFormat.test(repeat_type)) {
+          const [nth] = repeat_type.split('-')
+          operating_hours = `Every ${dayjs(`2021-01-${nth}`).format('Do')} ${dayjs(
+            start_dates[0]
+          ).format('dddd')} of every ${repeat_unit} months`
+        }
       }
     }
   }
@@ -74,7 +88,15 @@ const ShopListItem = ({
   const getTileClass = ({ date }: CalendarTileProperties) => {
     const { start_dates, repeat_unit, repeat_type, schedule } = data.operating_hours
     const firstDate = start_dates[0]
+    const firstDateDay = DayKeyVal[dayjs(firstDate).day()]
+    const firstDateNumToCheck = dayjs(firstDate).date()
+    const firstDateNthWeek = Math.ceil(firstDateNumToCheck / 7)
+    const firstDateNthDayOfMonth = `${firstDateNthWeek}-${firstDateDay}`
     const tileDate = dayjs(date)
+    const tileDateDay = DayKeyVal[tileDate.day()]
+    const tileDateNumToCheck = tileDate.date()
+    const tileDateNthWeek = Math.ceil(tileDateNumToCheck / 7)
+    const tileDateNthDayOfMonth = `${tileDateNthWeek}-${tileDateDay}`
     const day = DayKeyVal[tileDate.day()]
     const schedDay = schedule[day]
     let customDate
@@ -106,6 +128,12 @@ const ShopListItem = ({
         const isValid =
           dayjs(firstDate).date() === dayjs(date).date() &&
           dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
+        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
+          tileClass = 'orange'
+        }
+      }
+      if (nthDayOfMonthFormat.test(repeat_type)) {
+        const isValid = firstDateNthDayOfMonth === tileDateNthDayOfMonth  && dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
         if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
           tileClass = 'orange'
         }
@@ -174,7 +202,7 @@ const ShopListItem = ({
         </p>
         {showCalendar && (
           <div className="w-64 absolute z-10 shadow">
-            <ReactCalendar tileClassName={getTileClass} onChange={() => null} />
+            <ReactCalendar tileClassName={getTileClass} onChange={() => null} calendarType="US" />
           </div>
         )}
       </td>
