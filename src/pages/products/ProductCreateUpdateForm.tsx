@@ -397,7 +397,7 @@ const ProductCreateUpdateForm = ({
       </div>
       <div>
         <Checkbox
-          label="Set operating hours"
+          label="Set Availability"
           onChange={() => setOpenAvailability(!openAvailability)}
           noMargin
           value={openAvailability}
