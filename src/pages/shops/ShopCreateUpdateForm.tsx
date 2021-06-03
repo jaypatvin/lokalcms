@@ -99,7 +99,7 @@ const ShopCreateUpdateForm = ({
       res = await res.json()
       setResponseData(res)
       if (res.status !== 'error' && openSchedule) {
-        let operatingHours = await fetch(`${API_URL}/shops/${res.data.id}/operatingHours`, {
+        await fetch(`${API_URL}/shops/${res.data.id}/operatingHours`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${firebaseToken}`,

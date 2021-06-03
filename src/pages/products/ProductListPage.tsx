@@ -57,6 +57,11 @@ const ProductListPage = (props: any) => {
       sortable: false,
     },
     {
+      label: 'Availability',
+      fieldName: 'availability',
+      sortable: false,
+    },
+    {
       label: 'Price',
       fieldName: 'base_price',
       sortable: true,
