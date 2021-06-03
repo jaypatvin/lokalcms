@@ -1,17 +1,21 @@
 import React, { ChangeEvent, useEffect, useState } from 'react'
 import { Link, useHistory } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
+import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
-import { TextField } from '../../components/inputs'
+import { TextField, Checkbox } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
 import { storage } from '../../services/firebase'
-import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
+import { CreateUpdateFormProps, DayKeyVal, statusColorMap } from '../../utils/types'
+import { fetchShopByID } from '../../services/shops'
+import dayjs from 'dayjs'
 
 const initialData = {}
 const maxNumOfPhotos = 6 // TODO: this should be configurable on the CMS
+const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
 
 const ProductCreateUpdateForm = ({
   isOpen = false,
@@ -21,9 +25,23 @@ const ProductCreateUpdateForm = ({
   isModal = true,
 }: CreateUpdateFormProps) => {
   const history = useHistory()
+  const [openAvailability, setOpenAvailability] = useState(false)
+  const [useCustomAvailability, setUseCustomAvailability] = useState(false)
+  const [unavailableDates, setUnavailableDates] = useState<string[]>([])
   const [data, setData] = useState<any>(dataToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
+  const [shop, setShop] = useState<any>()
   const { firebaseToken } = useAuth()
+
+  const getShopData = async () => {
+    const shop = await fetchShopByID(data.shop_id)
+    if (shop.exists) {
+      const shopData = shop.data()
+      setShop(shopData)
+    } else {
+      console.error(`shop with id ${data.shop_id} does not exist.`)
+    }
+  }
 
   useEffect(() => {
     if (dataToUpdate) {
@@ -33,7 +51,17 @@ const ProductCreateUpdateForm = ({
     }
   }, [dataToUpdate])
 
+  useEffect(() => {
+    if (useCustomAvailability && data.shop_id) {
+      getShopData()
+    }
+  }, [useCustomAvailability])
+
   const changeHandler = (field: string, value: string | number | boolean | null) => {
+    if (field === 'shop_id') {
+      setUseCustomAvailability(false)
+      setUnavailableDates([])
+    }
     const newData = { ...data }
     newData[field] = value
     setData(newData)
@@ -78,6 +106,31 @@ const ProductCreateUpdateForm = ({
     }
   }
 
+  const constructAvailability = () => {
+    const { repeat_type, repeat_unit, start_time, end_time, start_dates, schedule } = shop.operating_hours
+    let unavailable_dates = unavailableDates
+    const custom_dates: any = []
+    if (schedule && schedule.custom) {
+      Object.entries(schedule.custom).forEach(([key, val]: any) => {
+        if (val.unavailable) {
+          unavailable_dates.push(key)
+        } else if (val.start_time || val.end_time) {
+          custom_dates.push({ date: key })
+        }
+      })
+    }
+    const availability: any = {
+      start_time,
+      end_time,
+      start_dates,
+      repeat_unit,
+      repeat_type,
+      unavailable_dates,
+    }
+    if (custom_dates.length) availability.custom_dates = custom_dates
+    return availability
+  }
+
   const onSave = async () => {
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/products`
@@ -107,11 +160,19 @@ const ProductCreateUpdateForm = ({
           Authorization: `Bearer ${firebaseToken}`,
         },
         method,
-        body: JSON.stringify({...data, source: 'cms'}),
+        body: JSON.stringify({ ...data, source: 'cms' }),
       })
       res = await res.json()
       setResponseData(res)
-      if (res.status !== 'error') {
+      if (res.status !== 'error' && useCustomAvailability && unavailableDates.length) {
+        await fetch(`${API_URL}/products/${res.data.id}/availability`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method: 'PUT',
+          body: JSON.stringify({ ...constructAvailability(), source: 'cms' }),
+        })
         setResponseData({})
         setData(initialData)
         if (setIsOpen) {
@@ -131,6 +192,87 @@ const ProductCreateUpdateForm = ({
       return error_fields.includes(field)
     }
     return false
+  }
+
+  const isAvailableByDefault = (date: Date) => {
+    const { start_dates, repeat_unit, repeat_type, schedule } = shop.operating_hours
+    const firstDate = start_dates[0]
+    const firstDateDay = DayKeyVal[dayjs(firstDate).day()]
+    const firstDateNumToCheck = dayjs(firstDate).date()
+    const firstDateNthWeek = Math.ceil(firstDateNumToCheck / 7)
+    const firstDateNthDayOfMonth = `${firstDateNthWeek}-${firstDateDay}`
+    const tileDate = dayjs(date)
+    const tileDateDay = DayKeyVal[tileDate.day()]
+    const tileDateNumToCheck = tileDate.date()
+    const tileDateNthWeek = Math.ceil(tileDateNumToCheck / 7)
+    const tileDateNthDayOfMonth = `${tileDateNthWeek}-${tileDateDay}`
+    const day = DayKeyVal[tileDate.day()]
+    const schedDay = schedule[day]
+    let customDate
+    // let tileClass = null
+    if (schedule.custom) {
+      customDate = schedule.custom[tileDate.format('YYYY-MM-DD')]
+    }
+    if (customDate && customDate.unavailable) {
+      return false
+    } else if (customDate && customDate.start_time && customDate.end_time) {
+      return true
+    } else {
+      if (repeat_type === 'day') {
+        const isValid = dayjs(date).diff(firstDate, 'days') % repeat_unit === 0
+        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
+          return true
+        }
+      }
+      if (repeat_type === 'week' && schedDay) {
+        const isValid = dayjs(date).diff(schedDay.start_date, 'weeks') % repeat_unit === 0
+        if (
+          isValid &&
+          (dayjs(schedDay.start_date).isBefore(date) || dayjs(schedDay.start_date).isSame(date))
+        ) {
+          return true
+        }
+      }
+      if (repeat_type === 'month') {
+        const isValid =
+          dayjs(firstDate).date() === dayjs(date).date() &&
+          dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
+        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
+          return true
+        }
+      }
+      if (nthDayOfMonthFormat.test(repeat_type)) {
+        const isValid =
+          firstDateNthDayOfMonth === tileDateNthDayOfMonth &&
+          dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
+        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  const onCustomizeDates = (date: Date) => {
+    const formattedDate = dayjs(date).format('YYYY-MM-DD')
+    if (unavailableDates.includes(formattedDate)) {
+      const newUnavailableDates = unavailableDates.filter((d) => !dayjs(d).isSame(formattedDate))
+      setUnavailableDates(newUnavailableDates)
+    } else if (isAvailableByDefault(date)) {
+      const newUnavailableDates = [...unavailableDates]
+      newUnavailableDates.push(dayjs(date).format('YYYY-MM-DD'))
+      setUnavailableDates(newUnavailableDates)
+    }
+  }
+
+  const getTileClass = ({ date }: CalendarTileProperties) => {
+    const formattedDate = dayjs(date).format('YYYY-MM-DD')
+    if (unavailableDates.includes(formattedDate)) {
+      return null
+    } else if (isAvailableByDefault(date)) {
+      return 'orange'
+    }
+    return null
   }
 
   return (
@@ -253,6 +395,40 @@ const ProductCreateUpdateForm = ({
           })}
         </div>
       </div>
+      <div>
+        <Checkbox
+          label="Set Availability"
+          onChange={() => setOpenAvailability(!openAvailability)}
+          noMargin
+          value={openAvailability}
+        />
+      </div>
+      {openAvailability && (
+        <div className="p-2">
+          <Checkbox
+            label="Use shop schedule"
+            onChange={() => setUseCustomAvailability(!useCustomAvailability)}
+            noMargin
+            value={!useCustomAvailability}
+          />
+          <Checkbox
+            label="Use custom availability"
+            onChange={() => setUseCustomAvailability(!useCustomAvailability)}
+            noMargin
+            value={useCustomAvailability}
+          />
+          {useCustomAvailability && shop && (
+            <ReactCalendar
+              className="w-72"
+              onChange={(date: any) => onCustomizeDates(date)}
+              tileDisabled={({ date }: any) => !isAvailableByDefault(date)}
+              tileClassName={getTileClass}
+              calendarType="US"
+              value={null}
+            />
+          )}
+        </div>
+      )}
       {responseData.status === 'error' && (
         <p className="text-red-600 text-center">{responseData.message}</p>
       )}
