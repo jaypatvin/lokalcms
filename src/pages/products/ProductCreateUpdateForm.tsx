@@ -26,8 +26,12 @@ const ProductCreateUpdateForm = ({
 }: CreateUpdateFormProps) => {
   const history = useHistory()
   const [openAvailability, setOpenAvailability] = useState(false)
-  const [useCustomAvailability, setUseCustomAvailability] = useState(false)
-  const [unavailableDates, setUnavailableDates] = useState<string[]>([])
+  const [useCustomAvailability, setUseCustomAvailability] = useState(
+    dataToUpdate ? dataToUpdate.custom_availability : false
+  )
+  const [unavailableDates, setUnavailableDates] = useState<string[]>(
+    dataToUpdate ? dataToUpdate.unavailable_dates : []
+  )
   const [data, setData] = useState<any>(dataToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const [shop, setShop] = useState<any>()
@@ -107,18 +111,26 @@ const ProductCreateUpdateForm = ({
   }
 
   const constructAvailability = () => {
-    const { repeat_type, repeat_unit, start_time, end_time, start_dates, schedule } = shop.operating_hours
+    const {
+      repeat_type,
+      repeat_unit,
+      start_time,
+      end_time,
+      start_dates,
+      schedule,
+    } = shop.operating_hours
     let unavailable_dates = unavailableDates
     const custom_dates: any = []
     if (schedule && schedule.custom) {
       Object.entries(schedule.custom).forEach(([key, val]: any) => {
-        if (val.unavailable) {
+        if (val.unavailable && !dataToUpdate) {
           unavailable_dates.push(key)
-        } else if (val.start_time || val.end_time) {
+        } else if (!unavailable_dates.includes(key) && (val.start_time || val.end_time)) {
           custom_dates.push({ date: key })
         }
       })
     }
+    console.log('unavailable_dates', unavailable_dates)
     const availability: any = {
       start_time,
       end_time,
@@ -165,7 +177,7 @@ const ProductCreateUpdateForm = ({
       res = await res.json()
       setResponseData(res)
       if (res.status !== 'error' && useCustomAvailability && unavailableDates.length) {
-        await fetch(`${API_URL}/products/${res.data.id}/availability`, {
+        await fetch(`${API_URL}/products/${res.data.id || data.id}/availability`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${firebaseToken}`,
