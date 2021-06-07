@@ -254,7 +254,7 @@ const createChat = async (req: Request, res: Response) => {
 
   const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
 
-  return res.json({ status: 'ok', data: result })
+  return res.json({ status: 'ok', data: { chat_id: chatId, ...result } })
 }
 
 export default createChat
