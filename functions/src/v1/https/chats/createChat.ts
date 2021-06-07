@@ -155,6 +155,12 @@ const createChat = async (req: Request, res: Response) => {
     }
   }
 
+  if (!members.includes(requestorDocId)) {
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'The requestor is not a member of the chat' })
+  }
+
   let messageMedia
   if (media) {
     if (!Array.isArray(media))
