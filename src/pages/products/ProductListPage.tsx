@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { difference } from 'lodash'
 import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
 import { getProducts } from '../../services/products'
@@ -106,12 +107,37 @@ const ProductListPage = (props: any) => {
       const shop = await fetchShopByID(data.shop_id)
       const shopData = shop.data()
       if (shopData) {
+        data.shop = shopData
         data.shop_name = shopData.name
       }
     }
     return newList
   }
+
+  const getUnavailableDates = (data: any) => {
+    if (!data) return []
+    const { schedule } = data
+    const unavailable_dates: any = []
+    if (schedule && schedule.custom) {
+      Object.entries(schedule.custom).forEach(([key, val]: any) => {
+        if (val.unavailable) {
+          unavailable_dates.push(key)
+        }
+      })
+    }
+    return unavailable_dates
+  }
+
+  const isUsingShopSchedule = (data: any) => {
+    if (!data.availability || !data.shop || !data.shop.operating_hours) return true
+    const productUnavailableDates = getUnavailableDates(data.availability)
+    const shopUnavailableDates = getUnavailableDates(data.shop.operating_hours)
+    if (difference(productUnavailableDates, shopUnavailableDates).length) return false
+    return true
+  }
+
   const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+    const unavailable_dates = getUnavailableDates(data.availability)
     return {
       id: data.id,
       shop_id: data.shop_id,
@@ -122,6 +148,9 @@ const ProductListPage = (props: any) => {
       status: data.status,
       product_category: data.product_category,
       gallery: data.gallery ? data.gallery.map((photo: any) => ({ ...photo })) : null,
+      availability: data.availability,
+      unavailable_dates: unavailable_dates,
+      custom_availability: !isUsingShopSchedule(data),
     }
   }
 

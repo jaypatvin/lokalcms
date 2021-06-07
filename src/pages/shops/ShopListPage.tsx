@@ -2,9 +2,18 @@ import React, { useState } from 'react'
 import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
 import { getShops } from '../../services/shops'
-import { GenericGetArgType, ShopFilterType, ShopSortByType, SortOrderType } from '../../utils/types'
+import {
+  DaysType,
+  GenericGetArgType,
+  ShopFilterType,
+  ShopSortByType,
+  SortOrderType,
+} from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { fetchUserByID } from '../../services/users'
+
+const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
+const days: DaysType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 const ShopListPage = (props: any) => {
   const { firebaseToken } = useAuth()
@@ -93,6 +102,50 @@ const ShopListPage = (props: any) => {
     }
     return newList
   }
+
+  const constructOperatingHours = (data: any) => {
+    if (!data.operating_hours) return null
+    const {
+      repeat_type,
+      repeat_unit,
+      start_time,
+      end_time,
+      start_dates,
+      schedule,
+    } = data.operating_hours
+    const unavailable_dates: any = []
+    const custom_dates: any = []
+    const days_open: any = []
+    if (schedule && schedule.custom) {
+      Object.entries(schedule.custom).forEach(([key, val]: any) => {
+        if (val.unavailable) {
+          unavailable_dates.push(key)
+        } else if (val.start_time || val.end_time) {
+          custom_dates.push(key)
+        }
+      })
+    }
+    if (schedule) {
+      Object.keys(schedule).forEach((key: any) => {
+        if (days.includes(key)) {
+          days_open.push(key)
+        }
+      })
+    }
+    const operatingHours: any = {
+      start_time,
+      end_time,
+      start_dates: start_dates.map((d: any) => new Date(d)).sort(),
+      repeat_unit,
+      repeat_type: ['day', 'week', 'month'].includes(repeat_type) ? repeat_type : 'month',
+      repeat_month_type: nthDayOfMonthFormat.test(repeat_type) ? 'sameDay' : 'sameDate',
+      unavailable_dates: unavailable_dates.length ? unavailable_dates : null,
+      custom_dates: custom_dates.length ? custom_dates : null,
+      days_open: days_open.length ? days_open : null,
+    }
+    return operatingHours
+  }
+
   const normalizeData = (data: firebase.default.firestore.DocumentData) => {
     return {
       id: data.id,
@@ -101,6 +154,7 @@ const ShopListPage = (props: any) => {
       description: data.description,
       is_close: data.is_close,
       status: data.status,
+      operating_hours: constructOperatingHours(data),
     }
   }
 

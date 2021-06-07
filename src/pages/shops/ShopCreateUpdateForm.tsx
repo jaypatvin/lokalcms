@@ -27,19 +27,34 @@ const ShopCreateUpdateForm = ({
   dataToUpdate,
   isModal = true,
 }: CreateUpdateFormProps) => {
+  const {
+    repeat_unit,
+    repeat_type,
+    repeat_month_type,
+    days_open,
+    start_dates,
+    unavailable_dates,
+    custom_dates,
+    start_time,
+    end_time,
+  }: any = dataToUpdate && dataToUpdate.operating_hours ? dataToUpdate.operating_hours : {}
   const history = useHistory()
   const [openSchedule, setOpenSchedule] = useState(false)
   const [showStartCalendar, setShowStartCalendar] = useState(false)
   const [showCustomizeCalendar, setShowCustomizeCalendar] = useState(false)
-  const [repeatUnit, setRepeatUnit] = useState(1)
-  const [repeatType, setRepeatType] = useState<'day' | 'week' | 'month'>('day')
-  const [repeatMonthType, setRepeatMonthType] = useState<'sameDate' | 'sameDay'>('sameDate')
-  const [daysOpen, setDaysOpen] = useState<DaysType[]>(['mon', 'tue', 'wed', 'thu', 'fri'])
-  const [startDates, setStartDates] = useState<Date[]>([defaultStartDate])
-  const [customAvailableDates, setCustomAvailableDates] = useState<string[]>([])
-  const [unavailableDates, setUnavailableDates] = useState<string[]>([])
-  const [startTime, setStartTime] = useState('09:00 AM')
-  const [endTime, setEndTime] = useState('05:00 PM')
+  const [repeatUnit, setRepeatUnit] = useState(repeat_unit || 1)
+  const [repeatType, setRepeatType] = useState<'day' | 'week' | 'month'>(repeat_type || 'day')
+  const [repeatMonthType, setRepeatMonthType] = useState<'sameDate' | 'sameDay'>(
+    repeat_month_type || 'sameDate'
+  )
+  const [daysOpen, setDaysOpen] = useState<DaysType[]>(
+    days_open || ['mon', 'tue', 'wed', 'thu', 'fri']
+  )
+  const [startDates, setStartDates] = useState<Date[]>(start_dates || [defaultStartDate])
+  const [customAvailableDates, setCustomAvailableDates] = useState<string[]>(custom_dates || [])
+  const [unavailableDates, setUnavailableDates] = useState<string[]>(unavailable_dates || [])
+  const [startTime, setStartTime] = useState(start_time || '09:00 AM')
+  const [endTime, setEndTime] = useState(end_time || '05:00 PM')
   const [data, setData] = useState<any>(dataToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const { firebaseToken } = useAuth()
