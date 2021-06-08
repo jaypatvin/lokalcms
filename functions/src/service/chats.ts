@@ -18,6 +18,13 @@ export const getChatById = async (id) => {
   return data
 }
 
+export const getGroupChatByHash = async (group_hash: string) => {
+  const chat = await db.collection('chats').where('group_hash', '==', group_hash).limit(1).get()
+
+  const data = !chat.empty ? { id: chat.docs[0].id, ...chat.docs[0].data() } : null
+  return data
+}
+
 export const createChat = async (data) => {
   return await db
     .collection('chats')

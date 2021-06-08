@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { difference } from 'lodash'
 import {
   UsersService,
   ShopsService,
@@ -132,16 +133,36 @@ import { fieldIsNum } from '../../../utils/helpers'
  */
 const createChat = async (req: Request, res: Response) => {
   const data = req.body
-  const { user_id, members, title, shop_id, product_id, message, media, reply_to } = data
+  const { user_id, chat_id, members, title, shop_id, product_id, message, media, reply_to } = data
   let requestorDocId = res.locals.userDoc.id
   let requestorName = res.locals.userDoc.display_name
   let requestorCommunityId = res.locals.userDoc.community_id
+  const isGroup = members.length >= 3 && !shop_id && !product_id
+  let chat
+  let shop
+  let product
 
   const error_fields = validateFields(data, required_fields)
   if (error_fields.length) {
     return res
       .status(400)
       .json({ status: 'error', message: 'Required fields missing', error_fields })
+  }
+
+  if (chat_id) {
+    chat = await ChatsService.getChatById(chat_id)
+    if (!chat) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `chat with id ${chat_id} does not exist` })
+    }
+    const diff = difference(chat.members, members)
+    if (diff.length) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'members does not match the members on the existing chat',
+      })
+    }
   }
 
   if (!requestorDocId || !requestorCommunityId) {
@@ -153,6 +174,30 @@ const createChat = async (req: Request, res: Response) => {
     } else {
       return res.status(400).json({ status: 'error', message: 'Sender information is missing' })
     }
+  }
+
+  if (shop_id) {
+    shop = await ShopsService.getShopByID(shop_id)
+    if (!shop) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `shop with id ${shop_id} does not exist` })
+    }
+  }
+
+  if (product_id) {
+    product = await ShopsService.getShopByID(shop_id)
+    if (!shop) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `product with id ${shop_id} does not exist` })
+    }
+  }
+
+  if (!members.includes(requestorDocId)) {
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'The requestor is not a member of the chat' })
   }
 
   let messageMedia
@@ -205,24 +250,36 @@ const createChat = async (req: Request, res: Response) => {
   last_message.created_at = new Date()
 
   const chatId = hashArrayOfStrings(members)
-  let chat = await ChatsService.getChatById(chatId)
+  if (!chat) chat = await ChatsService.getGroupChatByHash(chatId)
+  if (!chat) chat = await ChatsService.getChatById(chatId)
   if (!chat) {
+    let chatType = 'user'
     let newChatTitle = title
     let customerName
-    if (shop_id) {
+    let groupHash
+    if (shop) {
       customerName = requestorName
-      const shop = await ShopsService.getShopByID(shop_id)
       newChatTitle = shop.name
+      chatType = 'shop'
     }
-    if (shop_id && product_id) {
+    if (shop && product) {
       customerName = requestorName
-      const product = await ProductsService.getProductByID(product_id)
       newChatTitle += `: ${product.name}`
+      chatType = 'product'
     }
-    if (!shop_id && !product_id && !newChatTitle) {
+    if (!shop && !product && !newChatTitle) {
+      if (isGroup) {
+        chatType = 'group'
+        groupHash = chatId
+      }
       const member_names = []
       for (let i = 0; i < members.length; i++) {
         const user = await UsersService.getUserByID(members[i])
+        if (!user) {
+          return res
+            .status(400)
+            .json({ status: 'error', message: `User with id ${members[i]} is not found` })
+        }
         member_names.push(user.display_name)
       }
       newChatTitle = member_names.join(', ')
@@ -233,10 +290,12 @@ const createChat = async (req: Request, res: Response) => {
       community_id: requestorCommunityId,
       archived: false,
       last_message,
+      chat_type: chatType
     }
     if (shop_id) newChat.shop_id = shop_id
     if (product_id) newChat.product_id = product_id
     if (customerName) newChat.customer_name = customerName
+    if (groupHash && chatType === 'group') newChat.group_hash = groupHash
     chat = await ChatsService.createChat(newChat)
   } else {
     await ChatsService.updateChat(chatId, { last_message })
