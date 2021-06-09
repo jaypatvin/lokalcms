@@ -11,6 +11,7 @@ import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 import { fieldIsNum } from '../../../utils/helpers'
+import { db } from '../index'
 
 /**
  * @openapi
@@ -25,16 +26,35 @@ import { fieldIsNum } from '../../../utils/helpers'
  *       If a chat document with the hash id does not exist yet, it will be created.
  *       Otherwise, there will be just new entry on the conversation field of the chat document
  *       # Examples
- *       ## User _user-id-1_ chatting with users _user-id-2_ and _user-id-3_
+ *       ## User _user-id-1_ chatting with user _user-id-2__
  *       ```
  *       {
  *         "user_id": "user-id-1",
- *         "members": ["user-id-1", "user-id-2", "user-id-3"],
+ *         "members": ["user-id-1", "user-id-2"],
  *         "message": "Hello there."
  *       }
  *       ```
  *
- *       ## User _user-id-1_ starting a chat with users _user-id-2_ and _user-id-3_ with custom title
+ *       ## User _user-id-1_ creating a group chat with users _user-id-2_ and _user-id-3_
+ *       ```
+ *       {
+ *         "user_id": "user-id-1",
+ *         "members": ["user-id-1", "user-id-2", "user-id-3"],
+ *         "message": "Hello there group."
+ *       }
+ *       ```
+ *
+ *       ## User _user-id-2_ replying to _chat-conversation-id_
+ *       ```
+ *       {
+ *         "user_id": "user-id-2",
+ *         "members": ["user-id-1", "user-id-2", "user-id-3"],
+ *         "message": "This is my reply",
+ *         "reply_to": "chat-conversation-id"
+ *       }
+ *       ```
+ *
+ *       ## User _user-id-1_ starting a group chat with users _user-id-2_ and _user-id-3_ with custom title
  *       ```
  *       {
  *         "user_id": "user-id-1",
@@ -141,6 +161,7 @@ const createChat = async (req: Request, res: Response) => {
   let chat
   let shop
   let product
+  let chatId
 
   const error_fields = validateFields(data, required_fields)
   if (error_fields.length) {
@@ -163,6 +184,7 @@ const createChat = async (req: Request, res: Response) => {
         message: 'members does not match the members on the existing chat',
       })
     }
+    chatId = chat_id
   }
 
   if (!requestorDocId || !requestorCommunityId) {
@@ -226,11 +248,6 @@ const createChat = async (req: Request, res: Response) => {
   if (!message && !messageMedia)
     return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
 
-  if (reply_to && !members.includes(reply_to))
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'User replying to is not included on the chat.' })
-
   const last_message: any = {}
   let content = message
   if (media && !content) {
@@ -249,9 +266,9 @@ const createChat = async (req: Request, res: Response) => {
   last_message.sender = requestorName
   last_message.created_at = new Date()
 
-  const chatId = hashArrayOfStrings(members)
-  if (!chat) chat = await ChatsService.getGroupChatByHash(chatId)
-  if (!chat) chat = await ChatsService.getChatById(chatId)
+  const hashId = hashArrayOfStrings(members)
+  if (!chat) chat = await ChatsService.getGroupChatByHash(hashId)
+  if (!chat) chat = await ChatsService.getChatById(hashId)
   if (!chat) {
     let chatType = 'user'
     let newChatTitle = title
@@ -270,7 +287,7 @@ const createChat = async (req: Request, res: Response) => {
     if (!shop && !product && !newChatTitle) {
       if (isGroup) {
         chatType = 'group'
-        groupHash = chatId
+        groupHash = hashId
       }
       const member_names = []
       for (let i = 0; i < members.length; i++) {
@@ -290,14 +307,21 @@ const createChat = async (req: Request, res: Response) => {
       community_id: requestorCommunityId,
       archived: false,
       last_message,
-      chat_type: chatType
+      chat_type: chatType,
     }
     if (shop_id) newChat.shop_id = shop_id
     if (product_id) newChat.product_id = product_id
     if (customerName) newChat.customer_name = customerName
-    if (groupHash && chatType === 'group') newChat.group_hash = groupHash
-    chat = await ChatsService.createChat(newChat)
+    if (groupHash && chatType === 'group') {
+      newChat.group_hash = groupHash
+      chat = await ChatsService.createChat(newChat)
+      chatId = chat.id
+    } else {
+      chat = await ChatsService.createChatWithHashId(hashId, newChat)
+      chatId = hashId
+    }
   } else {
+    chatId = chat.id
     await ChatsService.updateChat(chatId, { last_message })
   }
 
@@ -309,7 +333,7 @@ const createChat = async (req: Request, res: Response) => {
 
   if (message) chatMessage.message = message
   if (messageMedia) chatMessage.media = media
-  if (reply_to) chatMessage.reply_to = reply_to
+  if (reply_to) chatMessage.reply_to = db.doc(`chats/${chatId}/conversation/${reply_to}`)
 
   const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
 

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
-import { ChatsService } from '../../../service'
+import { ChatsService, UsersService } from '../../../service'
+import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 
 /**
  * @openapi
@@ -30,7 +31,7 @@ import { ChatsService } from '../../../service'
  *                   type: string
  *     responses:
  *       200:
- *         description: Updated Chat with new members
+ *         description: Chat with updated members
  *         content:
  *           application/json:
  *             schema:
@@ -57,21 +58,51 @@ const chatInvite = async (req: Request, res: Response) => {
 
   if (!_chat) return res.status(403).json({ status: 'error', message: 'Chat does not exist!' })
 
-  if (_chat.shop_id)
+  if (_chat.shop_id) {
     return res
       .status(403)
-      .json({ status: 'error', message: "Can't add another member on chat with a shop" })
+      .json({ status: 'error', message: "Can't update members of chat with shop" })
+  }
+
+  if (_chat.members.length === 2 || !_chat.group_hash) {
+    return res
+      .status(403)
+      .json({ status: 'error', message: `Chat with id ${chatId} is not a group chat` })
+  }
 
   if (!roles.admin && !_chat.members.includes(requestorDocId))
     return res.status(403).json({
       status: 'error',
-      message: 'You do not have a permission invite another user',
+      message: 'You do not have a permission to invite another user',
     })
 
+  const members = [..._chat.members, ...new_members]
+  const group_hash = hashArrayOfStrings(members)
+  let title = _chat.title
+  const member_names = []
+  for (let i = 0; i < members.length; i++) {
+    const member = members[i]
+    if (_chat.members.includes(member)) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `User with id ${member} is already a member` })
+    }
+    const user = await UsersService.getUserByID(member)
+    if (!user) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `User with id ${member} is not found` })
+    }
+    member_names.push(user.display_name)
+  }
+  title = member_names.join(', ')
+
   const requestData = {
-    updated_by: requestorDocId,
+    updated_by: requestorDocId || '',
     updated_from: data.source || '',
-    members: [..._chat.members, ...new_members],
+    members,
+    group_hash,
+    title,
   }
 
   const result = await ChatsService.updateChat(_chat.id, { ...requestData })

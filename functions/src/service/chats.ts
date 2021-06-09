@@ -28,7 +28,17 @@ export const getGroupChatByHash = async (group_hash: string) => {
 export const createChat = async (data) => {
   return await db
     .collection('chats')
-    .doc(hashArrayOfStrings(data.members))
+    .add({ ...data, created_at: new Date() })
+    .then((res) => {
+      return res.get()
+    })
+    .then((doc): any => ({ id: doc.id, ...doc.data() }))
+}
+
+export const createChatWithHashId = async (hash_id, data) => {
+  return await db
+    .collection('chats')
+    .doc(hash_id)
     .set({ ...data, created_at: new Date() })
     .then((res) => {
       return res
