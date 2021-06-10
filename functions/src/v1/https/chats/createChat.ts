@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { difference } from 'lodash'
 import {
   UsersService,
   ShopsService,
@@ -10,6 +11,7 @@ import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 import { fieldIsNum } from '../../../utils/helpers'
+import { db } from '../index'
 
 /**
  * @openapi
@@ -20,20 +22,40 @@ import { fieldIsNum } from '../../../utils/helpers'
  *     security:
  *       - bearerAuth: []
  *     description: |
- *       The document ID of the chat to be created will be the hash of the members field, and will be the same regardless of order.
- *       If a chat document with the hash id does not exist yet, it will be created.
- *       Otherwise, there will be just new entry on the conversation field of the chat document
+ *       ### If 1-to-1/shop/product chat, the document ID of the chat to be created will be the hash of the members field, and will be the same regardless of order.
+ *       ### If group chat, the document ID is the default provided by firestore, but will have additional field group_hash which is the hash of the current members field.
+ *       ### If a chat document with id or group_hash same as the hash does not exist yet, it will be created.
+ *       ### Otherwise, there will be just new entry on the conversation field of the chat document.
  *       # Examples
- *       ## User _user-id-1_ chatting with users _user-id-2_ and _user-id-3_
+ *       ## User _user-id-1_ chatting with user _user-id-2_
  *       ```
  *       {
  *         "user_id": "user-id-1",
- *         "members": ["user-id-1", "user-id-2", "user-id-3"],
+ *         "members": ["user-id-1", "user-id-2"],
  *         "message": "Hello there."
  *       }
  *       ```
  *
- *       ## User _user-id-1_ starting a chat with users _user-id-2_ and _user-id-3_ with custom title
+ *       ## User _user-id-1_ creating a group chat with users _user-id-2_ and _user-id-3_
+ *       ```
+ *       {
+ *         "user_id": "user-id-1",
+ *         "members": ["user-id-1", "user-id-2", "user-id-3"],
+ *         "message": "Hello there group."
+ *       }
+ *       ```
+ *
+ *       ## User _user-id-2_ replying to _chat-conversation-id_
+ *       ```
+ *       {
+ *         "user_id": "user-id-2",
+ *         "members": ["user-id-1", "user-id-2", "user-id-3"],
+ *         "message": "This is my reply",
+ *         "reply_to": "chat-conversation-id"
+ *       }
+ *       ```
+ *
+ *       ## User _user-id-1_ starting a group chat with users _user-id-2_ and _user-id-3_ with custom title
  *       ```
  *       {
  *         "user_id": "user-id-1",
@@ -90,22 +112,31 @@ import { fieldIsNum } from '../../../utils/helpers'
  *             properties:
  *               user_id:
  *                 type: string
+ *                 description: Document id of the user sending the message. If not provided, this will be extracted from the firebase token
  *               members:
  *                 type: array
+ *                 description: Document ids that are included on the chat. See examples.
  *                 items:
  *                   type: string
+ *                   description: Document id of user, shop, or product
  *               title:
  *                 type: string
+ *                 description: This will be only used when there is no chat document yet, as the initial title of the created chat.
  *               shop_id:
  *                 type: string
+ *                 description: Document id of the shop if talking to the shop.
  *               product_id:
  *                 type: string
+ *                 description: Document id of the product if talking about the specific product with the shop owner
  *               reply_to:
  *                 type: string
+ *                 description: Document id of the conversation subcollection
  *               message:
  *                 type: string
+ *                 description: The message wants to send. Can be blank if the media field have data
  *               media:
  *                 type: array
+ *                 description: Array of objects containing the media. Similar to the gallery field of the product documents.
  *                 items:
  *                   type: object
  *                   properties:
@@ -132,16 +163,38 @@ import { fieldIsNum } from '../../../utils/helpers'
  */
 const createChat = async (req: Request, res: Response) => {
   const data = req.body
-  const { user_id, members, title, shop_id, product_id, message, media, reply_to } = data
+  const { user_id, chat_id, members, title, shop_id, product_id, message, media, reply_to } = data
   let requestorDocId = res.locals.userDoc.id
   let requestorName = res.locals.userDoc.display_name
   let requestorCommunityId = res.locals.userDoc.community_id
+  const isGroup = members.length >= 3 && !shop_id && !product_id
+  let chat
+  let shop
+  let product
+  let chatId
 
   const error_fields = validateFields(data, required_fields)
   if (error_fields.length) {
     return res
       .status(400)
       .json({ status: 'error', message: 'Required fields missing', error_fields })
+  }
+
+  if (chat_id) {
+    chat = await ChatsService.getChatById(chat_id)
+    if (!chat) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `chat with id ${chat_id} does not exist` })
+    }
+    const diff = difference(chat.members, members)
+    if (diff.length) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'members does not match the members on the existing chat',
+      })
+    }
+    chatId = chat_id
   }
 
   if (!requestorDocId || !requestorCommunityId) {
@@ -153,6 +206,30 @@ const createChat = async (req: Request, res: Response) => {
     } else {
       return res.status(400).json({ status: 'error', message: 'Sender information is missing' })
     }
+  }
+
+  if (shop_id) {
+    shop = await ShopsService.getShopByID(shop_id)
+    if (!shop) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `shop with id ${shop_id} does not exist` })
+    }
+  }
+
+  if (product_id) {
+    product = await ProductsService.getProductByID(shop_id)
+    if (!product) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `product with id ${product_id} does not exist` })
+    }
+  }
+
+  if (!members.includes(requestorDocId) && (!shop || shop.user_id !== requestorDocId)) {
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'The requestor is not a member of the chat' })
   }
 
   let messageMedia
@@ -181,11 +258,6 @@ const createChat = async (req: Request, res: Response) => {
   if (!message && !messageMedia)
     return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
 
-  if (reply_to && !members.includes(reply_to))
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'User replying to is not included on the chat.' })
-
   const last_message: any = {}
   let content = message
   if (media && !content) {
@@ -204,25 +276,37 @@ const createChat = async (req: Request, res: Response) => {
   last_message.sender = requestorName
   last_message.created_at = new Date()
 
-  const chatId = hashArrayOfStrings(members)
-  let chat = await ChatsService.getChatById(chatId)
+  const hashId = hashArrayOfStrings(members)
+  if (!chat) chat = await ChatsService.getGroupChatByHash(hashId)
+  if (!chat) chat = await ChatsService.getChatById(hashId)
   if (!chat) {
+    let chatType = 'user'
     let newChatTitle = title
     let customerName
-    if (shop_id) {
+    let groupHash
+    if (shop) {
       customerName = requestorName
-      const shop = await ShopsService.getShopByID(shop_id)
       newChatTitle = shop.name
+      chatType = 'shop'
     }
-    if (shop_id && product_id) {
+    if (shop && product) {
       customerName = requestorName
-      const product = await ProductsService.getProductByID(product_id)
       newChatTitle += `: ${product.name}`
+      chatType = 'product'
     }
-    if (!shop_id && !product_id && !newChatTitle) {
+    if (!shop && !product && !newChatTitle) {
+      if (isGroup) {
+        chatType = 'group'
+        groupHash = hashId
+      }
       const member_names = []
       for (let i = 0; i < members.length; i++) {
         const user = await UsersService.getUserByID(members[i])
+        if (!user) {
+          return res
+            .status(400)
+            .json({ status: 'error', message: `User with id ${members[i]} is not found` })
+        }
         member_names.push(user.display_name)
       }
       newChatTitle = member_names.join(', ')
@@ -233,12 +317,21 @@ const createChat = async (req: Request, res: Response) => {
       community_id: requestorCommunityId,
       archived: false,
       last_message,
+      chat_type: chatType,
     }
     if (shop_id) newChat.shop_id = shop_id
     if (product_id) newChat.product_id = product_id
     if (customerName) newChat.customer_name = customerName
-    chat = await ChatsService.createChat(newChat)
+    if (groupHash && chatType === 'group') {
+      newChat.group_hash = groupHash
+      chat = await ChatsService.createChat(newChat)
+      chatId = chat.id
+    } else {
+      chat = await ChatsService.createChatWithHashId(hashId, newChat)
+      chatId = hashId
+    }
   } else {
+    chatId = chat.id
     await ChatsService.updateChat(chatId, { last_message })
   }
 
@@ -250,7 +343,7 @@ const createChat = async (req: Request, res: Response) => {
 
   if (message) chatMessage.message = message
   if (messageMedia) chatMessage.media = media
-  if (reply_to) chatMessage.reply_to = reply_to
+  if (reply_to) chatMessage.reply_to = db.doc(`chats/${chatId}/conversation/${reply_to}`)
 
   const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
 
