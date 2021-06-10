@@ -56,5 +56,6 @@ export const required_fields = ['members']
 
 export { default as createChat } from './createChat'
 export { default as chatInvite } from './chatInvite'
+export { default as chatRemoveUser } from './chatRemoveUser'
 export { default as updateChatTitle } from './updateChatTitle'
 export { default as archiveChatMessage } from './archiveChatMessage'
