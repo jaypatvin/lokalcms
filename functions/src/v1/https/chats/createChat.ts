@@ -22,11 +22,12 @@ import { db } from '../index'
  *     security:
  *       - bearerAuth: []
  *     description: |
- *       The document ID of the chat to be created will be the hash of the members field, and will be the same regardless of order.
- *       If a chat document with the hash id does not exist yet, it will be created.
- *       Otherwise, there will be just new entry on the conversation field of the chat document
+ *       ### If 1-to-1/shop/product chat, the document ID of the chat to be created will be the hash of the members field, and will be the same regardless of order.
+ *       ### If group chat, the document ID is the default provided by firestore, but will have additional field group_hash which is the hash of the current members field.
+ *       ### If a chat document with id or group_hash same as the hash does not exist yet, it will be created.
+ *       ### Otherwise, there will be just new entry on the conversation field of the chat document.
  *       # Examples
- *       ## User _user-id-1_ chatting with user _user-id-2__
+ *       ## User _user-id-1_ chatting with user _user-id-2_
  *       ```
  *       {
  *         "user_id": "user-id-1",
@@ -111,22 +112,31 @@ import { db } from '../index'
  *             properties:
  *               user_id:
  *                 type: string
+ *                 description: Document id of the user sending the message. If not provided, this will be extracted from the firebase token
  *               members:
  *                 type: array
+ *                 description: Document ids that are included on the chat. See examples.
  *                 items:
  *                   type: string
+ *                   description: Document id of user, shop, or product
  *               title:
  *                 type: string
+ *                 description: This will be only used when there is no chat document yet, as the initial title of the created chat.
  *               shop_id:
  *                 type: string
+ *                 description: Document id of the shop if talking to the shop.
  *               product_id:
  *                 type: string
+ *                 description: Document id of the product if talking about the specific product with the shop owner
  *               reply_to:
  *                 type: string
+ *                 description: Document id of the conversation subcollection
  *               message:
  *                 type: string
+ *                 description: The message wants to send. Can be blank if the media field have data
  *               media:
  *                 type: array
+ *                 description: Array of objects containing the media. Similar to the gallery field of the product documents.
  *                 items:
  *                   type: object
  *                   properties:
@@ -208,15 +218,15 @@ const createChat = async (req: Request, res: Response) => {
   }
 
   if (product_id) {
-    product = await ShopsService.getShopByID(shop_id)
-    if (!shop) {
+    product = await ProductsService.getProductByID(shop_id)
+    if (!product) {
       return res
         .status(400)
-        .json({ status: 'error', message: `product with id ${shop_id} does not exist` })
+        .json({ status: 'error', message: `product with id ${product_id} does not exist` })
     }
   }
 
-  if (!members.includes(requestorDocId)) {
+  if (!members.includes(requestorDocId) && (!shop || shop.user_id !== requestorDocId)) {
     return res
       .status(400)
       .json({ status: 'error', message: 'The requestor is not a member of the chat' })

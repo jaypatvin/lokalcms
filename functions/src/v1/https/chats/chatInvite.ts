@@ -10,7 +10,25 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *       - chats
  *     security:
  *       - bearerAuth: []
- *     description: Invite user/s to the chat
+ *     description: |
+ *       ### Can only be used on group chats
+ *       ### Can add single user or multiple users at once.
+ *       ### Only one of the fields user_id or new_members shall be used.
+ *       # Examples
+ *       ## Adding _user-id-4_ to the group chat
+ *       ```
+ *       {
+ *         "user_id": "user-id-4"
+ *       }
+ *       ```
+ *
+ *       ## Adding _user-id-5_, _user-id-6_, _user-id-7_ to the group chat
+ *       ```
+ *       {
+ *         "new_members": ["user-id-5", "user-id-6", "user-id-7"]
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: chatId
@@ -25,8 +43,12 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *           schema:
  *             type: object
  *             properties:
+ *               user_id:
+ *                 type: string
+ *                 description: Document id of the user that you want to add to the chat. This is used for adding single user, or can be used for 1 by 1, depends on UI logic.
  *               new_members:
  *                 type: array
+ *                 description: Document ids of the users you want to add to the chat. This is used for adding bulk users.
  *                 items:
  *                   type: string
  *     responses:
@@ -45,13 +67,15 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  */
 const chatInvite = async (req: Request, res: Response) => {
   const data = req.body
-  const { new_members } = data
+  const { user_id, new_members } = data
   const { chatId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  if (!new_members || !new_members.length) {
-    return res.status(403).json({ status: 'error', message: 'new_members field is required.' })
+  if (!user_id && (!new_members || !new_members.length)) {
+    return res
+      .status(403)
+      .json({ status: 'error', message: 'user_id or new_members field is required.' })
   }
 
   const _chat = await ChatsService.getChatById(chatId)
@@ -76,17 +100,31 @@ const chatInvite = async (req: Request, res: Response) => {
       message: 'You do not have a permission to invite another user',
     })
 
-  const members = [..._chat.members, ...new_members]
+  let members
+
+  if (user_id) {
+    if (_chat.members.includes(user_id)) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `User with id ${user_id} is already a member` })
+    }
+    members = [..._chat.members, user_id]
+  } else if (new_members) {
+    for (let i = 0; i < new_members.length; i++) {
+      const member = new_members[i]
+      if (_chat.members.includes(member)) {
+        return res
+          .status(400)
+          .json({ status: 'error', message: `User with id ${member} is already a member` })
+      }
+    }
+    members = [..._chat.members, ...new_members]
+  }
   const group_hash = hashArrayOfStrings(members)
   let title = _chat.title
   const member_names = []
   for (let i = 0; i < members.length; i++) {
     const member = members[i]
-    if (_chat.members.includes(member)) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `User with id ${member} is already a member` })
-    }
     const user = await UsersService.getUserByID(member)
     if (!user) {
       return res
