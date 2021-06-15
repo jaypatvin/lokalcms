@@ -104,10 +104,19 @@ const ChatsPage = ({}) => {
         id: doc.id,
         ...doc.data(),
       }))
-      newChatConversation.forEach((message) => {
+      for (let i = 0; i < newChatConversation.length; i++) {
+        const message = newChatConversation[i]
         const senderName = chat.membersInfo[message.sender_id].name
         message.sender_name = senderName
-      })
+        if (message.reply_to) {
+          const replyTo = await message.reply_to.get()
+          const replyToData = replyTo.data()
+          replyToData.sender_name = chat.membersInfo[replyToData.sender_id]
+            ? chat.membersInfo[replyToData.sender_id].name
+            : 'Unknown'
+          message.reply_to = replyToData
+        }
+      }
       setChatConversation(newChatConversation)
     })
     setConversationSnapshot({ unsubscribe: newUnsubscribe })
@@ -179,7 +188,7 @@ const ChatsPage = ({}) => {
                       } mb-2 p-2 shadow bg-secondary-100 rounded relative`}
                       onClick={() => onSelectChat(chat)}
                     >
-                      <h3 className="text-lg pr-36">{chat.title}</h3>
+                      <h3 className="text-md pr-36 font-bold">{chat.title}</h3>
                       <p className="pl-2 text-secondary-600">{`${chat.last_message.sender}: ${chat.last_message.content}`}</p>
                       <span className="absolute right-2 top-2">{last_message_at_ago}</span>
                     </div>
@@ -189,8 +198,15 @@ const ChatsPage = ({}) => {
             </div>
             <div className="w-2/3 h-full overflow-y-auto flex flex-col-reverse p-5 bg-secondary-50 ml-2">
               {chatConversation.map((doc) => {
+                console.log('doc', doc)
                 const sent_at = dayjs(doc.created_at.toDate()).format()
                 const sent_at_ago = dayjs(sent_at).fromNow()
+                let reply_to_at
+                let reply_to_at_ago
+                if (doc.reply_to) {
+                  reply_to_at = dayjs(doc.reply_to.created_at.toDate()).format()
+                  reply_to_at_ago = dayjs(reply_to_at).fromNow()
+                }
                 return (
                   <div
                     key={doc.id}
@@ -198,6 +214,33 @@ const ChatsPage = ({}) => {
                       doc.sender_id === user.id ? 'bg-teal-100 self-end' : 'bg-secondary-200'
                     } mb-2 p-2 shadow rounded max-w-max`}
                   >
+                    {doc.reply_to ? (
+                      <div className="opacity-80 p-2 mb-2 border-l-4 border-secondary-500">
+                        <p className="text-sm font-bold italic">{doc.reply_to.sender_name}</p>
+                        <p className="text-sm italic">{doc.reply_to.message}</p>
+                        {doc.reply_to.media &&
+                        doc.reply_to.media.length &&
+                        doc.reply_to.media[0].type === 'image' ? (
+                          <div className="flex w-96 flex-wrap">
+                            {doc.reply_to.media.map((item: any) => (
+                              <img
+                                className={`${
+                                  doc.reply_to.media.length === 1 ? 'w-full' : 'w-1/2'
+                                } p-1`}
+                                key={item.order}
+                                src={item.url}
+                                alt={item.type}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          ''
+                        )}
+                        <span className="text-xs text-secondary-600 italic">{reply_to_at_ago}</span>
+                      </div>
+                    ) : (
+                      ''
+                    )}
                     <p className="text-sm font-bold">{doc.sender_name}</p>
                     <p className="text-sm">{doc.message}</p>
                     {doc.media && doc.media.length && doc.media[0].type === 'image' ? (
