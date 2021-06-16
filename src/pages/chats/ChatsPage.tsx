@@ -1,12 +1,14 @@
-import dayjs from 'dayjs'
-import React, { ChangeEventHandler, useState } from 'react'
+import React, { ChangeEventHandler, useRef, useState } from 'react'
 import ReactLoading from 'react-loading'
+import InfiniteScroll from 'react-infinite-scroller'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getChatConversation, getChats } from '../../services/chats'
 import { fetchProductByID } from '../../services/products'
 import { fetchShopByID } from '../../services/shops'
 import { fetchUserByID, getUsers } from '../../services/users'
+import ChatItem from './ChatItem'
+import ConversationItem from './ConversationItem'
 
 const ChatsPage = ({}) => {
   const [user, setUser] = useState<any>()
@@ -15,14 +17,18 @@ const ChatsPage = ({}) => {
   const [userSearchText, setUserSearchText] = useState('')
   const [userSearchResult, setUserSearchResult] = useState<any>([])
   const [userChats, setUserChats] = useState<any[]>([])
-  const [activeChat, setActiveChat] = useState<string>()
+  const [activeChat, setActiveChat] = useState<any>()
   const [chatConversation, setChatConversation] = useState<any[]>([])
   const [chatsSnapshot, setChatsSnapshot] = useState<{ unsubscribe: () => void }>()
   const [conversationSnapshot, setConversationSnapshot] = useState<{ unsubscribe: () => void }>()
   const [loading, setLoading] = useState(false)
+  const [pageNum, setPageNum] = useState(1)
+  const [conversationRef, setConversationRef] = useState<any>()
+  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [isLastPage, setIsLastPage] = useState(false)
+  const conversationScrollRef = useRef<any>()
 
   const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    console.log('e.target.value', e.target.value)
     setUserSearchText(e.target.value)
     if (e.target.value.length > 2) {
       const usersRef = getUsers({ search: e.target.value })
@@ -94,32 +100,65 @@ const ChatsPage = ({}) => {
     setLoading(false)
   }
 
+  const setupConversation = async (docs: any, chat: any) => {
+    const newChatConversation = docs.map((doc: any): any => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+    for (let i = 0; i < newChatConversation.length; i++) {
+      const message = newChatConversation[i]
+      const senderName = chat.membersInfo[message.sender_id]
+        ? chat.membersInfo[message.sender_id].name
+        : 'Unknown'
+      message.sender_name = senderName
+      if (message.reply_to) {
+        const replyTo = await message.reply_to.get()
+        const replyToData = replyTo.data()
+        replyToData.sender_name = chat.membersInfo[replyToData.sender_id]
+          ? chat.membersInfo[replyToData.sender_id].name
+          : 'Unknown'
+        message.reply_to = replyToData
+      }
+    }
+    return newChatConversation
+  }
+
   const onSelectChat = async (chat: any) => {
     if (activeChat === chat.id) return
-    setActiveChat(chat.id)
+    setIsLastPage(false)
+    setActiveChat(chat)
+    setChatConversation([])
     const conversationRef = getChatConversation({ chatId: chat.id })
     if (conversationSnapshot && conversationSnapshot.unsubscribe) conversationSnapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = conversationRef.onSnapshot(async (snapshot) => {
-      const newChatConversation = snapshot.docs.map((doc): any => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
-      for (let i = 0; i < newChatConversation.length; i++) {
-        const message = newChatConversation[i]
-        const senderName = chat.membersInfo[message.sender_id].name
-        message.sender_name = senderName
-        if (message.reply_to) {
-          const replyTo = await message.reply_to.get()
-          const replyToData = replyTo.data()
-          replyToData.sender_name = chat.membersInfo[replyToData.sender_id]
-            ? chat.membersInfo[replyToData.sender_id].name
-            : 'Unknown'
-          message.reply_to = replyToData
-        }
-      }
+      const newChatConversation = await setupConversation(snapshot.docs, chat)
+      setLastDataOnList(snapshot.docs[snapshot.docs.length - 1])
       setChatConversation(newChatConversation)
+      setTimeout(() => {
+        if (conversationScrollRef.current) {
+          conversationScrollRef.current.scrollTop = conversationScrollRef.current.scrollHeight
+        }
+      }, 500)
     })
     setConversationSnapshot({ unsubscribe: newUnsubscribe })
+    setConversationRef(conversationRef)
+  }
+
+  const onNextPage = (p: number) => {
+    if (conversationRef && lastDataOnList && !isLastPage) {
+      const newDataRef = conversationRef.startAfter(lastDataOnList).limit(10)
+      newDataRef.onSnapshot(async (snapshot: any) => {
+        if (snapshot.docs.length) {
+          const moreChatConversation = await setupConversation(snapshot.docs, activeChat)
+          const newChatConversation = [...chatConversation, ...moreChatConversation]
+          setChatConversation(newChatConversation)
+          setLastDataOnList(snapshot.docs[snapshot.docs.length - 1])
+          setPageNum(p + 1)
+        } else if (!isLastPage) {
+          setIsLastPage(true)
+        }
+      })
+    }
   }
 
   return (
@@ -136,13 +175,6 @@ const ChatsPage = ({}) => {
             value={userSearchText}
             onFocus={() => setShowUserSearchResult(userSearchResult.length > 0)}
           />
-          {user ? (
-            <p>
-              Chats for user <strong>{user.display_name}</strong>
-            </p>
-          ) : (
-            ''
-          )}
           {showUserSearchResult && userSearchResult.length > 0 && (
             <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
               {userSearchResult.map((user: any) => (
@@ -162,9 +194,16 @@ const ChatsPage = ({}) => {
               ))}
             </div>
           )}
+          {user ? (
+            <p>
+              Chats for user <strong>{user.display_name}</strong>
+            </p>
+          ) : (
+            ''
+          )}
         </div>
       </div>
-      <div className="flex h-3/4-screen">
+      <div className="flex h-2/3-screen">
         {loading ? (
           <div className="h-96 w-full relative">
             <ReactLoading
@@ -176,92 +215,34 @@ const ChatsPage = ({}) => {
         ) : (
           <>
             <div className="w-1/3 h-full overflow-y-auto">
-              <div className="">
-                {userChats.map((chat) => {
-                  const last_message_at = dayjs(chat.last_message.created_at.toDate()).format()
-                  const last_message_at_ago = dayjs(last_message_at).fromNow()
-                  return (
-                    <div
-                      key={chat.id}
-                      className={`${
-                        activeChat === chat.id ? 'bg-teal-100' : 'hover:bg-teal-50'
-                      } mb-2 p-2 shadow bg-secondary-100 rounded relative`}
-                      onClick={() => onSelectChat(chat)}
-                    >
-                      <h3 className="text-md pr-36 font-bold">{chat.title}</h3>
-                      <p className="pl-2 text-secondary-600">{`${chat.last_message.sender}: ${chat.last_message.content}`}</p>
-                      <span className="absolute right-2 top-2">{last_message_at_ago}</span>
-                    </div>
-                  )
-                })}
+              {userChats.map((chat) => (
+                <ChatItem
+                  key={chat.id}
+                  chat={chat}
+                  activeChat={activeChat.id}
+                  onClick={onSelectChat}
+                />
+              ))}
+            </div>
+            {chatConversation && chatConversation.length > 0 ? (
+              <div ref={conversationScrollRef} className="w-2/3 h-full overflow-y-auto">
+                <InfiniteScroll
+                  className="flex flex-col-reverse p-5 bg-secondary-50 ml-2"
+                  pageStart={pageNum}
+                  loadMore={onNextPage}
+                  hasMore={!isLastPage}
+                  useWindow={false}
+                  isReverse={true}
+                  threshold={10}
+                >
+                  {chatConversation.map((doc) => (
+                    <ConversationItem key={doc.id} doc={doc} currentUser={user} />
+                  ))}
+                </InfiniteScroll>
               </div>
-            </div>
-            <div className="w-2/3 h-full overflow-y-auto flex flex-col-reverse p-5 bg-secondary-50 ml-2">
-              {chatConversation.map((doc) => {
-                console.log('doc', doc)
-                const sent_at = dayjs(doc.created_at.toDate()).format()
-                const sent_at_ago = dayjs(sent_at).fromNow()
-                let reply_to_at
-                let reply_to_at_ago
-                if (doc.reply_to) {
-                  reply_to_at = dayjs(doc.reply_to.created_at.toDate()).format()
-                  reply_to_at_ago = dayjs(reply_to_at).fromNow()
-                }
-                return (
-                  <div
-                    key={doc.id}
-                    className={`${
-                      doc.sender_id === user.id ? 'bg-teal-100 self-end' : 'bg-secondary-200'
-                    } mb-2 p-2 shadow rounded max-w-max`}
-                  >
-                    {doc.reply_to ? (
-                      <div className="opacity-80 p-2 mb-2 border-l-4 border-secondary-500">
-                        <p className="text-sm font-bold italic">{doc.reply_to.sender_name}</p>
-                        <p className="text-sm italic">{doc.reply_to.message}</p>
-                        {doc.reply_to.media &&
-                        doc.reply_to.media.length &&
-                        doc.reply_to.media[0].type === 'image' ? (
-                          <div className="flex w-96 flex-wrap">
-                            {doc.reply_to.media.map((item: any) => (
-                              <img
-                                className={`${
-                                  doc.reply_to.media.length === 1 ? 'w-full' : 'w-1/2'
-                                } p-1`}
-                                key={item.order}
-                                src={item.url}
-                                alt={item.type}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          ''
-                        )}
-                        <span className="text-xs text-secondary-600 italic">{reply_to_at_ago}</span>
-                      </div>
-                    ) : (
-                      ''
-                    )}
-                    <p className="text-sm font-bold">{doc.sender_name}</p>
-                    <p className="text-sm">{doc.message}</p>
-                    {doc.media && doc.media.length && doc.media[0].type === 'image' ? (
-                      <div className="flex w-96 flex-wrap">
-                        {doc.media.map((item: any) => (
-                          <img
-                            className={`${doc.media.length === 1 ? 'w-full' : 'w-1/2'} p-1`}
-                            key={item.order}
-                            src={item.url}
-                            alt={item.type}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      ''
-                    )}
-                    <span className="text-xs text-secondary-600">{sent_at_ago}</span>
-                  </div>
-                )
-              })}
-            </div>
+            ) : (
+              ''
+            )}
           </>
         )}
       </div>
