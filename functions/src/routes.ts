@@ -89,6 +89,8 @@ module.exports = (api: Express) => {
   api.route('/v1/users/:userId').put(wrapAsync(UsersAPI.updateUser))
   api.route('/v1/users/:userId').delete(wrapAsync(UsersAPI.archiveUser))
   api.route('/v1/users/:userId/unarchive').put(wrapAsync(UsersAPI.unarchiveUser))
+  api.route('/v1/users/:userId/chatSettings').put(wrapAsync(UsersAPI.updateUserChatSettings))
+  api.route('/v1/users/:userId/notificationSettings').put(wrapAsync(UsersAPI.updateUserNotificationSettings))
   api.route('/v1/users/:userId/shops').get(wrapAsync(ShopsAPI.getUserShops))
   api.route('/v1/users/:userId/products').get(wrapAsync(ProductsAPI.getUserProducts))
   api.route('/v1/users/:userId/activities').get(wrapAsync(ActivitiesAPI.getUserActivities))
