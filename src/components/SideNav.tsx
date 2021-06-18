@@ -53,6 +53,11 @@ const menus = [
     icon: <IoIosPeople size={23} />,
   },
   {
+    key: 'chats',
+    label: 'Chats',
+    icon: <IoIosPeople size={23} />,
+  },
+  {
     key: 'invites',
     label: 'Invites',
     icon: <IoIosPaperPlane size={23} />,

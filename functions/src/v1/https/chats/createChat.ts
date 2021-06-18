@@ -218,7 +218,7 @@ const createChat = async (req: Request, res: Response) => {
   }
 
   if (product_id) {
-    product = await ProductsService.getProductByID(shop_id)
+    product = await ProductsService.getProductByID(product_id)
     if (!product) {
       return res
         .status(400)

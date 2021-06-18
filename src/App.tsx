@@ -23,6 +23,7 @@ import HistoryListPage from './pages/history/HistoryListPage'
 
 import UserEditPage from './pages/users/UserEditPage'
 import DiscoverPage from './pages/discover/DiscoverPage'
+import ChatsPage from './pages/chats/ChatsPage'
 
 class App extends React.Component {
   render() {
@@ -43,6 +44,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/categories" component={CategoryListPage} />
             <PrivateRoute exact path="/users" component={UserListPage} />
             <PrivateRoute exact path="/users/:id" component={UserEditPage} />
+            <PrivateRoute exact path="/chats" component={ChatsPage} />
             <PrivateRoute exact path="/invites" component={InviteListPage} />
             <PrivateRoute exact path="/settings" component={SettingsPage} />
             <PrivateRoute exact path="/history" component={HistoryListPage} />
