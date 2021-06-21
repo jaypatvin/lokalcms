@@ -1,17 +1,8 @@
 import { Request, Response } from 'express'
-import { difference } from 'lodash'
-import {
-  UsersService,
-  ShopsService,
-  ChatsService,
-  ProductsService,
-  ChatMessageService,
-} from '../../../service'
+import { UsersService, ShopsService, ChatsService, ProductsService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
-import { fieldIsNum } from '../../../utils/helpers'
-import { db } from '../index'
 
 /**
  * @openapi
@@ -25,14 +16,14 @@ import { db } from '../index'
  *       ### If 1-to-1/shop/product chat, the document ID of the chat to be created will be the hash of the members field, and will be the same regardless of order.
  *       ### If group chat, the document ID is the default provided by firestore, but will have additional field group_hash which is the hash of the current members field.
  *       ### If a chat document with id or group_hash same as the hash does not exist yet, it will be created.
- *       ### Otherwise, there will be just new entry on the conversation field of the chat document.
+ *       ### Otherwise, it will return an error indicating there is already an existing chat with the members.
+ *       ## Note: The user_id field will only be used when the requestor data is not found (from token). By default, user_id is the requestor's user document id.
  *       # Examples
- *       ## User _user-id-1_ chatting with user _user-id-2_
+ *       ## User _user-id-1_ starting a chat with user _user-id-2_
  *       ```
  *       {
  *         "user_id": "user-id-1",
- *         "members": ["user-id-1", "user-id-2"],
- *         "message": "Hello there."
+ *         "members": ["user-id-1", "user-id-2"]
  *       }
  *       ```
  *
@@ -40,18 +31,7 @@ import { db } from '../index'
  *       ```
  *       {
  *         "user_id": "user-id-1",
- *         "members": ["user-id-1", "user-id-2", "user-id-3"],
- *         "message": "Hello there group."
- *       }
- *       ```
- *
- *       ## User _user-id-2_ replying to _chat-conversation-id_
- *       ```
- *       {
- *         "user_id": "user-id-2",
- *         "members": ["user-id-1", "user-id-2", "user-id-3"],
- *         "message": "This is my reply",
- *         "reply_to": "chat-conversation-id"
+ *         "members": ["user-id-1", "user-id-2", "user-id-3"]
  *       }
  *       ```
  *
@@ -60,49 +40,29 @@ import { db } from '../index'
  *       {
  *         "user_id": "user-id-1",
  *         "members": ["user-id-1", "user-id-2", "user-id-3"],
- *         "title": "Peaky Blinders",
- *         "message": "Hello there."
+ *         "title": "Peaky Blinders"
  *       }
  *       ```
  *
- *       ## User _user-id-1_ chatting with shop _shop-id-1
+ *       ## User _user-id-1_ starting a chat with shop _shop-id-1
  *       ```
  *       {
  *         "user_id": "user-id-1",
  *         "members": ["user-id-1", "shop-id-1"],
- *         "message": "Hello there shop.",
  *         "shop_id": "shop-id-1"
  *       }
  *       ```
  *
- *       ## User _user-id-1_ chatting about specific product _product-id-1_ of shop _shop-id-1_
+ *       ## User _user-id-1_ starting a chat about specific product _product-id-1_ of shop _shop-id-1_
  *       ```
  *       {
  *         "user_id": "user-id-1",
  *         "members": ["user-id-1", "shop-id-1", "product-id-1"],
- *         "message": "Hello there shop.",
  *         "shop_id": "shop-id-1",
  *         "product_id": "product-id-1"
  *       }
  *       ```
  *
- *       ## User _user-id-1_ chatting about specific product _product-id-1_ of shop _shop-id-1_ with image
- *       ```
- *       {
- *         "user_id": "user-id-1",
- *         "members": ["user-id-1", "shop-id-1", "product-id-1"],
- *         "message": "This cake doesn't taste good.",
- *         "media": [
- *           {
- *             "type": "image",
- *             "url": "https://image.shutterstock.com/image-vector/sample-stamp-grunge-texture-vector-260nw-1389188336.jpg",
- *             "order": 1
- *           }
- *         ],
- *         "shop_id": "shop-id-1",
- *         "product_id": "product-id-1"
- *       }
- *       ```
  *     requestBody:
  *       required: true
  *       content:
@@ -128,25 +88,6 @@ import { db } from '../index'
  *               product_id:
  *                 type: string
  *                 description: Document id of the product if talking about the specific product with the shop owner
- *               reply_to:
- *                 type: string
- *                 description: Document id of the conversation subcollection
- *               message:
- *                 type: string
- *                 description: The message wants to send. Can be blank if the media field have data
- *               media:
- *                 type: array
- *                 description: Array of objects containing the media. Similar to the gallery field of the product documents.
- *                 items:
- *                   type: object
- *                   properties:
- *                     url:
- *                       type: string
- *                     type:
- *                       type: string
- *                       enum: [image, audio, video]
- *                     order:
- *                       type: number
  *     responses:
  *       200:
  *         description: The new chat message
@@ -163,7 +104,7 @@ import { db } from '../index'
  */
 const createChat = async (req: Request, res: Response) => {
   const data = req.body
-  const { user_id, chat_id, members, title, shop_id, product_id, message, media, reply_to } = data
+  const { user_id, members, title, shop_id, product_id, message, media, reply_to } = data
   let requestorDocId = res.locals.userDoc.id
   let requestorName = res.locals.userDoc.display_name
   let requestorCommunityId = res.locals.userDoc.community_id
@@ -178,23 +119,6 @@ const createChat = async (req: Request, res: Response) => {
     return res
       .status(400)
       .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
-  if (chat_id) {
-    chat = await ChatsService.getChatById(chat_id)
-    if (!chat) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `chat with id ${chat_id} does not exist` })
-    }
-    const diff = difference(chat.members, members)
-    if (diff.length) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'members does not match the members on the existing chat',
-      })
-    }
-    chatId = chat_id
   }
 
   if (!requestorDocId || !requestorCommunityId) {
@@ -232,52 +156,13 @@ const createChat = async (req: Request, res: Response) => {
       .json({ status: 'error', message: 'The requestor is not a member of the chat' })
   }
 
-  let messageMedia
-  if (media) {
-    if (!Array.isArray(media))
-      return res.status(400).json({
-        status: 'error',
-        message: 'Media is not an array of type object: {url: string, order: number, type: string}',
-      })
-
-    for (let [i, g] of media.entries()) {
-      if (!g.url)
-        return res.status(400).json({ status: 'error', message: 'Missing media url for item ' + i })
-      if (!g.type)
-        return res.status(400).json({ status: 'error', message: 'Missing type for item ' + i })
-
-      if (!fieldIsNum(g.order))
-        return res
-          .status(400)
-          .json({ status: 'error', message: 'order is not a type of number for item ' + i })
-    }
-
-    messageMedia = media
+  const last_message = {
+    content: `${requestorName} started a chat.`,
+    created_at: new Date(),
   }
-
-  if (!message && !messageMedia)
-    return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
-
-  const last_message: any = {}
-  let content = message
-  if (media && !content) {
-    const numOfMedia = media.length
-    if (media[0].type === 'image') {
-      content = `sent ${media.length} photo${numOfMedia > 1 ? 's' : ''}`
-    } else if (media[0].type === 'video') {
-      content = `sent ${media.length} video${numOfMedia > 1 ? 's' : ''}`
-    } else if (media[0].type === 'audio') {
-      content = `sent an audio`
-    } else {
-      content = 'sent a message'
-    }
-  }
-  last_message.content = content
-  last_message.sender = requestorName
-  last_message.created_at = new Date()
 
   const hashId = hashArrayOfStrings(members)
-  if (!chat) chat = await ChatsService.getGroupChatByHash(hashId)
+  chat = await ChatsService.getGroupChatByHash(hashId)
   if (!chat) chat = await ChatsService.getChatById(hashId)
   if (!chat) {
     let chatType = 'user'
@@ -331,23 +216,12 @@ const createChat = async (req: Request, res: Response) => {
       chatId = hashId
     }
   } else {
-    chatId = chat.id
-    await ChatsService.updateChat(chatId, { last_message })
+    return res.status(400).json({ status: 'error', message: 'The chat is already existing.' })
   }
 
-  const chatMessage: any = {
-    sender_id: requestorDocId,
-    sent_at: new Date(),
-    archived: false,
-  }
+  const chatData = await ChatsService.getChatById(chatId)
 
-  if (message) chatMessage.message = message
-  if (messageMedia) chatMessage.media = media
-  if (reply_to) chatMessage.reply_to = db.doc(`chats/${chatId}/conversation/${reply_to}`)
-
-  const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
-
-  return res.json({ status: 'ok', data: { chat_id: chatId, ...result } })
+  return res.json({ status: 'ok', data: chatData })
 }
 
 export default createChat
