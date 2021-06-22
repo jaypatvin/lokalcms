@@ -17,7 +17,8 @@ import {
   CommentsAPI,
   LikesAPI,
   SearchAPI,
-  ChatsAPI
+  ChatsAPI,
+  OrdersAPI
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -177,4 +178,7 @@ module.exports = (api: Express) => {
   api.route('/v1/chats/:chatId/removeUser').put(wrapAsync(ChatsAPI.chatRemoveUser))
   api.route('/v1/chats/:chatId/updateTitle').put(wrapAsync(ChatsAPI.updateChatTitle))
   api.route('/v1/chats/:chatId/conversation/:messageId').delete(wrapAsync(ChatsAPI.archiveChatMessage))
+
+  // -- Orders routes
+  api.route('/v1/orders').post(wrapAsync(OrdersAPI.createOrder))
 }
