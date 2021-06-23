@@ -63,12 +63,12 @@
  *           items:
  *             type: object
  *             properties:
- *               id:
- *                 type: string
  *               before:
  *                 type: number
+ *                 description: The status_code before the update
  *               after:
  *                 type: number
+ *                 description: The status_code after the update
  *               updated_at:
  *                 type: string
  *                 format: date-time

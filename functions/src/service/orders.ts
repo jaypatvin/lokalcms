@@ -40,3 +40,15 @@ export const updateOrder = async (id, data) => {
     .doc(id)
     .update({ ...data, updated_at: new Date() })
 }
+
+export const createOrderStatusHistory = async (order_id, data) => {
+  return await db
+    .collection('orders')
+    .doc(order_id)
+    .collection('status_history')
+    .add({ ...data, updated_at: new Date() })
+    .then((res) => {
+      return res.get()
+    })
+    .then((doc) => doc.data())
+}
