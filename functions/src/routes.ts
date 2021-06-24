@@ -173,6 +173,7 @@ module.exports = (api: Express) => {
 
   // -- Chats routes
   api.route('/v1/chats').post(wrapAsync(ChatsAPI.createChat))
+  api.route('/v1/chats/:chatId/conversation').post(wrapAsync(ChatsAPI.createConversation))
   api.route('/v1/chats/:chatId/invite').put(wrapAsync(ChatsAPI.chatInvite))
   api.route('/v1/chats/:chatId/removeUser').put(wrapAsync(ChatsAPI.chatRemoveUser))
   api.route('/v1/chats/:chatId/updateTitle').put(wrapAsync(ChatsAPI.updateChatTitle))
