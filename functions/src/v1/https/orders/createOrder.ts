@@ -123,8 +123,9 @@ const createOrder = async (req: Request, res: Response) => {
   }
   const { products, buyer_id, shop_id, delivery_option, delivery_date, instruction = '' } = data
   let requestorDocId = res.locals.userDoc.id
+  let buyer = res.locals.userDoc
   if (roles.admin && buyer_id) {
-    const buyer = await UsersService.getUserByID(buyer_id)
+    buyer = await UsersService.getUserByID(buyer_id)
     if (!buyer) {
       return res
         .status(400)
@@ -203,6 +204,9 @@ const createOrder = async (req: Request, res: Response) => {
 
   if (shop.profile_photo) {
     newOrder.shop_image = shop.profile_photo
+  }
+  if (buyer.address) {
+    newOrder.delivery_address = buyer.address
   }
 
   const order = await OrdersService.createOrder(newOrder)
