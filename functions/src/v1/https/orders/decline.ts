@@ -4,23 +4,24 @@ import { OrdersService } from '../../../service'
 
 /**
  * @openapi
- * /v1/orders/{orderId}/confirm:
+ * /v1/orders/{orderId}/decline:
  *   put:
  *     tags:
  *       - orders
  *     security:
  *       - bearerAuth: []
  *     description: |
- *       ### This will progress the order from "Confirmation" to "Payment"
- *       ### Buyer status will be changed from "Waiting for Confirmation" to "To Pay"
- *       ### Seller status will be changed from "To Confirm" to "Waiting for Payment"
+ *       ### This will progress the order status to "Declined"
+ *       ### Buyer status will be changed "Declined Order"
+ *       ### Seller status will be changed "Declined Order"
  *       ## Note: the _seller_id_ will be extracted from the firestore token.
  *       ## For testing purposes, you can use the shop's owner doc id as the _seller_id_. But this will only work if the token is from an admin user.
  *       # Examples
- *       ## Seller with doc id _user-id-1_ confirming the order _order-id-1_. The _orderId_ from the url should be _order-id-1_
+ *       ## Seller with doc id _user-id-1_ declining the order _order-id-1_, indicating why the seller declined
  *       ```
  *       {
- *         "seller_id": "user-id-1"
+ *         "seller_id": "user-id-1",
+ *         "reason": "I do not want to make u a cake"
  *       }
  *       ```
  *
@@ -40,6 +41,8 @@ import { OrdersService } from '../../../service'
  *             properties:
  *               seller_id:
  *                 type: string
+ *               reason:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Updated order
@@ -54,9 +57,9 @@ import { OrdersService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Order'
  */
-const confirmOrder = async (req: Request, res: Response) => {
+const declineOrder = async (req: Request, res: Response) => {
   const data = req.body
-  const { seller_id } = data
+  const { seller_id, reason = '' } = data
   const { orderId } = req.params
   const roles = res.locals.userRoles
   let requestorDocId = res.locals.userDoc.id || seller_id
@@ -70,13 +73,10 @@ const confirmOrder = async (req: Request, res: Response) => {
 
   const statusCode = parseInt(order.status_code)
 
-  if (
-    statusCode >= ORDER_STATUS.PENDING_PAYMENT ||
-    statusCode < ORDER_STATUS.PENDING_CONFIRMATION
-  ) {
+  if (statusCode >= ORDER_STATUS.PENDING_CONFIRM_PAYMENT) {
     return res.status(403).json({
       status: 'error',
-      message: 'Cannot confirm the order due to the current order status',
+      message: 'Cannot decline anymore since the order payment was already confirmed',
     })
   }
 
@@ -93,12 +93,13 @@ const confirmOrder = async (req: Request, res: Response) => {
   const updateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
-    status_code: ORDER_STATUS.PENDING_PAYMENT,
+    status_code: ORDER_STATUS.DECLINED,
+    decline_reason: reason,
   }
 
   const statusChange = {
     before: order.status_code,
-    after: ORDER_STATUS.PENDING_PAYMENT,
+    after: ORDER_STATUS.DECLINED,
   }
 
   const result = await OrdersService.updateOrder(orderId, updateData)
@@ -108,4 +109,4 @@ const confirmOrder = async (req: Request, res: Response) => {
   return res.json({ status: 'ok', data: result })
 }
 
-export default confirmOrder
+export default declineOrder
