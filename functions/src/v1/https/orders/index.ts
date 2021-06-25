@@ -82,6 +82,11 @@
  *           type: string
  */
 
-export const required_fields = ['products', 'buyer_id', 'shop_id', 'delivery_date']
+export const required_fields = ['products', 'shop_id', 'delivery_date']
 
 export { default as createOrder } from './createOrder'
+export { default as confirmOrder } from './confirmOrder'
+export { default as pay } from './pay'
+export { default as confirmPayment } from './confirmPayment'
+export { default as shipOut } from './shipOut'
+export { default as receive } from './receive'

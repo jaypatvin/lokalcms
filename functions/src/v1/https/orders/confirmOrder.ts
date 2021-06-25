@@ -9,7 +9,20 @@ import { OrdersService } from '../../../service'
  *       - orders
  *     security:
  *       - bearerAuth: []
- *     description: Confirm the order
+ *     description: |
+ *       ### This will progress the order from "Confirmation" to "Payment"
+ *       ### Buyer status will be changed from "Waiting for Confirmation" to "To Pay"
+ *       ### Seller status will be changed from "To Confirm" to "Waiting for Payment"
+ *       ## Note: the _seler_id_ will be extracted from the firestore token.
+ *       ## For testing purposes, you can use the shop's owner doc id as the _seller_id_. But this will only work if the token is from an admin user.
+ *       # Examples
+ *       ## Seller with doc id _user-id-1_ confirming the order _order-id-1_. The _orderId_ from the url should be _order-id-1_
+ *       ```
+ *       {
+ *         "seller_id": "user-id-1"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: orderId
@@ -45,7 +58,7 @@ const confirmOrder = async (req: Request, res: Response) => {
   const { seller_id } = data
   const { orderId } = req.params
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDoc.id || seller_id
+  let requestorDocId = res.locals.userDoc.id || seller_id
 
   const order = await OrdersService.getOrderByID(orderId)
 
@@ -59,10 +72,14 @@ const confirmOrder = async (req: Request, res: Response) => {
       .json({ status: 'error', message: 'Cannot confirm the order due to the current order status' })
   }
 
+  if (seller_id && roles.admin) {
+    requestorDocId = seller_id
+  }
+
   if (!roles.admin && order.seller_id !== requestorDocId)
     return res.status(403).json({
       status: 'error',
-      message: 'You do not have a permission to confirm the order',
+      message: `User with id ${requestorDocId} is not the seller from the order with id ${orderId}`,
     })
 
   const requestData = {
