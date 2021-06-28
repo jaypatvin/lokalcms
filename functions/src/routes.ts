@@ -182,4 +182,11 @@ module.exports = (api: Express) => {
 
   // -- Orders routes
   api.route('/v1/orders').post(wrapAsync(OrdersAPI.createOrder))
+  api.route('/v1/orders/:orderId/confirm').put(wrapAsync(OrdersAPI.confirmOrder))
+  api.route('/v1/orders/:orderId/pay').put(wrapAsync(OrdersAPI.pay))
+  api.route('/v1/orders/:orderId/confirmPayment').put(wrapAsync(OrdersAPI.confirmPayment))
+  api.route('/v1/orders/:orderId/shipOut').put(wrapAsync(OrdersAPI.shipOut))
+  api.route('/v1/orders/:orderId/receive').put(wrapAsync(OrdersAPI.receive))
+  api.route('/v1/orders/:orderId/decline').put(wrapAsync(OrdersAPI.decline))
+  api.route('/v1/orders/:orderId/cancel').put(wrapAsync(OrdersAPI.cancel))
 }

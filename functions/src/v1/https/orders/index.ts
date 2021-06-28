@@ -82,6 +82,24 @@
  *           type: string
  */
 
-export const required_fields = ['products', 'buyer_id', 'shop_id', 'delivery_date']
+export const required_fields = ['products', 'shop_id', 'delivery_date']
+export const ORDER_STATUS = {
+  CANCELLED: 10,
+  DECLINED: 20,
+  PENDING_CONFIRMATION: 100,
+  PENDING_PAYMENT: 200,
+  PENDING_CONFIRM_PAYMENT: 300,
+  PENDING_SHIPMENT: 400,
+  PENDING_RECEIPT: 500,
+  FINISHED: 600,
+}
+export const payment_methods = ['cod', 'bank', 'e-wallet']
 
 export { default as createOrder } from './createOrder'
+export { default as confirmOrder } from './confirmOrder'
+export { default as pay } from './pay'
+export { default as confirmPayment } from './confirmPayment'
+export { default as shipOut } from './shipOut'
+export { default as receive } from './receive'
+export { default as decline } from './decline'
+export { default as cancel } from './cancel'
