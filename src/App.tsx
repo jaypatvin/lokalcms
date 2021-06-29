@@ -24,6 +24,7 @@ import HistoryListPage from './pages/history/HistoryListPage'
 import UserEditPage from './pages/users/UserEditPage'
 import DiscoverPage from './pages/discover/DiscoverPage'
 import ChatsPage from './pages/chats/ChatsPage'
+import OrdersPage from './pages/orders/OrdersPage'
 
 class App extends React.Component {
   render() {
@@ -41,6 +42,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/activities" component={ActivityListPage} />
             <PrivateRoute exact path="/shops" component={ShopListPage} />
             <PrivateRoute exact path="/products" component={ProductListPage} />
+            <PrivateRoute exact path="/orders" component={OrdersPage} />
             <PrivateRoute exact path="/categories" component={CategoryListPage} />
             <PrivateRoute exact path="/users" component={UserListPage} />
             <PrivateRoute exact path="/users/:id" component={UserEditPage} />
