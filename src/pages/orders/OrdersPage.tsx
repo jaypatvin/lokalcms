@@ -6,6 +6,11 @@ import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
 import { getOrders } from '../../services/orders'
 
+const pesoFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'PHP',
+})
+
 const OrdersPage = ({}) => {
   const [community, setCommunity] = useState<any>()
   const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
@@ -110,21 +115,58 @@ const OrdersPage = ({}) => {
               let totalPrice = 0
               return (
                 <div className="flex p-3 border-1 justify-between shadow-md w-full">
-                  <p>ID: {order.id}</p>
-                  <div className="">
-                    <p>Shop: {order.shop_name}</p>
+                  <div className="w-1/3">
+                    <p>ID: {order.id}</p>
+                    <p>
+                      <strong>Shop: {order.shop_name}</strong>
+                    </p>
+                    <i>{order.shop_description}</i>
+                    {order.shop_image ? (
+                      <img
+                        src={order.shop_image}
+                        alt={order.shop_name}
+                        className="max-w-full max-h-40 m-2"
+                      />
+                    ) : (
+                      ''
+                    )}
+                    {order.instruction ? <i>Instruction: {order.instruction}</i> : ''}
                   </div>
-                  <div className="">
+                  <div className="w-1/3">
                     {order.products.map((product: any) => {
                       const subTotalPrice = product.quantity * product.product_price
                       totalPrice += subTotalPrice
                       return (
-                        <p>{`${product.product_name} x Php ${product.quantity} = Php ${subTotalPrice}`}</p>
+                        <div className="border-b-1 mb-2 py-2 flex items-center">
+                          <div className="w-24">
+                            {product.product_image ? (
+                              <img
+                                src={product.product_image}
+                                alt={product.product_name}
+                                className="max-w-24 max-h-24"
+                              />
+                            ) : (
+                              ''
+                            )}
+                          </div>
+                          <p>
+                            {`${product.product_name} (${
+                              product.quantity
+                            }) = ${pesoFormatter.format(subTotalPrice)}`}{' '}
+                            {product.instruction ? (
+                              <span className="block">
+                                <i>Instruction: {product.instruction}</i>
+                              </span>
+                            ) : (
+                              ''
+                            )}
+                          </p>
+                        </div>
                       )
                     })}
-                    <p>Total Price: Php {totalPrice}</p>
+                    <p>Total Price: {pesoFormatter.format(totalPrice)}</p>
                   </div>
-                  <div className="">
+                  <div className="w-1/3">
                     <p>Delivery Option: {order.delivery_option}</p>
                     <p>
                       Delivery Date:{' '}
