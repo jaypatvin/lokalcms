@@ -31,7 +31,7 @@ import { OrdersService } from '../../../service'
  *       {
  *         "buyer_id": "user-id-1",
  *         "payment_method": "bank",
- *         "proof_of_payment": "https://image.shutterstock.com/image-vector/sample-stamp-grunge-texture-vector-260nw-1389188336.jpg",
+ *         "proof_of_payment": "https://image.shutterstock.com/image-vector/sample-stamp-grunge-texture-vector-260nw-1389188336.jpg"
  *       }
  *       ```
  *
@@ -41,7 +41,7 @@ import { OrdersService } from '../../../service'
  *       {
  *         "buyer_id": "user-id-1",
  *         "payment_method": "e-wallet",
- *         "proof_of_payment": "https://image.shutterstock.com/image-vector/sample-stamp-grunge-texture-vector-260nw-1389188336.jpg",
+ *         "proof_of_payment": "https://image.shutterstock.com/image-vector/sample-stamp-grunge-texture-vector-260nw-1389188336.jpg"
  *       }
  *       ```
  *

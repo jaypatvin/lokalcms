@@ -1,15 +1,14 @@
-import dayjs from 'dayjs'
-import React, { ChangeEventHandler, useRef, useState } from 'react'
+import React, { ChangeEventHandler, useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
+import { Button } from '../../components/buttons'
+import Dropdown from '../../components/Dropdown'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
 import { getOrders } from '../../services/orders'
-
-const pesoFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'PHP',
-})
+import { getOrderStatuses } from '../../services/orderStatus'
+import { LimitType } from '../../utils/types'
+import OrderDetails from './OrderDetails'
 
 const OrdersPage = ({}) => {
   const [community, setCommunity] = useState<any>()
@@ -20,10 +19,39 @@ const OrdersPage = ({}) => {
   const [orders, setOrders] = useState<any[]>([])
   const [ordersSnapshot, setOrdersSnapshot] = useState<{ unsubscribe: () => void }>()
   const [loading, setLoading] = useState(false)
+  const [orderStatusMap, setOrderStatusMap] = useState<any>({})
+  const [orderStatuses, setOrderStatuses] = useState<any[]>([])
 
   const [statusCode, setStatusCode] = useState<number>()
-  const [productId, setProductId] = useState<string>()
-  const [shopId, setShopId] = useState<string>()
+  const [limit, setLimit] = useState<LimitType>(10)
+  const [pageNum, setPageNum] = useState(1)
+  const [dataRef, setDataRef] = useState<any>()
+  const [firstDataOnList, setFirstDataOnList] = useState<any>()
+  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [isLastPage, setIsLastPage] = useState(false)
+
+  useEffect(() => {
+    getOrderStatuses()
+      .get()
+      .then((statuses) => {
+        const allStatusMap = statuses.docs.reduce<any>((obj, doc) => {
+          obj[doc.id] = doc.data()
+          return obj
+        }, {})
+        setOrderStatusMap(allStatusMap)
+        const allStatuses = statuses.docs.map((doc) => ({
+          key: doc.id,
+          label: doc.data().buyer_status,
+        }))
+        allStatuses.sort((a, b) => (parseInt(a.key) > parseInt(b.key) ? 1 : -1))
+        setOrderStatuses(allStatuses)
+      })
+      .catch(console.error)
+  }, [])
+
+  useEffect(() => {
+    getCommunityOrders(community)
+  }, [statusCode, community, limit])
 
   const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setCommunitySearchText(e.target.value)
@@ -50,40 +78,79 @@ const OrdersPage = ({}) => {
     getCommunityOrders(community)
   }
 
+  const setupDataList = (docs: any) => {
+    const newOrders = docs.map((doc: any): any => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+    setOrders(newOrders)
+    setLastDataOnList(docs[docs.length - 1])
+    setFirstDataOnList(docs[0])
+    setLoading(false)
+  }
+
   const getCommunityOrders = async (community: any) => {
     if (!community) return
     setLoading(true)
     const ordersRef = getOrders({
       community_id: community.id,
-      product_id: productId,
-      shop_id: shopId,
       status_code: statusCode,
+      limit,
     })
     if (ordersSnapshot && ordersSnapshot.unsubscribe) ordersSnapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = ordersRef.onSnapshot(async (snapshot) => {
-      const newOrders = snapshot.docs.map((doc): any => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
-      setOrders(newOrders)
+      setupDataList(snapshot.docs)
     })
     setOrdersSnapshot({ unsubscribe: newUnsubscribe })
-    setLoading(false)
+    setDataRef(ordersRef)
+    setPageNum(1)
+    setIsLastPage(false)
+  }
+
+  const onNextPage = () => {
+    if (dataRef && lastDataOnList && !isLastPage) {
+      setLoading(true)
+      const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
+      newDataRef.onSnapshot(async (snapshot: any) => {
+        if (snapshot.docs.length) {
+          setupDataList(snapshot.docs)
+          setPageNum(pageNum + 1)
+        } else if (!isLastPage) {
+          setLoading(false)
+          setIsLastPage(true)
+        }
+      })
+    }
+  }
+
+  const onPreviousPage = () => {
+    const newPageNum = pageNum - 1
+    if (dataRef && firstDataOnList && newPageNum > 0) {
+      setLoading(true)
+      const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
+      newDataRef.onSnapshot(async (snapshot: any) => {
+        setupDataList(snapshot.docs)
+      })
+    }
+    setIsLastPage(false)
+    setPageNum(Math.max(1, newPageNum))
   }
 
   return (
     <>
       <h2 className="text-2xl font-semibold leading-tight">Orders</h2>
-      <div className="flex items-center my-5 w-96">
+      <div className="flex items-center my-5 w-full">
         <div ref={communitySearchResultRef} className="relative">
           <TextField
             label="Community"
+            required
             type="text"
             size="small"
             placeholder="Search"
             onChange={communitySearchHandler}
             value={communitySearchText}
             onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
+            noMargin
           />
           {showCommunitySearchResult && communitySearchResult.length > 0 && (
             <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
@@ -99,8 +166,43 @@ const OrdersPage = ({}) => {
             </div>
           )}
         </div>
+        <Dropdown
+          name="Status"
+          className="ml-2 z-10"
+          options={orderStatuses}
+          size="small"
+          onSelect={(option: any) => setStatusCode(parseInt(option.key))}
+          currentValue={statusCode ? orderStatusMap[statusCode].buyer_status : null}
+          showLabel
+        />
+        <div className="flex justify-between align-middle ml-4">
+          <div className="flex items-center">
+            Show:{' '}
+            <Dropdown
+              className="ml-1 z-10"
+              simpleOptions={[10, 25, 50, 100]}
+              size="small"
+              onSelect={(option: any) => setLimit(option.value)}
+              currentValue={limit}
+            />
+          </div>
+          <Button
+            className="ml-5"
+            icon="arrowBack"
+            size="small"
+            color={pageNum === 1 ? 'secondary' : 'primary'}
+            onClick={onPreviousPage}
+          />
+          <Button
+            className="ml-3"
+            icon="arrowForward"
+            size="small"
+            color={isLastPage ? 'secondary' : 'primary'}
+            onClick={onNextPage}
+          />
+        </div>
       </div>
-      <div className="flex h-2/3-screen">
+      <div className="flex">
         {loading ? (
           <div className="h-96 w-full relative">
             <ReactLoading
@@ -110,72 +212,10 @@ const OrdersPage = ({}) => {
             />
           </div>
         ) : (
-          <div className="h-full w-full overflow-y-auto">
-            {orders.map((order) => {
-              let totalPrice = 0
-              return (
-                <div className="flex p-3 border-1 justify-between shadow-md w-full">
-                  <div className="w-1/3">
-                    <p>ID: {order.id}</p>
-                    <p>
-                      <strong>Shop: {order.shop_name}</strong>
-                    </p>
-                    <i>{order.shop_description}</i>
-                    {order.shop_image ? (
-                      <img
-                        src={order.shop_image}
-                        alt={order.shop_name}
-                        className="max-w-full max-h-40 m-2"
-                      />
-                    ) : (
-                      ''
-                    )}
-                    {order.instruction ? <i>Instruction: {order.instruction}</i> : ''}
-                  </div>
-                  <div className="w-1/3">
-                    {order.products.map((product: any) => {
-                      const subTotalPrice = product.quantity * product.product_price
-                      totalPrice += subTotalPrice
-                      return (
-                        <div className="border-b-1 mb-2 py-2 flex items-center">
-                          <div className="w-24">
-                            {product.product_image ? (
-                              <img
-                                src={product.product_image}
-                                alt={product.product_name}
-                                className="max-w-24 max-h-24"
-                              />
-                            ) : (
-                              ''
-                            )}
-                          </div>
-                          <p>
-                            {`${product.product_name} (${
-                              product.quantity
-                            }) = ${pesoFormatter.format(subTotalPrice)}`}{' '}
-                            {product.instruction ? (
-                              <span className="block">
-                                <i>Instruction: {product.instruction}</i>
-                              </span>
-                            ) : (
-                              ''
-                            )}
-                          </p>
-                        </div>
-                      )
-                    })}
-                    <p>Total Price: {pesoFormatter.format(totalPrice)}</p>
-                  </div>
-                  <div className="w-1/3">
-                    <p>Delivery Option: {order.delivery_option}</p>
-                    <p>
-                      Delivery Date:{' '}
-                      {dayjs(order.delivery_date.toDate()).format('YYYY-MM-DD h:mm a')}
-                    </p>
-                  </div>
-                </div>
-              )
-            })}
+          <div className="h-full w-full overflow-y-auto mb-10">
+            {orders.map((order) => (
+              <OrderDetails key={order.id} orderStatusMap={orderStatusMap} order={order} />
+            ))}
           </div>
         )}
       </div>
