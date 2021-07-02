@@ -19,6 +19,8 @@ export type ButtonIcon =
   | 'search'
   | 'caretDown'
   | 'caretUp'
+  | 'caretDownLg'
+  | 'caretUpLg'
   | 'arrowBack'
   | 'arrowForward'
   | 'calendar'

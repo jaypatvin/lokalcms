@@ -9,3 +9,12 @@ export function getLocalStorage(name: string) {
 export function removeLocalStorage(name: string) {
   return localStorage.removeItem(name)
 }
+
+const pesoFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'PHP',
+})
+
+export const formatToPeso = (val: number) => {
+  return pesoFormatter.format(val)
+}

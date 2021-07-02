@@ -18,6 +18,7 @@ type Props = {
   size?: Size
   color?: Color
   buttonColor?: string
+  showLabel?: boolean
 }
 
 const Dropdown = ({
@@ -30,6 +31,7 @@ const Dropdown = ({
   size = 'medium',
   color,
   buttonColor = '',
+  showLabel,
 }: Props) => {
   const [open, setOpen] = useState(false)
   const ref = useOuterClick(() => setOpen(false))
@@ -68,11 +70,12 @@ const Dropdown = ({
 
   return (
     <div ref={ref} className={`${className} relative ${color ? `text-${color}-300` : ''}`}>
+      {showLabel ? <label className="text-gray-600 mb-1 text-sm">{name}</label> : ''}
       <OutlineButton customColor={buttonColor} size={size} onClick={() => setOpen(!open)}>
         {displayName}
       </OutlineButton>
       {open && (
-        <ul className="absolute top-full left-3 max-h-52 max-w-xs overflow-y-auto bg-white shadow">
+        <ul className="absolute top-full left-3 max-h-52 min-w-max overflow-y-auto bg-white shadow">
           {displayedOptions.map(renderOption)}
         </ul>
       )}
