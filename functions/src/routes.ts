@@ -31,12 +31,12 @@ const swaggerOptions: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:5001/lokal-1baac/us-central1/api',
-        description: 'development server',
-      },
-      {
         url: 'https://us-central1-lokal-1baac.cloudfunctions.net/api',
         description: 'production server',
+      },
+      {
+        url: 'http://localhost:5001/lokal-1baac/us-central1/api',
+        description: 'development server',
       },
     ],
     components: {
