@@ -24,6 +24,7 @@ const OrderCreatePage = ({}) => {
 
   const [shops, setShops] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [cart, setCart] = useState<any[]>([])
 
   useEffect(() => {
     getCommunityShops(community)
@@ -102,6 +103,38 @@ const OrderCreatePage = ({}) => {
     setupDataList(shopsData.docs)
   }
 
+  const addToCart = (shop: any, product: any) => {
+    const newCart = [...cart]
+    let shopCart = newCart.find((c) => c.shopId === shop.id)
+    if (!shopCart) {
+      shopCart = {
+        shopId: shop.id,
+        shopName: shop.name,
+        products: [],
+      }
+      newCart.push(shopCart)
+    }
+    let cartProduct = shopCart.products.find((p: any) => p.id === product.id)
+    if (!cartProduct) {
+      cartProduct = {
+        id: product.id,
+        name: product.name,
+        price: product.base_price,
+        image: product.gallery ? product.gallery[0].url : null,
+        quantity: 0,
+      }
+      shopCart.products.push(cartProduct)
+    }
+    cartProduct.quantity += 1
+    const newShopCartPrice = shopCart.products.reduce((totalPrice: number, p: any) => {
+      const subtotalPrice = p.quantity * p.price
+      totalPrice += subtotalPrice
+      return totalPrice
+    }, 0)
+    shopCart.totalPrice = newShopCartPrice
+    setCart(newCart)
+  }
+
   return (
     <>
       <h2 className="text-2xl font-semibold leading-tight">Create Order</h2>
@@ -162,64 +195,24 @@ const OrderCreatePage = ({}) => {
       <div className="flex relative">
         <div className="absolute right-2 top-0 shadow w-96 pt-2 px-2 pb-5">
           <p className="text-2xl">Cart:</p>
-          <div className="ml-2">
-            <p className="font-bold">GUNPLA Manila</p>
-            <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
-              <div className="w-16 mr-2">
-                <img
-                  src="https://www.1999.co.jp/itbig68/10684007.jpg"
-                  alt="gundam"
-                  className="max-w-16 max-h-16"
-                />
-              </div>
-              <p>{`2 x HG RX-78-2 = ${formatToPeso(3400)}`} </p>
+          {cart.map((shopCart) => (
+            <div className="ml-2">
+              <p className="font-bold">{shopCart.shopName}</p>
+              {shopCart.products.map((product: any) => (
+                <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
+                  <div className="w-16 mr-2">
+                    <img src={product.image} alt={product.name} className="max-w-16 max-h-16" />
+                  </div>
+                  <p>
+                    {`${product.quantity} x ${product.name} = ${formatToPeso(
+                      product.quantity * product.price
+                    )}`}{' '}
+                  </p>
+                </div>
+              ))}
+              <p className="text-right text-sm">Total Price: {formatToPeso(shopCart.totalPrice)}</p>
             </div>
-            <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
-              <div className="w-16 mr-2">
-                <img
-                  src="https://d2qbtfwqvouhxg.cloudfront.net/ban/bans58222_0.png?v=b355ecbe5fa6b0a08400a431b70aeaad"
-                  alt="gundam"
-                  className="max-w-16 max-h-16"
-                />
-              </div>
-              <p>{`1 x MG Barbatos = ${formatToPeso(2700)}`} </p>
-            </div>
-            <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
-              <div className="w-16 mr-2">
-                <img
-                  src="https://www.1999.co.jp/itbig23/10239040p_m.jpg"
-                  alt="gundam"
-                  className="max-w-16 max-h-16"
-                />
-              </div>
-              <p>{`2 x MG Sazabi = ${formatToPeso(11000)}`} </p>
-            </div>
-            <p className="text-right text-sm">Total Price: {formatToPeso(17100)}</p>
-          </div>
-          <div className="ml-2">
-            <p className="font-bold">Tilapia-an</p>
-            <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
-              <div className="w-16 mr-2">
-                <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRf0yLFlPcDTKvgaqhTMegCe52UQmDXLUnBFA&usqp=CAU"
-                  alt="tilapia"
-                  className="max-w-16 max-h-16"
-                />
-              </div>
-              <p>{`20 x Small Tilapia = ${formatToPeso(400)}`} </p>
-            </div>
-            <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
-              <div className="w-16 mr-2">
-                <img
-                  src="https://images.thefishsite.com/fish%2Farticles%2Ftilapia-3-fai-brazilcredit-hideyoshi.png?scale.option=fill&scale.width=1200&scale.height=630&crop.width=1200&crop.height=630&crop.y=center&crop.x=center"
-                  alt="tilapia"
-                  className="max-w-16 max-h-16"
-                />
-              </div>
-              <p>{`20 x Large Tilapia = ${formatToPeso(900)}`} </p>
-            </div>
-            <p className="text-right text-sm">Total Price: {formatToPeso(1300)}</p>
-          </div>
+          ))}
           <Button className="mt-5">Check Out</Button>
         </div>
         {loading ? (
@@ -250,6 +243,7 @@ const OrderCreatePage = ({}) => {
                       )}
                     </div>
                     <p>{`${product.name} @ ${formatToPeso(product.base_price)}`} </p>
+                    <button onClick={() => addToCart(shop, product)}>Add</button>
                   </div>
                 ))}
               </div>
