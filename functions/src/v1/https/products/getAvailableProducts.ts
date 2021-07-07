@@ -12,7 +12,9 @@ import { dateFormat, DayKeyVal } from '../../../utils/helpers'
  *       - products
  *     security:
  *       - bearerAuth: []
- *     description: Return the products
+ *     description: |
+ *       ### This will return list products that are available and unavailable
+ *       ## Note: The unavailable products will have an extra fields _nextAvailable_, _nextAvailableDay_ and _availableMessage_
  *     parameters:
  *       - in: query
  *         name: q
@@ -46,10 +48,6 @@ import { dateFormat, DayKeyVal } from '../../../utils/helpers'
  *                   type: string
  *                   example: ok
  *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Product'
- *                 unavailable_products:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Product'
@@ -336,7 +334,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     return a.nextAvailable < b.nextAvailable ? -1 : 1
   })
 
-  return res.status(200).json({ status: 'ok', data: result, unavailable_products })
+  return res.status(200).json({ status: 'ok', data: [...result, ...unavailable_products] })
 }
 
 export default getAvailableProducts
