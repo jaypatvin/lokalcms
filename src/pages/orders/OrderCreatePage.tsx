@@ -8,6 +8,8 @@ import { getProductsByShop } from '../../services/products'
 import { getUsers } from '../../services/users'
 import { formatToPeso } from '../../utils/helper'
 import { Button } from '../../components/buttons'
+import { API_URL } from '../../config/variables'
+import { useAuth } from '../../contexts/AuthContext'
 
 const OrderCreatePage = ({}) => {
   const [community, setCommunity] = useState<any>()
@@ -25,6 +27,8 @@ const OrderCreatePage = ({}) => {
   const [shops, setShops] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [cart, setCart] = useState<any[]>([])
+
+  const { firebaseToken } = useAuth()
 
   useEffect(() => {
     getCommunityShops(community)
@@ -90,7 +94,6 @@ const OrderCreatePage = ({}) => {
       products = products.docs.map((doc: any): any => ({ id: doc.id, ...doc.data() }))
       shop.products = products
     }
-    console.log('newShops', newShops)
     setShops(newShops)
     setLoading(false)
   }
@@ -105,11 +108,11 @@ const OrderCreatePage = ({}) => {
 
   const addToCart = (shop: any, product: any) => {
     const newCart = [...cart]
-    let shopCart = newCart.find((c) => c.shopId === shop.id)
+    let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
     if (!shopCart) {
       shopCart = {
-        shopId: shop.id,
-        shopName: shop.name,
+        shop_id: shop.shop_id,
+        name: shop.name,
         products: [],
       }
       newCart.push(shopCart)
@@ -133,6 +136,77 @@ const OrderCreatePage = ({}) => {
     }, 0)
     shopCart.totalPrice = newShopCartPrice
     setCart(newCart)
+  }
+
+  const removeFromCart = (shop: any, product: any) => {
+    let newCart = [...cart]
+    let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
+    if (!shopCart) return
+    let cartProduct = shopCart.products.find((p: any) => p.id === product.id)
+    if (!cartProduct) return
+    cartProduct.quantity -= 1
+    if (cartProduct.quantity <= 0) {
+      shopCart.products = shopCart.products.filter((p: any) => p.id !== product.id)
+    }
+    if (!shopCart.products.length) {
+      newCart = newCart.filter((c) => c.shop_id !== shop.shop_id)
+    } else {
+      const newShopCartPrice = shopCart.products.reduce((totalPrice: number, p: any) => {
+        const subtotalPrice = p.quantity * p.price
+        totalPrice += subtotalPrice
+        return totalPrice
+      }, 0)
+      shopCart.totalPrice = newShopCartPrice
+    }
+    setCart(newCart)
+  }
+
+  const removeAllProductFromCart = (shop: any, product: any) => {
+    let newCart = [...cart]
+    let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
+    if (!shopCart) return
+    let cartProduct = shopCart.products.find((p: any) => p.id === product.id)
+    if (!cartProduct) return
+    shopCart.products = shopCart.products.filter((p: any) => p.id !== product.id)
+    if (!shopCart.products.length) {
+      newCart = newCart.filter((c) => c.shop_id !== shop.shop_id)
+    } else {
+      const newShopCartPrice = shopCart.products.reduce((totalPrice: number, p: any) => {
+        const subtotalPrice = p.quantity * p.price
+        totalPrice += subtotalPrice
+        return totalPrice
+      }, 0)
+      shopCart.totalPrice = newShopCartPrice
+    }
+    setCart(newCart)
+  }
+
+  const checkout = async () => {
+    for (let shopCart of cart) {
+      if (API_URL && firebaseToken) {
+        let url = `${API_URL}/orders`
+        let method = 'POST'
+        console.log('shopCart', shopCart)
+        let res: any = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify({
+            ...shopCart,
+            buyer_id: user?.id,
+            delivery_date: new Date(),
+            delivery_option: 'delivery',
+            source: 'cms',
+          }),
+        })
+        res = await res.json()
+        console.log('res', res)
+      } else {
+        console.error('environment variable for the api does not exist.')
+      }
+    }
   }
 
   return (
@@ -197,23 +271,55 @@ const OrderCreatePage = ({}) => {
           <p className="text-2xl">Cart:</p>
           {cart.map((shopCart) => (
             <div className="ml-2">
-              <p className="font-bold">{shopCart.shopName}</p>
+              <p className="font-bold">{shopCart.name}</p>
               {shopCart.products.map((product: any) => (
                 <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
                   <div className="w-16 mr-2">
                     <img src={product.image} alt={product.name} className="max-w-16 max-h-16" />
                   </div>
-                  <p>
-                    {`${product.quantity} x ${product.name} = ${formatToPeso(
-                      product.quantity * product.price
-                    )}`}{' '}
-                  </p>
+                  <div className="">
+                    <p>
+                      {`${product.quantity} x ${product.name} = ${formatToPeso(
+                        product.quantity * product.price
+                      )}`}{' '}
+                    </p>
+                    <button
+                      className="rounded px-1 bg-secondary-400 text-white mr-2"
+                      onClick={() => removeFromCart(shopCart, product)}
+                    >
+                      -
+                    </button>
+                    <button
+                      className="rounded px-1 bg-primary-400 text-white mr-2"
+                      onClick={() => addToCart(shopCart, product)}
+                    >
+                      +
+                    </button>
+                    <button
+                      className="rounded px-1 bg-danger-400 text-white"
+                      onClick={() => removeAllProductFromCart(shopCart, product)}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
               <p className="text-right text-sm">Total Price: {formatToPeso(shopCart.totalPrice)}</p>
             </div>
           ))}
-          <Button className="mt-5">Check Out</Button>
+          <div className="flex">
+            <Button className="mt-5" disabled={!cart.length} OnClick={checkout}>
+              Check Out
+            </Button>
+            <Button
+              className="mt-5 ml-2"
+              color="danger"
+              disabled={!cart.length}
+              onClick={() => setCart([])}
+            >
+              Clear
+            </Button>
+          </div>
         </div>
         {loading ? (
           <div className="h-96 w-full relative">
@@ -242,30 +348,12 @@ const OrderCreatePage = ({}) => {
                         ''
                       )}
                     </div>
-                    <p>{`${product.name} @ ${formatToPeso(product.base_price)}`} </p>
-                    <button onClick={() => addToCart(shop, product)}>Add</button>
-                  </div>
-                ))}
-              </div>
-            ))}
-            {shops.map((shop) => (
-              <div className="w-1/3 h-96 p-2 overflow-y-auto border border-2">
-                <p className="text-2xl">{shop.name}</p>
-                <img src={shop.profile_photo} alt={shop.name} className="max-w-full max-h-40 m-2" />
-                {shop.products.map((product: any) => (
-                  <div className="border-b-1 mb-2 py-2 flex items-center">
-                    <div className="w-24 mr-2">
-                      {product.gallery ? (
-                        <img
-                          src={product.gallery[0].url}
-                          alt={product.name}
-                          className="max-w-24 max-h-24"
-                        />
-                      ) : (
-                        ''
-                      )}
+                    <div className="">
+                      <p>{`${product.name} @ ${formatToPeso(product.base_price)}`} </p>
+                      <button className="text-primary-500" onClick={() => addToCart(shop, product)}>
+                        Add
+                      </button>
                     </div>
-                    <p>{`${product.name} @ ${formatToPeso(product.base_price)}`} </p>
                   </div>
                 ))}
               </div>
