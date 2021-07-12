@@ -1,5 +1,6 @@
 import React, { ChangeEventHandler, useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
+import ReactCalendar from 'react-calendar'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
@@ -10,6 +11,8 @@ import { formatToPeso } from '../../utils/helper'
 import { Button } from '../../components/buttons'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
+import { isAvailableByDefault } from '../../utils/dates'
+import dayjs from 'dayjs'
 
 const OrderCreatePage = ({}) => {
   const [community, setCommunity] = useState<any>()
@@ -27,6 +30,9 @@ const OrderCreatePage = ({}) => {
   const [shops, setShops] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [cart, setCart] = useState<any[]>([])
+
+  const [showCalendar, setShowCalendar] = useState(false)
+  const calendarRef = useOuterClick(() => setShowCalendar(false))
 
   const { firebaseToken } = useAuth()
 
@@ -113,6 +119,7 @@ const OrderCreatePage = ({}) => {
       shopCart = {
         shop_id: shop.id,
         name: shop.name,
+        operating_hours: shop.operating_hours,
         products: [],
       }
       newCart.push(shopCart)
@@ -178,6 +185,15 @@ const OrderCreatePage = ({}) => {
       }, 0)
       shopCart.totalPrice = newShopCartPrice
     }
+    setCart(newCart)
+  }
+
+  const setDeliveryDateOnShopCart = (shop: any, date: Date) => {
+    let newCart = [...cart]
+    let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
+    if (!shopCart) return
+    shopCart.deliveryDate = date
+    console.log('newCart', newCart)
     setCart(newCart)
   }
 
@@ -271,7 +287,27 @@ const OrderCreatePage = ({}) => {
           <p className="text-2xl">Cart:</p>
           {cart.map((shopCart) => (
             <div className="ml-2">
-              <p className="font-bold">{shopCart.name}</p>
+              <div className="relative flex">
+                <p className="font-bold">{shopCart.name}</p>
+                <div ref={calendarRef} className="ml-2 relative">
+                  <button className="border-none bg-none text-primary-500" onClick={() => setShowCalendar(!showCalendar)}>
+                    {shopCart.deliveryDate
+                        ? dayjs(shopCart.deliveryDate).format('YYYY-MM-DD h:mm a')
+                        : 'Delivery Date'}
+                  </button>
+                  {showCalendar && (
+                    <ReactCalendar
+                      className="w-72 absolute right-0 bottom-0"
+                      onChange={(date: any) => setDeliveryDateOnShopCart(shopCart, date)}
+                      tileDisabled={({ date }: any) =>
+                        !isAvailableByDefault(date, shopCart) || date < new Date()
+                      }
+                      calendarType="US"
+                      value={shopCart.deliveryDate}
+                    />
+                  )}
+                </div>
+              </div>
               {shopCart.products.map((product: any) => (
                 <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
                   <div className="w-16 mr-2">

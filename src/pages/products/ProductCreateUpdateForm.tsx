@@ -9,13 +9,13 @@ import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
 import { storage } from '../../services/firebase'
-import { CreateUpdateFormProps, DayKeyVal, statusColorMap } from '../../utils/types'
+import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 import { fetchShopByID } from '../../services/shops'
 import dayjs from 'dayjs'
+import { isAvailableByDefault } from '../../utils/dates'
 
 const initialData = {}
 const maxNumOfPhotos = 6 // TODO: this should be configurable on the CMS
-const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
 
 const ProductCreateUpdateForm = ({
   isOpen = false,
@@ -206,71 +206,12 @@ const ProductCreateUpdateForm = ({
     return false
   }
 
-  const isAvailableByDefault = (date: Date) => {
-    const { start_dates, repeat_unit, repeat_type, schedule } = shop.operating_hours
-    const firstDate = start_dates[0]
-    const firstDateDay = DayKeyVal[dayjs(firstDate).day()]
-    const firstDateNumToCheck = dayjs(firstDate).date()
-    const firstDateNthWeek = Math.ceil(firstDateNumToCheck / 7)
-    const firstDateNthDayOfMonth = `${firstDateNthWeek}-${firstDateDay}`
-    const tileDate = dayjs(date)
-    const tileDateDay = DayKeyVal[tileDate.day()]
-    const tileDateNumToCheck = tileDate.date()
-    const tileDateNthWeek = Math.ceil(tileDateNumToCheck / 7)
-    const tileDateNthDayOfMonth = `${tileDateNthWeek}-${tileDateDay}`
-    const day = DayKeyVal[tileDate.day()]
-    const schedDay = schedule[day]
-    let customDate
-    // let tileClass = null
-    if (schedule.custom) {
-      customDate = schedule.custom[tileDate.format('YYYY-MM-DD')]
-    }
-    if (customDate && customDate.unavailable) {
-      return false
-    } else if (customDate && customDate.start_time && customDate.end_time) {
-      return true
-    } else {
-      if (repeat_type === 'day') {
-        const isValid = dayjs(date).diff(firstDate, 'days') % repeat_unit === 0
-        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
-          return true
-        }
-      }
-      if (repeat_type === 'week' && schedDay) {
-        const isValid = dayjs(date).diff(schedDay.start_date, 'weeks') % repeat_unit === 0
-        if (
-          isValid &&
-          (dayjs(schedDay.start_date).isBefore(date) || dayjs(schedDay.start_date).isSame(date))
-        ) {
-          return true
-        }
-      }
-      if (repeat_type === 'month') {
-        const isValid =
-          dayjs(firstDate).date() === dayjs(date).date() &&
-          dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
-        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
-          return true
-        }
-      }
-      if (nthDayOfMonthFormat.test(repeat_type)) {
-        const isValid =
-          firstDateNthDayOfMonth === tileDateNthDayOfMonth &&
-          dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
-        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
   const onCustomizeDates = (date: Date) => {
     const formattedDate = dayjs(date).format('YYYY-MM-DD')
     if (unavailableDates.includes(formattedDate)) {
       const newUnavailableDates = unavailableDates.filter((d) => !dayjs(d).isSame(formattedDate))
       setUnavailableDates(newUnavailableDates)
-    } else if (isAvailableByDefault(date)) {
+    } else if (isAvailableByDefault(date, shop)) {
       const newUnavailableDates = [...unavailableDates]
       newUnavailableDates.push(dayjs(date).format('YYYY-MM-DD'))
       setUnavailableDates(newUnavailableDates)
@@ -281,7 +222,7 @@ const ProductCreateUpdateForm = ({
     const formattedDate = dayjs(date).format('YYYY-MM-DD')
     if (unavailableDates.includes(formattedDate)) {
       return null
-    } else if (isAvailableByDefault(date)) {
+    } else if (isAvailableByDefault(date, shop)) {
       return 'orange'
     }
     return null
@@ -433,7 +374,7 @@ const ProductCreateUpdateForm = ({
             <ReactCalendar
               className="w-72"
               onChange={(date: any) => onCustomizeDates(date)}
-              tileDisabled={({ date }: any) => !isAvailableByDefault(date)}
+              tileDisabled={({ date }: any) => !isAvailableByDefault(date, shop)}
               tileClassName={getTileClass}
               calendarType="US"
               value={null}
