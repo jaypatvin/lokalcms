@@ -108,10 +108,10 @@ const OrderCreatePage = ({}) => {
 
   const addToCart = (shop: any, product: any) => {
     const newCart = [...cart]
-    let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
+    let shopCart = newCart.find((c) => c.shop_id === (shop.shop_id || shop.id))
     if (!shopCart) {
       shopCart = {
-        shop_id: shop.shop_id,
+        shop_id: shop.id,
         name: shop.name,
         products: [],
       }
@@ -186,7 +186,6 @@ const OrderCreatePage = ({}) => {
       if (API_URL && firebaseToken) {
         let url = `${API_URL}/orders`
         let method = 'POST'
-        console.log('shopCart', shopCart)
         let res: any = await fetch(url, {
           headers: {
             'Content-Type': 'application/json',
@@ -207,6 +206,7 @@ const OrderCreatePage = ({}) => {
         console.error('environment variable for the api does not exist.')
       }
     }
+    setCart([])
   }
 
   return (
@@ -308,7 +308,7 @@ const OrderCreatePage = ({}) => {
             </div>
           ))}
           <div className="flex">
-            <Button className="mt-5" disabled={!cart.length} OnClick={checkout}>
+            <Button className="mt-5" disabled={!cart.length} onClick={checkout}>
               Check Out
             </Button>
             <Button
