@@ -1,7 +1,7 @@
 import React, { ChangeEventHandler, useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
-import ReactCalendar from 'react-calendar'
-import { TextField } from '../../components/inputs'
+import { some } from 'lodash'
+import { Checkbox, TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
 import { getShopsByCommunity } from '../../services/shops'
@@ -11,8 +11,8 @@ import { formatToPeso } from '../../utils/helper'
 import { Button } from '../../components/buttons'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
-import { isAvailableByDefault } from '../../utils/dates'
 import dayjs from 'dayjs'
+import { ShopDateModal, TextModal } from '../../components/modals'
 
 const OrderCreatePage = ({}) => {
   const [community, setCommunity] = useState<any>()
@@ -32,7 +32,9 @@ const OrderCreatePage = ({}) => {
   const [cart, setCart] = useState<any[]>([])
 
   const [showCalendar, setShowCalendar] = useState(false)
-  const calendarRef = useOuterClick(() => setShowCalendar(false))
+  const [showInstructionModal, setShowInstructionModal] = useState(false)
+  const [currentShopCart, setCurrentShopCart] = useState<any>()
+  const [currentProduct, setCurrentProduct] = useState<any>()
 
   const { firebaseToken } = useAuth()
 
@@ -121,6 +123,7 @@ const OrderCreatePage = ({}) => {
         name: shop.name,
         operating_hours: shop.operating_hours,
         products: [],
+        delivery_option: 'delivery',
       }
       newCart.push(shopCart)
     }
@@ -188,16 +191,56 @@ const OrderCreatePage = ({}) => {
     setCart(newCart)
   }
 
-  const setDeliveryDateOnShopCart = (shop: any, date: Date) => {
+  const setDeliveryDateOnShopCart = (date: Date) => {
+    let newCart = [...cart]
+    let shopCart = newCart.find((c) => c.shop_id === currentShopCart.shop_id)
+    if (!shopCart) return
+    shopCart.delivery_date = date
+    setCart(newCart)
+    setShowCalendar(false)
+    setCurrentShopCart(null)
+  }
+
+  const onClickDeliveryDate = (shop: any) => {
+    setShowCalendar(true)
+    setCurrentShopCart(shop)
+  }
+
+  const onClickInstruction = (shop: any, product?: any) => {
+    if (product) {
+      setCurrentProduct(product)
+    }
+    setCurrentShopCart(shop)
+    setShowInstructionModal(true)
+  }
+
+  const onSaveInstruction = (value: string) => {
+    let newCart = [...cart]
+    let shopCart = newCart.find((c) => c.shop_id === currentShopCart.shop_id)
+    if (!shopCart) return
+    if (currentProduct) {
+      let cartProduct = shopCart.products.find((p: any) => p.id === currentProduct.id)
+      if (!cartProduct) return
+      cartProduct.instruction = value
+    } else {
+      shopCart.instruction = value
+    }
+    setCart(newCart)
+    setShowInstructionModal(false)
+    setCurrentShopCart(null)
+    setCurrentProduct(null)
+  }
+
+  const onClickPickup = (shop: any, value: boolean) => {
     let newCart = [...cart]
     let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
     if (!shopCart) return
-    shopCart.deliveryDate = date
-    console.log('newCart', newCart)
+    shopCart.delivery_option = value ? 'pickup' : 'delivery'
     setCart(newCart)
   }
 
   const checkout = async () => {
+    console.log('cart', cart)
     for (let shopCart of cart) {
       if (API_URL && firebaseToken) {
         let url = `${API_URL}/orders`
@@ -211,8 +254,6 @@ const OrderCreatePage = ({}) => {
           body: JSON.stringify({
             ...shopCart,
             buyer_id: user?.id,
-            delivery_date: new Date(),
-            delivery_option: 'delivery',
             source: 'cms',
           }),
         })
@@ -227,6 +268,24 @@ const OrderCreatePage = ({}) => {
 
   return (
     <>
+      <ShopDateModal
+        isOpen={showCalendar}
+        setIsOpen={setShowCalendar}
+        shop={currentShopCart}
+        value={currentShopCart?.delivery_date}
+        onSelect={setDeliveryDateOnShopCart}
+      />
+      {currentProduct || currentShopCart ? (
+        <TextModal
+          title="Instruction"
+          isOpen={showInstructionModal}
+          setIsOpen={setShowInstructionModal}
+          value={currentProduct?.instruction || currentShopCart?.instruction}
+          onSave={onSaveInstruction}
+        />
+      ) : (
+        ''
+      )}
       <h2 className="text-2xl font-semibold leading-tight">Create Order</h2>
       <div className="flex items-center my-5 w-full">
         <div ref={communitySearchResultRef} className="relative">
@@ -289,23 +348,15 @@ const OrderCreatePage = ({}) => {
             <div className="ml-2">
               <div className="relative flex">
                 <p className="font-bold">{shopCart.name}</p>
-                <div ref={calendarRef} className="ml-2 relative">
-                  <button className="border-none bg-none text-primary-500" onClick={() => setShowCalendar(!showCalendar)}>
-                    {shopCart.deliveryDate
-                        ? dayjs(shopCart.deliveryDate).format('YYYY-MM-DD h:mm a')
-                        : 'Delivery Date'}
+                <div className="ml-2 relative">
+                  <button
+                    className="border-none bg-none text-primary-500"
+                    onClick={() => onClickDeliveryDate(shopCart)}
+                  >
+                    {shopCart.delivery_date
+                      ? dayjs(shopCart.delivery_date).format('YYYY-MM-DD h:mm a')
+                      : 'Delivery Date'}
                   </button>
-                  {showCalendar && (
-                    <ReactCalendar
-                      className="w-72 absolute right-0 bottom-0"
-                      onChange={(date: any) => setDeliveryDateOnShopCart(shopCart, date)}
-                      tileDisabled={({ date }: any) =>
-                        !isAvailableByDefault(date, shopCart) || date < new Date()
-                      }
-                      calendarType="US"
-                      value={shopCart.deliveryDate}
-                    />
-                  )}
                 </div>
               </div>
               {shopCart.products.map((product: any) => (
@@ -332,19 +383,42 @@ const OrderCreatePage = ({}) => {
                       +
                     </button>
                     <button
-                      className="rounded px-1 bg-danger-400 text-white"
+                      className="rounded px-1 bg-danger-400 text-white mr-2"
                       onClick={() => removeAllProductFromCart(shopCart, product)}
                     >
                       Remove
                     </button>
+                    <button
+                      className="rounded px-1 bg-warning-500 text-white"
+                      onClick={() => onClickInstruction(shopCart, product)}
+                    >
+                      Instruction
+                    </button>
                   </div>
                 </div>
               ))}
+              <div className="flex justify-between">
+                <button
+                  className="rounded px-1 bg-warning-500 text-white"
+                  onClick={() => onClickInstruction(shopCart)}
+                >
+                  Instruction
+                </button>
+                <Checkbox
+                  label="Pick-up"
+                  onChange={(e) => onClickPickup(shopCart, e.target.checked)}
+                  noMargin
+                />
+              </div>
               <p className="text-right text-sm">Total Price: {formatToPeso(shopCart.totalPrice)}</p>
             </div>
           ))}
           <div className="flex">
-            <Button className="mt-5" disabled={!cart.length} onClick={checkout}>
+            <Button
+              className="mt-5"
+              disabled={!cart.length || (cart.length > 0 && some(cart, (c) => !c.delivery_date))}
+              onClick={checkout}
+            >
               Check Out
             </Button>
             <Button
