@@ -18,7 +18,7 @@ export const getProductsByShop = (shop_id: string) => {
     .collection('products')
     .where('shop_id', '==', shop_id)
     .where('archived', '==', false)
-    .where('status', '!=', 'disabled')
+    .where('status', '==', 'enabled')
 }
 
 export const getProducts = ({
