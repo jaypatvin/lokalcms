@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import React, { useState } from 'react'
 import { buttonIcons } from '../../components/buttons/theme'
+import useOuterClick from '../../customHooks/useOuterClick'
 import { formatToPeso } from '../../utils/helper'
 
 type Props = {
@@ -12,9 +13,86 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
   let totalPrice = 0
   let totalItems = 0
   const [showMore, setShowMore] = useState(false)
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+  const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
+
+  const onProgress = () => {
+    switch (parseInt(order.status_code)) {
+      case 100: // Waiting for Confirmation
+        // call API for confirming an order
+        break
+      case 200: // Payment
+        // call API for payment
+        break
+      case 300: // Payment Confirmation
+        // call API for confirming the payment
+        break
+      case 400: // Shipping Out
+        // call API for shipping out
+        break
+      case 500: // To Receive
+        // call API for receiving the products
+        break
+      case 10: // Cancelled by Buyer
+      case 20: // Declined by Seller
+      case 600: // Finished
+        // do nothing
+        break
+      default:
+        break
+    }
+  }
+
+  const onCancel = () => {
+    // call API for cancelling
+  }
+
+  const onDecline = () => {
+    // call API for declining
+  }
 
   return (
     <div className="flex p-3 pb-5 mb-1 border-1 justify-between shadow-md w-full relative hover:bg-primary-50">
+      <div ref={optionsRef} className="absolute right-0 top-2">
+        <button
+          onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+          type="button"
+          className="inline-block text-gray-500 hover:text-gray-700"
+        >
+          <svg className="inline-block h-6 w-6 fill-current" viewBox="0 0 24 24">
+            <path d="M12 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm-2 6a2 2 0 104 0 2 2 0 00-4 0z" />
+          </svg>
+        </button>
+        {isOptionsOpen && (
+          <div className="absolute top-0 right-full shadow w-36 bg-white z-10">
+            <button
+              onClick={() => {
+                onProgress()
+                setIsOptionsOpen(false)
+              }}
+              className="block w-full p-2 hover:bg-primary-400 hover:text-white"
+            >
+              Progress
+            </button>
+            <button
+              onClick={() => {
+                setIsOptionsOpen(false)
+              }}
+              className="block w-full p-2 hover:bg-danger-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                setIsOptionsOpen(false)
+              }}
+              className="block w-full p-2 hover:bg-danger-400 hover:text-white"
+            >
+              Decline
+            </button>
+          </div>
+        )}
+      </div>
       <button
         className="absolute bottom-0 left-0 text-2xl w-full flex justify-center"
         onClick={() => setShowMore(!showMore)}
@@ -24,6 +102,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
       <div className="w-1/4">
         <p>ID: {order.id}</p>
         <p>Created: {dayjs(order.created_at.toDate()).format('YYYY-MM-DD h:mm a')}</p>
+        <p>Buyer: {order.buyer_email}</p>
         <p>
           <strong>Shop: {order.shop_name}</strong>
         </p>
