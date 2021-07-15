@@ -1,6 +1,8 @@
 import dayjs from 'dayjs'
 import React, { useState } from 'react'
 import { buttonIcons } from '../../components/buttons/theme'
+import { API_URL } from '../../config/variables'
+import { useAuth } from '../../contexts/AuthContext'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { formatToPeso } from '../../utils/helper'
 
@@ -10,51 +12,94 @@ type Props = {
 }
 
 const OrderDetails = ({ order, orderStatusMap }: Props) => {
+  const { firebaseToken } = useAuth()
+
   let totalPrice = 0
   let totalItems = 0
+  const [loading, setLoading] = useState(false)
   const [showMore, setShowMore] = useState(false)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
-  const onProgress = () => {
+  const statusCodeAPI: any = {
+    10: 'cancel',
+    20: 'decline',
+    100: 'confirm',
+    200: 'pay',
+    300: 'confirmPayment',
+    400: 'shipOut',
+    500: 'receive',
+  }
+
+  const callApiProgress = async (order: any, data: any = {}) => {
+    let res = null
+    setLoading(true)
+    if (API_URL && firebaseToken) {
+      const statusCode = parseInt(order.status_code)
+      const apiMethod = statusCodeAPI[statusCode]
+      let url = `${API_URL}/orders/${order.id}/${apiMethod}`
+      try {
+        res = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method: 'PUT',
+          body: JSON.stringify({
+            ...data,
+            source: 'cms',
+          }),
+        })
+        res = await res.json()
+      } catch (error) {
+        console.error(error)
+      }
+    } else {
+      console.error('environment variable for the api does not exist.')
+    }
+    console.log('res', res)
+    setLoading(false)
+    return res
+  }
+
+  const onProgress = async () => {
     switch (parseInt(order.status_code)) {
       case 100: // Waiting for Confirmation
-        // call API for confirming an order
+        await callApiProgress(order, { seller_id: order.seller_id })
         break
       case 200: // Payment
-        // call API for payment
+        await callApiProgress(order, { buyer_id: order.buyer_id, payment_method: 'cod' })
         break
       case 300: // Payment Confirmation
-        // call API for confirming the payment
-        break
       case 400: // Shipping Out
-        // call API for shipping out
+        await callApiProgress(order, { seller_id: order.seller_id })
         break
       case 500: // To Receive
-        // call API for receiving the products
+        await callApiProgress(order, { buyer_id: order.buyer_id })
         break
       case 10: // Cancelled by Buyer
       case 20: // Declined by Seller
       case 600: // Finished
+      default:
         // do nothing
         break
-      default:
-        break
     }
+    setLoading(false)
   }
 
-  const onCancel = () => {
-    // call API for cancelling
+  const onCancel = async () => {
+    await callApiProgress(order, { buyer_id: order.buyer_id })
   }
 
-  const onDecline = () => {
-    // call API for declining
+  const onDecline = async () => {
+    await callApiProgress(order, { seller_id: order.seller_id })
   }
 
   return (
     <div className="flex p-3 pb-5 mb-1 border-1 justify-between shadow-md w-full relative hover:bg-primary-50">
       <div ref={optionsRef} className="absolute right-0 top-2">
         <button
+          disabled={loading}
           onClick={() => setIsOptionsOpen(!isOptionsOpen)}
           type="button"
           className="inline-block text-gray-500 hover:text-gray-700"
@@ -76,6 +121,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
             </button>
             <button
               onClick={() => {
+                onCancel()
                 setIsOptionsOpen(false)
               }}
               className="block w-full p-2 hover:bg-danger-400 hover:text-white"
@@ -84,6 +130,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
             </button>
             <button
               onClick={() => {
+                onDecline()
                 setIsOptionsOpen(false)
               }}
               className="block w-full p-2 hover:bg-danger-400 hover:text-white"
