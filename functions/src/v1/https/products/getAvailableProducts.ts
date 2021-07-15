@@ -36,6 +36,11 @@ import { dateFormat, DayKeyVal } from '../../../utils/helpers'
  *         schema:
  *           type: string
  *         description: ID of the community to search
+ *       - in: query
+ *         name: shop_id
+ *         schema:
+ *           type: string
+ *         description: ID of the shop to search
  *     responses:
  *       200:
  *         description: Array of products
@@ -58,6 +63,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     date = dayjs(new Date()).format('YYYY-MM-DD'),
     category,
     community_id,
+    shop_id
   }: any = req.query
 
   if (!community_id)
@@ -71,6 +77,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
   const initialWheres = []
   if (q) initialWheres.push(['keywords', 'array-contains', q])
   if (category) initialWheres.push(['product_category', '==', category])
+  if (shop_id) initialWheres.push(['shop_id', '==', shop_id])
 
   const maxRangeDays = 30
   const day = DayKeyVal[dayjs(date).day()]
