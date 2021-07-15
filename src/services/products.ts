@@ -13,6 +13,14 @@ export const fetchProductByID = async (id: string) => {
   return db.collection('products').doc(id).get()
 }
 
+export const getProductsByShop = (shop_id: string) => {
+  return db
+    .collection('products')
+    .where('shop_id', '==', shop_id)
+    .where('archived', '==', false)
+    .where('status', '==', 'enabled')
+}
+
 export const getProducts = ({
   search = '',
   filter = 'all',
