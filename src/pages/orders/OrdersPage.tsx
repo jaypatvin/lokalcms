@@ -7,6 +7,7 @@ import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
 import { getOrders } from '../../services/orders'
 import { getOrderStatuses } from '../../services/orderStatus'
+import { fetchUserByID } from '../../services/users'
 import { LimitType } from '../../utils/types'
 import OrderDetails from './OrderDetails'
 
@@ -78,11 +79,15 @@ const OrdersPage = ({}) => {
     getCommunityOrders(community)
   }
 
-  const setupDataList = (docs: any) => {
+  const setupDataList = async (docs: any) => {
     const newOrders = docs.map((doc: any): any => ({
       id: doc.id,
       ...doc.data(),
     }))
+    for (let order of newOrders) {
+      const buyer = (await fetchUserByID(order.buyer_id)).data()
+      order.buyer_email = buyer?.email
+    }
     setOrders(newOrders)
     setLastDataOnList(docs[docs.length - 1])
     setFirstDataOnList(docs[0])
