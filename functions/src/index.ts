@@ -13,6 +13,7 @@ import { authMiddleware, roleMiddleware } from './middlewares'
 import helloRouter from './v1/https/hello.function'
 import { runCounter } from './utils/counters'
 import logActivity from './utils/logActivity'
+import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -73,3 +74,7 @@ exports.activityCounter = functions.firestore
     logActivity(change)
     return runCounter('activities', change, context)
   })
+
+exports.generateProductSubscriptions = functions.pubsub
+  .schedule('every 12 hours')
+  .onRun(generateProductSubscriptions)
