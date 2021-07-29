@@ -9,7 +9,7 @@ export const getCommunities = () => {
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
-export const getCommunityByID = async (id) => {
+export const getCommunityByID = async (id): Promise<any> => {
   return await db
     .collection('community')
     .doc(id)
@@ -17,7 +17,7 @@ export const getCommunityByID = async (id) => {
     .then((res) => {
       let _ret = res.data()
       if (_ret) _ret.referencePath = res.ref.path
-      return _ret
+      return { id: res.id, ..._ret }
     })
 }
 

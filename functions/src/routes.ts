@@ -18,7 +18,8 @@ import {
   LikesAPI,
   SearchAPI,
   ChatsAPI,
-  OrdersAPI
+  OrdersAPI,
+  ProductSubscriptionPlansAPI
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -189,4 +190,7 @@ module.exports = (api: Express) => {
   api.route('/v1/orders/:orderId/receive').put(wrapAsync(OrdersAPI.receive))
   api.route('/v1/orders/:orderId/decline').put(wrapAsync(OrdersAPI.decline))
   api.route('/v1/orders/:orderId/cancel').put(wrapAsync(OrdersAPI.cancel))
+
+  // -- Product Subscription Plans routes
+  api.route('/v1/productSubscriptionPlans').post(wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
 }
