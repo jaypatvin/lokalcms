@@ -14,6 +14,7 @@ import helloRouter from './v1/https/hello.function'
 import { runCounter } from './utils/counters'
 import logActivity from './utils/logActivity'
 import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
+import notifyUsersOnproductSubscriptions from './scheduled/notifyUsersOnProductSubscriptions'
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -78,3 +79,7 @@ exports.activityCounter = functions.firestore
 exports.generateProductSubscriptions = functions.pubsub
   .schedule('every 12 hours')
   .onRun(generateProductSubscriptions)
+
+exports.notifyUsersOnproductSubscriptions = functions.pubsub
+  .schedule('every 24 hours')
+  .onRun(notifyUsersOnproductSubscriptions)

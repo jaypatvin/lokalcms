@@ -27,7 +27,7 @@ import { required_fields } from './index'
  *       ```
  *       {
  *         "product_id": "product-id-1",
- *         "user_id": "user-id-1",
+ *         "buyer_id": "user-id-1",
  *         "shop_id": "shop-id-1",
  *         "quantity": 10,
  *         "instruction": "please take care of it",
@@ -43,7 +43,7 @@ import { required_fields } from './index'
  *       ```
  *       {
  *         "product_id": "product-id-1",
- *         "user_id": "user-id-1",
+ *         "buyer_id": "user-id-1",
  *         "shop_id": "shop-id-1",
  *         "quantity": 5,
  *         "plan": {
@@ -65,7 +65,7 @@ import { required_fields } from './index'
  *                 type: string
  *               shop_id:
  *                 type: string
- *               user_id:
+ *               buyer_id:
  *                 type: string
  *               quantity:
  *                 type: number
@@ -101,10 +101,10 @@ import { required_fields } from './index'
  */
 const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   const data = req.body
-  const { product_id, shop_id, user_id, quantity, instruction, plan } = data
+  const { product_id, shop_id, buyer_id, quantity, instruction = '', plan } = data
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== user_id) {
+  if (!roles.editor && requestorDocId !== buyer_id) {
     return res.status(403).json({
       status: 'error',
       message:
@@ -119,7 +119,7 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
       .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
-  const user = await UsersService.getUserByID(user_id)
+  const user = await UsersService.getUserByID(buyer_id)
   if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
   const community = await CommunityService.getCommunityByID(user.community_id)
@@ -149,7 +149,8 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   const newPlan = {
     product_id,
     shop_id,
-    user_id,
+    buyer_id,
+    seller_id: shop.user_id,
     community_id: community.id,
     quantity,
     instruction,

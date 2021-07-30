@@ -17,6 +17,15 @@ export const getProductSubscriptionById = async (id) => {
   return data
 }
 
+export const getProductSubscriptionsByDate = async (dateString: string) => {
+  return await db
+    .collection('product_subscriptions')
+    .where('date_string', '==', dateString)
+    .where('skip', '==', false)
+    .get()
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getProductSubscriptionByDateAndPlanId = async (planId: string, dateString: string) => {
   return await db
     .collection('product_subscriptions')

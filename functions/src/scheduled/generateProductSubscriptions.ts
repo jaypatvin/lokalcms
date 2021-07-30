@@ -69,6 +69,8 @@ const generateProductSubscriptions = async () => {
         if (!existingActiveSubscription.length) {
           const originalDate = new Date(subscriptionDate)
           const data = {
+            buyer_id: subscription.buyer_id,
+            seller_id: subscription.seller_id,
             product_subscription_plan_id: subscription.id,
             quantity: subscription.quantity,
             confirmed_by_buyer: false,
