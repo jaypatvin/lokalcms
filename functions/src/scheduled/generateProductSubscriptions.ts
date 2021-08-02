@@ -3,16 +3,21 @@ import _ from 'lodash'
 import { ProductSubscriptionPlansService, ProductSubscriptionsService } from '../service'
 import { DayKeyVal } from '../utils/helpers'
 
-const generateProductSubscriptions = async () => {
+const generateProductSubscriptions = async (planId?: string) => {
   const today = new Date()
   const maxRangeDays = 14
-  const subscriptions = await ProductSubscriptionPlansService.getAllSubscriptionPlans()
+  let subscriptions = []
+  if (planId) {
+    subscriptions = [await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)]
+  } else {
+    subscriptions = await ProductSubscriptionPlansService.getAllSubscriptionPlans()
+  }
   const totalSubscriptionsMade = []
   for (let subscription of subscriptions) {
     const { repeat_unit, repeat_type, start_dates, schedule } = subscription.plan
     const firstStartDate = start_dates[0]
     const nextSubscriptionDates = []
-    let i = 1
+    let i = 0
     while (i <= maxRangeDays) {
       const dateToCheck = dayjs(today).add(i, 'days')
       const dateToCheckFormat = dateToCheck.format('YYYY-MM-DD')

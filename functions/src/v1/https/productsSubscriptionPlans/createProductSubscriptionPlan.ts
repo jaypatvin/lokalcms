@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { get } from 'lodash'
+import generateProductSubscriptions from '../../../scheduled/generateProductSubscriptions'
 import {
   UsersService,
   ShopsService,
@@ -172,7 +173,8 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   }
 
   let result: any = await ProductSubscriptionPlansService.createProductSubscriptionPlan(newPlan)
-  result = await result.get().then((doc) => doc.data())
+  result = await result.get().then((doc) => ({ id: doc.id, ...doc.data() }))
+  await generateProductSubscriptions(result.id)
 
   return res.json({ status: 'ok', data: result })
 }

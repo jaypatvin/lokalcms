@@ -78,7 +78,7 @@ exports.activityCounter = functions.firestore
 
 exports.generateProductSubscriptions = functions.pubsub
   .schedule('every 12 hours')
-  .onRun(generateProductSubscriptions)
+  .onRun(() => generateProductSubscriptions())
 
 exports.notifyUsersOnproductSubscriptions = functions.pubsub
   .schedule('every 24 hours')
