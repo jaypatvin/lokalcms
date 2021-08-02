@@ -9,7 +9,9 @@
  *           type: string
  *         shop_id:
  *           type: string
- *         user_id:
+ *         buyer_id:
+ *           type: string
+ *         seller_id:
  *           type: string
  *         quantity:
  *           type: number
@@ -87,6 +89,6 @@
  *               type: string
  */
 
-export const required_fields = ['product_id', 'shop_id', 'user_id', 'quantity', 'plan']
+export const required_fields = ['product_id', 'shop_id', 'buyer_id', 'quantity', 'plan']
 
 export { default as createProductSubscriptionPlan } from './createProductSubscriptionPlan'
