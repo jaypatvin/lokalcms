@@ -25,3 +25,22 @@ export const createProductSubscriptionPlan = async (data) => {
       return res
     })
 }
+
+export const updateProductSubscriptionPlan = async (id, data) => {
+  return await db
+    .collection('product_subscriptions_plans')
+    .doc(id)
+    .update({ ...data, updated_at: new Date() })
+}
+
+export const archiveProductSubscriptionPlan = async (id: string, data?: any) => {
+  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('product_subscriptions_plans').doc(id).update(updateData)
+}
+
+export const unarchiveProductSubscriptionPlan = async (id: string, data?: any) => {
+  let updateData = { archived: false, updated_at: new Date() }
+  if (data) updateData = { ...updateData, ...data }
+  return await db.collection('product_subscriptions_plans').doc(id).update(updateData)
+}

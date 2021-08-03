@@ -154,6 +154,8 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     community_id: community.id,
     quantity,
     instruction,
+    archived: false,
+    status: 'disabled',
     plan: {
       ...plan,
       schedule: generateSubscriptionPlanSchedule({ start_dates, repeat_type }),

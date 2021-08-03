@@ -17,6 +17,9 @@
  *           type: number
  *         instruction:
  *           type: string
+ *         status:
+ *           type: string
+ *           enum: [enabled, disabled]
  *         plan:
  *           type: object
  *           properties:
@@ -92,3 +95,4 @@
 export const required_fields = ['product_id', 'shop_id', 'buyer_id', 'quantity', 'plan']
 
 export { default as createProductSubscriptionPlan } from './createProductSubscriptionPlan'
+export { default as confirm } from './confirm'
