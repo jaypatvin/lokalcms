@@ -5,6 +5,7 @@ const db = admin.firestore()
 export const getAllSubscriptionPlans = async () => {
   return await db
     .collection('product_subscription_plans')
+    .where('status', '==', 'enabled')
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
@@ -28,7 +29,7 @@ export const createProductSubscriptionPlan = async (data) => {
 
 export const updateProductSubscriptionPlan = async (id, data) => {
   return await db
-    .collection('product_subscriptions_plans')
+    .collection('product_subscription_plans')
     .doc(id)
     .update({ ...data, updated_at: new Date() })
 }
@@ -36,11 +37,11 @@ export const updateProductSubscriptionPlan = async (id, data) => {
 export const archiveProductSubscriptionPlan = async (id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db.collection('product_subscriptions_plans').doc(id).update(updateData)
+  return await db.collection('product_subscription_plans').doc(id).update(updateData)
 }
 
 export const unarchiveProductSubscriptionPlan = async (id: string, data?: any) => {
   let updateData = { archived: false, updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db.collection('product_subscriptions_plans').doc(id).update(updateData)
+  return await db.collection('product_subscription_plans').doc(id).update(updateData)
 }

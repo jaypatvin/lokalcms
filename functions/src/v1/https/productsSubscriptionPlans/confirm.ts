@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import generateProductSubscriptions from '../../../scheduled/generateProductSubscriptions'
 import { ProductSubscriptionPlansService } from '../../../service'
 
 /**
@@ -56,20 +57,21 @@ const confirm = async (req: Request, res: Response) => {
   const { seller_id } = data
   const { id } = req.params
   const roles = res.locals.userRoles
-  let requestorDocId = res.locals.userDoc.id || seller_id
+  let requestorDocId = res.locals.userDoc.id
 
-  const order = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(id)
+  const plan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(id)
 
-  if (!order)
+  if (!plan) {
     return res
       .status(403)
       .json({ status: 'error', message: `Product subscription plan with id ${id} does not exist!` })
+  }
 
   if (seller_id && roles.admin) {
     requestorDocId = seller_id
   }
 
-  if (!roles.admin && order.seller_id !== requestorDocId)
+  if (!roles.admin && plan.seller_id !== requestorDocId)
     return res.status(403).json({
       status: 'error',
       message: `User with id ${requestorDocId} is not the seller`,
@@ -82,6 +84,7 @@ const confirm = async (req: Request, res: Response) => {
   }
 
   const result = await ProductSubscriptionPlansService.updateProductSubscriptionPlan(id, updateData)
+  await generateProductSubscriptions(id)
 
   return res.json({ status: 'ok', data: result })
 }
