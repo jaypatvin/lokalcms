@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { get } from 'lodash'
+import { get, includes } from 'lodash'
 import {
   UsersService,
   ShopsService,
@@ -10,7 +10,7 @@ import {
 import generateSubscriptionPlanSchedule from '../../../utils/generateSubscriptionPlanSchedule'
 import validateFields from '../../../utils/validateFields'
 import validateSubscriptionPlan from '../../../utils/validateSubscriptionPlan'
-import { required_fields } from './index'
+import { payment_methods, required_fields } from './index'
 
 /**
  * @openapi
@@ -31,6 +31,7 @@ import { required_fields } from './index'
  *         "shop_id": "shop-id-1",
  *         "quantity": 10,
  *         "instruction": "please take care of it",
+ *         "payment_method": "cod",
  *         "plan": {
  *           "start_dates": ["2021-07-26"],
  *           "repeat_unit": 1,
@@ -46,6 +47,7 @@ import { required_fields } from './index'
  *         "buyer_id": "user-id-1",
  *         "shop_id": "shop-id-1",
  *         "quantity": 5,
+ *         "payment_method": "cod",
  *         "plan": {
  *           "start_dates": ["2021-07-10"],
  *           "repeat_unit": 2,
@@ -71,6 +73,9 @@ import { required_fields } from './index'
  *                 type: number
  *               instruction:
  *                 type: string
+ *               payment_method:
+ *                 type: string
+ *                 enum: [cod, bank, e-wallet]
  *               plan:
  *                 type: object
  *                 properties:
@@ -101,7 +106,7 @@ import { required_fields } from './index'
  */
 const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   const data = req.body
-  const { product_id, shop_id, buyer_id, quantity, instruction = '', plan } = data
+  const { product_id, shop_id, buyer_id, quantity, instruction = '', plan, payment_method } = data
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== buyer_id) {
@@ -117,6 +122,13 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     return res
       .status(400)
       .json({ status: 'error', message: 'Required fields missing', error_fields })
+  }
+
+  if (!includes(payment_methods, payment_method)) {
+    return res.status(403).json({
+      status: 'error',
+      message: `${payment_method} is not a valid payment_method. "cod" | "bank" | "e-wallet"`,
+    })
   }
 
   const user = await UsersService.getUserByID(buyer_id)
@@ -156,6 +168,7 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     instruction,
     archived: false,
     status: 'disabled',
+    payment_method,
     plan: {
       ...plan,
       schedule: generateSubscriptionPlanSchedule({ start_dates, repeat_type }),
