@@ -2,10 +2,12 @@ import dayjs from 'dayjs'
 import * as functions from 'firebase-functions'
 import sgMail from '@sendgrid/mail'
 import {
+  OrdersService,
   ProductSubscriptionPlansService,
   ProductSubscriptionsService,
   UsersService,
 } from '../service'
+import { ORDER_STATUS } from '../v1/https/orders'
 
 sgMail.setApiKey(functions.config().mail_service.key)
 
@@ -22,10 +24,12 @@ const notifyUsersOnproductSubscriptions = async () => {
 
   const sellersSubscriptionsMap = {}
   const buyersSubscriptionsMap = {}
+  const createdOrders = []
 
   for (let subscription of upcomingSubscriptions) {
+    const { product_subscription_plan_id, instruction, quantity, date_string } = subscription
     const planInfo = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
-      subscription.product_subscription_plan_id
+      product_subscription_plan_id
     )
     const seller_id = planInfo.seller_id
     if (!sellersSubscriptionsMap[seller_id]) sellersSubscriptionsMap[seller_id] = []
@@ -36,7 +40,66 @@ const notifyUsersOnproductSubscriptions = async () => {
     if (!buyersSubscriptionsMap[buyer_id]) buyersSubscriptionsMap[buyer_id] = []
     subscription.plan = planInfo
     buyersSubscriptionsMap[buyer_id].push(subscription)
+
+    const existingOrder = await OrdersService.getOrdersByProductSubscriptionIdAndDate(
+      subscription.id,
+      date_string
+    )
+
+    // create order for the subscription
+    if (planInfo && !existingOrder.length) {
+      const {
+        buyer_id,
+        seller_id,
+        community_id,
+        product_id,
+        product,
+        shop_id,
+        shop,
+        payment_method,
+      } = planInfo
+      const buyer = await UsersService.getUserByID(buyer_id)
+      const isCod = payment_method === 'cod'
+      const statusCode = isCod ? ORDER_STATUS.PENDING_SHIPMENT : ORDER_STATUS.PENDING_PAYMENT
+      const orderData = {
+        buyer_id,
+        seller_id,
+        community_id,
+        delivery_option: 'delivery',
+        delivery_date: new Date(orderDate),
+        instruction,
+        is_paid: isCod,
+        product_ids: [product_id],
+        products: [
+          {
+            instruction: '',
+            product_description: product.description,
+            product_id,
+            product_name: product.name,
+            product_price: product.price,
+            quantity,
+            product_image: product.image || '',
+          },
+        ],
+        shop_id,
+        shop_name: shop.name,
+        shop_description: shop.description,
+        shop_image: shop.image || '',
+        status_code: statusCode,
+        delivery_address: buyer.address,
+        product_subscription_id: subscription.id,
+        product_subscription_date: date_string,
+        payment_method,
+      }
+
+      const order = await OrdersService.createOrder(orderData)
+      const result = await order.get().then((doc) => ({ id: order.id, ...doc.data() }))
+      createdOrders.push(result)
+    }
   }
+
+  console.log(`Created a total orders of ${createdOrders.length}`)
+  console.log(createdOrders.map((o) => o.id))
 
   // emailing the sellers
   for (let [seller_id, subscriptions] of Object.entries<any>(sellersSubscriptionsMap)) {
@@ -83,7 +146,7 @@ const notifyUsersOnproductSubscriptions = async () => {
     }
   }
 
-  return { sellers: sellersSubscriptionsMap, buyers: buyersSubscriptionsMap }
+  return { sellers: sellersSubscriptionsMap, buyers: buyersSubscriptionsMap, createdOrders }
 }
 
 export default notifyUsersOnproductSubscriptions

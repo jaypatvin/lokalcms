@@ -20,6 +20,7 @@ import {
   ChatsAPI,
   OrdersAPI,
   ProductSubscriptionPlansAPI,
+  ProductSubscriptionsAPI,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -194,4 +195,7 @@ module.exports = (api: Express) => {
   // -- Product Subscription Plans routes
   api.route('/v1/productSubscriptionPlans').post(wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
   api.route('/v1/productSubscriptionPlans/:id/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))
+
+  // -- Product Subscriptions routes
+  api.route('/v1/productSubscriptions/:id/createOrder').post(wrapAsync(ProductSubscriptionsAPI.createOrderFromSubscription))
 }

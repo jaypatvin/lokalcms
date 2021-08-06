@@ -29,7 +29,7 @@ const createOrdersForProductSubscriptions = async () => {
       subscriptionOrder.id,
       date_string
     )
-    console.log('existingOrder', existingOrder)
+
     if (plan && !existingOrder.length) {
       const {
         buyer_id,
@@ -43,7 +43,7 @@ const createOrdersForProductSubscriptions = async () => {
       } = plan
       const buyer = await UsersService.getUserByID(buyer_id)
       const isCod = payment_method === 'cod'
-      const statusCode = isCod ? ORDER_STATUS.PENDING_SHIPMENT: ORDER_STATUS.PENDING_PAYMENT
+      const statusCode = isCod ? ORDER_STATUS.PENDING_SHIPMENT : ORDER_STATUS.PENDING_PAYMENT
       const orderData = {
         buyer_id,
         seller_id,
