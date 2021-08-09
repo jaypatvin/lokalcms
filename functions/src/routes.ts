@@ -181,6 +181,7 @@ module.exports = (api: Express) => {
   api.route('/v1/chats/:chatId/removeUser').put(wrapAsync(ChatsAPI.chatRemoveUser))
   api.route('/v1/chats/:chatId/updateTitle').put(wrapAsync(ChatsAPI.updateChatTitle))
   api.route('/v1/chats/:chatId/conversation/:messageId').delete(wrapAsync(ChatsAPI.archiveChatMessage))
+  api.route('/v1/getChatByMemberIds').get(wrapAsync(ChatsAPI.getChatByMemberIds))
 
   // -- Orders routes
   api.route('/v1/orders').post(wrapAsync(OrdersAPI.createOrder))
