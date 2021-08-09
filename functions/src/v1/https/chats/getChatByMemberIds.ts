@@ -15,10 +15,10 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *       ### Get the chat by member ids or chat id
  *       # Examples
  *       ```
- *       v1/chats?memberIds=userId1&memberIds=userId2
- *       v1/chats?memberIds=userId1&memberIds=userId2&memberIds=userId3
- *       v1/chats?memberIds=userId&memberIds=shopId
- *       v1/chats?memberIds=userId&memberIds=shopId&memberIds=productId
+ *       v1/getChatByMemberIds?memberIds=userId1&memberIds=userId2
+ *       v1/getChatByMemberIds?memberIds=userId1&memberIds=userId2&memberIds=userId3
+ *       v1/getChatByMemberIds?memberIds=userId&memberIds=shopId
+ *       v1/getChatByMemberIds?memberIds=userId&memberIds=shopId&memberIds=productId
  *       ```
  *
  *     parameters:
