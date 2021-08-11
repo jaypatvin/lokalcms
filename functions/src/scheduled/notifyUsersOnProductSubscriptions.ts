@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import * as functions from 'firebase-functions'
 import sgMail from '@sendgrid/mail'
 import {
+  NotificationsService,
   OrdersService,
   ProductSubscriptionPlansService,
   ProductSubscriptionsService,
@@ -104,8 +105,10 @@ const notifyUsersOnproductSubscriptions = async () => {
   // emailing the sellers
   for (let [seller_id, subscriptions] of Object.entries<any>(sellersSubscriptionsMap)) {
     const user = await UsersService.getUserByID(seller_id)
+    const title = `You have ${subscriptions.length} subscription orders on ${orderDate}`
+    const notificationMessage = `Review your ${subscriptions.length} subscription orders on ${orderDate}`
     if (user) {
-      let html = `<h1>You have ${subscriptions.length} subscription orders on ${orderDate}</h1>`
+      let html = `<h1>${title}</h1>`
       for (let subscription of subscriptions) {
         const content = `<p><strong>${subscription.quantity}</strong> - ${subscription.plan.product.name}</p>`
         html += content
@@ -121,6 +124,16 @@ const notifyUsersOnproductSubscriptions = async () => {
       }
 
       await sgMail.send(msg)
+
+      const notificationData = {
+        type: 'subscriptions',
+        title,
+        message: notificationMessage,
+        associated_collection: 'product_subscriptions',
+        associated_documents: subscriptions.map(s => s.id),
+      }
+
+      await NotificationsService.createUserNotification(seller_id, notificationData)
     }
   }
 
