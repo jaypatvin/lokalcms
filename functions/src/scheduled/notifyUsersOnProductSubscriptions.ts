@@ -140,6 +140,8 @@ const notifyUsersOnproductSubscriptions = async () => {
   // emailing the buyers
   for (let [buyer_id, subscriptions] of Object.entries<any>(buyersSubscriptionsMap)) {
     const user = await UsersService.getUserByID(buyer_id)
+    const title = `You have ${subscriptions.length} subscription orders on ${orderDate}`
+    const notificationMessage = `Review your ${subscriptions.length} subscription orders on ${orderDate}`
     if (user) {
       let html = `<h1>You have ${subscriptions.length} subscription orders on ${orderDate}</h1>`
       for (let subscription of subscriptions) {
@@ -156,6 +158,16 @@ const notifyUsersOnproductSubscriptions = async () => {
       }
 
       await sgMail.send(msg)
+
+      const notificationData = {
+        type: 'subscriptions',
+        title,
+        message: notificationMessage,
+        associated_collection: 'product_subscriptions',
+        associated_documents: subscriptions.map(s => s.id),
+      }
+
+      await NotificationsService.createUserNotification(buyer_id, notificationData)
     }
   }
 
