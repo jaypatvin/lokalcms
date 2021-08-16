@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ORDER_STATUS } from '.'
-import { OrdersService } from '../../../service'
+import { NotificationsService, OrdersService } from '../../../service'
 
 /**
  * @openapi
@@ -109,6 +109,16 @@ const received = async (req: Request, res: Response) => {
   const result = await OrdersService.updateOrder(orderId, updateData)
 
   await OrdersService.createOrderStatusHistory(orderId, statusChange)
+
+  const notificationData = {
+    type: 'order_status',
+    title: 'Your products have been received',
+    message: `The order (${order.products.length} products) has been received by the buyer.`,
+    associated_collection: 'orders',
+    associated_document: orderId,
+  }
+
+  await NotificationsService.createUserNotification(order.seller_id, notificationData)
 
   return res.json({ status: 'ok', data: result })
 }

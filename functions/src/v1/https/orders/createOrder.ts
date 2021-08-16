@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { includes, isDate } from 'lodash'
-import { OrdersService, ProductsService, ShopsService, UsersService } from '../../../service'
+import { NotificationsService, OrdersService, ProductsService, ShopsService, UsersService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 
@@ -210,7 +210,7 @@ const createOrder = async (req: Request, res: Response) => {
   }
 
   const order = await OrdersService.createOrder(newOrder)
-  const result = await order.get().then((doc) => ({ id: order.id, ...doc.data() }))
+  const result = await order.get().then((doc): any => ({ id: order.id, ...doc.data() }))
 
   // 100 - Waiting for Confirmation - this is the first status of the order
   const initialStatusHistory = {
@@ -219,6 +219,16 @@ const createOrder = async (req: Request, res: Response) => {
   }
 
   const statusHistory = await OrdersService.createOrderStatusHistory(order.id, initialStatusHistory)
+
+  const notificationData = {
+    type: 'order_status',
+    title: 'New order has been made for confirmation',
+    message: `New order (${result.products.length} products) is ready for your confirmation.`,
+    associated_collection: 'orders',
+    associated_document: result.id,
+  }
+
+  await NotificationsService.createUserNotification(shop.user_id, notificationData)
 
   return res.status(200).json({ status: 'ok', data: { ...result, status_history: statusHistory } })
 }
