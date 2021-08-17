@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ORDER_STATUS } from '.'
-import { OrdersService } from '../../../service'
+import { NotificationsService, OrdersService } from '../../../service'
 
 /**
  * @openapi
@@ -108,6 +108,16 @@ const confirmPayment = async (req: Request, res: Response) => {
   const result = await OrdersService.updateOrder(orderId, updateData)
 
   await OrdersService.createOrderStatusHistory(orderId, statusChange)
+
+  const notificationData = {
+    type: 'order_status',
+    title: 'Your payment has been confirmed',
+    message: `Your payment has been confirmed for your order (${order.products.length} products) from ${order.shop_name}. Please wait for the shipment of you order.`,
+    associated_collection: 'orders',
+    associated_document: orderId,
+  }
+
+  await NotificationsService.createUserNotification(order.buyer_id, notificationData)
 
   return res.json({ status: 'ok', data: result })
 }

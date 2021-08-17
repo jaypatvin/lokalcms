@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ORDER_STATUS } from './index'
-import { OrdersService } from '../../../service'
+import { NotificationsService, OrdersService } from '../../../service'
 
 /**
  * @openapi
@@ -105,6 +105,16 @@ const declineOrder = async (req: Request, res: Response) => {
   const result = await OrdersService.updateOrder(orderId, updateData)
 
   await OrdersService.createOrderStatusHistory(orderId, statusChange)
+
+  const notificationData = {
+    type: 'order_status',
+    title: 'Your order has been declined',
+    message: `Your order (${order.products.length} products) from ${order.shop_name} has been declined.`,
+    associated_collection: 'orders',
+    associated_document: orderId,
+  }
+
+  await NotificationsService.createUserNotification(order.buyer_id, notificationData)
 
   return res.json({ status: 'ok', data: result })
 }
