@@ -64,7 +64,7 @@ const getChatByMemberIds = async (req: Request, res: Response) => {
       .json({ status: 'error', message: `chat for members ${memberIds} does not exist.` })
   }
 
-  const chatMembers = chat.members
+  const chatMembers = [...chat.members]
 
   if (chat.shop_id) {
     shop = await ShopsService.getShopByID(chat.shop_id)
