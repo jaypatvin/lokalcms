@@ -288,6 +288,16 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
                       ''
                     )}
                   </div>
+                  <p>
+                    {`${product.product_name} (${product.quantity}) = ${formatToPeso(subTotalPrice)}`}{' '}
+                    {product.instruction ? (
+                      <span className="block">
+                        <i>Instruction: {product.instruction}</i>
+                      </span>
+                    ) : (
+                      ''
+                    )}
+                  </p>
                 </div>
               )
             )
