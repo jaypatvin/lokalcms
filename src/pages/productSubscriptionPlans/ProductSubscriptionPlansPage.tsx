@@ -6,12 +6,11 @@ import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
 import { getProductSubscriptionPlans } from '../../services/productSubscriptionPlans'
-import { getOrderStatuses } from '../../services/orderStatus'
 import { fetchUserByID } from '../../services/users'
 import { LimitType } from '../../utils/types'
 import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
 
-const ProductSubscriptionPlansPage = ({}) => {
+const ProductSubscriptionPlansPage = () => {
   const [community, setCommunity] = useState<any>()
   const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
   const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
