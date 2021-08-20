@@ -44,7 +44,7 @@ const menus = [
   },
   {
     key: 'productSubscriptionPlans',
-    label: 'Product Subscriptions',
+    label: 'Product Subscription Plans',
     icon: <IoIosBasket size={23} />,
   },
   {

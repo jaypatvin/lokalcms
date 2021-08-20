@@ -5,17 +5,32 @@ import Dropdown from '../../components/Dropdown'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
+import { getProducts } from '../../services/products'
 import { getProductSubscriptionPlans } from '../../services/productSubscriptionPlans'
+import { getShops } from '../../services/shops'
 import { fetchUserByID } from '../../services/users'
 import { LimitType } from '../../utils/types'
 import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
 
 const ProductSubscriptionPlansPage = () => {
-  const [community, setCommunity] = useState<any>()
+  const [community, setCommunity] = useState<any>({})
   const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
   const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
   const [communitySearchText, setCommunitySearchText] = useState('')
   const [communitySearchResult, setCommunitySearchResult] = useState<any>([])
+
+  const [shop, setShop] = useState<any>({})
+  const [showShopSearchResult, setShowShopSearchResult] = useState(false)
+  const shopSearchResultRef = useOuterClick(() => setShowShopSearchResult(false))
+  const [shopSearchText, setShopSearchText] = useState('')
+  const [shopSearchResult, setShopSearchResult] = useState<any>([])
+
+  const [product, setProduct] = useState<any>({})
+  const [showProductSearchResult, setShowProductSearchResult] = useState(false)
+  const productSearchResultRef = useOuterClick(() => setShowProductSearchResult(false))
+  const [productSearchText, setProductSearchText] = useState('')
+  const [productSearchResult, setProductSearchResult] = useState<any>([])
+
   const [productSubscriptionPlans, setProductSubscriptionPlans] = useState<any[]>([])
   const [productSubscriptionPlansSnapshot, setProductSubscriptionPlansSnapshot] =
     useState<{ unsubscribe: () => void }>()
@@ -29,7 +44,9 @@ const ProductSubscriptionPlansPage = () => {
   const [isLastPage, setIsLastPage] = useState(false)
 
   useEffect(() => {
-    getCommunityProductSubscriptionPlans(community)
+    if (community && community.id) {
+      getCommunityProductSubscriptionPlans(community.id)
+    }
   }, [community, limit])
 
   const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
@@ -54,7 +71,57 @@ const ProductSubscriptionPlansPage = () => {
     setCommunitySearchResult([])
     setCommunity(community)
     setCommunitySearchText(community.name)
-    getCommunityProductSubscriptionPlans(community)
+    getCommunityProductSubscriptionPlans(community.id, shop.id, product.id)
+  }
+
+  const shopSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    setShopSearchText(e.target.value)
+    if (e.target.value.length > 2) {
+      const shopsRef = getShops({ search: e.target.value })
+      const result = await shopsRef.get()
+      const shops = result.docs.map((doc) => {
+        const data = doc.data()
+        return { ...data, id: doc.id }
+      })
+      setShopSearchResult(shops)
+      setShowShopSearchResult(shops.length > 0)
+    } else {
+      setShowShopSearchResult(false)
+      setShopSearchResult([])
+    }
+  }
+
+  const shopSelectHandler = (shop: any) => {
+    setShowShopSearchResult(false)
+    setShopSearchResult([])
+    setShop(shop)
+    setShopSearchText(shop.name)
+    getCommunityProductSubscriptionPlans(community.id, shop.id, product.id)
+  }
+
+  const productSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    setProductSearchText(e.target.value)
+    if (e.target.value.length > 2) {
+      const productsRef = getProducts({ search: e.target.value })
+      const result = await productsRef.get()
+      const products = result.docs.map((doc) => {
+        const data = doc.data()
+        return { ...data, id: doc.id }
+      })
+      setProductSearchResult(products)
+      setShowProductSearchResult(products.length > 0)
+    } else {
+      setShowProductSearchResult(false)
+      setProductSearchResult([])
+    }
+  }
+
+  const productSelectHandler = (product: any) => {
+    setShowProductSearchResult(false)
+    setProductSearchResult([])
+    setProduct(product)
+    setProductSearchText(product.name)
+    getCommunityProductSubscriptionPlans(community.id, shop.id, product.id)
   }
 
   const setupDataList = async (docs: any) => {
@@ -76,20 +143,24 @@ const ProductSubscriptionPlansPage = () => {
     setLoading(false)
   }
 
-  const getCommunityProductSubscriptionPlans = async (community: any) => {
-    if (!community) return
+  const getCommunityProductSubscriptionPlans = async (
+    communityId: string,
+    shopId?: string,
+    productId?: string
+  ) => {
+    if (!communityId) return
     setLoading(true)
-    const ordersRef = getProductSubscriptionPlans({
-      community_id: community.id,
-      limit,
-    })
+    const filter: any = { community_id: communityId, limit }
+    if (shopId) filter.shop_id = shopId
+    if (productId) filter.product_id = productId
+    const dataRef = getProductSubscriptionPlans(filter)
     if (productSubscriptionPlansSnapshot && productSubscriptionPlansSnapshot.unsubscribe)
       productSubscriptionPlansSnapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = ordersRef.onSnapshot(async (snapshot) => {
+    const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
       setupDataList(snapshot.docs)
     })
     setProductSubscriptionPlansSnapshot({ unsubscribe: newUnsubscribe })
-    setDataRef(ordersRef)
+    setDataRef(dataRef)
     setPageNum(1)
     setIsLastPage(false)
   }
@@ -153,6 +224,62 @@ const ProductSubscriptionPlansPage = () => {
             </div>
           )}
         </div>
+        {community && community.id ? (
+          <>
+            <div ref={shopSearchResultRef} className="relative ml-2">
+              <TextField
+                label="Shop"
+                type="text"
+                size="small"
+                placeholder="Search"
+                onChange={shopSearchHandler}
+                value={shopSearchText}
+                onFocus={() => setShowShopSearchResult(shopSearchResult.length > 0)}
+                noMargin
+              />
+              {showShopSearchResult && shopSearchResult.length > 0 && (
+                <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+                  {shopSearchResult.map((shop: any) => (
+                    <button
+                      className="w-full p-1 hover:bg-gray-200 block text-left"
+                      key={shop.id}
+                      onClick={() => shopSelectHandler(shop)}
+                    >
+                      {shop.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div ref={productSearchResultRef} className="relative ml-2">
+              <TextField
+                label="Product"
+                type="text"
+                size="small"
+                placeholder="Search"
+                onChange={productSearchHandler}
+                value={productSearchText}
+                onFocus={() => setShowProductSearchResult(productSearchResult.length > 0)}
+                noMargin
+              />
+              {showProductSearchResult && productSearchResult.length > 0 && (
+                <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+                  {productSearchResult.map((product: any) => (
+                    <button
+                      className="w-full p-1 hover:bg-gray-200 block text-left"
+                      key={product.id}
+                      onClick={() => productSelectHandler(product)}
+                    >
+                      {product.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          ''
+        )}
         <div className="flex justify-between align-middle ml-4">
           <div className="flex items-center">
             Show:{' '}
