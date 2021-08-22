@@ -43,6 +43,11 @@ const menus = [
     icon: <IoIosBasket size={23} />,
   },
   {
+    key: 'productSubscriptionPlans',
+    label: 'Product Subscription Plans',
+    icon: <IoIosBasket size={23} />,
+  },
+  {
     key: 'createOrder',
     label: 'Create Order',
     icon: <IoIosBasket size={23} />,
