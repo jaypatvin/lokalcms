@@ -97,7 +97,6 @@ export const payment_methods = ['cod', 'bank', 'e-wallet']
 export const required_fields = [
   'product_id',
   'shop_id',
-  'buyer_id',
   'quantity',
   'plan',
   'payment_method',
