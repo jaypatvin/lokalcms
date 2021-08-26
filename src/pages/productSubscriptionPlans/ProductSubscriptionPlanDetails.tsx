@@ -8,11 +8,12 @@ import { DayKeyVal } from '../../utils/types'
 
 type Props = {
   subscriptionPlan: any
+  onViewSubscriptions: () => void
 }
 
 const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
 
-const ProductSubscriptionPlanDetails = ({ subscriptionPlan }: Props) => {
+const ProductSubscriptionPlanDetails = ({ subscriptionPlan, onViewSubscriptions }: Props) => {
   const [showMore, setShowMore] = useState(false)
 
   let plan = '-'
@@ -132,7 +133,7 @@ const ProductSubscriptionPlanDetails = ({ subscriptionPlan }: Props) => {
                 Created: {dayjs(subscriptionPlan.created_at.toDate()).format('YYYY-MM-DD h:mm a')}
               </p>
               <p className="italic">{subscriptionPlan.shop.description}</p>
-              {subscriptionPlan.shop_image ? (
+              {subscriptionPlan.shop.image ? (
                 <img
                   src={subscriptionPlan.shop.image}
                   alt={subscriptionPlan.shop.name}
@@ -165,7 +166,11 @@ const ProductSubscriptionPlanDetails = ({ subscriptionPlan }: Props) => {
               </p>
             </div>
           )}
-          {!showMore && <p className="font-bold">{subscriptionPlan.quantity} items</p>}
+          {!showMore && (
+            <p className="font-bold">
+              {subscriptionPlan.quantity} x {subscriptionPlan.product.name}
+            </p>
+          )}
           <p>
             Total Price: {formatToPeso(subscriptionPlan.product.price * subscriptionPlan.quantity)}
           </p>
@@ -180,6 +185,13 @@ const ProductSubscriptionPlanDetails = ({ subscriptionPlan }: Props) => {
             />
             {plan}
           </p>
+          <OutlineButton
+            className="text-primary-500 mr-1 h-8"
+            size="small"
+            onClick={onViewSubscriptions}
+          >
+            View Subscriptions
+          </OutlineButton>
           {showMore && (
             <div className="w-64">
               <ReactCalendar

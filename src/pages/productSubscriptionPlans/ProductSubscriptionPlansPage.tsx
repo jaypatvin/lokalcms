@@ -3,12 +3,14 @@ import ReactLoading from 'react-loading'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { TextField } from '../../components/inputs'
+import ViewModal from '../../components/modals/ViewModal'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
 import { getProducts } from '../../services/products'
 import { getProductSubscriptionPlans } from '../../services/productSubscriptionPlans'
 import { getShops } from '../../services/shops'
 import { fetchUserByID } from '../../services/users'
+import { getProductSubscriptions } from '../../services/productSubscriptions'
 import { LimitType } from '../../utils/types'
 import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
 
@@ -43,11 +45,32 @@ const ProductSubscriptionPlansPage = () => {
   const [lastDataOnList, setLastDataOnList] = useState<any>()
   const [isLastPage, setIsLastPage] = useState(false)
 
+  const [showSubscriptions, setShowSubscriptions] = useState(false)
+  const [activeSubscriptionPlan, setActiveSubscriptionPlan] = useState<any>()
+  const [productSubscriptions, setProductSubscriptions] = useState<any>([])
+
   useEffect(() => {
     if (community && community.id) {
       getCommunityProductSubscriptionPlans(community.id)
     }
   }, [community, limit])
+
+  useEffect(() => {
+    getProductSubscriptionsByPlanId()
+  }, [activeSubscriptionPlan])
+
+  const getProductSubscriptionsByPlanId = async () => {
+    if (!activeSubscriptionPlan) return
+    const subscriptions = await getProductSubscriptions({
+      product_subscription_plan_id: activeSubscriptionPlan.id,
+    })
+    const newProductSubscriptions = await subscriptions.get()
+    const data = newProductSubscriptions.docs.map((productSubscription) => ({
+      id: productSubscription.id,
+      ...productSubscription.data(),
+    }))
+    setProductSubscriptions(data)
+  }
 
   const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setCommunitySearchText(e.target.value)
@@ -194,8 +217,19 @@ const ProductSubscriptionPlansPage = () => {
     setPageNum(Math.max(1, newPageNum))
   }
 
+  const onViewSubscriptions = (subscriptionPlan: any) => {
+    setShowSubscriptions(true)
+    setActiveSubscriptionPlan(subscriptionPlan)
+  }
+
   return (
     <>
+      <ViewModal title="Subscriptions" isOpen={showSubscriptions} setIsOpen={setShowSubscriptions}>
+        These are the subscriptions
+        {productSubscriptions.map((data: any) => (
+          <p>{data.id}</p>
+        ))}
+      </ViewModal>
       <h2 className="text-2xl font-semibold leading-tight">Product Subscription Plans</h2>
       <div className="flex items-center my-5 w-full">
         <div ref={communitySearchResultRef} className="relative">
@@ -319,7 +353,10 @@ const ProductSubscriptionPlansPage = () => {
         ) : (
           <div className="h-full w-full overflow-y-auto mb-10">
             {productSubscriptionPlans.map((subscriptionPlan) => (
-              <ProductSubscriptionPlanDetails subscriptionPlan={subscriptionPlan} />
+              <ProductSubscriptionPlanDetails
+                subscriptionPlan={subscriptionPlan}
+                onViewSubscriptions={() => onViewSubscriptions(subscriptionPlan)}
+              />
             ))}
           </div>
         )}
