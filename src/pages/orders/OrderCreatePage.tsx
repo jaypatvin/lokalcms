@@ -12,6 +12,7 @@ import { Button } from '../../components/buttons'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
 import dayjs from 'dayjs'
+import CreateSubscriptionPlanModal from './CreateSubscriptionPlanModal'
 import { ShopDateModal, TextModal } from '../../components/modals'
 
 const OrderCreatePage = ({}) => {
@@ -35,6 +36,9 @@ const OrderCreatePage = ({}) => {
   const [showInstructionModal, setShowInstructionModal] = useState(false)
   const [currentShopCart, setCurrentShopCart] = useState<any>()
   const [currentProduct, setCurrentProduct] = useState<any>()
+  const [currentShop, setCurrentShop] = useState<any>()
+
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 
   const { firebaseToken } = useAuth()
 
@@ -231,6 +235,12 @@ const OrderCreatePage = ({}) => {
     setCurrentProduct(null)
   }
 
+  const onClickSubscribe = (shop: any, product: any) => {
+    setCurrentShop(shop)
+    setCurrentProduct(product)
+    setShowSubscribeModal(true)
+  }
+
   const onClickPickup = (shop: any, value: boolean) => {
     let newCart = [...cart]
     let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
@@ -241,8 +251,8 @@ const OrderCreatePage = ({}) => {
 
   const checkout = async () => {
     console.log('cart', cart)
-    for (let shopCart of cart) {
-      if (API_URL && firebaseToken) {
+    if (API_URL && firebaseToken) {
+      for (let shopCart of cart) {
         let url = `${API_URL}/orders`
         let method = 'POST'
         let res: any = await fetch(url, {
@@ -259,9 +269,9 @@ const OrderCreatePage = ({}) => {
         })
         res = await res.json()
         console.log('res', res)
-      } else {
-        console.error('environment variable for the api does not exist.')
       }
+    } else {
+      console.error('environment variable for the api does not exist.')
     }
     setCart([])
   }
@@ -282,6 +292,17 @@ const OrderCreatePage = ({}) => {
           setIsOpen={setShowInstructionModal}
           value={currentProduct?.instruction || currentShopCart?.instruction}
           onSave={onSaveInstruction}
+        />
+      ) : (
+        ''
+      )}
+      {showSubscribeModal && currentShop && currentProduct ? (
+        <CreateSubscriptionPlanModal
+          isOpen={showSubscribeModal}
+          setIsOpen={setShowSubscribeModal}
+          product={currentProduct}
+          shop={currentShop}
+          user={user}
         />
       ) : (
         ''
@@ -317,7 +338,6 @@ const OrderCreatePage = ({}) => {
         <div ref={userSearchResultRef} className="relative">
           <TextField
             label="User"
-            required
             type="text"
             size="small"
             placeholder="Search"
@@ -462,6 +482,12 @@ const OrderCreatePage = ({}) => {
                       <p>{`${product.name} @ ${formatToPeso(product.base_price)}`} </p>
                       <button className="text-primary-500" onClick={() => addToCart(shop, product)}>
                         Add
+                      </button>
+                      <button
+                        className="text-primary-500 ml-2"
+                        onClick={() => onClickSubscribe(shop, product)}
+                      >
+                        Subscribe
                       </button>
                     </div>
                   </div>

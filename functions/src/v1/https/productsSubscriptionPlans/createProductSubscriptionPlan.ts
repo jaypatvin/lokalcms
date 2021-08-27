@@ -108,13 +108,25 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   const data = req.body
   const { product_id, shop_id, buyer_id, quantity, instruction = '', plan, payment_method } = data
   const roles = res.locals.userRoles
-  const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== buyer_id) {
-    return res.status(403).json({
-      status: 'error',
-      message:
-        'You do not have a permission to create a product subscription plan for another user.',
-    })
+  let { id: requestorDocId, community_id } = res.locals.userDoc
+  let buyer
+  if (buyer_id && requestorDocId !== buyer_id) {
+    if (!roles.editor) {
+      return res.status(403).json({
+        status: 'error',
+        message:
+          'You do not have a permission to create a product subscription plan for another user.',
+      })
+    } else {
+      buyer = await UsersService.getUserByID(buyer_id)
+      if (!buyer) {
+        return res
+          .status(400)
+          .json({ status: 'error', message: `User with id ${buyer_id} does not exist.` })
+      }
+      requestorDocId = buyer_id
+      community_id = buyer.community_id
+    }
   }
 
   const error_fields = validateFields(data, required_fields)
@@ -128,17 +140,6 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     return res.status(403).json({
       status: 'error',
       message: `${payment_method} is not a valid payment_method. "cod" | "bank" | "e-wallet"`,
-    })
-  }
-
-  const user = await UsersService.getUserByID(buyer_id)
-  if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-
-  const community = await CommunityService.getCommunityByID(user.community_id)
-  if (!community) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Community of user ${user.email} does not exist!`,
     })
   }
 
@@ -161,9 +162,9 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   const newPlan = {
     product_id,
     shop_id,
-    buyer_id,
+    buyer_id: requestorDocId,
     seller_id: shop.user_id,
-    community_id: community.id,
+    community_id,
     quantity,
     instruction,
     archived: false,
