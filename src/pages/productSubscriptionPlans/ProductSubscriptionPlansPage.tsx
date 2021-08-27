@@ -13,6 +13,8 @@ import { fetchUserByID } from '../../services/users'
 import { getProductSubscriptions } from '../../services/productSubscriptions'
 import { LimitType } from '../../utils/types'
 import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
+import SortButton from '../../components/buttons/SortButton'
+import { fetchOrderByProductSubscription } from '../../services/orders'
 
 const ProductSubscriptionPlansPage = () => {
   const [community, setCommunity] = useState<any>({})
@@ -65,10 +67,18 @@ const ProductSubscriptionPlansPage = () => {
       product_subscription_plan_id: activeSubscriptionPlan.id,
     })
     const newProductSubscriptions = await subscriptions.get()
-    const data = newProductSubscriptions.docs.map((productSubscription) => ({
-      id: productSubscription.id,
-      ...productSubscription.data(),
-    }))
+    const data = []
+    for (let productSubscription of newProductSubscriptions.docs) {
+      const relatedOrder = await fetchOrderByProductSubscription(productSubscription.id)
+      const orderData = relatedOrder.empty
+        ? null
+        : { ...relatedOrder.docs[0].data(), id: relatedOrder.docs[0].id }
+      data.push({
+        ...productSubscription.data(),
+        id: productSubscription.id,
+        order: orderData,
+      })
+    }
     setProductSubscriptions(data)
   }
 
@@ -222,13 +232,96 @@ const ProductSubscriptionPlansPage = () => {
     setActiveSubscriptionPlan(subscriptionPlan)
   }
 
+  const onCloseViewSubscriptions = () => {
+    setShowSubscriptions(false)
+    setActiveSubscriptionPlan(undefined)
+    setProductSubscriptions([])
+  }
+
   return (
     <>
-      <ViewModal title="Subscriptions" isOpen={showSubscriptions} setIsOpen={setShowSubscriptions}>
-        These are the subscriptions
-        {productSubscriptions.map((data: any) => (
-          <p>{data.id}</p>
-        ))}
+      <ViewModal
+        title={`Subscriptions for ${activeSubscriptionPlan?.product.name}`}
+        isOpen={showSubscriptions}
+        close={onCloseViewSubscriptions}
+      >
+        <p>Shop: {activeSubscriptionPlan?.shop.name}</p>
+        <p className="text-secondary-600 text-xs">Seller: {activeSubscriptionPlan?.seller_email}</p>
+        <p className="text-secondary-600 text-xs">Buyer: {activeSubscriptionPlan?.buyer_email}</p>
+        {productSubscriptions.length === 0 ? (
+          <p>No subscriptions created yet</p>
+        ) : (
+          <div className="table-wrapper w-full overflow-x-auto">
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th key="date">
+                      <SortButton
+                        className="text-xs uppercase font-bold"
+                        label="Date"
+                        showSortIcons={false}
+                      />
+                    </th>
+                    <th key="quantity">
+                      <SortButton
+                        className="text-xs uppercase font-bold"
+                        label="Quantity"
+                        showSortIcons={false}
+                      />
+                    </th>
+                    <th key="status">
+                      <SortButton
+                        className="text-xs uppercase font-bold"
+                        label="Status"
+                        showSortIcons={false}
+                      />
+                    </th>
+                    <th key="order">
+                      <SortButton
+                        className="text-xs uppercase font-bold"
+                        label="Order ID"
+                        showSortIcons={false}
+                      />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {productSubscriptions.map((data: any) => (
+                    <tr>
+                      <td>
+                        <p className="text-gray-900 whitespace-no-wrap">{data.date_string}</p>
+                      </td>
+                      <td>
+                        <p className="text-gray-900 whitespace-no-wrap">{data.quantity}</p>
+                      </td>
+                      <td>
+                        <p className="text-gray-900 whitespace-no-wrap">
+                          {data.confirmed_by_buyer
+                            ? 'Confirmed by Buyer'
+                            : 'No confirmation from Buyer'}
+                        </p>
+                        <p className="text-gray-900 whitespace-no-wrap">
+                          {data.confirmed_by_seller
+                            ? 'Confirmed by Seller'
+                            : 'No confirmation from Seller'}
+                        </p>
+                        {!!data.skip && (
+                          <p className="whitespace-no-wrap text-danger-500">Skipped</p>
+                        )}
+                      </td>
+                      <td>
+                        <p className="text-gray-900 whitespace-no-wrap">
+                          {data.order ? data.order.id : '--'}
+                        </p>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </ViewModal>
       <h2 className="text-2xl font-semibold leading-tight">Product Subscription Plans</h2>
       <div className="flex items-center my-5 w-full">
