@@ -3,18 +3,15 @@ import ReactLoading from 'react-loading'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { TextField } from '../../components/inputs'
-import ViewModal from '../../components/modals/ViewModal'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getCommunities } from '../../services/community'
 import { getProducts } from '../../services/products'
 import { getProductSubscriptionPlans } from '../../services/productSubscriptionPlans'
 import { getShops } from '../../services/shops'
 import { fetchUserByID } from '../../services/users'
-import { getProductSubscriptions } from '../../services/productSubscriptions'
 import { LimitType } from '../../utils/types'
 import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
-import SortButton from '../../components/buttons/SortButton'
-import { fetchOrderByProductSubscription } from '../../services/orders'
+import ProductSubscriptions from './ProductSubscriptions'
 
 const ProductSubscriptionPlansPage = () => {
   const [community, setCommunity] = useState<any>({})
@@ -49,38 +46,12 @@ const ProductSubscriptionPlansPage = () => {
 
   const [showSubscriptions, setShowSubscriptions] = useState(false)
   const [activeSubscriptionPlan, setActiveSubscriptionPlan] = useState<any>()
-  const [productSubscriptions, setProductSubscriptions] = useState<any>([])
 
   useEffect(() => {
     if (community && community.id) {
       getCommunityProductSubscriptionPlans(community.id)
     }
   }, [community, limit])
-
-  useEffect(() => {
-    getProductSubscriptionsByPlanId()
-  }, [activeSubscriptionPlan])
-
-  const getProductSubscriptionsByPlanId = async () => {
-    if (!activeSubscriptionPlan) return
-    const subscriptions = await getProductSubscriptions({
-      product_subscription_plan_id: activeSubscriptionPlan.id,
-    })
-    const newProductSubscriptions = await subscriptions.get()
-    const data = []
-    for (let productSubscription of newProductSubscriptions.docs) {
-      const relatedOrder = await fetchOrderByProductSubscription(productSubscription.id)
-      const orderData = relatedOrder.empty
-        ? null
-        : { ...relatedOrder.docs[0].data(), id: relatedOrder.docs[0].id }
-      data.push({
-        ...productSubscription.data(),
-        id: productSubscription.id,
-        order: orderData,
-      })
-    }
-    setProductSubscriptions(data)
-  }
 
   const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setCommunitySearchText(e.target.value)
@@ -235,94 +206,15 @@ const ProductSubscriptionPlansPage = () => {
   const onCloseViewSubscriptions = () => {
     setShowSubscriptions(false)
     setActiveSubscriptionPlan(undefined)
-    setProductSubscriptions([])
   }
 
   return (
     <>
-      <ViewModal
-        title={`Subscriptions for ${activeSubscriptionPlan?.product.name}`}
-        isOpen={showSubscriptions}
-        close={onCloseViewSubscriptions}
-      >
-        <p>Shop: {activeSubscriptionPlan?.shop.name}</p>
-        <p className="text-secondary-600 text-xs">Seller: {activeSubscriptionPlan?.seller_email}</p>
-        <p className="text-secondary-600 text-xs">Buyer: {activeSubscriptionPlan?.buyer_email}</p>
-        {productSubscriptions.length === 0 ? (
-          <p>No subscriptions created yet</p>
-        ) : (
-          <div className="table-wrapper w-full overflow-x-auto">
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th key="date">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Date"
-                        showSortIcons={false}
-                      />
-                    </th>
-                    <th key="quantity">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Quantity"
-                        showSortIcons={false}
-                      />
-                    </th>
-                    <th key="status">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Status"
-                        showSortIcons={false}
-                      />
-                    </th>
-                    <th key="order">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Order ID"
-                        showSortIcons={false}
-                      />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productSubscriptions.map((data: any) => (
-                    <tr>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">{data.date_string}</p>
-                      </td>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">{data.quantity}</p>
-                      </td>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">
-                          {data.confirmed_by_buyer
-                            ? 'Confirmed by Buyer'
-                            : 'No confirmation from Buyer'}
-                        </p>
-                        <p className="text-gray-900 whitespace-no-wrap">
-                          {data.confirmed_by_seller
-                            ? 'Confirmed by Seller'
-                            : 'No confirmation from Seller'}
-                        </p>
-                        {!!data.skip && (
-                          <p className="whitespace-no-wrap text-danger-500">Skipped</p>
-                        )}
-                      </td>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">
-                          {data.order ? data.order.id : '--'}
-                        </p>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </ViewModal>
+      <ProductSubscriptions
+        subscriptionPlan={activeSubscriptionPlan}
+        show={showSubscriptions}
+        onClose={onCloseViewSubscriptions}
+      />
       <h2 className="text-2xl font-semibold leading-tight">Product Subscription Plans</h2>
       <div className="flex items-center my-5 w-full">
         <div ref={communitySearchResultRef} className="relative">

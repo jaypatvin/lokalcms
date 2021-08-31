@@ -17,26 +17,18 @@ const customStyles: ReactModal.Styles = {
 type Props = {
   title: string
   isOpen: boolean
-  setIsOpen?: (val: boolean) => void
+  close?: () => void
   children: ReactNode
 }
 
-const ViewModal = ({ title, isOpen, setIsOpen, children }: Props) => {
-  const handleClose = () => {
-    if (setIsOpen) setIsOpen(false)
-  }
-  return (
-    <ReactModal isOpen={isOpen} style={customStyles}>
-      <h2 className="text-2xl capitalize mb-5">{title}</h2>
-      <button
-        className="border-none text-danger-500 bg-none absolute top-2 right-2"
-        onClick={handleClose}
-      >
-        X
-      </button>
-      {children}
-    </ReactModal>
-  )
-}
+const ViewModal = ({ title, isOpen, close, children }: Props) => (
+  <ReactModal isOpen={isOpen} style={customStyles}>
+    <h2 className="text-2xl capitalize mb-5 mr-5">{title}</h2>
+    <button className="border-none text-danger-500 bg-none absolute top-2 right-2" onClick={close}>
+      X
+    </button>
+    {children}
+  </ReactModal>
+)
 
 export default ViewModal
