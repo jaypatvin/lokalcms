@@ -11,6 +11,7 @@ import { getShops } from '../../services/shops'
 import { fetchUserByID } from '../../services/users'
 import { LimitType } from '../../utils/types'
 import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
+import ProductSubscriptions from './ProductSubscriptions'
 
 const ProductSubscriptionPlansPage = () => {
   const [community, setCommunity] = useState<any>({})
@@ -42,6 +43,9 @@ const ProductSubscriptionPlansPage = () => {
   const [firstDataOnList, setFirstDataOnList] = useState<any>()
   const [lastDataOnList, setLastDataOnList] = useState<any>()
   const [isLastPage, setIsLastPage] = useState(false)
+
+  const [showSubscriptions, setShowSubscriptions] = useState(false)
+  const [activeSubscriptionPlan, setActiveSubscriptionPlan] = useState<any>()
 
   useEffect(() => {
     if (community && community.id) {
@@ -194,8 +198,23 @@ const ProductSubscriptionPlansPage = () => {
     setPageNum(Math.max(1, newPageNum))
   }
 
+  const onViewSubscriptions = (subscriptionPlan: any) => {
+    setShowSubscriptions(true)
+    setActiveSubscriptionPlan(subscriptionPlan)
+  }
+
+  const onCloseViewSubscriptions = () => {
+    setShowSubscriptions(false)
+    setActiveSubscriptionPlan(undefined)
+  }
+
   return (
     <>
+      <ProductSubscriptions
+        subscriptionPlan={activeSubscriptionPlan}
+        show={showSubscriptions}
+        onClose={onCloseViewSubscriptions}
+      />
       <h2 className="text-2xl font-semibold leading-tight">Product Subscription Plans</h2>
       <div className="flex items-center my-5 w-full">
         <div ref={communitySearchResultRef} className="relative">
@@ -319,7 +338,10 @@ const ProductSubscriptionPlansPage = () => {
         ) : (
           <div className="h-full w-full overflow-y-auto mb-10">
             {productSubscriptionPlans.map((subscriptionPlan) => (
-              <ProductSubscriptionPlanDetails subscriptionPlan={subscriptionPlan} />
+              <ProductSubscriptionPlanDetails
+                subscriptionPlan={subscriptionPlan}
+                onViewSubscriptions={() => onViewSubscriptions(subscriptionPlan)}
+              />
             ))}
           </div>
         )}

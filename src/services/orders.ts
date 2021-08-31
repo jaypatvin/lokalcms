@@ -14,6 +14,10 @@ export const fetchOrderByID = async (id: string) => {
   return db.collection('orders').doc(id).get()
 }
 
+export const fetchOrderByProductSubscription = async (id: string) => {
+  return db.collection('orders').where('product_subscription_id', '==', id).get()
+}
+
 export const getOrders = ({
   community_id,
   product_id,

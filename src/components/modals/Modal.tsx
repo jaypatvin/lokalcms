@@ -4,7 +4,7 @@ import { Button } from '../buttons'
 
 ReactModal.setAppElement('#root')
 
-const customStyles = {
+const customStyles: ReactModal.Styles = {
   content: {
     top: '50%',
     left: '50%',
