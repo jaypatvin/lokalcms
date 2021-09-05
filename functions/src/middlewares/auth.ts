@@ -20,18 +20,22 @@ const nonSecureAPIs = [
   },
   {
     method: 'get',
-    regexPath: /^\/v1\/invite\/check\/[a-zA-Z0-9]+$/
+    regexPath: /^\/v1\/invite\/check\/[a-zA-Z0-9]+$/,
   },
   {
     method: 'get',
     regexPath: /^\/v1\/api-docs(\/.*)?$/,
-  }
+  },
+  {
+    method: 'post',
+    path: '/v1/applicationLogs',
+  },
 ]
 
 const validateFirebaseIdToken = async (req: Request, res: Response, next: NextFunction) => {
   const path = req.path
   const method = req.method.toLowerCase()
-  const isNonSecure = nonSecureAPIs.some(api => {
+  const isNonSecure = nonSecureAPIs.some((api) => {
     let pathMatch = false
     if (api.path) pathMatch = api.path === path
     if (api.regexPath) pathMatch = api.regexPath.test(path)

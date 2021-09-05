@@ -10,15 +10,11 @@ export const getCommunities = () => {
 }
 
 export const getCommunityByID = async (id): Promise<any> => {
-  return await db
-    .collection('community')
-    .doc(id)
-    .get()
-    .then((res) => {
-      let _ret = res.data()
-      if (_ret) _ret.referencePath = res.ref.path
-      return { id: res.id, ..._ret }
-    })
+  const community = await db.collection('community').doc(id).get()
+
+  const data = community.data()
+  if (data) return { id: community.id, ...data } as any
+  return data
 }
 
 export const getCommunitiesByName = async (name: string) => {

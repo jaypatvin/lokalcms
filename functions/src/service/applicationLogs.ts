@@ -26,7 +26,10 @@ export const getApplicationLogsByAssociatedDocument = async (document_id: string
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
-export const getApplicationLogsByAssociatedDocumentAndActionType = async (document_id: string, action_type: string) => {
+export const getApplicationLogsByAssociatedDocumentAndActionType = async (
+  document_id: string,
+  action_type: string
+) => {
   return await db
     .collection('application_logs')
     .where('associated_document', '==', document_id)
@@ -38,7 +41,7 @@ export const getApplicationLogsByAssociatedDocumentAndActionType = async (docume
 export const createApplicationLog = async (data) => {
   return await db
     .collection('application_logs')
-    .add({ ...data, created_at: new Date() })
+    .add({ ...data, created_at: new Date(), archived: false })
     .then((res) => {
       return res
     })

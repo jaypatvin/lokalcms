@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ApplicationLogService } from '../../../service'
+import { ActionTypesService, ApplicationLogService, CommunityService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
 
@@ -9,9 +9,31 @@ import { required_fields } from './index'
  *   post:
  *     tags:
  *       - application logs
- *     security:
- *       - bearerAuth: []
- *     description: Create new application log
+ *     description: |
+ *       ### This will create a new application log
+ *       # Examples
+ *       ## clicking on a product to view
+ *       ```
+ *       {
+ *         "community_id": "id-of-community-where-product-exists",
+ *         "action_type": "product_view",
+ *         "device_id": "1234-asdf-zxcv-4567",
+ *         "associated_document": "product-id"
+ *       }
+ *       ```
+ *
+ *       ## failed login
+ *       ```
+ *       {
+ *         "community_id": "id-of-the-community-where-user-is-trying-to-login",
+ *         "action_type": "login_failed",
+ *         "device_id": "id-of-the-device",
+ *         "metadata": {
+ *           "email": "unknown_user@friendster.com"
+ *         }
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -19,14 +41,16 @@ import { required_fields } from './index'
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               community_id:
  *                 type: string
- *               description:
+ *               action_type:
  *                 type: string
- *               icon_url:
+ *               device_id:
  *                 type: string
- *               cover_url:
+ *               associated_document:
  *                 type: string
+ *               metadata:
+ *                 type: object
  *     responses:
  *       200:
  *         description: The new application log
@@ -43,8 +67,9 @@ import { required_fields } from './index'
  */
 const createApplicationLog = async (req: Request, res: Response) => {
   const data = req.body
-  const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
+
+  const { community_id, action_type, device_id, associated_document = '', metadata = {} } = data
 
   const error_fields = validateFields(data, required_fields)
   if (error_fields.length) {
@@ -53,12 +78,36 @@ const createApplicationLog = async (req: Request, res: Response) => {
       .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
-  // create the object for the new log data
-  const logData = {}
+  const community = await CommunityService.getCommunityByID(community_id)
 
-  // const _result = await ApplicationLogService.createApplicationLog(logData)
+  if (!community) {
+    return res
+      .status(400)
+      .json({ status: 'error', message: `community with id "${community_id}" does not exist.` })
+  }
 
-  return res.status(200).json({ status: 'ok' })
+  const actionType = await ActionTypesService.getActionTypeById(action_type)
+
+  if (!actionType) {
+    return res
+      .status(400)
+      .json({ status: 'error', message: `action_type "${action_type}" is not valid.` })
+  }
+
+  const logData = {
+    is_authenticated: !!requestorDocId,
+    user_id: requestorDocId || '',
+    community_id,
+    action_type,
+    device_id,
+    associated_document,
+    metadata,
+  }
+
+  const result = await ApplicationLogService.createApplicationLog(logData)
+  const resultData = (await result.get()).data()
+
+  return res.status(200).json({ status: 'ok', data: { id: result.id, ...resultData } })
 }
 
 export default createApplicationLog

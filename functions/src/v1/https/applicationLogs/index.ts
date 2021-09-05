@@ -5,7 +5,7 @@
  *     ApplicationLog:
  *       type: object
  *       properties:
- *         is_guest:
+ *         is_authenticated:
  *           type: boolean
  *         user_id:
  *           type: string
@@ -15,14 +15,8 @@
  *           type: string
  *         device_id:
  *           type: string
- *         associated_collection:
- *           type: string
  *         associated_document:
  *           type: string
- *         associated_documents:
- *           type: array
- *           items:
- *             type: string
  *         metadata:
  *           type: object
  *         created_at:
@@ -32,6 +26,6 @@
  *           type: boolean
  */
 
-export const required_fields = ['action_type', 'device_id']
+export const required_fields = ['action_type', 'device_id', 'community_id', ]
 
 export { default as createApplicationLog } from './createApplicationLog'
