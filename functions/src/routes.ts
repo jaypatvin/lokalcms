@@ -142,6 +142,7 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/unarchive').put(wrapAsync(ProductsAPI.unarchiveProduct))
   api.route('/v1/products/:productId/availability').get(wrapAsync(ProductsAPI.getProductAvailability))
   api.route('/v1/products/:productId/availability').put(wrapAsync(ProductsAPI.addProductAvailability))
+  api.route('/v1/products/:productId/ratings').post(wrapAsync(ProductsAPI.updateProductRating))
 
   // -- Categories routes
   api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))
