@@ -15,6 +15,7 @@ import { runCounter } from './utils/counters'
 import logActivity from './utils/logActivity'
 import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
 import notifyUsersOnproductSubscriptions from './scheduled/notifyUsersOnProductSubscriptions'
+import updateRatings from './utils/updateRatings'
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -83,3 +84,10 @@ exports.generateProductSubscriptions = functions.pubsub
 exports.notifyUsersOnproductSubscriptions = functions.pubsub
   .schedule('every 24 hours')
   .onRun(notifyUsersOnproductSubscriptions)
+
+exports.aggregateProductRatings = functions.firestore
+  .document('products/{productId}/ratings/{ratingId}')
+  .onWrite(async (change, context) => {
+    updateRatings(change, context)
+    return
+  })

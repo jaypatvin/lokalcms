@@ -26,6 +26,8 @@ import { ProductRatingsService } from '../../../service'
  *             properties:
  *               value:
  *                 type: number
+ *               order_id:
+ *                 type: string
  *     responses:
  *       200:
  *         content:
@@ -39,29 +41,35 @@ import { ProductRatingsService } from '../../../service'
  */
 const updateProductRating = async (req: Request, res: Response) => {
   const { productId } = req.params
-  const { value } = req.body
+  const { value, order_id } = req.body
   const requestorDocId = res.locals.userDoc.id
 
-  if (!value) {
-    return res.status(400).json({ status: 'error', message: 'value is required.' })
+  if (!value || !order_id) {
+    return res.status(400).json({ status: 'error', message: 'value and order_id is required.' })
   }
 
-  if (!isFinite(value) || value < 0) {
-    return res.status(400).json({ status: 'error', message: 'the value must be between 0 and 5' })
+  if (!isFinite(value) || value < 1 || value > 5) {
+    return res.status(400).json({ status: 'error', message: 'the value must be between 1 and 5' })
   }
 
-  const existingRating = await ProductRatingsService.getProductRatingByUserId(
-    productId,
-    requestorDocId
-  )
+  const existingRating = await ProductRatingsService.getProductRatingByOrderId(productId, order_id)
 
   if (existingRating.length) {
     const rating = existingRating[0]
+    if (rating.user_id !== requestorDocId) {
+      return res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'The requestor id does not match the user id of the rating.',
+        })
+    }
     await ProductRatingsService.updateProductRating(productId, rating.id, value)
   } else {
     const newRating = {
       user_id: requestorDocId,
       value,
+      order_id,
     }
     await ProductRatingsService.createProductRating(productId, newRating)
   }

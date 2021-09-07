@@ -21,12 +21,23 @@ export const getProductRating = async (productId: string, ratingId: string) => {
     .then((res): any => ({ id: res.id, ...res.data() }))
 }
 
-export const getProductRatingByUserId = async (productId: string, userId: string) => {
+export const getProductRatingsByUserId = async (productId: string, userId: string) => {
   return await db
     .collection('products')
     .doc(productId)
     .collection('ratings')
     .where('user_id', '==', userId)
+    .limit(1)
+    .get()
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
+export const getProductRatingByOrderId = async (productId: string, order_id: string) => {
+  return await db
+    .collection('products')
+    .doc(productId)
+    .collection('ratings')
+    .where('order_id', '==', order_id)
     .limit(1)
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
@@ -41,7 +52,7 @@ export const createProductRating = async (id: string, data: any) => {
     .then((res) => {
       return res.get()
     })
-    .then((doc): any => ({ id: doc.id, ...doc.data() }))
+    .then((doc): any => ({ id: doc.id, ...doc.data(), created_at: new Date() }))
 }
 
 export const updateProductRating = async (productId: string, ratingId: string, value: number) => {
