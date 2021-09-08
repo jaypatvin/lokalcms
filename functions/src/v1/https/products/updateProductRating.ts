@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ProductRatingsService } from '../../../service'
+import { OrdersService, ProductRatingsService } from '../../../service'
 
 /**
  * @openapi
@@ -16,7 +16,18 @@ import { ProductRatingsService } from '../../../service'
  *         description: document id of the product
  *         schema:
  *           type: string
- *     description: Create new rating for the product
+ *     description: |
+ *       ### This will add or update the product rating
+ *       ### Value must be between 1 and 5
+ *       # Example
+ *       ```
+ *       {
+ *         "order_id": "id-of-order-that-have-this-product",
+ *         "value": 4
+ *       }
+ *       ```
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -44,12 +55,25 @@ const updateProductRating = async (req: Request, res: Response) => {
   const { value, order_id } = req.body
   const requestorDocId = res.locals.userDoc.id
 
-  if (!value || !order_id) {
-    return res.status(400).json({ status: 'error', message: 'value and order_id is required.' })
+  if (!order_id) {
+    return res.status(400).json({ status: 'error', message: 'order_id is required.' })
   }
 
   if (!isFinite(value) || value < 1 || value > 5) {
-    return res.status(400).json({ status: 'error', message: 'the value must be between 1 and 5' })
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'the value is required and must be between 1 and 5' })
+  }
+
+  const order = await OrdersService.getOrderByID(order_id)
+
+  if (!order.product_ids.includes(productId)) {
+    return res
+      .status(400)
+      .json({
+        status: 'error',
+        message: `The product ${productId} is not included on the order ${order_id}`,
+      })
   }
 
   const existingRating = await ProductRatingsService.getProductRatingByOrderId(productId, order_id)
@@ -57,12 +81,10 @@ const updateProductRating = async (req: Request, res: Response) => {
   if (existingRating.length) {
     const rating = existingRating[0]
     if (rating.user_id !== requestorDocId) {
-      return res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'The requestor id does not match the user id of the rating.',
-        })
+      return res.status(400).json({
+        status: 'error',
+        message: 'The requestor id does not match the user id of the rating.',
+      })
     }
     await ProductRatingsService.updateProductRating(productId, rating.id, value)
   } else {
