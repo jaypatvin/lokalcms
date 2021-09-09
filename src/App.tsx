@@ -27,6 +27,7 @@ import ChatsPage from './pages/chats/ChatsPage'
 import OrdersPage from './pages/orders/OrdersPage'
 import OrderCreatePage from './pages/orders/OrderCreatePage'
 import ProductSubscriptionPlansPage from './pages/productSubscriptionPlans/ProductSubscriptionPlansPage'
+import ApplicationLogsPage from './pages/applicationLogs/ApplicationLogsPage'
 
 class App extends React.Component {
   render() {
@@ -54,6 +55,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/invites" component={InviteListPage} />
             <PrivateRoute exact path="/settings" component={SettingsPage} />
             <PrivateRoute exact path="/history" component={HistoryListPage} />
+            <PrivateRoute exact path="/applicationLogs" component={ApplicationLogsPage} />
             <PrivateRoute exact path="/discover" component={DiscoverPage} />
             <PrivateRoute exact path="/myaccount" component={UserEditPage} useCurrentUser={true} />
           </Switch>
