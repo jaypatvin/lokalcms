@@ -124,11 +124,14 @@ const ApplicationLogsPage = () => {
     const data = []
     for (let log of docs) {
       const logData = log.data()
-      const user = await fetchUserByID(logData.user_id)
+      let user
+      if (logData.user_id) {
+        user = await fetchUserByID(logData.user_id)
+      }
       data.push({
         ...log.data(),
         id: log.id,
-        user_email: user.data()?.email,
+        user_email: user ? user.data()?.email : '--',
       })
     }
     setApplicationLogs(data)
@@ -142,6 +145,7 @@ const ApplicationLogsPage = () => {
       community_id: community.id,
       limit,
       action_type: actionType ? actionType.id : null,
+      user_id: user ? user.id : null,
     })
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
@@ -332,7 +336,7 @@ const ApplicationLogsPage = () => {
               </thead>
               <tbody>
                 {applicationLogs.map((data: any) => (
-                  <tr>
+                  <tr key={data.id}>
                     <td>
                       <p className="text-gray-900 whitespace-no-wrap">{data.action_type}</p>
                     </td>
