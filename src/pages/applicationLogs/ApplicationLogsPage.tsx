@@ -4,6 +4,7 @@ import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
+import { getActionTypes } from '../../services/actionTypes'
 import { getApplicationLogs } from '../../services/applicationLogs'
 import { getCommunities } from '../../services/community'
 import { fetchUserByID, getUsers } from '../../services/users'
@@ -25,6 +26,13 @@ const ApplicationLogsPage = () => {
   const [userSearchText, setUserSearchText] = useState('')
   const [userSearchResult, setUserSearchResult] = useState<any>([])
 
+  const [actionTypes, setActionTypes] = useState<any>()
+  const [actionType, setActionType] = useState<any>()
+  const [showActionTypeSearchResult, setShowActionTypeSearchResult] = useState(false)
+  const actionTypeSearchResultRef = useOuterClick(() => setShowActionTypeSearchResult(false))
+  const [actionTypeSearchText, setActionTypeSearchText] = useState('')
+  const [actionTypeSearchResult, setActionTypeSearchResult] = useState<any>([])
+
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
 
@@ -36,8 +44,17 @@ const ApplicationLogsPage = () => {
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
 
   useEffect(() => {
+    getActionTypes()
+      .get()
+      .then((data) => {
+        const newActionTypes = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        setActionTypes(newActionTypes)
+      })
+  }, [])
+
+  useEffect(() => {
     getCommunityApplicationLogs()
-  }, [community, limit, user])
+  }, [community, limit, user, actionType])
 
   const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setCommunitySearchText(e.target.value)
@@ -87,10 +104,27 @@ const ApplicationLogsPage = () => {
     setUserSearchText(user.email)
   }
 
+  const actionTypeSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    setActionTypeSearchText(e.target.value)
+    const filteredActionTypes = actionTypes.filter((action: any) =>
+      action.name.toLowerCase().includes(e.target.value)
+    )
+    setActionTypeSearchResult(filteredActionTypes)
+    setShowActionTypeSearchResult(filteredActionTypes.length > 0)
+  }
+
+  const actionTypeSelectHandler = (actionType: any) => {
+    setShowActionTypeSearchResult(false)
+    setActionTypeSearchResult([])
+    setActionType(actionType)
+    setActionTypeSearchText(actionType.name)
+  }
+
   const setupDataList = async (docs: any) => {
     const data = []
     for (let log of docs) {
-      const user = await fetchUserByID(log.user_id)
+      const logData = log.data()
+      const user = await fetchUserByID(logData.user_id)
       data.push({
         ...log.data(),
         id: log.id,
@@ -107,6 +141,7 @@ const ApplicationLogsPage = () => {
     const dataRef = getApplicationLogs({
       community_id: community.id,
       limit,
+      action_type: actionType ? actionType.id : null,
     })
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
@@ -146,57 +181,84 @@ const ApplicationLogsPage = () => {
 
   return (
     <div className="">
-      <div className="flex items-center my-5 w-full">
-        <div ref={communitySearchResultRef} className="relative">
-          <TextField
-            label="Community"
-            required
-            type="text"
-            size="small"
-            placeholder="Search"
-            onChange={communitySearchHandler}
-            value={communitySearchText}
-            onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
-            noMargin
-          />
-          {showCommunitySearchResult && communitySearchResult.length > 0 && (
-            <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-              {communitySearchResult.map((community: any) => (
-                <button
-                  className="w-full p-1 hover:bg-gray-200 block text-left"
-                  key={community.id}
-                  onClick={() => communitySelectHandler(community)}
-                >
-                  {community.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <div ref={userSearchResultRef} className="relative">
-          <TextField
-            label="User"
-            type="text"
-            size="small"
-            placeholder="Search"
-            onChange={userSearchHandler}
-            value={userSearchText}
-            onFocus={() => setShowUserSearchResult(userSearchResult.length > 0)}
-            noMargin
-          />
-          {showUserSearchResult && userSearchResult.length > 0 && (
-            <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-              {userSearchResult.map((user: any) => (
-                <button
-                  className="w-full p-1 hover:bg-gray-200 block text-left"
-                  key={user.id}
-                  onClick={() => userSelectHandler(user)}
-                >
-                  {user.email}
-                </button>
-              ))}
-            </div>
-          )}
+      <div className="flex justify-between px-3">
+        <div className="flex items-center my-5 w-full">
+          <div ref={communitySearchResultRef} className="relative">
+            <TextField
+              label="Community"
+              required
+              type="text"
+              size="small"
+              placeholder="Search"
+              onChange={communitySearchHandler}
+              value={communitySearchText}
+              onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
+              noMargin
+            />
+            {showCommunitySearchResult && communitySearchResult.length > 0 && (
+              <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+                {communitySearchResult.map((community: any) => (
+                  <button
+                    className="w-full p-1 hover:bg-gray-200 block text-left"
+                    key={community.id}
+                    onClick={() => communitySelectHandler(community)}
+                  >
+                    {community.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div ref={userSearchResultRef} className="relative ml-2">
+            <TextField
+              label="User"
+              type="text"
+              size="small"
+              placeholder="Search"
+              onChange={userSearchHandler}
+              value={userSearchText}
+              onFocus={() => setShowUserSearchResult(userSearchResult.length > 0)}
+              noMargin
+            />
+            {showUserSearchResult && userSearchResult.length > 0 && (
+              <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+                {userSearchResult.map((user: any) => (
+                  <button
+                    className="w-full p-1 hover:bg-gray-200 block text-left"
+                    key={user.id}
+                    onClick={() => userSelectHandler(user)}
+                  >
+                    {user.email}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div ref={actionTypeSearchResultRef} className="relative ml-2">
+            <TextField
+              label="Action Type"
+              type="text"
+              size="small"
+              placeholder="Search"
+              onChange={actionTypeSearchHandler}
+              value={actionTypeSearchText}
+              onFocus={() => setShowActionTypeSearchResult(actionTypeSearchResult.length > 0)}
+              noMargin
+            />
+            {showActionTypeSearchResult && actionTypeSearchResult.length > 0 && (
+              <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+                {actionTypeSearchResult.map((action: any) => (
+                  <button
+                    className="w-full p-1 hover:bg-gray-200 block text-left"
+                    key={action.id}
+                    onClick={() => actionTypeSelectHandler(action)}
+                  >
+                    {action.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center">
           Show:{' '}
@@ -207,90 +269,94 @@ const ApplicationLogsPage = () => {
             onSelect={(option: any) => setLimit(option.value)}
             currentValue={limit}
           />
+          <Button
+            className="ml-5"
+            icon="arrowBack"
+            size="small"
+            color={pageNum === 1 ? 'secondary' : 'primary'}
+            onClick={onPreviousPage}
+          />
+          <Button
+            className="ml-3"
+            icon="arrowForward"
+            size="small"
+            color={isLastPage ? 'secondary' : 'primary'}
+            onClick={onNextPage}
+          />
         </div>
-        <Button
-          className="ml-5"
-          icon="arrowBack"
-          size="small"
-          color={pageNum === 1 ? 'secondary' : 'primary'}
-          onClick={onPreviousPage}
-        />
-        <Button
-          className="ml-3"
-          icon="arrowForward"
-          size="small"
-          color={isLastPage ? 'secondary' : 'primary'}
-          onClick={onNextPage}
-        />
       </div>
-      <div className="table-wrapper w-full overflow-x-auto">
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th key="action">
-                  <SortButton
-                    className="text-xs uppercase font-bold"
-                    label="Action"
-                    showSortIcons={false}
-                  />
-                </th>
-                <th key="user">
-                  <SortButton
-                    className="text-xs uppercase font-bold"
-                    label="User"
-                    showSortIcons={false}
-                  />
-                </th>
-                <th key="device_id">
-                  <SortButton
-                    className="text-xs uppercase font-bold"
-                    label="Device ID"
-                    showSortIcons={false}
-                  />
-                </th>
-                <th key="document">
-                  <SortButton
-                    className="text-xs uppercase font-bold"
-                    label="Document ID"
-                    showSortIcons={false}
-                  />
-                </th>
-                <th key="created_at">
-                  <SortButton
-                    className="text-xs uppercase font-bold"
-                    label="Created At"
-                    showSortIcons={false}
-                  />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {applicationLogs.map((data: any) => (
+      {!community ? (
+        <h2 className="text-xl ml-5">Select a community first</h2>
+      ) : (
+        <div className="table-wrapper w-full overflow-x-auto">
+          <div className="table-container">
+            <table>
+              <thead>
                 <tr>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{data.action_type}</p>
-                  </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{data.user_email}</p>
-                  </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{data.device_id}</p>
-                  </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{data.associated_document}</p>
-                  </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">
-                      {formatFirestoreDatesAgo(data.created_at)}
-                    </p>
-                  </td>
+                  <th key="action">
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Action"
+                      showSortIcons={false}
+                    />
+                  </th>
+                  <th key="user">
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="User"
+                      showSortIcons={false}
+                    />
+                  </th>
+                  <th key="device_id">
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Device ID"
+                      showSortIcons={false}
+                    />
+                  </th>
+                  <th key="document">
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Document ID"
+                      showSortIcons={false}
+                    />
+                  </th>
+                  <th key="created_at">
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Created At"
+                      showSortIcons={false}
+                    />
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {applicationLogs.map((data: any) => (
+                  <tr>
+                    <td>
+                      <p className="text-gray-900 whitespace-no-wrap">{data.action_type}</p>
+                    </td>
+                    <td>
+                      <p className="text-gray-900 whitespace-no-wrap">{data.user_email}</p>
+                    </td>
+                    <td>
+                      <p className="text-gray-900 whitespace-no-wrap">{data.device_id}</p>
+                    </td>
+                    <td>
+                      <p className="text-gray-900 whitespace-no-wrap">{data.associated_document}</p>
+                    </td>
+                    <td>
+                      <p className="text-gray-900 whitespace-no-wrap">
+                        {formatFirestoreDatesAgo(data.created_at)}
+                      </p>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
