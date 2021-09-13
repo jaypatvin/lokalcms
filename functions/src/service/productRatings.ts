@@ -62,6 +62,8 @@ export const updateProductRating = async (productId: string, ratingId: string, v
     .collection('ratings')
     .doc(ratingId)
     .update({ value, updated_at: new Date() })
+    .then(() => db.collection('products').doc(productId).collection('ratings').doc(ratingId).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const deleteProductRating = async (productId: string, ratingId: string) => {

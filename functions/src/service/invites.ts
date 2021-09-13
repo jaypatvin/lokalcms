@@ -1,10 +1,11 @@
 import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
+const collectionName = 'invites'
 
 export const getInviteByID = async (id) => {
   return await db
-    .collection('invites')
+    .collection(collectionName)
     .doc(id)
     .get()
     .then((res) => {
@@ -17,7 +18,7 @@ export const getInviteByID = async (id) => {
 
 export const disableInvitesByEmail = async (email: string) => {
   const invites = await db
-    .collection('invites')
+    .collection(collectionName)
     .where('invitee_email', '==', email)
     .where('status', '==', 'enabled')
     .get()
@@ -34,7 +35,7 @@ export const disableInvitesByEmail = async (email: string) => {
 
 export const getInviteByCode = async (code) => {
   return await db
-    .collection('invites')
+    .collection(collectionName)
     .where('code', '==', code)
     .where('status', '==', 'enabled')
     .get()
@@ -51,7 +52,7 @@ export const getInviteByCode = async (code) => {
 }
 
 export const createInvite = async (data) => {
-  const docRef = await db.collection('invites').add({ ...data, created_at: new Date() })
+  const docRef = await db.collection(collectionName).add({ ...data, created_at: new Date() })
 
   const doc = await docRef.get()
   return { id: doc.id, ...doc.data() }
@@ -59,19 +60,31 @@ export const createInvite = async (data) => {
 
 export const updateInvite = async (id, data) => {
   return await db
-    .collection('invites')
+    .collection(collectionName)
     .doc(id)
     .update({ ...data, updated_at: new Date() })
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveInvite = async (id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db.collection('invites').doc(id).update(updateData)
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update(updateData)
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveInvite = async (id: string, data?: any) => {
   let updateData = { archived: false, updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db.collection('invites').doc(id).update(updateData)
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update(updateData)
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }

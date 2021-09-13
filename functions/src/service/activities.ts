@@ -1,6 +1,7 @@
 import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
+const collectionName = 'activities'
 
 export const getActivitiesByUserID = async (id, userId = '') =>
   await getActivitiesBy('user_id', id, userId)
@@ -8,7 +9,7 @@ export const getActivitiesByCommunityID = async (id, userId = '') =>
   await getActivitiesBy('community_id', id, userId)
 
 export const getActivityById = async (id, userId = '') => {
-  const activityRef = db.collection('activities').doc(id)
+  const activityRef = db.collection(collectionName).doc(id)
   const activity = await activityRef.get()
   const images = await activityRef.collection('images').get()
 
@@ -33,7 +34,7 @@ export const getActivityById = async (id, userId = '') => {
 }
 
 export const getAllActivities = async (userId = '') => {
-  const activityRef = db.collection('activities')
+  const activityRef = db.collection(collectionName)
   const activities = await activityRef.orderBy('created_at', 'desc').get()
 
   return await Promise.all(
@@ -62,7 +63,7 @@ export const getAllActivities = async (userId = '') => {
 
 // new post, no comments in here
 export const createActivity = async (data) => {
-  const activityRef = db.collection('activities').doc()
+  const activityRef = db.collection(collectionName).doc()
   const batch = db.batch()
 
   if (data.images) {
@@ -80,9 +81,11 @@ export const createActivity = async (data) => {
 // this does not handle comment activity and does not support update of images
 export const updateActivity = async (id, data) => {
   return await db
-    .collection('activities')
+    .collection(collectionName)
     .doc(id)
     .update({ ...data, updated_at: new Date(), updated_content_at: new Date() })
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveActivity = async (id: string, data?: any) => {
@@ -93,7 +96,12 @@ export const archiveActivity = async (id: string, data?: any) => {
     unarchived_at: admin.firestore.FieldValue.delete(),
   }
   if (data) updateData = { ...updateData, ...data }
-  return await db.collection('activities').doc(id).update(updateData)
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update(updateData)
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveActivity = async (id: string, data?: any) => {
@@ -104,7 +112,12 @@ export const unarchiveActivity = async (id: string, data?: any) => {
     unarchived_at: new Date(),
   }
   if (data) updateData = { ...updateData, ...data }
-  return await db.collection('activities').doc(id).update(updateData)
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update(updateData)
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveUserActivities = async (user_id) =>
@@ -120,9 +133,9 @@ export const unarchiveCommunityActivities = async (community_id) =>
   await archiveActivityBy(false, 'community_id', community_id)
 
 const getActivitiesBy = async (idType, id, userId = '') => {
-  const activityRef = db.collection('activities')
+  const activityRef = db.collection(collectionName)
   const activities = await db
-    .collection('activities')
+    .collection(collectionName)
     .where(idType, '==', id)
     .orderBy('created_at', 'desc')
     .get()
@@ -152,7 +165,7 @@ const getActivitiesBy = async (idType, id, userId = '') => {
 }
 
 const archiveActivityBy = async (status: boolean, idType: string, id: string) => {
-  const activitiesRef = await db.collection('activities').where(idType, '==', id).get()
+  const activitiesRef = await db.collection(collectionName).where(idType, '==', id).get()
 
   const batch = db.batch()
   activitiesRef.forEach((activity) => {
@@ -169,7 +182,7 @@ const archiveActivityBy = async (status: boolean, idType: string, id: string) =>
 
 export const incrementActivityCommentCount = async (id: string) => {
   return await db
-    .collection('activities')
+    .collection(collectionName)
     .doc(id)
     .update({
       '_meta.comment_count': admin.firestore.FieldValue.increment(1),
@@ -178,7 +191,7 @@ export const incrementActivityCommentCount = async (id: string) => {
 
 export const deccrementActivityCommentCount = async (id: string) => {
   return await db
-    .collection('activities')
+    .collection(collectionName)
     .doc(id)
     .update({
       '_meta.comment_count': admin.firestore.FieldValue.increment(-1),
@@ -187,7 +200,7 @@ export const deccrementActivityCommentCount = async (id: string) => {
 
 export const incrementActivityLikeCount = async (id: string) => {
   return await db
-    .collection('activities')
+    .collection(collectionName)
     .doc(id)
     .update({
       '_meta.likes_count': admin.firestore.FieldValue.increment(1),
@@ -196,7 +209,7 @@ export const incrementActivityLikeCount = async (id: string) => {
 
 export const deccrementActivityLikeCount = async (id: string) => {
   return await db
-    .collection('activities')
+    .collection(collectionName)
     .doc(id)
     .update({
       '_meta.likes_count': admin.firestore.FieldValue.increment(-1),

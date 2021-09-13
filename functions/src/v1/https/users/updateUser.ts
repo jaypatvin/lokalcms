@@ -13,7 +13,39 @@ import { db } from '../index'
  *       - users
  *     security:
  *       - bearerAuth: []
- *     description: Update user
+ *     description: |
+ *       ### This will update an existing user
+ *       # Examples
+ *       ```
+ *       {
+ *         "first_name": "Xander",
+ *         "last_name": "Ford",
+ *         "profile_photo": "https://www.pngitem.com/pimgs/m/30-307416_profile-icon-png-image-free-download-searchpng-employee.png"
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "street": "Equallity Street"
+ *       }
+ *
+ *       ```
+ *       {
+ *         "display_name": "Luffytaro"
+ *       }
+ *
+ *       ```
+ *       {
+ *         "is_admin": false
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "status": "disabled"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: userId
@@ -28,8 +60,6 @@ import { db } from '../index'
  *           schema:
  *             type: object
  *             properties:
- *               email:
- *                 type: string
  *               first_name:
  *                 type: string
  *               last_name:

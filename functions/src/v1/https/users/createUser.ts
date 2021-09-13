@@ -13,7 +13,32 @@ import { db, auth } from '../index'
  *       - users
  *     security:
  *       - bearerAuth: []
- *     description: Create new user
+ *     description: |
+ *       ### This will create a new user
+ *       # Examples
+ *       ```
+ *       {
+ *         "email": "newuser123@google.com",
+ *         "first_name": "John",
+ *         "last_name": "Doe",
+ *         "street": "phase 1 block 10 lot 20",
+ *         "community_id": "id_of_the_community_to_join"
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "email": "newuser123@google.com",
+ *         "first_name": "John",
+ *         "last_name": "Doe",
+ *         "street": "phase 1 block 10 lot 20",
+ *         "community_id": "id_of_the_community_to_join",
+ *         "display_name": "Jonathan Davis",
+ *         "is_admin": true,
+ *         "profile_photo": "url_of_the_photo"
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:

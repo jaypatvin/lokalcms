@@ -1,16 +1,17 @@
 import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
+const collectionName = 'action_types'
 
 export const getAllActionTypes = async () => {
   return await db
-    .collection('action_types')
+    .collection(collectionName)
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getActionTypeById = async (id) => {
-  const actionType = await db.collection('action_types').doc(id).get()
+  const actionType = await db.collection(collectionName).doc(id).get()
 
   const data = actionType.data()
   if (data) return { id: actionType.id, ...data } as any
@@ -19,10 +20,10 @@ export const getActionTypeById = async (id) => {
 
 export const createActionType = async (id: string, data: any) => {
   return await db
-    .collection('action_types')
+    .collection(collectionName)
     .doc(id)
     .set({ ...data, created_at: new Date() })
-    .then((res) => {
-      return res
-    })
+    .then((res) => res)
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }

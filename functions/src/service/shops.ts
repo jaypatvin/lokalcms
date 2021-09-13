@@ -1,10 +1,11 @@
 import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
+const collectionName = 'shops'
 
 export const getShopsByUserID = async (id: string) => {
   return await db
-    .collection('shops')
+    .collection(collectionName)
     .where('user_id', '==', id)
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
@@ -12,7 +13,7 @@ export const getShopsByUserID = async (id: string) => {
 
 export const getShopsByCommunityID = async (id: string) => {
   return await db
-    .collection('shops')
+    .collection(collectionName)
     .where('community_id', '==', id)
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
@@ -30,7 +31,7 @@ export const getCommunityShopsWithFilter = async ({
   sortOrder?: FirebaseFirestore.OrderByDirection
 }) => {
   let res = db
-    .collection('shops')
+    .collection(collectionName)
     .where('community_id', '==', community_id)
     .where('archived', '==', false)
   wheres.forEach((where) => {
@@ -45,10 +46,9 @@ export const getCommunityShopsWithFilter = async ({
   return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
-
 export const getCustomAvailableShopsByDate = async (date: string) => {
   let res = db
-    .collection('shops')
+    .collection(collectionName)
     .orderBy(`operating_hours.schedule.custom.${date}.start_time`)
 
   return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
@@ -56,14 +56,14 @@ export const getCustomAvailableShopsByDate = async (date: string) => {
 
 export const getCustomUnavailableShopsByDate = async (date: string) => {
   let res = db
-    .collection('shops')
+    .collection(collectionName)
     .orderBy(`operating_hours.schedule.custom.${date}.unavailable`)
 
   return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getShopByID = async (id: string) => {
-  const shop = await db.collection('shops').doc(id).get()
+  const shop = await db.collection(collectionName).doc(id).get()
 
   const data = shop.data()
   if (data) return { id: shop.id, ...data } as any
@@ -72,7 +72,7 @@ export const getShopByID = async (id: string) => {
 
 export const createShop = async (data) => {
   return await db
-    .collection('shops')
+    .collection(collectionName)
     .add({ ...data, created_at: new Date() })
     .then((res) => {
       return res
@@ -81,27 +81,39 @@ export const createShop = async (data) => {
 
 export const updateShop = async (id: string, data) => {
   return await db
-    .collection('shops')
+    .collection(collectionName)
     .doc(id)
     .update({ ...data, updated_at: new Date() })
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveShop = async (id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db.collection('shops').doc(id).update(updateData)
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update(updateData)
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveShop = async (id: string, data?: any) => {
   let updateData = { archived: false, updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db.collection('shops').doc(id).update(updateData)
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update(updateData)
+    .then(() => db.collection(collectionName).doc(id).get())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveUserShops = async (user_id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  const shopsRef = await db.collection('shops').where('user_id', '==', user_id).get()
+  const shopsRef = await db.collection(collectionName).where('user_id', '==', user_id).get()
 
   const batch = db.batch()
   shopsRef.forEach((shop) => {
@@ -113,7 +125,7 @@ export const archiveUserShops = async (user_id: string, data?: any) => {
 }
 
 export const unarchiveUserShops = async (user_id: string) => {
-  const shopsRef = await db.collection('shops').where('user_id', '==', user_id).get()
+  const shopsRef = await db.collection(collectionName).where('user_id', '==', user_id).get()
 
   const batch = db.batch()
   shopsRef.forEach((shop) => {
@@ -128,11 +140,8 @@ export const unarchiveUserShops = async (user_id: string) => {
   return result
 }
 
-export const searchShops = async ({
-  search,
-  community_id
-}) => {
-  let ref: admin.firestore.Query<admin.firestore.DocumentData> = db.collection('shops')
+export const searchShops = async ({ search, community_id }) => {
+  let ref: admin.firestore.Query<admin.firestore.DocumentData> = db.collection(collectionName)
   if (search) ref = ref.where('keywords', 'array-contains', search)
   if (community_id) ref = ref.where('community_id', '==', community_id)
   return await ref.get()

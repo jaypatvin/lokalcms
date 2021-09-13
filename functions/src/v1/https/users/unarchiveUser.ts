@@ -9,7 +9,7 @@ import { UsersService } from '../../../service'
  *       - users
  *     security:
  *       - bearerAuth: []
- *     description: Unarchive the user
+ *     description: Unarchive the user. Only admins and editors can unarchive a user
  *     parameters:
  *       - in: path
  *         name: userId

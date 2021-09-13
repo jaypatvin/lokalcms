@@ -150,6 +150,10 @@ export const updateActivityComment = async (activityId: string, commentId: strin
     .collection('comments')
     .doc(commentId)
     .update({ ...data, updated_at: new Date(), updated_content_at: new Date() })
+    .then(() =>
+      db.collection('activities').doc(activityId).collection('comments').doc(commentId).get()
+    )
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveActivityComments = async (activityId: string) => {
@@ -204,6 +208,10 @@ export const archiveComment = async (activityId: string, commentId: string) => {
     .collection('comments')
     .doc(commentId)
     .update({ archived: true, updated_at: new Date() })
+    .then(() =>
+      db.collection('activities').doc(activityId).collection('comments').doc(commentId).get()
+    )
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveComment = async (activityId: string, commentId: string) => {
@@ -213,6 +221,10 @@ export const unarchiveComment = async (activityId: string, commentId: string) =>
     .collection('comments')
     .doc(commentId)
     .update({ archived: false, updated_at: new Date() })
+    .then(() =>
+      db.collection('activities').doc(activityId).collection('comments').doc(commentId).get()
+    )
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 const _archiveUserComments = async (userId: string, state: boolean) => {
