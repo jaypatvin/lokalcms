@@ -13,7 +13,26 @@ import { fieldIsNum } from '../../../utils/helpers'
  *       - products
  *     security:
  *       - bearerAuth: []
- *     description: Create new product
+ *     description: |
+ *       ### This will create a new product
+ *       # Examples
+ *       ```
+ *       {
+ *         "name": "iPhone 6",
+ *         "description": "second hand, slightly used",
+ *         "shop_id": "document_id_of_shop",
+ *         "base_price": 10000,
+ *         "quantity": 100,
+ *         "product_category": "gadgets",
+ *         "gallery": [
+ *           {
+ *             "url": "url_of_the_iphone_image",
+ *             "order": 1
+ *           }
+ *         ]
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -23,16 +42,22 @@ import { fieldIsNum } from '../../../utils/helpers'
  *             properties:
  *               name:
  *                 type: string
+ *                 required: true
  *               description:
  *                 type: string
+ *                 required: true
  *               shop_id:
  *                 type: string
+ *                 required: true
  *               base_price:
  *                 type: number
+ *                 required: true
  *               quantity:
  *                 type: number
+ *                 required: true
  *               product_category:
  *                 type: string
+ *                 required: true
  *               status:
  *                 type: string
  *               gallery:
@@ -42,8 +67,10 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                   properties:
  *                     url:
  *                       type: string
+ *                       required: true
  *                     order:
  *                       type: number
+ *                       required: true
  *
  *     responses:
  *       200:

@@ -50,8 +50,6 @@ export const updateProductSubscription = async (id, data) => {
     .collection(collectionName)
     .doc(id)
     .update({ ...data, updated_at: new Date() })
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveProductSubscription = async (id: string, data?: any) => {
@@ -61,8 +59,6 @@ export const archiveProductSubscription = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveProductSubscription = async (id: string, data?: any) => {
@@ -72,6 +68,4 @@ export const unarchiveProductSubscription = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }

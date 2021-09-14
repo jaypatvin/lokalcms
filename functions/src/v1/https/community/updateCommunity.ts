@@ -12,7 +12,21 @@ import { required_fields } from './index'
  *       - community
  *     security:
  *       - bearerAuth: []
- *     description: Update community
+ *     description: |
+ *       ### This will update a community
+ *       # Examples
+ *       ```
+ *       {
+ *         "name": "New community name"
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "profile_photo": "url_of_new_photo"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: communityId
@@ -29,25 +43,18 @@ import { required_fields } from './index'
  *             properties:
  *               name:
  *                 type: string
- *                 required: true
  *               barangay:
  *                 type: string
- *                 required: true
  *               city:
  *                 type: string
- *                 required: true
  *               state:
  *                 type: string
- *                 required: true
  *               subdivision:
  *                 type: string
- *                 required: true
  *               zip_code:
  *                 type: string
- *                 required: true
  *               country:
  *                 type: string
- *                 required: true
  *               profile_photo:
  *                 type: string
  *               cover_photo:
@@ -63,8 +70,6 @@ import { required_fields } from './index'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Community'
  */
 export const updateCommunity = async (req: Request, res: Response) => {
   const { communityId } = req.params

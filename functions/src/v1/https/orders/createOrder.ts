@@ -68,15 +68,19 @@ import { required_fields } from './index'
  *             properties:
  *               products:
  *                 type: array
+ *                 required: true
  *                 description: Array of products containing the id, quantity, and instruction
  *                 items:
  *                   type: object
+ *                   required: true
  *                   properties:
  *                     id:
  *                       type: string
+ *                       required: true
  *                       description: document id of the product
  *                     quantity:
  *                       type: number
+ *                       required: true
  *                       description: how many of this product is in the order
  *                     instruction:
  *                       type: string
@@ -86,13 +90,16 @@ import { required_fields } from './index'
  *                 description: document id of the user who is placing an order
  *               shop_id:
  *                 type: string
+ *                 required: true
  *                 description: document id of the shop
  *               delivery_option:
  *                 type: string
+ *                 required: true
  *                 description: either pickup or delivery
  *                 enum: [pickup, delivery]
  *               delivery_date:
  *                 type: string
+ *                 required: true
  *                 format: date-time
  *                 description: datetime of delivery
  *               instruction:

@@ -48,8 +48,6 @@ export const updateUser = async (id, data) => {
     .collection(collectionName)
     .doc(id)
     .update({ ...data, updated_at: new Date() })
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveUser = async (id: string, data?: any) => {
@@ -59,8 +57,6 @@ export const archiveUser = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveUser = async (id: string, data?: any) => {
@@ -70,6 +66,4 @@ export const unarchiveUser = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }

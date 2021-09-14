@@ -28,8 +28,6 @@ import { UsersService, ShopsService, ProductsService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/User'
  */
 const archiveUser = async (req: Request, res: Response) => {
   const data = req.body

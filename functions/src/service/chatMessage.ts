@@ -36,8 +36,6 @@ export const updateChatMessage = async (chat_id, id, data) => {
     .collection('conversation')
     .doc(id)
     .update({ ...data, updated_at: new Date() })
-    .then(() => db.collection('chats').doc(chat_id).collection('conversation').doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveChatMessage = async (chat_id: string, id: string, data?: any) => {
@@ -49,8 +47,6 @@ export const archiveChatMessage = async (chat_id: string, id: string, data?: any
     .collection('conversation')
     .doc(id)
     .update(updateData)
-    .then(() => db.collection('chats').doc(chat_id).collection('conversation').doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveChatMessage = async (chat_id: string, id: string, data?: any) => {
@@ -62,6 +58,4 @@ export const unarchiveChatMessage = async (chat_id: string, id: string, data?: a
     .collection('conversation')
     .doc(id)
     .update(updateData)
-    .then(() => db.collection('chats').doc(chat_id).collection('conversation').doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }

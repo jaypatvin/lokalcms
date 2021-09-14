@@ -62,8 +62,6 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Chat'
  */
 const chatInvite = async (req: Request, res: Response) => {
   const data = req.body

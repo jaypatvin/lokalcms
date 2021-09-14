@@ -63,8 +63,6 @@ export const updateInvite = async (id, data) => {
     .collection(collectionName)
     .doc(id)
     .update({ ...data, updated_at: new Date() })
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveInvite = async (id: string, data?: any) => {
@@ -74,8 +72,6 @@ export const archiveInvite = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveInvite = async (id: string, data?: any) => {
@@ -85,6 +81,4 @@ export const unarchiveInvite = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }

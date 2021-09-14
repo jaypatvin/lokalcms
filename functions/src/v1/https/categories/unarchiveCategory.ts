@@ -3,13 +3,13 @@ import { CategoriesService } from '../../../service'
 
 /**
  * @openapi
- * /v1/categories/{categoryId}:
+ * /v1/categories/{categoryId}/unarchive:
  *   put:
  *     tags:
  *       - categories
  *     security:
  *       - bearerAuth: []
- *     description: Enable the category
+ *     description: Unarchive the category
  *     parameters:
  *       - in: path
  *         name: categoryId
@@ -19,7 +19,7 @@ import { CategoriesService } from '../../../service'
  *           type: string
  *     responses:
  *       200:
- *         description: Enabled Category
+ *         description: Unarchived Category
  *         content:
  *           application/json:
  *             schema:
@@ -28,8 +28,6 @@ import { CategoriesService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Category'
  */
 const unarchiveCategory = async (req: Request, res: Response) => {
   const data = req.body

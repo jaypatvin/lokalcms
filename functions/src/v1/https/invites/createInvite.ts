@@ -18,7 +18,15 @@ sgMail.setApiKey(functions.config().mail_service.key)
  *       - invite
  *     security:
  *       - bearerAuth: []
- *     description: Create new invite
+ *     description: |
+ *       ### This will create a new invite
+ *       # Examples
+ *       ```
+ *       {
+ *         "email": "neighbortoinvite@gmail.com"
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -26,10 +34,9 @@ sgMail.setApiKey(functions.config().mail_service.key)
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: string
  *               email:
  *                 type: string
+ *                 required: true
  *     responses:
  *       200:
  *         description: The new invite
@@ -48,6 +55,7 @@ sgMail.setApiKey(functions.config().mail_service.key)
 const createInvite = async (req: Request, res: Response) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
+  const requestorCommunityId = res.locals.userDoc.community_id
   const error_fields = validateFields(data, required_fields)
 
   if (error_fields.length) {
@@ -56,18 +64,7 @@ const createInvite = async (req: Request, res: Response) => {
       .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
-  const { user_id, email, code: invite_code } = data
-
-  let _user: FirebaseFirestore.DocumentData
-
-  // check if user id is valid
-  try {
-    _user = await UsersService.getUserByID(user_id)
-  } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Invalid user_id!' })
-  }
-
-  if (!_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  const { email, code: invite_code } = data
 
   const dupInvites = await disableInvitesByEmail(email)
   if (dupInvites) console.log(`Disabled ${dupInvites} invites to the same email: ${email}`)
@@ -84,10 +81,10 @@ const createInvite = async (req: Request, res: Response) => {
   const new_invite = {
     claimed: false,
     code: invite_code || code,
-    community_id: _user.community_id,
+    community_id: requestorCommunityId,
     expire_by,
     invitee_email: email,
-    inviter: _user.id,
+    inviter: requestorDocId,
     status: 'enabled',
     keywords,
     archived: false,

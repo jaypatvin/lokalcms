@@ -28,8 +28,6 @@ import { ProductsService, ShopsService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Shop'
  */
 const archiveShop = async (req: Request, res: Response) => {
   const data = req.body

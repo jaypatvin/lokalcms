@@ -56,8 +56,6 @@ export const updateCommunity = async (id, data) => {
     .collection(collectionName)
     .doc(id)
     .update({ ...data, updated_at: new Date() })
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveCommunity = async (id: string, data?: any) => {
@@ -67,8 +65,6 @@ export const archiveCommunity = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveCommunity = async (id: string, data?: any) => {
@@ -78,8 +74,6 @@ export const unarchiveCommunity = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const deleteCommunity = async (id) => {

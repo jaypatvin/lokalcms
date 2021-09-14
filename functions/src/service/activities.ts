@@ -84,8 +84,6 @@ export const updateActivity = async (id, data) => {
     .collection(collectionName)
     .doc(id)
     .update({ ...data, updated_at: new Date(), updated_content_at: new Date() })
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveActivity = async (id: string, data?: any) => {
@@ -100,8 +98,6 @@ export const archiveActivity = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveActivity = async (id: string, data?: any) => {
@@ -116,8 +112,6 @@ export const unarchiveActivity = async (id: string, data?: any) => {
     .collection(collectionName)
     .doc(id)
     .update(updateData)
-    .then(() => db.collection(collectionName).doc(id).get())
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveUserActivities = async (user_id) =>

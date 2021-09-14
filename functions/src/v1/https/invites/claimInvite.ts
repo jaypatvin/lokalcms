@@ -9,7 +9,16 @@ import { Request, Response } from 'express'
  *       - invite
  *     security:
  *       - bearerAuth: []
- *     description: Claim invite
+ *     description: |
+ *       ### This will claim the invite
+ *       # Examples
+ *       ```
+ *       {
+ *         "user_id": "user_id_of_the_invitee",
+ *         "code": "A1B2C3"
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:

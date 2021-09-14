@@ -11,7 +11,28 @@ import { fieldIsNum } from '../../../utils/helpers'
  *       - products
  *     security:
  *       - bearerAuth: []
- *     description: Update product
+ *     description: |
+ *       ### This will update a product
+ *       # Examples
+ *       ```
+ *       {
+ *         "name": "new product name",
+ *         "description": "new description for the product"
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "base_price": 100
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "status": "disabled"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: productId
@@ -58,8 +79,6 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Product'
  */
 const updateProduct = async (req: Request, res: Response) => {
   const { productId } = req.params

@@ -12,7 +12,23 @@ import { required_fields } from './index'
  *       - community
  *     security:
  *       - bearerAuth: []
- *     description: Create new community
+ *     description: |
+ *       ### This will create a new community
+ *       # Examples
+ *       ```
+ *       {
+ *         "name": "Riverdale",
+ *         "barangay": "mangahan",
+ *         "city": "taguig",
+ *         "state": "metro manila",
+ *         "subdivision": "riverdale highlands",
+ *         "zip_code": "4102",
+ *         "country": "Philippines",
+ *         "profile_photo": "url_of_the_photo",
+ *         "cover_photo": "url_of_the_photo"
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:

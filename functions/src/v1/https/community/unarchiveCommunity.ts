@@ -28,8 +28,6 @@ import { CommunityService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Community'
  */
 const unarchiveCommunity = async (req: Request, res: Response) => {
   const data = req.body

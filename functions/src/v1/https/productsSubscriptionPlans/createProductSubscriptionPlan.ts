@@ -65,31 +65,41 @@ import { payment_methods, required_fields } from './index'
  *             properties:
  *               product_id:
  *                 type: string
+ *                 required: true
  *               shop_id:
  *                 type: string
+ *                 required: true
  *               buyer_id:
  *                 type: string
+ *                 required: true
  *               quantity:
  *                 type: number
+ *                 required: true
  *               instruction:
  *                 type: string
  *               payment_method:
  *                 type: string
+ *                 required: true
  *                 enum: [cod, bank, e-wallet]
  *               plan:
  *                 type: object
+ *                 required: true
  *                 properties:
  *                   start_dates:
  *                     type: array
+ *                     required: true
  *                     items:
  *                       type: string
  *                   last_date:
  *                     type: string
  *                   repeat_unit:
  *                     type: number
+ *                     required: true
  *                   repeat_type:
  *                     type: string
- *                     enum: [day, week, month]
+ *                     required: true
+ *                     description: This can also be like every first monday (1-mon), or third tuesday (3-tue) of the month
+ *                     enum: [day, week, month, 1-mon, 2-wed, 3-tue, 2-fri, 4-sun, 5-thu, 1-sat]
  *     responses:
  *       200:
  *         description: The new ProductSubscriptionPlan

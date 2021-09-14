@@ -1,16 +1,30 @@
 import { Request, Response } from 'express'
 import { CategoriesService } from '../../../service'
-import { generateCategoryKeywords } from '../../../utils/generateKeywords'
 
 /**
  * @openapi
  * /v1/categories/{categoryId}:
- *   post:
+ *   put:
  *     tags:
  *       - categories
  *     security:
  *       - bearerAuth: []
- *     description: Update category
+ *     description: |
+ *       ### This will update a category
+ *       # Examples
+ *       ```
+ *       {
+ *         "description": "new description of the cateogry"
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "icon_url": "url_of_the_new_icon_image",
+ *         "cover_url": "url_of_the_new_cover_image"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: categoryId
@@ -25,8 +39,6 @@ import { generateCategoryKeywords } from '../../../utils/generateKeywords'
  *           schema:
  *             type: object
  *             properties:
- *               name:
- *                 type: string
  *               description:
  *                 type: string
  *               icon_url:
@@ -44,8 +56,6 @@ import { generateCategoryKeywords } from '../../../utils/generateKeywords'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Category'
  */
 const updateCategory = async (req: Request, res: Response) => {
   const { categoryId } = req.params

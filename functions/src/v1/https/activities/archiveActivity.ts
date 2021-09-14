@@ -28,8 +28,6 @@ import { ActivitiesService, CommentsService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Activity'
  */
 const archiveActivity = async (req: Request, res: Response) => {
   const data = req.body

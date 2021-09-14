@@ -37,10 +37,6 @@ export const updateUserNotification = async (userId: string, notificationId: str
     .collection('notifications')
     .doc(notificationId)
     .update({ ...data, updated_at: new Date() })
-    .then(() =>
-      db.collection('users').doc(userId).collection('notifications').doc(notificationId).get()
-    )
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const archiveUserNotification = async (
@@ -56,10 +52,6 @@ export const archiveUserNotification = async (
     .collection('notifications')
     .doc(notificationId)
     .update(updateData)
-    .then(() =>
-      db.collection('users').doc(userId).collection('notifications').doc(notificationId).get()
-    )
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const unarchiveUserNotification = async (
@@ -75,8 +67,4 @@ export const unarchiveUserNotification = async (
     .collection('notifications')
     .doc(notificationId)
     .update(updateData)
-    .then(() =>
-      db.collection('users').doc(userId).collection('notifications').doc(notificationId).get()
-    )
-    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }

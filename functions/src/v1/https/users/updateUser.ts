@@ -87,8 +87,6 @@ import { db } from '../index'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/User'
  */
 const updateUser = async (req: Request, res: Response) => {
   const { userId } = req.params

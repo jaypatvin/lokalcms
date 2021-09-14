@@ -35,7 +35,14 @@ import { searchShops } from '../../../service/shops'
  *         schema:
  *           type: string
  *         description: ID of the community to search
- *     description: Search for products and shops
+ *     description: |
+ *       ### This can be used to search for products or shops
+ *       # Examples
+ *       ```
+ *       /v1/search?criteria=products&category=food&community_id=1234
+ *       /v1/search?criteria=shops&community_id=1234
+ *       ```
+ *
  *     responses:
  *       200:
  *         description: Search result

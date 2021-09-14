@@ -9,7 +9,15 @@ import { UsersService, CommunityService, ActivitiesService } from '../../../serv
  *       - activities
  *     security:
  *       - bearerAuth: []
- *     description: Update Activity
+ *     description: |
+ *       ### This will update a post
+ *       # Examples
+ *       ```
+ *       {
+ *         "message": "updated comment"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: activityId
@@ -26,6 +34,7 @@ import { UsersService, CommunityService, ActivitiesService } from '../../../serv
  *             properties:
  *               message:
  *                 type: string
+ *                 required: true
  *     responses:
  *       200:
  *         description: Updated activity
@@ -37,8 +46,6 @@ import { UsersService, CommunityService, ActivitiesService } from '../../../serv
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Activity'
  */
 const updateActivity = async (req: Request, res: Response) => {
   const { activityId } = req.params

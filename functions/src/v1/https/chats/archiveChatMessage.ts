@@ -34,8 +34,6 @@ import { ChatMessageService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/ChatMessage'
  */
 const archiveChatMessage = async (req: Request, res: Response) => {
   const data = req.body

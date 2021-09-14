@@ -12,7 +12,24 @@ import { required_fields } from './index'
  *       - categories
  *     security:
  *       - bearerAuth: []
- *     description: Create new category
+ *     description: |
+ *       ### This will create a new category
+ *       # Examples
+ *       ```
+ *       {
+ *         "name": "toys",
+ *         "description": "i dont know, something about toys",
+ *         "icon_url": "url_of_the_icon_image",
+ *         "cover_url": "url_of_the_cover_image"
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "name": "gadgets"
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -22,6 +39,7 @@ import { required_fields } from './index'
  *             properties:
  *               name:
  *                 type: string
+ *                 required: true
  *               description:
  *                 type: string
  *               icon_url:

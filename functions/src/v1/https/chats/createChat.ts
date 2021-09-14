@@ -106,9 +106,11 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 description: Document id of the user sending the message. If not provided, this will be extracted from the firebase token
  *               members:
  *                 type: array
+ *                 required: true
  *                 description: Document ids that are included on the chat. See examples.
  *                 items:
  *                   type: string
+ *                   required: true
  *                   description: Document id of user, shop, or product
  *               title:
  *                 type: string

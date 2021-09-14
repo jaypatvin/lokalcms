@@ -28,8 +28,6 @@ import { InvitesService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Invite'
  */
 const archiveInvite = async (req: Request, res: Response) => {
   const data = req.body

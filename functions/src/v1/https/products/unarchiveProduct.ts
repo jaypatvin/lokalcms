@@ -28,8 +28,6 @@ import { ProductsService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Product'
  */
 const unarchiveProduct = async (req: Request, res: Response) => {
   const data = req.body
