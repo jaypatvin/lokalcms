@@ -1,4 +1,13 @@
-import React, { useState, useEffect, useRef, ReactNode, MouseEventHandler } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+  MouseEventHandler,
+  createContext,
+  useContext,
+  ChangeEventHandler,
+} from 'react'
 import { useMediaQuery } from 'react-responsive'
 import { Redirect, Link } from 'react-router-dom'
 
@@ -10,9 +19,18 @@ import SideNav from './SideNav'
 import imgLogo from '../static/img/logo.svg'
 
 import { IoIosArrowDown } from 'react-icons/io'
+import useOuterClick from '../customHooks/useOuterClick'
+import { getCommunities } from '../services/community'
+import { TextField } from './inputs'
 
 type Props = {
   children: ReactNode
+}
+
+const CommunityContext = createContext<any>({})
+
+export function useCommunity() {
+  return useContext(CommunityContext)
 }
 
 const BasePage = (props: Props) => {
@@ -24,6 +42,12 @@ const BasePage = (props: Props) => {
   const rootEl = document.getElementById('root')
 
   const { currentUserInfo, logout } = useAuth()
+
+  const [community, setCommunity] = useState<any>()
+  const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
+  const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
+  const [communitySearchText, setCommunitySearchText] = useState('')
+  const [communitySearchResult, setCommunitySearchResult] = useState<any>([])
 
   const isStatic = useMediaQuery({
     query: '(min-width: 1199px)',
@@ -66,6 +90,30 @@ const BasePage = (props: Props) => {
     }
   }, [])
 
+  const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    setCommunitySearchText(e.target.value)
+    if (e.target.value.length > 2) {
+      const communitiesRef = getCommunities({ search: e.target.value })
+      const result = await communitiesRef.get()
+      const communities = result.docs.map((doc) => {
+        const data = doc.data()
+        return { ...data, id: doc.id }
+      })
+      setCommunitySearchResult(communities)
+      setShowCommunitySearchResult(communities.length > 0)
+    } else {
+      setShowCommunitySearchResult(false)
+      setCommunitySearchResult([])
+    }
+  }
+
+  const communitySelectHandler = (community: any) => {
+    setShowCommunitySearchResult(false)
+    setCommunitySearchResult([])
+    setCommunity(community)
+    setCommunitySearchText(community.name)
+  }
+
   return (
     <>
       <ConfirmationDialog
@@ -88,7 +136,7 @@ const BasePage = (props: Props) => {
       </aside>
 
       <main id="page-container" className="flex-grow flex flex-col min-h-screen w-">
-        <header className="bg-white border-b h-12 flex items-center justify-center">
+        <header className="bg-white border-b h-16 flex items-center justify-center">
           <div className="flex flex-grow items-center justify-between px-4">
             {!isStatic && (
               <button
@@ -115,6 +163,31 @@ const BasePage = (props: Props) => {
             <div>&nbsp;</div>
 
             <div ref={node} className="flex justify-center">
+              <div ref={communitySearchResultRef} className="relative mr-5">
+                <TextField
+                  required
+                  type="text"
+                  size="small"
+                  placeholder="Community"
+                  onChange={communitySearchHandler}
+                  value={communitySearchText}
+                  onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
+                  noMargin
+                />
+                {showCommunitySearchResult && communitySearchResult.length > 0 && (
+                  <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+                    {communitySearchResult.map((community: any) => (
+                      <button
+                        className="w-full p-1 hover:bg-gray-200 block text-left"
+                        key={community.id}
+                        onClick={() => communitySelectHandler(community)}
+                      >
+                        {community.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="relative">
                 <button
                   onClick={toggleAvatar}
@@ -162,7 +235,9 @@ const BasePage = (props: Props) => {
             </div>
           </div>
         </header>
-        <div className="p-4 w-full min-h-full relative">{props.children}</div>
+        <div className="p-4 w-full min-h-full relative">
+          <CommunityContext.Provider value={community}>{props.children}</CommunityContext.Provider>
+        </div>
       </main>
     </>
   )

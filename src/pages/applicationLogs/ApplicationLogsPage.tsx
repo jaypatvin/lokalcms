@@ -1,4 +1,5 @@
 import React, { ChangeEventHandler, useEffect, useState } from 'react'
+import { useCommunity } from '../../components/BasePage'
 import { Button } from '../../components/buttons'
 import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
@@ -6,19 +7,12 @@ import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getActionTypes } from '../../services/actionTypes'
 import { getApplicationLogs } from '../../services/applicationLogs'
-import { getCommunities } from '../../services/community'
 import { fetchUserByID, getUsers } from '../../services/users'
 import { formatFirestoreDatesAgo } from '../../utils/dates/formatDate'
 import { LimitType } from '../../utils/types'
 
 const ApplicationLogsPage = () => {
   const [applicationLogs, setApplicationLogs] = useState<any>([])
-
-  const [community, setCommunity] = useState<any>()
-  const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
-  const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
-  const [communitySearchText, setCommunitySearchText] = useState('')
-  const [communitySearchResult, setCommunitySearchResult] = useState<any>([])
 
   const [user, setUser] = useState<any>()
   const [showUserSearchResult, setShowUserSearchResult] = useState(false)
@@ -41,6 +35,8 @@ const ApplicationLogsPage = () => {
   const [lastDataOnList, setLastDataOnList] = useState<any>()
   const [isLastPage, setIsLastPage] = useState(false)
 
+  const community = useCommunity()
+
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
 
   useEffect(() => {
@@ -55,30 +51,6 @@ const ApplicationLogsPage = () => {
   useEffect(() => {
     getCommunityApplicationLogs()
   }, [community, limit, user, actionType])
-
-  const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    setCommunitySearchText(e.target.value)
-    if (e.target.value.length > 2) {
-      const communitiesRef = getCommunities({ search: e.target.value })
-      const result = await communitiesRef.get()
-      const communities = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
-      setCommunitySearchResult(communities)
-      setShowCommunitySearchResult(communities.length > 0)
-    } else {
-      setShowCommunitySearchResult(false)
-      setCommunitySearchResult([])
-    }
-  }
-
-  const communitySelectHandler = (community: any) => {
-    setShowCommunitySearchResult(false)
-    setCommunitySearchResult([])
-    setCommunity(community)
-    setCommunitySearchText(community.name)
-  }
 
   const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setUserSearchText(e.target.value)
@@ -187,32 +159,6 @@ const ApplicationLogsPage = () => {
     <div className="">
       <div className="flex justify-between px-3">
         <div className="flex items-center my-5 w-full">
-          <div ref={communitySearchResultRef} className="relative">
-            <TextField
-              label="Community"
-              required
-              type="text"
-              size="small"
-              placeholder="Search"
-              onChange={communitySearchHandler}
-              value={communitySearchText}
-              onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
-              noMargin
-            />
-            {showCommunitySearchResult && communitySearchResult.length > 0 && (
-              <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                {communitySearchResult.map((community: any) => (
-                  <button
-                    className="w-full p-1 hover:bg-gray-200 block text-left"
-                    key={community.id}
-                    onClick={() => communitySelectHandler(community)}
-                  >
-                    {community.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
           <div ref={userSearchResultRef} className="relative ml-2">
             <TextField
               label="User"
