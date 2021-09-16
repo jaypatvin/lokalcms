@@ -150,8 +150,9 @@ const InviteListPage = (props: any) => {
     return res
   }
 
-  const getData = ({ search, limit }: GenericGetArgType) =>
-    getInvites({ filter, sortBy, sortOrder, search, limit })
+  const getData = ({ search, limit, community }: GenericGetArgType) => {
+    return getInvites({ filter, sortBy, sortOrder, search, limit, community })
+  }
 
   return (
     <ListPage

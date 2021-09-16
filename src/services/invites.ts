@@ -7,6 +7,7 @@ type GetInvitesParamTypes = {
   sortBy?: InviteSortByType
   sortOrder?: SortOrderType
   limit?: number
+  community?: string
 }
 
 export const getInvites = ({
@@ -15,8 +16,14 @@ export const getInvites = ({
   sortBy = 'created_at',
   sortOrder = 'desc',
   limit = 10,
+  community,
 }: GetInvitesParamTypes) => {
   let ref = db.collection('invites').where('keywords', 'array-contains', search.toLowerCase())
+
+  if (community) {
+    ref = ref.where('community_id', '==', community)
+  }
+
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
   } else if (['claimed', 'not_claimed'].includes(filter)) {

@@ -140,8 +140,9 @@ const HistoryListPage = (props: any) => {
     return newList
   }
 
-  const getData = ({ search, limit }: GenericGetArgType) =>
-    getHistoryLogs({ filter, sourceFilter, sortBy, sortOrder, search, limit })
+  const getData = ({ search, limit, community }: GenericGetArgType) => {
+    return getHistoryLogs({ filter, sourceFilter, sortBy, sortOrder, search, limit, community })
+  }
 
   return (
     <ListPage

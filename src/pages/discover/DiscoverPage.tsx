@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
 import dayjs from 'dayjs'
 import ReactCalendar from 'react-calendar'
+import { useCommunity } from '../../components/BasePage'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
 import Dropdown from '../../components/Dropdown'
 import { getCategories } from '../../services/categories'
-import { getCommunities } from '../../services/community'
-import { ItemType } from '../../utils/types'
 import { OutlineButton } from '../../components/buttons'
 import useOuterClick from '../../customHooks/useOuterClick'
 import DiscoverProduct from './DiscoverProduct'
@@ -22,11 +21,11 @@ const DiscoverPage = ({}) => {
   const [searchFilter, setSearchFilter] = useState('')
   const [category, setCategory] = useState('')
   const [dateFilter, setDateFilter] = useState(dayjs(new Date()).format('YYYY-MM-DD'))
-  const [selectedCommunity, setSelectedCommunity] = useState<any>()
   const [availableList, setAvailableList] = useState<any[]>([])
   const [unavailableList, setUnavailableList] = useState<any[]>([])
   const [categories, setCategories] = useState([])
-  const [communities, setCommunities] = useState<ItemType[]>([])
+
+  const community = useCommunity()
 
   const getAvailableShops = async (urlParams: string = '') => {
     setLoading(true)
@@ -63,8 +62,10 @@ const DiscoverPage = ({}) => {
         method: 'GET',
       })
       res = await res.json()
-      setAvailableList(res.data)
-      setUnavailableList(res.unavailable_products)
+      const availables = res.data.filter((p: any) => !p.nextAvailable)
+      const notAvailables = res.data.filter((p: any) => p.nextAvailable)
+      setAvailableList(availables)
+      setUnavailableList(notAvailables)
       console.log('res', res)
     } else {
       console.error('environment variable for the api does not exist.')
@@ -81,24 +82,16 @@ const DiscoverPage = ({}) => {
           setCategories(data.map((c: any) => c.name))
         })
     }
-    if (!communities.length) {
-      getCommunities({})
-        .get()
-        .then((snapshot: any) => {
-          const data = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
-          setCommunities(data.map((c: any) => ({ key: c.id, label: c.name })))
-        })
-    }
 
-    if (!selectedCommunity) return
-    const urlParamsArray = [`community_id=${selectedCommunity.key}`]
+    if (!community) return
+    const urlParamsArray = [`community_id=${community.id}`]
     if (searchFilter) urlParamsArray.push(`q=${searchFilter}`)
     if (category) urlParamsArray.push(`category=${category}`)
     if (dateFilter) urlParamsArray.push(`date=${dateFilter}`)
     const urlParams = urlParamsArray.join('&')
     if (dataType === 'products') getAvailableProducts(urlParams)
     if (dataType === 'shops') getAvailableShops(urlParams)
-  }, [dataType, searchFilter, category, dateFilter, selectedCommunity])
+  }, [dataType, searchFilter, category, dateFilter, community])
 
   return (
     <>
@@ -123,13 +116,6 @@ const DiscoverPage = ({}) => {
           onSelect={(option: any) => setCategory(option.value)}
           currentValue={category}
         />
-        <Dropdown
-          name="Community"
-          className="ml-2"
-          options={communities}
-          onSelect={(option: any) => setSelectedCommunity(option)}
-          currentValue={selectedCommunity ? selectedCommunity.value : null}
-        />
         <div ref={calendarRef} className="ml-2 relative">
           <OutlineButton onClick={() => setShowCalendar(!showCalendar)}>{dateFilter}</OutlineButton>
           {showCalendar && (
@@ -151,32 +137,40 @@ const DiscoverPage = ({}) => {
         </div>
       ) : (
         <>
-          <div className="mb-10">
-            <h3 className="text-xl font-semibold leading-tight">Available:</h3>
-            <div className="flex flex-wrap">
-              {availableList.length > 0 &&
-                dataType === 'shops' &&
-                availableList.map((item) => <DiscoverShop key={item.id} shop={item} />)}
-              {availableList.length > 0 &&
-                dataType === 'products' &&
-                availableList.map((item) => <DiscoverProduct key={item.id} product={item} />)}
-              {availableList.length === 0 && <p>None</p>}
-            </div>
-          </div>
-          <div className="">
-            <h3 className="text-xl font-semibold leading-tight">Unavailable:</h3>
-            <div className="flex flex-wrap">
-              {unavailableList.length > 0 &&
-                dataType === 'shops' &&
-                unavailableList.map((item) => <DiscoverShop key={item.id} shop={item} unavailable />)}
-              {unavailableList.length > 0 &&
-                dataType === 'products' &&
-                unavailableList.map((item) => (
-                  <DiscoverProduct key={item.id} product={item} unavailable />
-                ))}
-              {availableList.length === 0 && <p>None</p>}
-            </div>
-          </div>
+          {!community ? (
+            <h2 className="text-xl ml-5">Select a community first</h2>
+          ) : (
+            <>
+              <div className="mb-10">
+                <h3 className="text-xl font-semibold leading-tight">Available:</h3>
+                <div className="flex flex-wrap">
+                  {availableList.length > 0 &&
+                    dataType === 'shops' &&
+                    availableList.map((item) => <DiscoverShop key={item.id} shop={item} />)}
+                  {availableList.length > 0 &&
+                    dataType === 'products' &&
+                    availableList.map((item) => <DiscoverProduct key={item.id} product={item} />)}
+                  {availableList.length === 0 && <p>None</p>}
+                </div>
+              </div>
+              <div className="">
+                <h3 className="text-xl font-semibold leading-tight">Unavailable:</h3>
+                <div className="flex flex-wrap">
+                  {unavailableList.length > 0 &&
+                    dataType === 'shops' &&
+                    unavailableList.map((item) => (
+                      <DiscoverShop key={item.id} shop={item} unavailable />
+                    ))}
+                  {unavailableList.length > 0 &&
+                    dataType === 'products' &&
+                    unavailableList.map((item) => (
+                      <DiscoverProduct key={item.id} product={item} unavailable />
+                    ))}
+                  {availableList.length === 0 && <p>None</p>}
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
     </>

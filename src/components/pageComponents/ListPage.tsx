@@ -5,7 +5,6 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import { Button } from '../buttons'
 import {
   FilterGroupsType,
-  GetFilterProps,
   LimitType,
   MenuItemType,
   PageNames,
@@ -16,6 +15,7 @@ import SortButton from '../buttons/SortButton'
 import Dropdown from '../Dropdown'
 import CreateUpdateForm from './CreateUpdateForm'
 import ListItems from './ListItems'
+import { useCommunity } from '../../components/BasePage'
 
 // Init
 dayjs.extend(relativeTime)
@@ -44,9 +44,11 @@ type Props = {
   getData: ({
     search,
     limit,
+    community,
   }: {
     search?: string
     limit?: number
+    community?: any
   }) => firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
   setupDataList: (
     arg: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
@@ -81,20 +83,22 @@ const ListPage = ({
   onUnarchive,
   noActions,
 }: Props) => {
+  const community = useCommunity()
   const [dataList, setDataList] = useState<firebase.default.firestore.DocumentData[]>([])
   const [search, setSearch] = useState('')
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
-  const [dataRef, setDataRef] = useState<
-    firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
-  >()
+  const [dataRef, setDataRef] =
+    useState<firebase.default.firestore.Query<firebase.default.firestore.DocumentData>>()
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
-  const [firstDataOnList, setFirstDataOnList] = useState<
-    firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>
-  >()
-  const [lastDataOnList, setLastDataOnList] = useState<
-    firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>
-  >()
+  const [firstDataOnList, setFirstDataOnList] =
+    useState<
+      firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>
+    >()
+  const [lastDataOnList, setLastDataOnList] =
+    useState<
+      firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>
+    >()
   const [isLastPage, setIsLastPage] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'update'>('create')
@@ -113,7 +117,7 @@ const ListPage = ({
 
   useEffect(() => {
     setLoading(true)
-    const newDataRef = getData({ search, limit })
+    const newDataRef = getData({ search, limit, community: community ? community.id : null })
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = newDataRef.onSnapshot(async (snapshot) => {
       getDataList(snapshot.docs)
@@ -122,7 +126,7 @@ const ListPage = ({
     setDataRef(newDataRef)
     setPageNum(1)
     setIsLastPage(false)
-  }, [filter, filterMenus, search, sortBy, sortOrder, limit])
+  }, [community, filter, filterMenus, search, sortBy, sortOrder, limit])
 
   const onNextPage = () => {
     if (dataRef && lastDataOnList && !isLastPage) {

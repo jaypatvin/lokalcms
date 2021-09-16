@@ -122,8 +122,9 @@ const UserListPage = (props: any) => {
     return res
   }
 
-  const getData = ({ search, limit }: GenericGetArgType) =>
-    getUsers({ filter, sortBy, sortOrder, search, limit })
+  const getData = ({ search, limit, community }: GenericGetArgType) => {
+    return getUsers({ filter, sortBy, sortOrder, search, limit, community })
+  }
 
   return (
     <ListPage
