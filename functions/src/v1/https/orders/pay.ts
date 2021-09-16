@@ -79,8 +79,6 @@ import { NotificationsService, OrdersService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Order'
  */
 const pay = async (req: Request, res: Response) => {
   const data = req.body

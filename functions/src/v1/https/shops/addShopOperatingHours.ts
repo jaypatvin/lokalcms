@@ -148,8 +148,6 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Shop'
  */
 const addShopOperatingHours = async (req: Request, res: Response) => {
   const { shopId } = req.params

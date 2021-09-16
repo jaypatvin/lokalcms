@@ -11,7 +11,30 @@ import { generateShopKeywords } from '../../../utils/generateKeywords'
  *       - shops
  *     security:
  *       - bearerAuth: []
- *     description: Update shop
+ *     description: |
+ *       ### This will update a shop
+ *       # Examples
+ *       ### updating the name and description
+ *       ```
+ *       {
+ *         "name": "Angel's Burger 2",
+ *         "description": "bigger patty but bigger bun"
+ *       }
+ *       ```
+ *
+ *       ### closing the shop
+ *       ```
+ *       {
+ *         "is_close": true
+ *       }
+ *
+ *       ### disabling the shop
+ *       ```
+ *       {
+ *         "status": "enabled"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: shopId
@@ -45,8 +68,6 @@ import { generateShopKeywords } from '../../../utils/generateKeywords'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Shop'
  */
 const updateShop = async (req: Request, res: Response) => {
   const { shopId } = req.params

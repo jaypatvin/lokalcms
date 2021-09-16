@@ -9,7 +9,7 @@ import { CategoriesService } from '../../../service'
  *       - categories
  *     security:
  *       - bearerAuth: []
- *     description: Disable the category
+ *     description: Archive the category
  *     parameters:
  *       - in: path
  *         name: categoryId
@@ -19,7 +19,7 @@ import { CategoriesService } from '../../../service'
  *           type: string
  *     responses:
  *       200:
- *         description: Disabled Category
+ *         description: Archived Category
  *         content:
  *           application/json:
  *             schema:
@@ -28,8 +28,6 @@ import { CategoriesService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Category'
  */
 const archiveCategory = async (req: Request, res: Response) => {
   const data = req.body

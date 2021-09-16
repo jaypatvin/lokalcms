@@ -9,7 +9,7 @@ import { UsersService, ShopsService, ProductsService } from '../../../service'
  *       - users
  *     security:
  *       - bearerAuth: []
- *     description: Archive the user
+ *     description: Archive the user. Only editors and admins have permission to archive a user.
  *     parameters:
  *       - in: path
  *         name: userId
@@ -28,8 +28,6 @@ import { UsersService, ShopsService, ProductsService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/User'
  */
 const archiveUser = async (req: Request, res: Response) => {
   const data = req.body

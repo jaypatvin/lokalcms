@@ -106,9 +106,11 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 description: Document id of the user sending the message. If not provided, this will be extracted from the firebase token
  *               members:
  *                 type: array
+ *                 required: true
  *                 description: Document ids that are included on the chat. See examples.
  *                 items:
  *                   type: string
+ *                   required: true
  *                   description: Document id of user, shop, or product
  *               title:
  *                 type: string
@@ -121,7 +123,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 description: Document id of the product if talking about the specific product with the shop owner
  *     responses:
  *       200:
- *         description: The new chat message
+ *         description: The new chat document
  *         content:
  *           application/json:
  *             schema:
@@ -131,7 +133,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                   type: string
  *                   example: ok
  *                 data:
- *                   $ref: '#/components/schemas/ChatMessage'
+ *                   $ref: '#/components/schemas/Chat'
  */
 const createChat = async (req: Request, res: Response) => {
   const data = req.body
@@ -290,8 +292,6 @@ const createChat = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'The chat is already existing.' })
   }
 
-  const chatData = await ChatsService.getChatById(chatId)
-
   const chatMessage: any = {
     sender_id: requestorDocId,
     sent_at: new Date(),
@@ -303,7 +303,7 @@ const createChat = async (req: Request, res: Response) => {
 
   await ChatMessageService.createChatMessage(chatId, chatMessage)
 
-  return res.json({ status: 'ok', data: chatData })
+  return res.json({ status: 'ok', data: chat })
 }
 
 export default createChat

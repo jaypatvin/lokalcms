@@ -10,7 +10,15 @@ import { generateInviteKeywords } from '../../../utils/generateKeywords'
  *       - invite
  *     security:
  *       - bearerAuth: []
- *     description: Update invite
+ *     description: |
+ *       ### This will update an invite
+ *       # Examples
+ *       ```
+ *       {
+ *         "status": "disabled"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: inviteId
@@ -42,8 +50,6 @@ import { generateInviteKeywords } from '../../../utils/generateKeywords'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Invite'
  */
 const updateInvite = async (req: Request, res: Response) => {
   const { inviteId } = req.params

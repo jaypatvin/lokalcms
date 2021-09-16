@@ -115,13 +115,17 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *                 type: string
  *               start_dates:
  *                 type: array
+ *                 required: true
  *                 items:
  *                   type: string
  *               repeat_unit:
  *                 type: number
+ *                 required: true
  *               repeat_type:
  *                 type: string
- *                 enum: [day, week, month]
+ *                 required: true
+ *                 description: This can also be like every first monday (1-mon), or third tuesday (3-tue) of the month
+ *                 enum: [day, week, month, 1-mon, 2-wed, 3-tue, 2-fri, 4-sun, 5-thu, 1-sat]
  *               unavailable_dates:
  *                 type: array
  *                 items:
@@ -133,6 +137,7 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *                   properties:
  *                     date:
  *                       type: string
+ *                       required: true
  *                     start_time:
  *                       type: string
  *                     end_time:
@@ -148,8 +153,6 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Product'
  */
 const addProductAvailability = async (req: Request, res: Response) => {
   const { productId } = req.params

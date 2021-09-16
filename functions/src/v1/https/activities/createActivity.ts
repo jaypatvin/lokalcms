@@ -12,7 +12,41 @@ import { fieldIsNum } from '../../../utils/helpers'
  *       - activities
  *     security:
  *       - bearerAuth: []
- *     description: Create new activity
+ *     description: |
+ *       ### This will create a new activity post
+ *       # Examples
+ *       ```
+ *       {
+ *         "user_id": "document_id_of_the_user_to_post",
+ *         "message": "LF: wedding cake!!!"
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "user_id": "document_id_of_the_user_to_post",
+ *         "images": [
+ *           {
+ *             "url": "url_of_the_photo",
+ *             "order": 1
+ *           }
+ *         ]
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "user_id": "document_id_of_the_user_to_post",
+ *         "message": "bili na mga suki",
+ *         "images": [
+ *           {
+ *             "url": "url_of_the_photo",
+ *             "order": 1
+ *           }
+ *         ]
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -20,10 +54,9 @@ import { fieldIsNum } from '../../../utils/helpers'
  *           schema:
  *             type: object
  *             properties:
- *               community_id:
- *                 type: string
  *               user_id:
  *                 type: string
+ *                 required: true
  *               message:
  *                 type: string
  *               images:

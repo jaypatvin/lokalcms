@@ -39,8 +39,6 @@ import validateFields from '../../../utils/validateFields'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Activities/Like'
  */
 const unlikeActivity = async (req: Request, res: Response) => {
   const { activityId } = req.params

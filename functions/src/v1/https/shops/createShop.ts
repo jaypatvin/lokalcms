@@ -12,7 +12,17 @@ import { required_fields } from './index'
  *       - shops
  *     security:
  *       - bearerAuth: []
- *     description: Create shop
+ *     description: |
+ *       ### This will create a new shop
+ *       # Examples
+ *       ```
+ *       {
+ *         "name": "Secret Shop",
+ *         "description": "Description of the secret shop",
+ *         "user_id": "document_id_of_owner"
+ *       }
+ *       ```
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -22,10 +32,13 @@ import { required_fields } from './index'
  *             properties:
  *               name:
  *                 type: string
+ *                 required: true
  *               description:
  *                 type: string
+ *                 required: true
  *               user_id:
  *                 type: string
+ *                 required: true
  *               is_close:
  *                 type: boolean
  *               status:

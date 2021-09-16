@@ -7,8 +7,7 @@ import validateFields from '../../../utils/validateFields'
  * /v1/activities/{activityId}/comments/{commentId}/like:
  *   post:
  *     tags:
- *       - comments
- *       - likes
+ *       - activity comments
  *     security:
  *       - bearerAuth: []
  *     description: Like a comment
@@ -24,7 +23,7 @@ import validateFields from '../../../utils/validateFields'
  *         required: true
  *         description: document id of the comment
  *         schema:
- *           type: string 
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -46,8 +45,6 @@ import validateFields from '../../../utils/validateFields'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Activities/Like'
  */
 
 // this has too many GET queries just for checking validity; maybe for refactoring

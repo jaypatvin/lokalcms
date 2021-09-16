@@ -26,7 +26,7 @@ export const createChatMessage = async (chat_id, data) => {
     .then((res) => {
       return res.get()
     })
-    .then((doc) => doc.data())
+    .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
 export const updateChatMessage = async (chat_id, id, data) => {

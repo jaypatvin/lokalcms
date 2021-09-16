@@ -9,7 +9,7 @@ import { UsersService } from '../../../service'
  *       - users
  *     security:
  *       - bearerAuth: []
- *     description: Unarchive the user
+ *     description: Unarchive the user. Only admins and editors can unarchive a user
  *     parameters:
  *       - in: path
  *         name: userId
@@ -28,8 +28,6 @@ import { UsersService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/User'
  */
 const unarchiveUser = async (req: Request, res: Response) => {
   const data = req.body

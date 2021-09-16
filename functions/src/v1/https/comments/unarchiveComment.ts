@@ -6,7 +6,7 @@ import { ActivitiesService, CommentsService } from '../../../service'
  * /v1/activities/{activityId}/comments/{commentId}/unarchive:
  *   put:
  *     tags:
- *       - comments
+ *       - activity comments
  *     security:
  *       - bearerAuth: []
  *     description: Unarchive the comment
@@ -34,8 +34,6 @@ import { ActivitiesService, CommentsService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Activity'
  */
 const unarchiveComment = async (req: Request, res: Response) => {
   const { activityId, commentId } = req.params

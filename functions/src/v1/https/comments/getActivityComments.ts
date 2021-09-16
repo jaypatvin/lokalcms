@@ -6,7 +6,7 @@ import { ActivitiesService, CommentsService } from '../../../service'
  * /v1/activities/{activityId}/comments:
  *   get:
  *     tags:
- *       - comments
+ *       - activity comments
  *     security:
  *       - bearerAuth: []
  *     description: Returns activity comments

@@ -8,10 +8,44 @@ import { fieldIsNum } from '../../../utils/helpers'
  * /v1/activities/{activityId}/comments:
  *   post:
  *     tags:
- *       - activities
+ *       - activity comments
  *     security:
  *       - bearerAuth: []
- *     description: Create new comment
+ *     description: |
+ *       ### This will create a new comment
+ *       # Examples
+ *       ```
+ *       {
+ *         "user_id": "document_id_of_the_user_to_comment",
+ *         "message": "yummy"
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "user_id": "document_id_of_the_user_to_comment",
+ *         "images": [
+ *           {
+ *             "url": "url_of_the_photo",
+ *             "order": 1
+ *           }
+ *         ]
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "user_id": "document_id_of_the_user_to_comment",
+ *         "message": "is this available?",
+ *         "images": [
+ *           {
+ *             "url": "url_of_the_photo",
+ *             "order": 1
+ *           }
+ *         ]
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: activityId
@@ -28,6 +62,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  *             properties:
  *               user_id:
  *                 type: string
+ *                 required: true
  *               message:
  *                 type: string
  *               images:
@@ -51,8 +86,6 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Activities/Comments'
  */
 const createComment = async (req: Request, res: Response) => {
   const { activityId } = req.params

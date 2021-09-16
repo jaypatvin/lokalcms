@@ -1,23 +1,23 @@
 import { Request, Response } from 'express'
-import {
-  UsersService,
-  CommunityService,
-  ActivitiesService,
-  CommentsService,
-} from '../../../service'
-import validateFields from '../../../utils/validateFields'
-import { required_fields } from './index'
-import { fieldIsNum } from '../../../utils/helpers'
+import { UsersService, ActivitiesService, CommentsService } from '../../../service'
 
 /**
  * @openapi
  * /v1/activities/{activityId}/comments/{commentId}:
  *   put:
  *     tags:
- *       - activities
+ *       - activity comments
  *     security:
  *       - bearerAuth: []
- *     description: Update comment
+ *     description: |
+ *       ### This will update a comment
+ *       # Examples
+ *       ```
+ *       {
+ *         "message": "updated comment"
+ *       }
+ *       ```
+ *
  *     parameters:
  *       - in: path
  *         name: activityId

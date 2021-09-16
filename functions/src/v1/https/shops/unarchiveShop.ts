@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ProductsService, ShopsService } from '../../../service'
+import { ShopsService } from '../../../service'
 
 /**
  * @openapi
@@ -28,8 +28,6 @@ import { ProductsService, ShopsService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Shop'
  */
 const unarchiveShop = async (req: Request, res: Response) => {
   const data = req.body

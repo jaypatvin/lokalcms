@@ -26,6 +26,7 @@ import { ChatsService } from '../../../service'
  *             properties:
  *               title:
  *                 type: string
+ *                 required: true
  *     responses:
  *       200:
  *         description: Updated chat
@@ -37,8 +38,6 @@ import { ChatsService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/Chat'
  */
 const updateChatTitle = async (req: Request, res: Response) => {
   const data = req.body

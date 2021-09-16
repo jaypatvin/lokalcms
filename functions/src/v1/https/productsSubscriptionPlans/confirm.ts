@@ -49,8 +49,6 @@ import { ProductSubscriptionPlansService } from '../../../service'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/ProductSubscriptionPlan'
  */
 const confirm = async (req: Request, res: Response) => {
   const data = req.body
