@@ -4,7 +4,6 @@ import {
   UsersService,
   ShopsService,
   ProductsService,
-  CommunityService,
   ProductSubscriptionPlansService,
 } from '../../../service'
 import generateSubscriptionPlanSchedule from '../../../utils/generateSubscriptionPlanSchedule'
