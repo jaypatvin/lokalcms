@@ -54,8 +54,6 @@ import { dateFormat } from '../../../utils/helpers'
  *                 status:
  *                   type: string
  *                   example: ok
- *                 data:
- *                   $ref: '#/components/schemas/ProductSubscriptionPlan'
  */
 const overrideDate = async (req: Request, res: Response) => {
   const { id } = req.params
