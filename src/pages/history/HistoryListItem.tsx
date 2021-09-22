@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import dayjs from 'dayjs'
+import { isObjectLike } from 'lodash'
 import { ListItemProps } from '../../utils/types'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
 
@@ -36,14 +37,15 @@ const HistoryListItem = ({ data }: ListItemProps) => {
     indent = 0
   ) => {
     let diffString = ''
-    Object.entries(main).forEach(([key, val]) => {
+    Object.entries(main).forEach(([key, val]: any) => {
       if (['string', 'number', 'boolean'].includes(typeof val)) {
         if (!other.hasOwnProperty(key) || other[key] !== val) {
           diffString += `<p class="text-${color}-500 pl-${indent}">${key}: ${val}</p>`
         } else {
           diffString += `<p class="pl-${indent}">${key}: ${val}</p>`
         }
-      } else {
+      } else if (isObjectLike(val) && !val.firestore) {
+        // prevent going very deep into firestore object
         diffString += `<p class="pl-${indent}">${key}:</p>`
         diffString += getObjectDiffWithStyle(val, other[key], color, indent + 4)
       }

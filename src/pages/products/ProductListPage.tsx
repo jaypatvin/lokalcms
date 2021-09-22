@@ -192,8 +192,9 @@ const ProductListPage = (props: any) => {
     return res
   }
 
-  const getData = ({ search, limit }: GenericGetArgType) =>
-    getProducts({ filter, sortBy, sortOrder, search, limit })
+  const getData = ({ search, limit, community }: GenericGetArgType) => {
+    return getProducts({ filter, sortBy, sortOrder, search, limit, community })
+  }
 
   return (
     <ListPage

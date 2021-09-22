@@ -105,14 +105,8 @@ const ShopListPage = (props: any) => {
 
   const constructOperatingHours = (data: any) => {
     if (!data.operating_hours) return null
-    const {
-      repeat_type,
-      repeat_unit,
-      start_time,
-      end_time,
-      start_dates,
-      schedule,
-    } = data.operating_hours
+    const { repeat_type, repeat_unit, start_time, end_time, start_dates, schedule } =
+      data.operating_hours
     const unavailable_dates: any = []
     const custom_dates: any = []
     const days_open: any = []
@@ -196,8 +190,9 @@ const ShopListPage = (props: any) => {
     return res
   }
 
-  const getData = ({ search, limit }: GenericGetArgType) =>
-    getShops({ filter, sortBy, sortOrder, search, limit })
+  const getData = ({ search, limit, community }: GenericGetArgType) => {
+    return getShops({ filter, sortBy, sortOrder, search, limit, community })
+  }
 
   return (
     <ListPage

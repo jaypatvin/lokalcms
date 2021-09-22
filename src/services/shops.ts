@@ -7,6 +7,7 @@ type GetShopsParamTypes = {
   sortBy?: ShopSortByType
   sortOrder?: SortOrderType
   limit?: number
+  community?: string
 }
 
 export const fetchShopByID = async (id: string) => {
@@ -26,8 +27,14 @@ export const getShops = ({
   sortBy = 'name',
   sortOrder = 'asc',
   limit = 10,
+  community,
 }: GetShopsParamTypes) => {
   let ref = db.collection('shops').where('keywords', 'array-contains', search.toLowerCase())
+
+  if (community) {
+    ref = ref.where('community_id', '==', community)
+  }
+
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
   } else if (['close', 'open'].includes(filter)) {

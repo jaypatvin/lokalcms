@@ -1,10 +1,10 @@
 import React, { ChangeEventHandler, useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
+import { useCommunity } from '../../components/BasePage'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
-import { getCommunities } from '../../services/community'
 import { getProducts } from '../../services/products'
 import { getProductSubscriptionPlans } from '../../services/productSubscriptionPlans'
 import { getShops } from '../../services/shops'
@@ -14,11 +14,7 @@ import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
 import ProductSubscriptions from './ProductSubscriptions'
 
 const ProductSubscriptionPlansPage = () => {
-  const [community, setCommunity] = useState<any>({})
-  const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
-  const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
-  const [communitySearchText, setCommunitySearchText] = useState('')
-  const [communitySearchResult, setCommunitySearchResult] = useState<any>([])
+  const community = useCommunity()
 
   const [shop, setShop] = useState<any>({})
   const [showShopSearchResult, setShowShopSearchResult] = useState(false)
@@ -52,31 +48,6 @@ const ProductSubscriptionPlansPage = () => {
       getCommunityProductSubscriptionPlans(community.id)
     }
   }, [community, limit])
-
-  const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    setCommunitySearchText(e.target.value)
-    if (e.target.value.length > 2) {
-      const communitiesRef = getCommunities({ search: e.target.value })
-      const result = await communitiesRef.get()
-      const communities = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
-      setCommunitySearchResult(communities)
-      setShowCommunitySearchResult(communities.length > 0)
-    } else {
-      setShowCommunitySearchResult(false)
-      setCommunitySearchResult([])
-    }
-  }
-
-  const communitySelectHandler = (community: any) => {
-    setShowCommunitySearchResult(false)
-    setCommunitySearchResult([])
-    setCommunity(community)
-    setCommunitySearchText(community.name)
-    getCommunityProductSubscriptionPlans(community.id, shop.id, product.id)
-  }
 
   const shopSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setShopSearchText(e.target.value)
@@ -217,32 +188,6 @@ const ProductSubscriptionPlansPage = () => {
       />
       <h2 className="text-2xl font-semibold leading-tight">Product Subscription Plans</h2>
       <div className="flex items-center my-5 w-full">
-        <div ref={communitySearchResultRef} className="relative">
-          <TextField
-            label="Community"
-            required
-            type="text"
-            size="small"
-            placeholder="Search"
-            onChange={communitySearchHandler}
-            value={communitySearchText}
-            onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
-            noMargin
-          />
-          {showCommunitySearchResult && communitySearchResult.length > 0 && (
-            <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-              {communitySearchResult.map((community: any) => (
-                <button
-                  className="w-full p-1 hover:bg-gray-200 block text-left"
-                  key={community.id}
-                  onClick={() => communitySelectHandler(community)}
-                >
-                  {community.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
         {community && community.id ? (
           <>
             <div ref={shopSearchResultRef} className="relative ml-2">
@@ -335,6 +280,8 @@ const ProductSubscriptionPlansPage = () => {
               color="gray"
             />
           </div>
+        ) : !community ? (
+          <h2 className="text-xl ml-5">Select a community first</h2>
         ) : (
           <div className="h-full w-full overflow-y-auto mb-10">
             {productSubscriptionPlans.map((subscriptionPlan) => (

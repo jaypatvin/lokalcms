@@ -13,6 +13,7 @@ type GetActivitiesParamTypes = {
   sortBy?: HistoryLogSortByType
   sortOrder?: SortOrderType
   limit?: number
+  community?: string
 }
 
 export const getHistoryLogs = ({
@@ -22,8 +23,14 @@ export const getHistoryLogs = ({
   sortBy = 'created_at',
   sortOrder = 'desc',
   limit = 10,
+  community,
 }: GetActivitiesParamTypes) => {
   let ref = db.collection('history_logs').where('keywords', 'array-contains', search.toLowerCase())
+
+  if (community) {
+    ref = ref.where('community_id', '==', community)
+  }
+
   if (['create', 'update', 'archive', 'delete'].includes(filter)) {
     ref = ref.where('method', '==', filter)
   }

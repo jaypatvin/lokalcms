@@ -134,8 +134,9 @@ const ActivityListPage = (props: any) => {
     return res
   }
 
-  const getData = ({ search, limit }: GenericGetArgType) =>
-    getActivities({ filter, sortBy, sortOrder, search, limit })
+  const getData = ({ search, limit, community }: GenericGetArgType) => {
+    return getActivities({ filter, sortBy, sortOrder, search, limit, community })
+  }
 
   return (
     <ListPage

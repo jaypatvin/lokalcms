@@ -39,7 +39,7 @@ export type FilterGroupType = {
   options: MenuItemType[]
 }
 export type FilterGroupsType = FilterGroupType[]
-export type GenericGetArgType = { search?: string; limit?: number }
+export type GenericGetArgType = { search?: string; limit?: number; community?: string }
 
 export type Days = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 export const DayKeyVal: { [x: number]: Days } = {
