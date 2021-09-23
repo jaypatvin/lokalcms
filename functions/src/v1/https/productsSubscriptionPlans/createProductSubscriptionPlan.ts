@@ -211,7 +211,7 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   if (override_dates && override_dates.length) {
     override_dates.forEach(({ original_date, new_date }) => {
       if (!validateDateFormat(original_date) || !validateDateFormat(new_date)) {
-        return res.status(400).json({
+        throw res.status(400).json({
           status: 'error',
           message: `Invalid date format. Please follow "2021-12-31"`,
         })
