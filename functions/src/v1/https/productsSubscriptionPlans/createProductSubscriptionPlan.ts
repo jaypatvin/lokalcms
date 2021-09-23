@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { get, includes } from 'lodash'
+import { get, includes, omit } from 'lodash'
 import {
   UsersService,
   ShopsService,
@@ -7,6 +7,7 @@ import {
   ProductSubscriptionPlansService,
 } from '../../../service'
 import generateSubscriptionPlanSchedule from '../../../utils/generateSubscriptionPlanSchedule'
+import validateDateFormat from '../../../utils/validateDateFormat'
 import validateFields from '../../../utils/validateFields'
 import validateSubscriptionPlan from '../../../utils/validateSubscriptionPlan'
 import { payment_methods, required_fields } from './index'
@@ -99,6 +100,17 @@ import { payment_methods, required_fields } from './index'
  *                     required: true
  *                     description: This can also be like every first monday (1-mon), or third tuesday (3-tue) of the month
  *                     enum: [day, week, month, 1-mon, 2-wed, 3-tue, 2-fri, 4-sun, 5-thu, 1-sat]
+ *                   override_dates:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         original_date:
+ *                           type: string
+ *                           required: true
+ *                         new_date:
+ *                           type: string
+ *                           required: true
  *     responses:
  *       200:
  *         description: The new ProductSubscriptionPlan
@@ -166,9 +178,9 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     })
   }
 
-  const { start_dates, repeat_type } = plan
+  const { start_dates, repeat_type, override_dates } = plan
 
-  const newPlan = {
+  const newPlan: any = {
     product_id,
     shop_id,
     buyer_id: requestorDocId,
@@ -180,7 +192,7 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     status: 'disabled',
     payment_method,
     plan: {
-      ...plan,
+      ...omit(plan, ['override_dates']),
       schedule: generateSubscriptionPlanSchedule({ start_dates, repeat_type }),
     },
     product: {
@@ -194,6 +206,19 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
       description: shop.description,
       image: shop.profile_photo || '',
     },
+  }
+
+  if (override_dates && override_dates.length) {
+    override_dates.forEach(({ original_date, new_date }) => {
+      if (!validateDateFormat(original_date) || !validateDateFormat(new_date)) {
+        return res.status(400).json({
+          status: 'error',
+          message: `Invalid date format. Please follow "2021-12-31"`,
+        })
+      }
+      if (!newPlan.plan.override_dates) newPlan.plan.override_dates = {}
+      newPlan.plan.override_dates[original_date] = new_date
+    })
   }
 
   let result: any = await ProductSubscriptionPlansService.createProductSubscriptionPlan(newPlan)
