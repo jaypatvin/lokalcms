@@ -100,6 +100,9 @@ import { payment_methods, required_fields } from './index'
  *                     required: true
  *                     description: This can also be like every first monday (1-mon), or third tuesday (3-tue) of the month
  *                     enum: [day, week, month, 1-mon, 2-wed, 3-tue, 2-fri, 4-sun, 5-thu, 1-sat]
+ *                   auto_reschedule:
+ *                     type: boolean
+ *                     default: false
  *                   override_dates:
  *                     type: array
  *                     items:
@@ -178,7 +181,14 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     })
   }
 
-  const { start_dates, repeat_type, override_dates } = plan
+  const {
+    start_dates,
+    last_date,
+    repeat_unit,
+    repeat_type,
+    auto_reschedule = false,
+    override_dates,
+  } = plan
 
   const newPlan: any = {
     product_id,
@@ -192,7 +202,11 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     status: 'disabled',
     payment_method,
     plan: {
-      ...omit(plan, ['override_dates']),
+      start_dates,
+      last_date,
+      repeat_unit,
+      repeat_type,
+      auto_reschedule,
       schedule: generateSubscriptionPlanSchedule({ start_dates, repeat_type }),
     },
     product: {
@@ -222,7 +236,7 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   }
 
   let result: any = await ProductSubscriptionPlansService.createProductSubscriptionPlan(newPlan)
-  result = await result.get().then((doc) => doc.data())
+  result = await result.get().then((doc) => ({ ...doc.data(), id: doc.id }))
 
   return res.json({ status: 'ok', data: result })
 }
