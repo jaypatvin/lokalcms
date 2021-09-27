@@ -75,14 +75,33 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
   // get subscription dates for 45 days
   const subscriptionDates = generateDatesFromSchedule(plan)
 
-  console.log('productDates', productDates)
-  console.log('subscriptionDates', subscriptionDates)
-
   // collect subscription dates that are not on the available dates of product or shop
   const conflicts = subscriptionDates.filter((d) => !productDates.includes(d))
-  console.log('conflicts', conflicts)
 
-  // create override dates for collected dates
+  // set conflict dates to the nearest available date
+  let overrideDates
+  if (conflicts.length && productDates.length && productDates.length > conflicts.length) {
+    const existingOverrideDates = subscriptionPlan.override_dates ?? {}
+    overrideDates = conflicts.reduce((acc, conflict) => {
+      const datesTaken = [...Object.values(acc), ...Object.values(existingOverrideDates)]
+      const availableDates = productDates.filter((d) => !datesTaken.includes(d))
+      const sortedNearestDates = availableDates.sort((a, b) => {
+        const distA = Math.abs(new Date(conflict).getTime() - new Date(a).getTime())
+        const distB = Math.abs(new Date(conflict).getTime() - new Date(b).getTime())
+        return distA - distB
+      })
+      if (!existingOverrideDates[conflict]) {
+        acc[`override_dates.${conflict}`] = sortedNearestDates.length ? sortedNearestDates[0] : '--'
+      }
+      return acc
+    }, {})
+  }
+
+  const updateData = {
+    ...overrideDates,
+  }
+
+  await ProductSubscriptionPlansService.updateProductSubscriptionPlan(id, updateData)
 
   return res.json({ status: 'ok' })
 }
