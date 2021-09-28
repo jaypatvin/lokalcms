@@ -104,5 +104,5 @@ export const required_fields = [
 
 export { default as createProductSubscriptionPlan } from './createProductSubscriptionPlan'
 export { default as confirm } from './confirm'
-export { default as overrideDate } from './overrideDate'
+export { default as overrideDates } from './overrideDates'
 export { default as autoRescheduleConflicts } from './autoRescheduleConflicts'
