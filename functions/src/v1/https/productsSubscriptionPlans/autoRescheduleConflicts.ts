@@ -91,7 +91,7 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
         return distA - distB
       })
       if (!existingOverrideDates[conflict]) {
-        acc[`override_dates.${conflict}`] = sortedNearestDates.length ? sortedNearestDates[0] : '--'
+        acc[`plan.override_dates.${conflict}`] = sortedNearestDates.length ? sortedNearestDates[0] : '--'
       }
       return acc
     }, {})
