@@ -45,12 +45,12 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
       .json({ status: 'error', message: `Product subscription plan with id ${id} does not exist!` })
   }
 
-  if (subscriptionPlan.buyer_id !== requestorDocId) {
-    return res.status(400).json({
-      status: 'error',
-      message: `User with id ${requestorDocId} is not the buyer`,
-    })
-  }
+  // if (subscriptionPlan.buyer_id !== requestorDocId) {
+  //   return res.status(400).json({
+  //     status: 'error',
+  //     message: `User with id ${requestorDocId} is not the buyer`,
+  //   })
+  // }
 
   const shop = await ShopsService.getShopByID(subscriptionPlan.shop_id)
 
@@ -75,13 +75,16 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
   // get subscription dates for 45 days
   const subscriptionDates = generateDatesFromSchedule(plan)
 
+  console.log('productDates', productDates)
+  console.log('subscriptionDates', subscriptionDates)
+
   // collect subscription dates that are not on the available dates of product or shop
   const conflicts = subscriptionDates.filter((d) => !productDates.includes(d))
 
   // set conflict dates to the nearest available date
   let overrideDates
   if (conflicts.length && productDates.length && productDates.length > conflicts.length) {
-    const existingOverrideDates = subscriptionPlan.override_dates ?? {}
+    const existingOverrideDates = subscriptionPlan.plan.override_dates ?? {}
     overrideDates = conflicts.reduce((acc, conflict) => {
       const datesTaken = [...Object.values(acc), ...Object.values(existingOverrideDates)]
       const availableDates = productDates.filter((d) => !datesTaken.includes(d))
@@ -96,6 +99,8 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
       return acc
     }, {})
   }
+
+  console.log('overrideDates', overrideDates)
 
   const updateData = {
     ...overrideDates,
