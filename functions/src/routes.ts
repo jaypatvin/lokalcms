@@ -200,7 +200,7 @@ module.exports = (api: Express) => {
   api.route('/v1/productSubscriptionPlans').post(wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
   api.route('/v1/productSubscriptionPlans/:id/autoRescheduleConflicts').post(wrapAsync(ProductSubscriptionPlansAPI.autoRescheduleConflicts))
   api.route('/v1/productSubscriptionPlans/:id/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))
-  api.route('/v1/productSubscriptionPlans/:id/overrideDate').put(wrapAsync(ProductSubscriptionPlansAPI.overrideDate))
+  api.route('/v1/productSubscriptionPlans/:id/overrideDates').put(wrapAsync(ProductSubscriptionPlansAPI.overrideDates))
 
   // -- Product Subscriptions routes
   api.route('/v1/productSubscriptions/:id/createOrder').post(wrapAsync(ProductSubscriptionsAPI.createOrderFromSubscription))

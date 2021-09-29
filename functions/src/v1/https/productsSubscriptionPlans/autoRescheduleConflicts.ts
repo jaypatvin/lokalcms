@@ -98,6 +98,7 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
   }
 
   const updateData = {
+    'plan.auto_reschedule': true,
     ...overrideDates,
   }
 
