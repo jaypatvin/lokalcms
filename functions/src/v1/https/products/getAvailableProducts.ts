@@ -3,6 +3,7 @@ import { Request, Response } from 'express'
 import _ from 'lodash'
 import { ProductsService } from '../../../service'
 import { dateFormat, DayKeyVal } from '../../../utils/helpers'
+import isDateValidInSchedule from '../../../utils/isDateValidInSchedule'
 
 /**
  * @openapi
@@ -63,7 +64,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     date = dayjs(new Date()).format('YYYY-MM-DD'),
     category,
     community_id,
-    shop_id
+    shop_id,
   }: any = req.query
 
   if (!community_id)
@@ -253,6 +254,7 @@ const getAvailableProducts = async (req: Request, res: Response) => {
 
   unavailable_products.forEach((product) => {
     const availability = product.availability
+    const schedule = availability.schedule
     const repeat_unit = availability.repeat_unit
     const repeat_type = availability.repeat_type
     const firstStartDate = availability.start_dates[0]
@@ -261,59 +263,15 @@ const getAvailableProducts = async (req: Request, res: Response) => {
     while (!availabilityFound && i <= maxRangeDays) {
       const dateToCheck = dayjs(date).add(i, 'days')
       const dateToCheckFormat = dateToCheck.format('YYYY-MM-DD')
-      const dateToCheckDay = DayKeyVal[dateToCheck.day()]
-      const dateNumToCheck = dayjs(dateToCheck).date()
-      const nthWeekToCheck = Math.ceil(dateNumToCheck / 7)
-      const nthDayOfMonthToCheck = `${nthWeekToCheck}-${dateToCheckDay}`
-      if (
-        !_.get(availability, `schedule.custom.${dateToCheckFormat}.unavailable`) ||
-        (repeat_unit === 0 && dayjs(firstStartDate).isBefore(date))
-      ) {
-        const weekAvailabilityStartDate = _.get(
-          availability,
-          `schedule.${dateToCheckDay}.start_date`
-        )
-        if (
-          _.get(availability, `schedule.custom.${dateToCheckFormat}.start_time`) ||
-          (repeat_unit === 1 && repeat_type === 'day') ||
-          (repeat_unit === 1 &&
-            repeat_type === 'week' &&
-            weekAvailabilityStartDate &&
-            (dayjs(weekAvailabilityStartDate).isBefore(dateToCheck) ||
-              dayjs(weekAvailabilityStartDate).isSame(dateToCheck))) ||
-          (repeat_unit === 1 &&
-            repeat_type === 'month' &&
-            dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
-            (dayjs(firstStartDate).isBefore(dateToCheck) ||
-              dayjs(firstStartDate).isSame(dateToCheck))) ||
-          (repeat_unit === 1 &&
-            repeat_type === nthDayOfMonthToCheck &&
-            (dayjs(firstStartDate).isBefore(dateToCheck) ||
-              dayjs(firstStartDate).isSame(dateToCheck))) ||
-          (repeat_unit !== 1 &&
-            repeat_type === 'day' &&
-            dayjs(dateToCheck).diff(firstStartDate, 'days') % repeat_unit === 0 &&
-            (dayjs(firstStartDate).isBefore(dateToCheck) ||
-              dayjs(firstStartDate).isSame(dateToCheck))) ||
-          (repeat_unit !== 1 &&
-            repeat_type === 'week' &&
-            dayjs(dateToCheck).diff(weekAvailabilityStartDate, 'weeks') % repeat_unit === 0 &&
-            (dayjs(weekAvailabilityStartDate).isBefore(dateToCheck) ||
-              dayjs(weekAvailabilityStartDate).isSame(dateToCheck))) ||
-          (repeat_unit !== 1 &&
-            repeat_type === 'month' &&
-            dayjs(firstStartDate).date() === dayjs(dateToCheck).date() &&
-            dayjs(dateToCheck).diff(firstStartDate, 'months') % repeat_unit === 0 &&
-            (dayjs(firstStartDate).isBefore(dateToCheck) ||
-              dayjs(firstStartDate).isSame(dateToCheck))) ||
-          (repeat_unit !== 1 &&
-            repeat_type === nthDayOfMonthToCheck &&
-            dayjs(dateToCheck).diff(firstStartDate, 'months') % repeat_unit === 0 &&
-            (dayjs(firstStartDate).isBefore(dateToCheck) ||
-              dayjs(firstStartDate).isSame(dateToCheck)))
-        ) {
-          availabilityFound = dateToCheckFormat
-        }
+      const isDateValid = isDateValidInSchedule({
+        repeat_type,
+        repeat_unit,
+        schedule,
+        startDate: firstStartDate,
+        dateToCheck,
+      })
+      if (isDateValid) {
+        availabilityFound = dateToCheckFormat
       }
       i++
     }

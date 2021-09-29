@@ -78,20 +78,28 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
   // collect subscription dates that are not on the available dates of product or shop
   const conflicts = subscriptionDates.filter((d) => !productDates.includes(d))
 
+  const availableProductDates = productDates.filter((pd) => !subscriptionDates.includes(pd))
+
   // set conflict dates to the nearest available date
   let overrideDates
-  if (conflicts.length && productDates.length && productDates.length > conflicts.length) {
+  if (
+    conflicts.length &&
+    availableProductDates.length &&
+    availableProductDates.length > conflicts.length
+  ) {
     const existingOverrideDates = subscriptionPlan.plan.override_dates ?? {}
     overrideDates = conflicts.reduce((acc, conflict) => {
       const datesTaken = [...Object.values(acc), ...Object.values(existingOverrideDates)]
-      const availableDates = productDates.filter((d) => !datesTaken.includes(d))
+      const availableDates = availableProductDates.filter((d) => !datesTaken.includes(d))
       const sortedNearestDates = availableDates.sort((a, b) => {
         const distA = Math.abs(new Date(conflict).getTime() - new Date(a).getTime())
         const distB = Math.abs(new Date(conflict).getTime() - new Date(b).getTime())
         return distA - distB
       })
       if (!existingOverrideDates[conflict]) {
-        acc[`plan.override_dates.${conflict}`] = sortedNearestDates.length ? sortedNearestDates[0] : '--'
+        acc[`plan.override_dates.${conflict}`] = sortedNearestDates.length
+          ? sortedNearestDates[0]
+          : '--'
       }
       return acc
     }, {})

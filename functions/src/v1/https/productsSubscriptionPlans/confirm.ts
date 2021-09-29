@@ -69,11 +69,12 @@ const confirm = async (req: Request, res: Response) => {
     requestorDocId = seller_id
   }
 
-  if (!roles.admin && plan.seller_id !== requestorDocId)
+  if (!roles.admin && plan.seller_id !== requestorDocId) {
     return res.status(403).json({
       status: 'error',
       message: `User with id ${requestorDocId} is not the seller`,
     })
+  }
 
   const updateData = {
     updated_by: requestorDocId || '',
