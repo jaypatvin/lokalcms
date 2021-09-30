@@ -119,10 +119,10 @@ const overrideDates = async (req: Request, res: Response) => {
       .status(400)
       .json({ status: 'error', message: `Product subscription plan with id ${id} does not exist!` })
   }
-  if (subscriptionPlan.seller_id !== requestorDocId) {
+  if (subscriptionPlan.buyer_id !== requestorDocId) {
     return res.status(403).json({
       status: 'error',
-      message: `User with id ${requestorDocId} is not the seller`,
+      message: `User with id ${requestorDocId} is not the buyer`,
     })
   }
 
