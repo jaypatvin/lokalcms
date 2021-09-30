@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 import _ from 'lodash'
-import { ProductsService } from '../../../service'
+import { ProductsService, ShopsService } from '../../../service'
 import generateSchedule from '../../../utils/generateSchedule'
+import isScheduleDerived from '../../../utils/isScheduleDerived'
 import validateOperatingHours from '../../../utils/validateOperatingHours'
 
 /**
@@ -13,6 +14,7 @@ import validateOperatingHours from '../../../utils/validateOperatingHours'
  *     security:
  *       - bearerAuth: []
  *     description: |
+ *       ## The product availability must derive correctly from the shop's schedule, otherwise it will fail.
  *       # Examples
  *       ## available on 2021-04-28 and every 3 days after
  *       ```
@@ -166,11 +168,12 @@ const addProductAvailability = async (req: Request, res: Response) => {
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== product.user_id)
+  if (!roles.editor && requestorDocId !== product.user_id) {
     return res.status(403).json({
       status: 'error',
       message: 'You do not have a permission to update a product of another user.',
     })
+  }
 
   const updateData: any = {
     updated_by: requestorDocId || '',
@@ -211,6 +214,17 @@ const addProductAvailability = async (req: Request, res: Response) => {
         custom_dates,
       }),
     }
+  }
+
+  // check if product availability is derived correctly from the shop's operating hours
+  const shop = await ShopsService.getShopByID(product.shop_id)
+  const productAvailability = updateData.availability
+  const shopOperatingHours = shop.operating_hours
+  if (!isScheduleDerived(productAvailability, shopOperatingHours)) {
+    return res.status(403).json({
+      status: 'error',
+      message: 'The product availability must be derived from the shop schedule.',
+    })
   }
 
   const result = await ProductsService.updateProduct(productId, updateData)

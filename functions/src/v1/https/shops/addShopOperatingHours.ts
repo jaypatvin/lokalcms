@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import _ from 'lodash'
-import { ShopsService } from '../../../service'
+import { ProductsService, ShopsService } from '../../../service'
 import generateSchedule from '../../../utils/generateSchedule'
 import validateOperatingHours from '../../../utils/validateOperatingHours'
 
@@ -161,11 +161,12 @@ const addShopOperatingHours = async (req: Request, res: Response) => {
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== shop.user_id)
+  if (!roles.editor && requestorDocId !== shop.user_id) {
     return res.status(403).json({
       status: 'error',
       message: 'You do not have a permission to update a shop of another user.',
     })
+  }
 
   const updateData: any = {
     updated_by: requestorDocId || '',
@@ -209,6 +210,12 @@ const addShopOperatingHours = async (req: Request, res: Response) => {
   }
 
   const result = await ShopsService.updateShop(shopId, updateData)
+
+  const shopProducts = await ProductsService.getProductsByShopID(shopId)
+  for (const product of shopProducts) {
+    const productId = product.id
+    await ProductsService.updateProduct(productId, { availability: updateData.operating_hours })
+  }
 
   return res.json({ status: 'ok', data: result })
 }
