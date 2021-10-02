@@ -4,7 +4,7 @@ import { ProductSubscriptionPlansService } from '../../../service'
 
 /**
  * @openapi
- * /v1/productSubscriptionPlans/{id}/confirm:
+ * /v1/productSubscriptionPlans/{planId}/confirm:
  *   put:
  *     tags:
  *       - product subscription plans
@@ -24,7 +24,7 @@ import { ProductSubscriptionPlansService } from '../../../service'
  *
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: planId
  *         required: true
  *         description: document id of the product subscription plan
  *         schema:
@@ -53,16 +53,19 @@ import { ProductSubscriptionPlansService } from '../../../service'
 const confirm = async (req: Request, res: Response) => {
   const data = req.body
   const { seller_id } = data
-  const { id } = req.params
+  const { planId } = req.params
   const roles = res.locals.userRoles
   let requestorDocId = res.locals.userDoc.id
 
-  const plan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(id)
+  const plan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)
 
   if (!plan) {
     return res
       .status(403)
-      .json({ status: 'error', message: `Product subscription plan with id ${id} does not exist!` })
+      .json({
+        status: 'error',
+        message: `Product subscription plan with id ${planId} does not exist!`,
+      })
   }
 
   if (seller_id && roles.admin) {
@@ -82,8 +85,11 @@ const confirm = async (req: Request, res: Response) => {
     status: 'enabled',
   }
 
-  const result = await ProductSubscriptionPlansService.updateProductSubscriptionPlan(id, updateData)
-  await generateProductSubscriptions(id)
+  const result = await ProductSubscriptionPlansService.updateProductSubscriptionPlan(
+    planId,
+    updateData
+  )
+  await generateProductSubscriptions(planId)
 
   return res.json({ status: 'ok', data: result })
 }

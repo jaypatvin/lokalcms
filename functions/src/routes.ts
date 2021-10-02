@@ -110,6 +110,7 @@ module.exports = (api: Express) => {
   api.route('/v1/shops/:shopId/unarchive').put(wrapAsync(ShopsAPI.unarchiveShop))
   api.route('/v1/shops/:shopId/operatingHours').get(wrapAsync(ShopsAPI.getShopOperatingHours))
   api.route('/v1/shops/:shopId/operatingHours').put(wrapAsync(ShopsAPI.addShopOperatingHours))
+  api.route('/v1/shops/:shopId/getDates').get(wrapAsync(ShopsAPI.getDates))
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
@@ -142,6 +143,7 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/availability').get(wrapAsync(ProductsAPI.getProductAvailability))
   api.route('/v1/products/:productId/availability').put(wrapAsync(ProductsAPI.addProductAvailability))
   api.route('/v1/products/:productId/ratings').post(wrapAsync(ProductsAPI.updateProductRating))
+  api.route('/v1/products/:productId/getDates').get(wrapAsync(ProductsAPI.getDates))
 
   // -- Categories routes
   api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))
@@ -198,9 +200,10 @@ module.exports = (api: Express) => {
 
   // -- Product Subscription Plans routes
   api.route('/v1/productSubscriptionPlans').post(wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
-  api.route('/v1/productSubscriptionPlans/:id/autoRescheduleConflicts').post(wrapAsync(ProductSubscriptionPlansAPI.autoRescheduleConflicts))
-  api.route('/v1/productSubscriptionPlans/:id/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))
-  api.route('/v1/productSubscriptionPlans/:id/overrideDates').put(wrapAsync(ProductSubscriptionPlansAPI.overrideDates))
+  api.route('/v1/productSubscriptionPlans/:planId/autoRescheduleConflicts').post(wrapAsync(ProductSubscriptionPlansAPI.autoRescheduleConflicts))
+  api.route('/v1/productSubscriptionPlans/:planId/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))
+  api.route('/v1/productSubscriptionPlans/:planId/overrideDates').put(wrapAsync(ProductSubscriptionPlansAPI.overrideDates))
+  api.route('/v1/productSubscriptionPlans/:planId/getDates').get(wrapAsync(ProductSubscriptionPlansAPI.getDates))
 
   // -- Product Subscriptions routes
   api.route('/v1/productSubscriptions/:id/createOrder').post(wrapAsync(ProductSubscriptionsAPI.createOrderFromSubscription))
