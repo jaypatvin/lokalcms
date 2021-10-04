@@ -6,7 +6,7 @@ import { dateFormat } from '../../../utils/helpers'
 
 /**
  * @openapi
- * /v1/productSubscriptionPlans/{id}/overrideDates:
+ * /v1/productSubscriptionPlans/{planId}/overrideDates:
  *   put:
  *     tags:
  *       - product subscription plans
@@ -33,7 +33,7 @@ import { dateFormat } from '../../../utils/helpers'
  *       ```
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: planId
  *         required: true
  *         description: document id of the product subscription plan
  *         schema:
@@ -70,7 +70,7 @@ import { dateFormat } from '../../../utils/helpers'
  *                   example: ok
  */
 const overrideDates = async (req: Request, res: Response) => {
-  const { id } = req.params
+  const { planId } = req.params
   const data = req.body
   const { override_dates } = data
   let { id: requestorDocId } = res.locals.userDoc
@@ -112,12 +112,17 @@ const overrideDates = async (req: Request, res: Response) => {
     overrideDatesUpdates[`plan.override_dates.${original_date}`] = new_date
   }
 
-  const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(id)
+  const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
+    planId
+  )
 
   if (!subscriptionPlan) {
     return res
       .status(400)
-      .json({ status: 'error', message: `Product subscription plan with id ${id} does not exist!` })
+      .json({
+        status: 'error',
+        message: `Product subscription plan with id ${planId} does not exist!`,
+      })
   }
   if (subscriptionPlan.buyer_id !== requestorDocId) {
     return res.status(403).json({
@@ -130,7 +135,7 @@ const overrideDates = async (req: Request, res: Response) => {
     ...overrideDatesUpdates,
   }
 
-  await ProductSubscriptionPlansService.updateProductSubscriptionPlan(id, updateData)
+  await ProductSubscriptionPlansService.updateProductSubscriptionPlan(planId, updateData)
 
   return res.json({ status: 'ok' })
 }

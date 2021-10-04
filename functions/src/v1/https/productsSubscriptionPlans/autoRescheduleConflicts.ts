@@ -4,7 +4,7 @@ import generateDatesFromSchedule from '../../../utils/generateDatesFromSchedule'
 
 /**
  * @openapi
- * /v1/productSubscriptionPlans/{id}/autoRescheduleConflicts:
+ * /v1/productSubscriptionPlans/{planId}/autoRescheduleConflicts:
  *   post:
  *     tags:
  *       - product subscription plans
@@ -16,7 +16,7 @@ import generateDatesFromSchedule from '../../../utils/generateDatesFromSchedule'
  *
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: planId
  *         required: true
  *         description: document id of the product subscription plan
  *         schema:
@@ -34,15 +34,20 @@ import generateDatesFromSchedule from '../../../utils/generateDatesFromSchedule'
  *                   example: ok
  */
 const autoRescheduleConflicts = async (req: Request, res: Response) => {
-  const { id } = req.params
+  const { planId } = req.params
   let requestorDocId = res.locals.userDoc.id
 
-  const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(id)
+  const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
+    planId
+  )
 
   if (!subscriptionPlan) {
     return res
       .status(400)
-      .json({ status: 'error', message: `Product subscription plan with id ${id} does not exist!` })
+      .json({
+        status: 'error',
+        message: `Product subscription plan with id ${planId} does not exist!`,
+      })
   }
 
   if (subscriptionPlan.buyer_id !== requestorDocId) {
@@ -55,7 +60,12 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
   const shop = await ShopsService.getShopByID(subscriptionPlan.shop_id)
 
   if (!shop) {
-    return res.status(400).json({ status: 'error', message: `Shop with id ${id} does not exist!` })
+    return res
+      .status(400)
+      .json({
+        status: 'error',
+        message: `Shop with id ${subscriptionPlan.shop_id} does not exist!`,
+      })
   }
 
   const product = await ProductsService.getProductByID(subscriptionPlan.product_id)
@@ -63,7 +73,10 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
   if (!product) {
     return res
       .status(400)
-      .json({ status: 'error', message: `Product with id ${id} does not exist!` })
+      .json({
+        status: 'error',
+        message: `Product with id ${subscriptionPlan.product_id} does not exist!`,
+      })
   }
 
   const availability = product.availability || shop.operating_hours
@@ -110,7 +123,7 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
     ...overrideDates,
   }
 
-  await ProductSubscriptionPlansService.updateProductSubscriptionPlan(id, updateData)
+  await ProductSubscriptionPlansService.updateProductSubscriptionPlan(planId, updateData)
 
   return res.json({ status: 'ok' })
 }
