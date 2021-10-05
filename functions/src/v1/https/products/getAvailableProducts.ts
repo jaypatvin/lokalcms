@@ -86,114 +86,65 @@ const getAvailableProducts = async (req: Request, res: Response) => {
   const nthWeek = Math.ceil(dateNum / 7)
   const nthDayOfMonth = `${nthWeek}-${day}`
 
-  let everyDay = await ProductsService.getCommunityProductsWithFilter({
+  const allProducts = await ProductsService.getCommunityProductsWithFilter({
     community_id,
-    wheres: [
-      ...initialWheres,
-      ['availability.repeat_unit', '==', 1],
-      ['availability.repeat_type', '==', 'day'],
-    ],
+    wheres: initialWheres,
   })
-  everyDay = everyDay.filter((product) => {
+
+  const productsMap = allProducts.reduce((acc, product) => {
+    const availability = product.availability
+    const repeat_unit = availability.repeat_unit === 1 ? '1' : 'n'
+    const repeat_type = availability.repeat_type
+    if (!acc[`${repeat_unit}_${repeat_type}`]) acc[`${repeat_unit}_${repeat_type}`] = []
+    acc[`${repeat_unit}_${repeat_type}`].push(product)
+    return acc
+  }, {})
+
+  // get available products that are available every day
+  const everyDay = productsMap['1_day'].filter((product) => {
     const start_date = product.availability.start_dates[0]
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
-
-  let everyNDay = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [
-      ...initialWheres,
-      ['availability.repeat_unit', 'not-in', [0, 1]],
-      ['availability.repeat_type', '==', 'day'],
-    ],
-  })
-  everyNDay = everyNDay.filter((product) => {
+  // get available products that are available every n day
+  const everyNDay = productsMap['n_day'].filter((product) => {
     const start_date = product.availability.start_dates[0]
     const isValid =
       dayjs(date).diff(start_date, 'days') % _.get(product, 'availability.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
-
-  let everyWeek = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [
-      ...initialWheres,
-      [`availability.schedule.${day}.repeat_unit`, '==', 1],
-      [`availability.schedule.${day}.repeat_type`, '==', 'week'],
-    ],
-  })
-  everyWeek = everyWeek.filter((product) => {
+  // get available products that are available every week
+  const everyWeek = productsMap['1_week'].filter((product) => {
     const start_date = _.get(product, `availability.schedule.${day}.start_date`)
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
-
-  let everyNWeek = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [
-      ...initialWheres,
-      [`availability.schedule.${day}.repeat_unit`, 'not-in', [0, 1]],
-      [`availability.schedule.${day}.repeat_type`, '==', 'week'],
-    ],
-  })
-  everyNWeek = everyNWeek.filter((product) => {
+  // get available products that are available every n week
+  const everyNWeek = productsMap['n_week'].filter((product) => {
     const start_date = _.get(product, `availability.schedule.${day}.start_date`)
     const isValid =
       dayjs(date).diff(start_date, 'weeks') % _.get(product, 'availability.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
-
-  let everyMonth = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [
-      ...initialWheres,
-      ['availability.repeat_unit', '==', 1],
-      ['availability.repeat_type', '==', 'month'],
-    ],
-  })
-  everyMonth = everyMonth.filter((product) => {
+  // get available products that are available every month
+  const everyMonth = productsMap['1_month'].filter((product) => {
     const start_date = product.availability.start_dates[0]
     const isValid = dayjs(start_date).date() === dateNum
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
-
-  let everyNMonth = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [
-      ...initialWheres,
-      [`availability.repeat_unit`, 'not-in', [0, 1]],
-      [`availability.repeat_type`, '==', 'month'],
-    ],
-  })
-  everyNMonth = everyNMonth.filter((product) => {
+  // get available products that are available every n month
+  const everyNMonth = productsMap['n_month'].filter((product) => {
     const start_date = product.availability.start_dates[0]
     const isValid =
       dayjs(start_date).date() === dateNum &&
       dayjs(date).diff(start_date, 'months') % _.get(product, 'availability.repeat_unit') === 0
     return isValid && (dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date))
   })
-
-  let everyNthDayOfMonth = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [
-      ...initialWheres,
-      ['availability.repeat_unit', '==', 1],
-      ['availability.repeat_type', '==', nthDayOfMonth],
-    ],
-  })
-  everyNthDayOfMonth = everyNthDayOfMonth.filter((product) => {
+  // get available products that are available every nth day of the month
+  const everyNthDayOfMonth = productsMap[`1_${nthDayOfMonth}`].filter((product) => {
     const start_date = product.availability.start_dates[0]
     return dayjs(start_date).isBefore(date) || dayjs(start_date).isSame(date)
   })
-
-  let everyNthDayOfNMonth = await ProductsService.getCommunityProductsWithFilter({
-    community_id,
-    wheres: [
-      ...initialWheres,
-      ['availability.repeat_unit', 'not-in', [0, 1]],
-      ['availability.repeat_type', '==', nthDayOfMonth],
-    ],
-  })
-  everyNthDayOfNMonth = everyNthDayOfNMonth.filter((product) => {
+  // get available products that are available every nth day of every n month
+  const everyNthDayOfNMonth = productsMap[`1_${nthDayOfMonth}`].filter((product) => {
     const start_date = product.availability.start_dates[0]
     const isValid =
       dayjs(date).diff(start_date, 'months') % _.get(product, 'availability.repeat_unit') === 0
