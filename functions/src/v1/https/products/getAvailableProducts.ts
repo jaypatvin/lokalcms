@@ -13,7 +13,7 @@ import { dateFormat } from '../../../utils/helpers'
  *     security:
  *       - bearerAuth: []
  *     description: |
- *       ### This will return list products that are available and unavailable
+ *       ### This will return list of products that are available and unavailable
  *       ## Note: The unavailable products will have an extra fields _nextAvailable_, _nextAvailableDay_ and _availableMessage_
  *     parameters:
  *       - in: query

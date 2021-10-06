@@ -40,9 +40,11 @@ const DiscoverPage = ({}) => {
         method: 'GET',
       })
       res = await res.json()
+      const availables = res.data.filter((p: any) => !p.nextAvailable)
+      const notAvailables = res.data.filter((p: any) => p.nextAvailable)
+      setAvailableList(availables)
+      setUnavailableList(notAvailables)
       console.log('res', res)
-      setAvailableList(res.data)
-      setUnavailableList(res.unavailable_shops)
     } else {
       console.error('environment variable for the api does not exist.')
     }
