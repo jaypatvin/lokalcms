@@ -70,9 +70,8 @@ export const createProduct = async (data) => {
   return await db
     .collection(collectionName)
     .add({ ...data, created_at: new Date() })
-    .then((res) => {
-      return res
-    })
+    .then((res) => res.get())
+    .then((doc): any => ({ id: doc.id, ...doc.data() }))
 }
 
 export const updateProduct = async (id, data) => {
@@ -85,19 +84,13 @@ export const updateProduct = async (id, data) => {
 export const archiveProduct = async (id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.collection(collectionName).doc(id).update(updateData)
 }
 
 export const unarchiveProduct = async (id: string, data?: any) => {
   let updateData = { archived: false, updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.collection(collectionName).doc(id).update(updateData)
 }
 
 export const archiveUserProducts = async (user_id: string, data?: any) => {
