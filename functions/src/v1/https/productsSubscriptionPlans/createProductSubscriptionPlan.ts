@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { get, includes, omit } from 'lodash'
+import { get, includes } from 'lodash'
 import {
   UsersService,
   ShopsService,
