@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isBoolean } from 'lodash'
 import { ProductsService } from '../../../service'
 import { generateProductKeywords } from '../../../utils/generateKeywords'
 import { fieldIsNum } from '../../../utils/helpers'
@@ -61,6 +62,8 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 type: string
  *               status:
  *                 type: string
+ *               can_subscribe:
+ *                 type: boolean
  *               gallery:
  *                 type: object
  *                 properties:
@@ -164,6 +167,8 @@ const updateProduct = async (req: Request, res: Response) => {
     }
   }
   if (data.product_category) updateData.product_category = data.product_category
+  if (data.status) updateData.status = data.status
+  if (isBoolean(data.can_subscribe)) updateData.can_subscribe = data.can_subscribe
 
   if (!Object.keys(updateData).length)
     return res.status(400).json({ status: 'error', message: 'no field for shop is provided' })
