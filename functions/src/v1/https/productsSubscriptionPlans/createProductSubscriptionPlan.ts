@@ -169,6 +169,9 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
 
   const product = await ProductsService.getProductByID(product_id)
   if (!product) return res.status(400).json({ status: 'error', message: 'Invalid Product ID!' })
+  if (!product.can_subscribe) {
+    return res.status(400).json({ status: 'error', message: 'This product is not available for subscription.' })
+  }
 
   const shop = await ShopsService.getShopByID(shop_id)
   if (!shop) return res.status(400).json({ status: 'error', message: 'Invalid Shop ID!' })

@@ -60,6 +60,8 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 required: true
  *               status:
  *                 type: string
+ *               can_subscribe:
+ *                 type: boolean
  *               gallery:
  *                 type: array
  *                 items:
@@ -190,6 +192,7 @@ const createProduct = async (req: Request, res: Response) => {
     archived: false,
     updated_by: requestorDocId,
     updated_from: data.source || '',
+    can_subscribe: data.can_subscribe ?? true,
   }
 
   if (_shop.operating_hours) _productData.availability = _shop.operating_hours
