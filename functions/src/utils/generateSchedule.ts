@@ -12,11 +12,7 @@ const DayKeyVal: { [x: number]: Days } = {
   6: 'sat',
 }
 
-
-type RepeatType =
-  | 'day'
-  | 'week'
-  | 'month'
+type RepeatType = 'day' | 'week' | 'month'
 
 type CustomDate = {
   date: string
@@ -85,15 +81,6 @@ const generateSchedule = ({
     }
   })
 
-  if (unavailable_dates && unavailable_dates.length) {
-    unavailable_dates.forEach((date) => {
-      if (!schedule.custom) schedule.custom = {}
-      schedule.custom[date] = {
-        unavailable: true,
-      }
-    })
-  }
-
   if (custom_dates && custom_dates.length) {
     custom_dates.forEach((custom_date) => {
       const { date, start_time: start, end_time: end } = custom_date
@@ -101,6 +88,15 @@ const generateSchedule = ({
       schedule.custom[date] = {
         start_time: start || start_time,
         end_time: end || end_time,
+      }
+    })
+  }
+
+  if (unavailable_dates && unavailable_dates.length) {
+    unavailable_dates.forEach((date) => {
+      if (!schedule.custom) schedule.custom = {}
+      schedule.custom[date] = {
+        unavailable: true,
       }
     })
   }

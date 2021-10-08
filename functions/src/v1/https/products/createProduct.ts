@@ -23,6 +23,8 @@ import isScheduleDerived from '../../../utils/isScheduleDerived'
  *       - bearerAuth: []
  *     description: |
  *       ### This will create a new product
+ *       ### If the availability is not provided, the default will be the shop's operating_hours
+ *       ### The availability must be derived from the shop's operating_hours
  *       # Examples
  *       ```
  *       {
@@ -38,6 +40,42 @@ import isScheduleDerived from '../../../utils/isScheduleDerived'
  *             "order": 1
  *           }
  *         ]
+ *       }
+ *       ```
+ *
+ *       ```
+ *       {
+ *         "name": "iPhone 6",
+ *         "description": "second hand, slightly used",
+ *         "shop_id": "document_id_of_shop",
+ *         "base_price": 10000,
+ *         "quantity": 100,
+ *         "product_category": "gadgets",
+ *         "gallery": [
+ *           {
+ *             "url": "url_of_the_iphone_image",
+ *             "order": 1
+ *           }
+ *         ],
+ *         "availability": {
+ *           "start_time": "08:00 AM",
+ *           "end_time": "04:00 PM",
+ *           "start_dates": [
+ *             "2021-05-03",
+ *             "2021-05-05"
+ *           ],
+ *           "repeat_unit": 1,
+ *           "repeat_type": "week",
+ *           "unavailable_dates": [
+ *             "2021-05-10"
+ *           ],
+ *           "custom_dates": [
+ *             {
+ *               "date": "2021-05-19",
+ *               "end_time": "01:00 PM"
+ *             }
+ *           ]
+ *         }
  *       }
  *       ```
  *
