@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ChatMessageService } from '../../../service'
+import { ChatMessageService, ChatsService } from '../../../service'
 
 /**
  * @openapi
@@ -42,8 +42,9 @@ const archiveChatMessage = async (req: Request, res: Response) => {
   const requestorDocId = res.locals.userDoc.id
   const _chatMessage = await ChatMessageService.getChatMessageById(chatId, messageId)
 
-  if (!_chatMessage)
+  if (!_chatMessage) {
     return res.status(403).json({ status: 'error', message: 'Chat message does not exist!' })
+  }
 
   if (!roles.admin && requestorDocId !== _chatMessage.sender_id) {
     return res.status(403).json({
@@ -52,8 +53,14 @@ const archiveChatMessage = async (req: Request, res: Response) => {
     })
   }
 
+  const chat = await ChatsService.getChatById(chatId)
+
+  if (chat.last_message.conversation_id === messageId) {
+    await ChatsService.updateChat(chatId, { 'last_message.content': 'Message deleted' })
+  }
+
   const requestData = {
-    updated_by: requestorDocId,
+    updated_by: requestorDocId || '',
     updated_from: data.source || '',
   }
 

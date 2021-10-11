@@ -184,6 +184,18 @@ const createConversation = async (req: Request, res: Response) => {
   if (!message && !messageMedia)
     return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
 
+  const chatMessage: any = {
+    sender_id: requestorDocId,
+    sent_at: new Date(),
+    archived: false,
+  }
+
+  if (message) chatMessage.message = message
+  if (messageMedia) chatMessage.media = media
+  if (reply_to) chatMessage.reply_to = db.doc(`chats/${chatId}/conversation/${reply_to}`)
+
+  const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
+
   const last_message: any = {}
   let content = message
   if (media && !content) {
@@ -198,23 +210,14 @@ const createConversation = async (req: Request, res: Response) => {
       content = 'sent a message'
     }
   }
+  last_message.ref = db.doc(`chats/${chatId}/conversation/${result.id}`)
+  last_message.conversation_id = result.id
   last_message.content = content
   last_message.sender = requestorName
+  last_message.sender_id = requestorDocId
   last_message.created_at = new Date()
 
   await ChatsService.updateChat(chatId, { last_message })
-
-  const chatMessage: any = {
-    sender_id: requestorDocId,
-    sent_at: new Date(),
-    archived: false,
-  }
-
-  if (message) chatMessage.message = message
-  if (messageMedia) chatMessage.media = media
-  if (reply_to) chatMessage.reply_to = db.doc(`chats/${chatId}/conversation/${reply_to}`)
-
-  const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
 
   return res.json({ status: 'ok', data: { chatId, ...result } })
 }
