@@ -1,8 +1,10 @@
 import { Request, Response } from 'express'
-import { UsersService, ShopsService, CommunityService } from '../../../service'
+import { ShopsService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { generateShopKeywords } from '../../../utils/generateKeywords'
 import { required_fields } from './index'
+import validateOperatingHours from '../../../utils/validateOperatingHours'
+import generateSchedule from '../../../utils/generateSchedule'
 
 /**
  * @openapi
@@ -14,12 +16,31 @@ import { required_fields } from './index'
  *       - bearerAuth: []
  *     description: |
  *       ### This will create a new shop
- *       # Examples
+ *       # Example
  *       ```
  *       {
  *         "name": "Secret Shop",
  *         "description": "Description of the secret shop",
- *         "user_id": "document_id_of_owner"
+ *         "user_id": "document_id_of_owner",
+ *         "operating_hours": {
+ *           "start_time": "08:00 AM",
+ *           "end_time": "04:00 PM",
+ *           "start_dates": [
+ *             "2021-05-03",
+ *             "2021-05-05"
+ *           ],
+ *           "repeat_unit": 1,
+ *           "repeat_type": "week",
+ *           "unavailable_dates": [
+ *             "2021-05-10"
+ *           ],
+ *           "custom_dates": [
+ *             {
+ *               "date": "2021-05-19",
+ *               "end_time": "01:00 PM"
+ *             }
+ *           ]
+ *         }
  *       }
  *       ```
  *
@@ -43,6 +64,38 @@ import { required_fields } from './index'
  *                 type: boolean
  *               status:
  *                 type: string
+ *               operating_hours:
+ *                 type: object
+ *                 properties:
+ *                   start_time:
+ *                     type: string
+ *                   end_time:
+ *                     type: string
+ *                   start_dates:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   repeat_unit:
+ *                     type: number
+ *                   repeat_type:
+ *                     type: string
+ *                     description: This can also be like every first monday (1-mon), or third tuesday (3-tue) of the month
+ *                     enum: [day, week, month, 1-mon, 2-wed, 3-tue, 2-fri, 4-sun, 5-thu, 1-sat]
+ *                   unavailable_dates:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   custom_dates:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         date:
+ *                           type: string
+ *                         start_time:
+ *                           type: string
+ *                         end_time:
+ *                           type: string
  *     responses:
  *       200:
  *         description: The new shop
@@ -62,41 +115,13 @@ const createShop = async (req: Request, res: Response) => {
   const { user_id, name, description, is_close, status, source, profile_photo, cover_photo } = data
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== user_id)
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to create a shop for another user.',
-    })
-
-  let _user
-  let _community
-
-  // check if user id is valid
-  try {
-    _user = await UsersService.getUserByID(user_id)
-    if (_user.status === 'archived')
-      return res.status(400).json({
-        status: 'error',
-        message: `User with id ${user_id} is currently archived!`,
-      })
-  } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-  }
-
-  // check if community id is valid
-  try {
-    _community = await CommunityService.getCommunityByID(_user.community_id)
-    if (_community.archived)
-      return res.status(400).json({
-        status: 'error',
-        message: `Community of user ${_user.email} is currently archived!`,
-      })
-  } catch (e) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Community of user ${_user.email} is does not exist!`,
-    })
-  }
+  const requestorCommunityId = res.locals.userDoc.community_id || ''
+  // if (!roles.editor && requestorDocId !== user_id) {
+  //   return res.status(403).json({
+  //     status: 'error',
+  //     message: 'You do not have a permission to create a shop for another user.',
+  //   })
+  // }
 
   const error_fields = validateFields(data, required_fields)
   if (error_fields.length) {
@@ -107,11 +132,11 @@ const createShop = async (req: Request, res: Response) => {
 
   const keywords = generateShopKeywords({ name })
 
-  const _newData: any = {
+  const shopData: any = {
     name,
     description,
     user_id,
-    community_id: _user.community_id,
+    community_id: requestorCommunityId,
     is_close: is_close || false,
     status: status || 'enabled',
     keywords,
@@ -120,20 +145,47 @@ const createShop = async (req: Request, res: Response) => {
     updated_from: source || '',
   }
 
-  if (profile_photo) _newData.profile_photo = profile_photo
-  if (cover_photo) _newData.cover_photo = cover_photo
+  const operatingHoursValidation = validateOperatingHours(data.operating_hours)
+  if (!operatingHoursValidation.valid) {
+    return res.status(400).json({
+      status: 'error',
+      ...operatingHoursValidation,
+    })
+  }
 
-  const _newShop = await ShopsService.createShop(_newData)
+  const {
+    start_time,
+    end_time,
+    start_dates,
+    repeat_unit,
+    repeat_type,
+    unavailable_dates,
+    custom_dates,
+  } = data.operating_hours
 
-  // get the created shop's data
-  let _result = await _newShop.get().then((doc) => {
-    return doc.data()
-  })
+  shopData.operating_hours = {
+    start_time,
+    end_time,
+    start_dates,
+    repeat_unit,
+    repeat_type,
+    schedule: generateSchedule({
+      start_time,
+      end_time,
+      start_dates,
+      repeat_unit,
+      repeat_type,
+      unavailable_dates,
+      custom_dates,
+    }),
+  }
 
-  // add the shop document id
-  _result.id = _newShop.id
+  if (profile_photo) shopData.profile_photo = profile_photo
+  if (cover_photo) shopData.cover_photo = cover_photo
 
-  return res.json({ status: 'ok', data: _result })
+  const result = await ShopsService.createShop(shopData)
+
+  return res.json({ status: 'ok', data: result })
 }
 
 export default createShop

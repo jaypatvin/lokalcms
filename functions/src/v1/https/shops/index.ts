@@ -98,7 +98,7 @@
  *                       type: string
  */
 
-export const required_fields = ['name', 'description', 'user_id']
+export const required_fields = ['name', 'description', 'user_id', 'operating_hours']
 
 export { default as createShop } from './createShop'
 export { default as updateShop } from './updateShop'
