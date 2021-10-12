@@ -111,14 +111,8 @@ const ProductCreateUpdateForm = ({
   }
 
   const constructAvailability = () => {
-    const {
-      repeat_type,
-      repeat_unit,
-      start_time,
-      end_time,
-      start_dates,
-      schedule,
-    } = shop.operating_hours
+    const { repeat_type, repeat_unit, start_time, end_time, start_dates, schedule } =
+      shop.operating_hours
     let unavailable_dates = unavailableDates
     const custom_dates: any = []
     if (schedule && schedule.custom) {
@@ -165,27 +159,22 @@ const ProductCreateUpdateForm = ({
           }
         }
       }
-      console.log('data', data)
+      const productData = { ...data }
+      if (useCustomAvailability && unavailableDates.length) {
+        productData.availability = constructAvailability()
+      }
+      console.log('data', productData)
       let res: any = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method,
-        body: JSON.stringify({ ...data, source: 'cms' }),
+        body: JSON.stringify({ ...productData, source: 'cms' }),
       })
       res = await res.json()
       setResponseData(res)
-      if (res.status !== 'error' && useCustomAvailability && unavailableDates.length) {
-        await fetch(`${API_URL}/products/${res.data.id || data.id}/availability`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${firebaseToken}`,
-          },
-          method: 'PUT',
-          body: JSON.stringify({ ...constructAvailability(), source: 'cms' }),
-        })
-        setResponseData({})
+      if (res.status !== 'error') {
         setData(initialData)
         if (setIsOpen) {
           setIsOpen(false)

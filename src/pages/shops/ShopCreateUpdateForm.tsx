@@ -109,20 +109,15 @@ const ShopCreateUpdateForm = ({
           Authorization: `Bearer ${firebaseToken}`,
         },
         method,
-        body: JSON.stringify({ ...data, source: 'cms' }),
+        body: JSON.stringify({
+          ...data,
+          operating_hours: constructOperatingHours(),
+          source: 'cms',
+        }),
       })
       res = await res.json()
       setResponseData(res)
-      if (res.status !== 'error' && openSchedule) {
-        await fetch(`${API_URL}/shops/${res.data.id}/operatingHours`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${firebaseToken}`,
-          },
-          method: 'PUT',
-          body: JSON.stringify({ ...constructOperatingHours(), source: 'cms' }),
-        })
-        setResponseData({})
+      if (res.status !== 'error') {
         setData(initialData)
         if (setIsOpen) {
           setIsOpen(false)
@@ -340,153 +335,143 @@ const ShopCreateUpdateForm = ({
         />
       </div>
       <div>
-        <Checkbox
-          label="Set operating hours"
-          onChange={() => setOpenSchedule(!openSchedule)}
-          noMargin
-          value={openSchedule}
+        <TextField
+          required
+          label="opening"
+          type="text"
+          size="small"
+          onChange={(e) => setStartTime(e.target.value)}
+          value={startTime}
         />
-      </div>
-      {openSchedule && (
-        <div className="p-2">
-          <TextField
-            required
-            label="opening"
-            type="text"
-            size="small"
-            onChange={(e) => setStartTime(e.target.value)}
-            value={startTime}
+        <TextField
+          required
+          label="closing"
+          type="text"
+          size="small"
+          onChange={(e) => setEndTime(e.target.value)}
+          value={endTime}
+        />
+        <div className="flex items-center mb-5">
+          <p>Every</p>
+          <input
+            className="border-2 w-10 mx-3"
+            type="number"
+            max="99"
+            min="0"
+            onChange={(e) => {
+              setRepeatUnit(e.currentTarget.valueAsNumber)
+              resetDates()
+            }}
+            value={repeatUnit}
           />
-          <TextField
-            required
-            label="closing"
-            type="text"
-            size="small"
-            onChange={(e) => setEndTime(e.target.value)}
-            value={endTime}
+          <Dropdown
+            className="ml-2 z-10"
+            simpleOptions={['day', 'week', 'month']}
+            onSelect={(option: any) => {
+              setRepeatType(option.value)
+              resetDates()
+            }}
+            currentValue={repeatType}
           />
-          <div className="flex items-center mb-5">
-            <p>Every</p>
-            <input
-              className="border-2 w-10 mx-3"
-              type="number"
-              max="99"
-              min="0"
-              onChange={(e) => {
-                setRepeatUnit(e.currentTarget.valueAsNumber)
-                resetDates()
-              }}
-              value={repeatUnit}
-            />
-            <Dropdown
-              className="ml-2 z-10"
-              simpleOptions={['day', 'week', 'month']}
-              onSelect={(option: any) => {
-                setRepeatType(option.value)
-                resetDates()
-              }}
-              currentValue={repeatType}
-            />
-          </div>
-          {repeatType === 'week' && (
-            <div className="flex mb-5">
-              {days.map((day) => (
-                <button
-                  className={`rounded-full border-2 w-10 h-10 m-2 capitalize ${
-                    daysOpen.includes(day) ? 'bg-yellow-600 text-white' : ''
-                  }`}
-                  type="button"
-                  onClick={() => onClickDayOfTheWeek(day)}
-                >
-                  {day.slice(0, 1)}
-                </button>
-              ))}
-            </div>
-          )}
-          {['day', 'week'].includes(repeatType) && (
-            <div className="flex mb-5 items-center">
-              <p>Start Date</p>
-              <div ref={startCalendarRef} className="relative">
-                <button
-                  className="rounded bg-primary-500 text-white ml-2 p-2"
-                  onClick={() => setShowStartCalendar(!showStartCalendar)}
-                >
-                  {dayjs(startDates[0]).format('MMMM DD')}
-                </button>
-                {showStartCalendar && (
-                  <ReactCalendar
-                    className="w-72 absolute bottom-0 left-full z-20"
-                    onChange={(date: any) => onClickStartDate(date)}
-                    value={startDates[0] || null}
-                    tileDisabled={tileDisabled}
-                    calendarType="US"
-                  />
-                )}
-              </div>
-            </div>
-          )}
-          {repeatType === 'month' && (
-            <div className="mb-5">
-              <span ref={startCalendarRef} className="relative">
-                <button
-                  className="rounded bg-primary-500 text-white p-2"
-                  onClick={() => setShowStartCalendar(!showStartCalendar)}
-                >
-                  Start Date
-                </button>
-                {showStartCalendar && (
-                  <ReactCalendar
-                    className="w-72 absolute bottom-0 left-full z-20"
-                    onChange={(date: any) => setStartDates([date])}
-                    value={startDates[0]}
-                    tileDisabled={tileDisabled}
-                    calendarType="US"
-                  />
-                )}
-              </span>
-              <div className="">
-                <Checkbox
-                  label={`${dayjs(startDates[0]).format('Do')} of the month`}
-                  onChange={() => {
-                    setRepeatMonthType('sameDate')
-                    resetCustomDates()
-                  }}
-                  noMargin
-                  value={repeatMonthType === 'sameDate'}
-                />
-                <Checkbox
-                  label={`Every ${dayjs(
-                    `2021-01-${Math.ceil(dayjs(startDates[0]).date() / 7)}`
-                  ).format('Do')} ${dayjs(startDates[0]).format('dddd')}`}
-                  onChange={() => {
-                    setRepeatMonthType('sameDay')
-                    resetCustomDates()
-                  }}
-                  noMargin
-                  value={repeatMonthType === 'sameDay'}
-                />
-              </div>
-            </div>
-          )}
-          <span ref={customizeCalendarRef} className="relative mb-5">
-            <button
-              className="rounded bg-primary-500 text-white p-2"
-              onClick={() => setShowCustomizeCalendar(!showCustomizeCalendar)}
-            >
-              Customize dates
-            </button>
-            {showCustomizeCalendar && (
-              <ReactCalendar
-                className="w-72 absolute bottom-0 left-full z-20"
-                onChange={(date: any) => onCustomizeDates(date)}
-                tileClassName={getTileClass}
-                calendarType="US"
-                value={null}
-              />
-            )}
-          </span>
         </div>
-      )}
+        {repeatType === 'week' && (
+          <div className="flex mb-5">
+            {days.map((day) => (
+              <button
+                className={`rounded-full border-2 w-10 h-10 m-2 capitalize ${
+                  daysOpen.includes(day) ? 'bg-yellow-600 text-white' : ''
+                }`}
+                type="button"
+                onClick={() => onClickDayOfTheWeek(day)}
+              >
+                {day.slice(0, 1)}
+              </button>
+            ))}
+          </div>
+        )}
+        {['day', 'week'].includes(repeatType) && (
+          <div className="flex mb-5 items-center">
+            <p>Start Date</p>
+            <div ref={startCalendarRef} className="relative">
+              <button
+                className="rounded bg-primary-500 text-white ml-2 p-2"
+                onClick={() => setShowStartCalendar(!showStartCalendar)}
+              >
+                {dayjs(startDates[0]).format('MMMM DD')}
+              </button>
+              {showStartCalendar && (
+                <ReactCalendar
+                  className="w-72 absolute bottom-0 left-full z-20"
+                  onChange={(date: any) => onClickStartDate(date)}
+                  value={startDates[0] || null}
+                  tileDisabled={tileDisabled}
+                  calendarType="US"
+                />
+              )}
+            </div>
+          </div>
+        )}
+        {repeatType === 'month' && (
+          <div className="mb-5">
+            <span ref={startCalendarRef} className="relative">
+              <button
+                className="rounded bg-primary-500 text-white p-2"
+                onClick={() => setShowStartCalendar(!showStartCalendar)}
+              >
+                Start Date
+              </button>
+              {showStartCalendar && (
+                <ReactCalendar
+                  className="w-72 absolute bottom-0 left-full z-20"
+                  onChange={(date: any) => setStartDates([date])}
+                  value={startDates[0]}
+                  tileDisabled={tileDisabled}
+                  calendarType="US"
+                />
+              )}
+            </span>
+            <div className="">
+              <Checkbox
+                label={`${dayjs(startDates[0]).format('Do')} of the month`}
+                onChange={() => {
+                  setRepeatMonthType('sameDate')
+                  resetCustomDates()
+                }}
+                noMargin
+                value={repeatMonthType === 'sameDate'}
+              />
+              <Checkbox
+                label={`Every ${dayjs(
+                  `2021-01-${Math.ceil(dayjs(startDates[0]).date() / 7)}`
+                ).format('Do')} ${dayjs(startDates[0]).format('dddd')}`}
+                onChange={() => {
+                  setRepeatMonthType('sameDay')
+                  resetCustomDates()
+                }}
+                noMargin
+                value={repeatMonthType === 'sameDay'}
+              />
+            </div>
+          </div>
+        )}
+        <span ref={customizeCalendarRef} className="relative mb-5">
+          <button
+            className="rounded bg-primary-500 text-white p-2"
+            onClick={() => setShowCustomizeCalendar(!showCustomizeCalendar)}
+          >
+            Customize dates
+          </button>
+          {showCustomizeCalendar && (
+            <ReactCalendar
+              className="w-72 absolute bottom-0 left-full z-20"
+              onChange={(date: any) => onCustomizeDates(date)}
+              tileClassName={getTileClass}
+              calendarType="US"
+              value={null}
+            />
+          )}
+        </span>
+      </div>
       {responseData.status === 'error' && (
         <p className="text-red-600 text-center">{responseData.message}</p>
       )}
