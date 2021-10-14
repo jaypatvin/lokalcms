@@ -184,6 +184,7 @@ const createOrder = async (req: Request, res: Response) => {
       product_name: product.name,
       product_description: product.description,
       product_price: product.base_price,
+      product_category: product.product_category,
       instruction,
     }
     if (product.gallery && product.gallery.length) {
