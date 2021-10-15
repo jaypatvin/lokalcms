@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ORDER_STATUS } from './index'
-import { NotificationsService, OrdersService } from '../../../service'
+import { NotificationsService, OrdersService, ProductsService } from '../../../service'
 
 /**
  * @openapi
@@ -100,6 +100,9 @@ const declineOrder = async (req: Request, res: Response) => {
     after: ORDER_STATUS.CANCELLED,
   }
 
+  for (const orderProduct of order.products) {
+    await ProductsService.incrementProductQuantity(orderProduct.product_id, orderProduct.quantity)
+  }
   const result = await OrdersService.updateOrder(orderId, updateData)
 
   await OrdersService.createOrderStatusHistory(orderId, statusChange)

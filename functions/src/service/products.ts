@@ -81,6 +81,24 @@ export const updateProduct = async (id, data) => {
     .update({ ...data, updated_at: new Date() })
 }
 
+export const incrementProductQuantity = async (id: string, amount: number) => {
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update({
+      quantity: admin.firestore.FieldValue.increment(amount),
+    })
+}
+
+export const decrementProductQuantity = async (id: string, amount: number) => {
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update({
+      quantity: admin.firestore.FieldValue.increment(-amount),
+    })
+}
+
 export const archiveProduct = async (id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
