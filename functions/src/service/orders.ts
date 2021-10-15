@@ -26,6 +26,14 @@ export const getOrdersByCommunityId = async (id: string) => {
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
+export const getOrdersByBuyerId = async (id: string) => {
+  return await db
+    .collection(collectionName)
+    .where('buyer_id', '==', id)
+    .get()
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getOrdersByProductSubscriptionIdAndDate = async (id: string, date: string) => {
   return await db
     .collection(collectionName)

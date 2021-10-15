@@ -8,7 +8,7 @@ const getScheduledAvailableItems = (
   scheduleFieldName: 'availability' | 'operating_hours',
   options: any = {}
 ) => {
-  const { date, maxRangeDays = 30 } = options
+  const { date = dayjs(new Date()).format('YYYY-MM-DD'), maxRangeDays = 30 } = options
   const day = DayKeyVal[dayjs(date).day()]
   const dateNum = dayjs(date).date()
   const nthWeek = Math.ceil(dateNum / 7)
