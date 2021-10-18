@@ -160,8 +160,8 @@ const createOrder = async (req: Request, res: Response) => {
   }
 
   const orderProducts = []
-  for (let i = 0; i < products.length; i++) {
-    const { id, quantity, instruction = '' } = products[i]
+  for (const rawOrderProduct of products) {
+    const { id, quantity, instruction = '' } = rawOrderProduct
     const product = await ProductsService.getProductByID(id)
     if (!product) {
       return res
@@ -178,6 +178,11 @@ const createOrder = async (req: Request, res: Response) => {
         .status(400)
         .json({ status: 'error', message: `Quantity of ${product.name} is not valid` })
     }
+    if (product.quantity - quantity < 0) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: `Product "${product.name}" only has ${product.quantity} left.` })
+    }
     const orderProduct: any = {
       product_id: id,
       quantity,
@@ -191,6 +196,9 @@ const createOrder = async (req: Request, res: Response) => {
       orderProduct.product_image = product.gallery[0].url
     }
     orderProducts.push(orderProduct)
+  }
+  for (const product of products) {
+    await ProductsService.decrementProductQuantity(product.id, product.quantity)
   }
   const productIds = products.map((p) => p.id)
 
