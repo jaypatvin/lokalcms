@@ -42,9 +42,8 @@ import getScheduledAvailableItems from '../../../utils/getScheduledAvailableItem
  *                     $ref: '#/components/schemas/Product'
  */
 const getRecommendedProducts = async (req: Request, res: Response) => {
-  const { userId, communityId } = req.query
-  const buyer_id = res.locals.userDoc.id || userId
-  const community_id = res.locals.userDoc.commuity_id || communityId
+  const buyer_id = res.locals.userDoc.id
+  const community_id = res.locals.userDoc.commuity_id
 
   if (!buyer_id || !community_id) {
     return res
@@ -53,10 +52,8 @@ const getRecommendedProducts = async (req: Request, res: Response) => {
   }
 
   const allProducts = await ProductsService.getProductsByCommunityID(community_id)
-  console.log('allProducts', allProducts)
 
   const allUserOrders = await OrdersService.getOrdersByBuyerId(buyer_id)
-  console.log('allUserOrders', allUserOrders)
 
   // get product categories from all the orders
   const ordersCategories = allUserOrders.reduce((acc, order) => {
@@ -70,7 +67,6 @@ const getRecommendedProducts = async (req: Request, res: Response) => {
     return acc
   }, {})
 
-  console.log('ordersCategories', ordersCategories)
 
   // get the top 3 most used category from the products
   const sortedCategories = Object.entries(ordersCategories).sort((a, b) => {
@@ -78,17 +74,14 @@ const getRecommendedProducts = async (req: Request, res: Response) => {
     return -1
   })
 
-  console.log('sortedCategories', sortedCategories)
 
   const topCategories = []
   for (let i = 0; i < Math.min(sortedCategories.length, 3); i++) {
     topCategories.push(sortedCategories[i][0])
   }
-  console.log('topCategories', topCategories)
 
   // filter the products based on the top categories
   const recommendedProducts = allProducts.filter((p) => topCategories.includes(p.product_category))
-  console.log('recommendedProducts', recommendedProducts)
 
   const products = getScheduledAvailableItems(recommendedProducts, 'availability')
 
