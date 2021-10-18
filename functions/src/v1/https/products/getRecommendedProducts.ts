@@ -12,19 +12,6 @@ import getScheduledAvailableItems from '../../../utils/getScheduledAvailableItem
  *       - bearerAuth: []
  *     description: |
  *       ### This will return list of recommended products based on user's history of ordering, likes and views
- *     parameters:
- *       - in: query
- *         name: userId
- *         required: true
- *         description: document id of the community
- *         schema:
- *           type: string
- *       - in: query
- *         name: communityId
- *         required: true
- *         description: document id of the community
- *         schema:
- *           type: string
  *     responses:
  *       200:
  *         description: Array of products
