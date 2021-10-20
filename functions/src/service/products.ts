@@ -191,7 +191,7 @@ export const incrementProductLikeCount = async (id: string) => {
     })
 }
 
-export const deccrementProductLikeCount = async (id: string) => {
+export const decrementProductLikeCount = async (id: string) => {
   return await db
     .collection(collectionName)
     .doc(id)

@@ -133,3 +133,21 @@ export const searchShops = async ({ search, community_id }) => {
   if (community_id) ref = ref.where('community_id', '==', community_id)
   return await ref.get()
 }
+
+export const incrementShopLikeCount = async (id: string) => {
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update({
+      '_meta.likes_count': admin.firestore.FieldValue.increment(1),
+    })
+}
+
+export const decrementShopLikeCount = async (id: string) => {
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update({
+      '_meta.likes_count': admin.firestore.FieldValue.increment(-1),
+    })
+}

@@ -1,20 +1,20 @@
 import { Request, Response } from 'express'
-import { LikesService, ProductsService } from '../../../service'
+import { LikesService, ShopsService } from '../../../service'
 
 /**
  * @openapi
- * /v1/products/{productId}/unlike:
+ * /v1/shops/{shopId}/unlike:
  *   delete:
  *     tags:
- *       - products
+ *       - shops
  *     security:
  *       - bearerAuth: []
- *     description: Like a product
+ *     description: Like a shop
  *     parameters:
  *       - in: path
- *         name: productId
+ *         name: shopId
  *         required: true
- *         description: document id of the product
+ *         description: document id of the shop
  *         schema:
  *           type: string
  *     requestBody:
@@ -38,32 +38,32 @@ import { LikesService, ProductsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const unlikeProduct = async (req: Request, res: Response) => {
-  const { productId } = req.params
+const unlikeShop = async (req: Request, res: Response) => {
+  const { shopId } = req.params
   const { user_id } = req.body
   const requestorDocId = res.locals.userDoc.id || user_id
 
-  if (!productId) {
-    return res.status(400).json({ status: 'error', message: 'product id is required!' })
+  if (!shopId) {
+    return res.status(400).json({ status: 'error', message: 'shop id is required!' })
   }
-  const product = await ProductsService.getProductByID(productId)
-  if (!product) {
-    return res.status(400).json({ status: 'error', message: 'Product does not exist!' })
+  const shop = await ShopsService.getShopByID(shopId)
+  if (!shop) {
+    return res.status(400).json({ status: 'error', message: 'Shop does not exist!' })
   }
-  if (product.archived) {
+  if (shop.archived) {
     return res.status(400).json({
       status: 'error',
-      message: `Product with id ${productId} is currently archived!`,
+      message: `Shop with id ${shopId} is currently archived!`,
     })
   }
 
-  const exists = await LikesService.getProductLike(productId, requestorDocId)
+  const exists = await LikesService.getShopLike(shopId, requestorDocId)
   if (exists) {
-    await ProductsService.decrementProductLikeCount(productId)
-    await LikesService.removeProductLike(productId, requestorDocId)
+    await ShopsService.decrementShopLikeCount(shopId)
+    await LikesService.removeShopLike(shopId, requestorDocId)
   }
 
   return res.status(200).json({ status: 'ok' })
 }
 
-export default unlikeProduct
+export default unlikeShop
