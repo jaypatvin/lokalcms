@@ -171,6 +171,10 @@ module.exports = (api: Express) => {
   api.route('/v1/activities/:activityId/comments/:commentId/unarchive').put(wrapAsync(CommentsAPI.unarchiveComment))
 
   // -- Likes routes
+  api.route('/v1/products/:productId/like').post(wrapAsync(LikesAPI.likeProduct))
+  api.route('/v1/products/:productId/unlike').delete(wrapAsync(LikesAPI.unlikeProduct))
+  api.route('/v1/shops/:shopId/like').post(wrapAsync(LikesAPI.likeShop))
+  api.route('/v1/shops/:shopId/unlike').delete(wrapAsync(LikesAPI.unlikeShop))
   api.route('/v1/activities/:activityId/like').post(wrapAsync(LikesAPI.likeActivity))
   api.route('/v1/activities/:activityId/unlike').delete(wrapAsync(LikesAPI.unlikeActivity))
   api.route('/v1/activities/:activityId/comments/:commentId/like').post(wrapAsync(LikesAPI.likeComment))
