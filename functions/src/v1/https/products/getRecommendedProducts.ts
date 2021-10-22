@@ -107,10 +107,32 @@ const getRecommendedProducts = async (req: Request, res: Response) => {
   })
 
   // get more recommended products based on liked shops
+  const recommendedProductsIds = recommendedProducts.map((p) => p.id)
+  let recommendedShopProducts = []
+  if (sortedCategories.length > 3) {
+    const otherCategories = sortedCategories.slice(3, 10).map((category) => category[0])
+    const shopLikes = await LikesService.getLikesByUser(buyer_id, 'shops')
+    for (const like of shopLikes) {
+      if (like.shop_id) {
+        const shopProducts = await ProductsService.getCommunityProductsWithFilter({
+          community_id,
+          wheres: [
+            ['product_category', 'in', otherCategories],
+            ['shop_id', '==', like.shop_id],
+          ],
+        })
+        recommendedShopProducts.push(...shopProducts)
+      }
+    }
+    recommendedShopProducts = recommendedShopProducts.filter(
+      (p) => !recommendedProductsIds.includes(p.id)
+    )
+  }
 
   const products = getScheduledAvailableItems(recommendedProducts, 'availability')
+  const moreProducts = getScheduledAvailableItems(recommendedShopProducts, 'availability')
 
-  return res.status(200).json({ status: 'ok', data: products })
+  return res.status(200).json({ status: 'ok', data: [...products, ...moreProducts] })
 }
 
 export default getRecommendedProducts
