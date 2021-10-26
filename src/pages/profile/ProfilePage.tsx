@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { fetchUserByID } from '../../services/users'
-import UserCreateUpdateForm from './UserCreateUpdateForm'
 
 type Props = {
-  useCurrentUser?: boolean
   [x: string]: any
 }
 
-const UserEditPage = ({ match }: Props) => {
-  const [user, setUser] = useState<any>()
+const ProfilePage = ({ match }: Props) => {
+  const [user, setUser] = useState<any>({})
 
   const normalizeUserData = (data: any) => {
     return {
@@ -26,25 +24,16 @@ const UserEditPage = ({ match }: Props) => {
 
   const fetchUser = async (id: string) => {
     const userRef: any = await fetchUserByID(id)
-    let userToEdit = userRef.data()
-    userToEdit = { ...normalizeUserData(userToEdit), id }
-    setUser(userToEdit)
+    let userData = userRef.data()
+    userData = { ...normalizeUserData(userData), id }
+    setUser(userData)
   }
 
   useEffect(() => {
     fetchUser(match.params.id)
   }, [match.params])
 
-  return (
-    <div className="container">
-      {user && (
-        <>
-          <h3>User Edit: {user.display_name || `${user.first_name} ${user.last_name}`}</h3>
-          <UserCreateUpdateForm dataToUpdate={user} isModal={false} mode="update" />
-        </>
-      )}
-    </div>
-  )
+  return <h3>{user.display_name}</h3>
 }
 
-export default UserEditPage
+export default ProfilePage

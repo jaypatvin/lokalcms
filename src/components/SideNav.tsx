@@ -13,9 +13,24 @@ import { ItemType } from '../utils/types'
 
 const menus = [
   {
-    key: 'dashboard',
-    label: 'Dashboard',
-    icon: <IoMdHome size={23} />,
+    key: 'activities',
+    label: 'Activities',
+    icon: <IoIosContacts size={23} />,
+  },
+  {
+    key: 'applicationLogs',
+    label: 'Application Logs',
+    icon: <IoMdSettings size={23} />,
+  },
+  {
+    key: 'categories',
+    label: 'Categories',
+    icon: <IoIosBasket size={23} />,
+  },
+  {
+    key: 'chats',
+    label: 'Chats',
+    icon: <IoIosPeople size={23} />,
   },
   {
     key: 'communities',
@@ -23,9 +38,9 @@ const menus = [
     icon: <IoIosContacts size={23} />,
   },
   {
-    key: 'activities',
-    label: 'Activities',
-    icon: <IoIosContacts size={23} />,
+    key: 'createOrder',
+    label: 'Create Order',
+    icon: <IoIosBasket size={23} />,
   },
   {
     key: 'discover',
@@ -33,8 +48,18 @@ const menus = [
     icon: <IoIosContacts size={23} />,
   },
   {
-    key: 'shops',
-    label: 'Shops',
+    key: 'history',
+    label: 'History Logs',
+    icon: <IoMdSettings size={23} />,
+  },
+  {
+    key: 'invites',
+    label: 'Invites',
+    icon: <IoIosPaperPlane size={23} />,
+  },
+  {
+    key: 'orders',
+    label: 'Orders',
     icon: <IoIosBasket size={23} />,
   },
   {
@@ -48,49 +73,19 @@ const menus = [
     icon: <IoIosBasket size={23} />,
   },
   {
-    key: 'createOrder',
-    label: 'Create Order',
-    icon: <IoIosBasket size={23} />,
+    key: 'settings',
+    label: 'Setting',
+    icon: <IoMdSettings size={23} />,
   },
   {
-    key: 'orders',
-    label: 'Orders',
-    icon: <IoIosBasket size={23} />,
-  },
-  {
-    key: 'categories',
-    label: 'Categories',
+    key: 'shops',
+    label: 'Shops',
     icon: <IoIosBasket size={23} />,
   },
   {
     key: 'users',
     label: 'Users',
     icon: <IoIosPeople size={23} />,
-  },
-  {
-    key: 'chats',
-    label: 'Chats',
-    icon: <IoIosPeople size={23} />,
-  },
-  {
-    key: 'invites',
-    label: 'Invites',
-    icon: <IoIosPaperPlane size={23} />,
-  },
-  {
-    key: 'settings',
-    label: 'Setting',
-    icon: <IoMdSettings size={23} />,
-  },
-  {
-    key: 'history',
-    label: 'History Logs',
-    icon: <IoMdSettings size={23} />,
-  },
-  {
-    key: 'applicationLogs',
-    label: 'Application Logs',
-    icon: <IoMdSettings size={23} />,
   },
 ]
 
