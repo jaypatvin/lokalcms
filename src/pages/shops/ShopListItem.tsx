@@ -3,12 +3,12 @@ import dayjs from 'dayjs'
 import advancedFormat from 'dayjs/plugin/advancedFormat'
 import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
 import useOuterClick from '../../customHooks/useOuterClick'
-import { DayKeyVal, ListItemProps } from '../../utils/types'
+import { DayKeyVal, ListItemProps, nthDayOfMonthFormat } from '../../utils/types'
 import { OutlineButton } from '../../components/buttons'
+import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
+import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
 
 dayjs.extend(advancedFormat)
-
-const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
 
 const ShopListItem = ({
   data,
@@ -35,111 +35,6 @@ const ShopListItem = ({
   if (data.updated_at) {
     updated_at = dayjs(data.updated_at.toDate()).format()
     updated_at_ago = dayjs(updated_at).fromNow()
-  }
-
-  let operating_hours = '-'
-  if (data.operating_hours) {
-    const {
-      start_dates,
-      repeat_unit,
-      repeat_type,
-      schedule: { mon, tue, wed, thu, fri, sat, sun },
-    } = data.operating_hours
-    if (repeat_unit === 0) {
-      operating_hours = start_dates[0]
-    } else if (repeat_unit > 0) {
-      const daysAvailable = []
-      if (mon) daysAvailable.push('monday')
-      if (tue) daysAvailable.push('tuesday')
-      if (wed) daysAvailable.push('wednesday')
-      if (thu) daysAvailable.push('thursday')
-      if (fri) daysAvailable.push('friday')
-      if (sat) daysAvailable.push('saturday')
-      if (sun) daysAvailable.push('sunday')
-      if (repeat_unit === 1) {
-        if (repeat_type === 'day') operating_hours = 'Every day'
-        if (repeat_type === 'week') operating_hours = `Every week on ${daysAvailable}`
-        if (repeat_type === 'month')
-          operating_hours = `Every ${dayjs(start_dates[0]).format('Do')} of the month`
-        if (nthDayOfMonthFormat.test(repeat_type)) {
-          const [nth] = repeat_type.split('-')
-          operating_hours = `Every ${dayjs(`2021-01-${nth}`).format('Do')} ${dayjs(
-            start_dates[0]
-          ).format('dddd')}`
-        }
-      } else if (repeat_unit > 1) {
-        if (repeat_type === 'day') operating_hours = `Every ${repeat_unit} days`
-        if (repeat_type === 'week')
-          operating_hours = `Every ${repeat_unit} weeks on ${daysAvailable}`
-        if (repeat_type === 'month')
-          operating_hours = `Every ${dayjs(start_dates[0]).format(
-            'Do'
-          )} of every ${repeat_unit} months`
-        if (nthDayOfMonthFormat.test(repeat_type)) {
-          const [nth] = repeat_type.split('-')
-          operating_hours = `Every ${dayjs(`2021-01-${nth}`).format('Do')} ${dayjs(
-            start_dates[0]
-          ).format('dddd')} of every ${repeat_unit} months`
-        }
-      }
-    }
-  }
-
-  const getTileClass = ({ date }: CalendarTileProperties) => {
-    const { start_dates, repeat_unit, repeat_type, schedule } = data.operating_hours
-    const firstDate = start_dates[0]
-    const firstDateDay = DayKeyVal[dayjs(firstDate).day()]
-    const firstDateNumToCheck = dayjs(firstDate).date()
-    const firstDateNthWeek = Math.ceil(firstDateNumToCheck / 7)
-    const firstDateNthDayOfMonth = `${firstDateNthWeek}-${firstDateDay}`
-    const tileDate = dayjs(date)
-    const tileDateDay = DayKeyVal[tileDate.day()]
-    const tileDateNumToCheck = tileDate.date()
-    const tileDateNthWeek = Math.ceil(tileDateNumToCheck / 7)
-    const tileDateNthDayOfMonth = `${tileDateNthWeek}-${tileDateDay}`
-    const day = DayKeyVal[tileDate.day()]
-    const schedDay = schedule[day]
-    let customDate
-    let tileClass = null
-    if (schedule.custom) {
-      customDate = schedule.custom[tileDate.format('YYYY-MM-DD')]
-    }
-    if (customDate && customDate.unavailable) {
-      tileClass = 'gray'
-    } else if (customDate && customDate.start_time && customDate.end_time) {
-      tileClass = 'yellow'
-    } else {
-      if (repeat_type === 'day') {
-        const isValid = dayjs(date).diff(firstDate, 'days') % repeat_unit === 0
-        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
-          tileClass = 'orange'
-        }
-      }
-      if (repeat_type === 'week' && schedDay) {
-        const isValid = dayjs(date).diff(schedDay.start_date, 'weeks') % repeat_unit === 0
-        if (
-          isValid &&
-          (dayjs(schedDay.start_date).isBefore(date) || dayjs(schedDay.start_date).isSame(date))
-        ) {
-          tileClass = 'orange'
-        }
-      }
-      if (repeat_type === 'month') {
-        const isValid =
-          dayjs(firstDate).date() === dayjs(date).date() &&
-          dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
-        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
-          tileClass = 'orange'
-        }
-      }
-      if (nthDayOfMonthFormat.test(repeat_type)) {
-        const isValid = firstDateNthDayOfMonth === tileDateNthDayOfMonth  && dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
-        if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
-          tileClass = 'orange'
-        }
-      }
-    }
-    return tileClass
   }
 
   const OptionsComponent = isArchived ? (
@@ -198,11 +93,15 @@ const ShopListItem = ({
             icon="calendar"
             onClick={() => setShowCalendar(!showCalendar)}
           />
-          {operating_hours}
+          {getAvailabilitySummary(data.operating_hours)}
         </p>
         {showCalendar && (
           <div className="w-64 absolute z-10 shadow">
-            <ReactCalendar tileClassName={getTileClass} onChange={() => null} calendarType="US" />
+            <ReactCalendar
+              tileClassName={getCalendarTileClassFn(data.operating_hours)}
+              onChange={() => null}
+              calendarType="US"
+            />
           </div>
         )}
       </td>

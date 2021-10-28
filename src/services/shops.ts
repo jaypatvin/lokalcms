@@ -21,6 +21,10 @@ export const getShopsByCommunity = (community_id: string) => {
     .where('archived', '==', false)
 }
 
+export const getShopsByUser = (user_id: string) => {
+  return db.collection('shops').where('user_id', '==', user_id).where('archived', '==', false)
+}
+
 export const getShops = ({
   search = '',
   filter = 'all',

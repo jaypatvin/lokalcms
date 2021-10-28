@@ -135,7 +135,7 @@ const ProductSubscriptions = ({ subscriptionPlan, show, onClose }: Props) => {
               onClick={onNextPage}
             />
           </div>
-          <div className="table-wrapper w-full overflow-x-auto">
+          <div className="table-wrapper w-full">
             <div className="table-container">
               <table>
                 <thead>

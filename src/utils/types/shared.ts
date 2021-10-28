@@ -51,3 +51,4 @@ export const DayKeyVal: { [x: number]: Days } = {
   5: 'fri',
   6: 'sat',
 }
+export const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/

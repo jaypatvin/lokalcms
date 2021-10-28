@@ -21,11 +21,9 @@ export const getProductsByShop = (shop_id: string) => {
     .where('archived', '==', false)
     .where('status', '==', 'enabled')
 }
+
 export const getProductsByUser = (user_id: string) => {
-  return db
-    .collection('products')
-    .where('user_id', '==', user_id)
-    .where('archived', '==', false)
+  return db.collection('products').where('user_id', '==', user_id).where('archived', '==', false)
 }
 
 export const getProducts = ({

@@ -1,13 +1,15 @@
-import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
+import ReactLoading from 'react-loading'
+import dayjs from 'dayjs'
 import { fetchUserByID } from '../../services/users'
 import MenuList from '../../components/MenuList'
 import { MenuItemType } from '../../utils/types'
 import { getProductsByUser } from '../../services/products'
 import Dropdown from '../../components/Dropdown'
 import { Button } from '../../components/buttons'
-import SortButton from '../../components/buttons/SortButton'
-import { fetchShopByID } from '../../services/shops'
+import { fetchShopByID, getShopsByUser } from '../../services/shops'
+import UserProductsTable from './UserProductsTable'
+import UserShopsTable from './UserShopsTable'
 
 type Props = {
   [x: string]: any
@@ -26,37 +28,38 @@ const ProfilePage = ({ match }: Props) => {
   const [user, setUser] = useState<any>({})
   const [dataToShow, setDataToShow] = useState<DataType>('products')
   const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   const items: MenuItemType[] = [
     {
       key: 'activities',
       name: 'Activities',
-      onClick: () => setDataToShow('activities'),
+      onClick: () => onChangeDataToShow('activities'),
     },
     {
       key: 'history',
       name: 'History',
-      onClick: () => setDataToShow('history'),
+      onClick: () => onChangeDataToShow('history'),
     },
     {
       key: 'likes',
       name: 'Likes',
-      onClick: () => setDataToShow('likes'),
+      onClick: () => onChangeDataToShow('likes'),
     },
     {
       key: 'orders',
       name: 'Orders',
-      onClick: () => setDataToShow('orders'),
+      onClick: () => onChangeDataToShow('orders'),
     },
     {
       key: 'products',
       name: 'Products',
-      onClick: () => setDataToShow('products'),
+      onClick: () => onChangeDataToShow('products'),
     },
     {
       key: 'shops',
       name: 'Shops',
-      onClick: () => setDataToShow('shops'),
+      onClick: () => onChangeDataToShow('shops'),
     },
     {
       key: 'subscriptions',
@@ -97,6 +100,7 @@ const ProfilePage = ({ match }: Props) => {
   }
 
   const fetchData = async (dataName: string) => {
+    setLoading(true)
     let newData: any = []
     if (dataName === 'products') {
       const newDataRef = await getProductsByUser(user.id || match.params.id).get()
@@ -109,14 +113,23 @@ const ProfilePage = ({ match }: Props) => {
           data.shop_name = shopData.name
         }
       }
+    } else if (dataName === 'shops') {
+      const newDataRef = await getShopsByUser(user.id || match.params.id).get()
+      newData = newDataRef.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
     }
-    console.log('newData', newData)
     setData(newData)
+    setLoading(false)
   }
 
   const setupData = async () => {
     await fetchUser(match.params.id)
     await fetchData(dataToShow)
+    setLoading(false)
+  }
+
+  const onChangeDataToShow = (dataName: DataType) => {
+    setLoading(true)
+    setDataToShow(dataName)
   }
 
   useEffect(() => {
@@ -138,12 +151,13 @@ const ProfilePage = ({ match }: Props) => {
           <p>{user.email}</p>
           <p>Member since {user.createdAtAgo}</p>
           <p>Community: {user.communityName}</p>
-          <div className="p-2">
+          <div className="py-2">
+            <h4 className="text-xl font-semibold">Related Data</h4>
             <MenuList items={items} selected={dataToShow} />
           </div>
         </div>
         <div className="w-full">
-          <h3 className="text-2xl font-semibold leading-tight">{dataToShow}</h3>
+          <h3 className="text-xl font-semibold capitalize">{dataToShow}</h3>
           <div className="flex align-middle mt-2">
             <div className="flex items-center">
               Show:{' '}
@@ -157,82 +171,20 @@ const ProfilePage = ({ match }: Props) => {
             <Button className="ml-5" icon="arrowBack" size="small" color={'secondary'} />
             <Button className="ml-3" icon="arrowForward" size="small" color={'primary'} />
           </div>
-          <div className="table-wrapper w-full overflow-x-auto">
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th key="photo">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Photo"
-                        showSortIcons={false}
-                      />
-                    </th>
-                    <th key="name">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Name"
-                        showSortIcons={false}
-                      />
-                    </th>
-                    <th key="shop">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Shop"
-                        showSortIcons={false}
-                      />
-                    </th>
-                    <th key="price">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Price"
-                        showSortIcons={false}
-                      />
-                    </th>
-                    <th key="quantity">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Quantity"
-                        showSortIcons={false}
-                      />
-                    </th>
-                    <th key="status">
-                      <SortButton
-                        className="text-xs uppercase font-bold"
-                        label="Status"
-                        showSortIcons={false}
-                      />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((d: any) => (
-                    <tr>
-                      <td>
-                        <img src={d.gallery[0].url} alt={d.name} className="max-w-16 max-h-16" />
-                      </td>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">{d.name}</p>
-                      </td>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">{d.shop_name}</p>
-                      </td>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">{d.base_price}</p>
-                      </td>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">{d.quantity}</p>
-                      </td>
-                      <td>
-                        <p className="text-gray-900 whitespace-no-wrap">{d.status}</p>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {loading ? (
+            <div className="h-96 w-full relative">
+              <ReactLoading
+                type="spin"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                color="gray"
+              />
             </div>
-          </div>
+          ) : (
+            <>
+              {dataToShow === 'products' && <UserProductsTable data={data} />}
+              {dataToShow === 'shops' && <UserShopsTable data={data} />}
+            </>
+          )}
         </div>
       </div>
     </div>
