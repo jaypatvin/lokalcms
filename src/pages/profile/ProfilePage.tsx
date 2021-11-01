@@ -4,12 +4,22 @@ import dayjs from 'dayjs'
 import { fetchUserByID } from '../../services/users'
 import MenuList from '../../components/MenuList'
 import { MenuItemType } from '../../utils/types'
-import { getProductsByUser } from '../../services/products'
+import { fetchProductByID, getProductsByUser } from '../../services/products'
 import Dropdown from '../../components/Dropdown'
 import { Button } from '../../components/buttons'
 import { fetchShopByID, getShopsByUser } from '../../services/shops'
 import UserProductsTable from './UserProductsTable'
 import UserShopsTable from './UserShopsTable'
+import { getLikesByUser } from '../../services/likes'
+import { getOrdersByBuyer, getOrdersBySeller } from '../../services/orders'
+import {
+  getProductSubscriptionPlansByBuyer,
+  getProductSubscriptionPlansBySeller,
+} from '../../services/productSubscriptionPlans'
+import { getActivitiesByUser } from '../../services/activities'
+import { getApplicationLogsByUser } from '../../services/applicationLogs'
+import UserProductLikesTable from './UserProductLikesTable'
+import UserShopLikesTable from './UserShopLikesTable'
 
 type Props = {
   [x: string]: any
@@ -17,12 +27,16 @@ type Props = {
 
 type DataType =
   | 'activities'
-  | 'history'
-  | 'likes'
-  | 'orders'
+  | 'application_logs'
+  | 'liked_activities'
+  | 'liked_products'
+  | 'liked_shops'
+  | 'orders_buyer'
+  | 'orders_seller'
   | 'products'
   | 'shops'
-  | 'subscriptions'
+  | 'product_subscription_plans_buyer'
+  | 'product_subscription_plans_seller'
 
 const ProfilePage = ({ match }: Props) => {
   const [user, setUser] = useState<any>({})
@@ -37,19 +51,34 @@ const ProfilePage = ({ match }: Props) => {
       onClick: () => onChangeDataToShow('activities'),
     },
     {
-      key: 'history',
-      name: 'History',
-      onClick: () => onChangeDataToShow('history'),
+      key: 'application_logs',
+      name: 'Application Logs',
+      onClick: () => onChangeDataToShow('application_logs'),
     },
     {
-      key: 'likes',
-      name: 'Likes',
-      onClick: () => onChangeDataToShow('likes'),
+      key: 'liked_activities',
+      name: 'Liked Activities',
+      onClick: () => onChangeDataToShow('liked_activities'),
     },
     {
-      key: 'orders',
-      name: 'Orders',
-      onClick: () => onChangeDataToShow('orders'),
+      key: 'liked_products',
+      name: 'Liked Products',
+      onClick: () => onChangeDataToShow('liked_products'),
+    },
+    {
+      key: 'liked_shops',
+      name: 'Liked Shops',
+      onClick: () => onChangeDataToShow('liked_shops'),
+    },
+    {
+      key: 'orders_buyer',
+      name: 'Orders as Buyer',
+      onClick: () => onChangeDataToShow('orders_buyer'),
+    },
+    {
+      key: 'orders_seller',
+      name: 'Orders as Seller',
+      onClick: () => onChangeDataToShow('orders_seller'),
     },
     {
       key: 'products',
@@ -62,9 +91,14 @@ const ProfilePage = ({ match }: Props) => {
       onClick: () => onChangeDataToShow('shops'),
     },
     {
-      key: 'subscriptions',
-      name: 'Subscriptions',
-      onClick: () => setDataToShow('subscriptions'),
+      key: 'product_subscription_plans_buyer',
+      name: 'Subscription Plans as Buyer',
+      onClick: () => setDataToShow('product_subscription_plans_buyer'),
+    },
+    {
+      key: 'product_subscription_plans_seller',
+      name: 'Subscription Plans as Seller',
+      onClick: () => setDataToShow('product_subscription_plans_seller'),
     },
   ]
 
@@ -99,12 +133,37 @@ const ProfilePage = ({ match }: Props) => {
     }
   }
 
-  const fetchData = async (dataName: string) => {
+  const fetchData = async (dataName: DataType) => {
     setLoading(true)
-    let newData: any = []
+    const userId = user.id || match.params.id
+    let newDataRef: any
     if (dataName === 'products') {
-      const newDataRef = await getProductsByUser(user.id || match.params.id).get()
-      newData = newDataRef.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+      newDataRef = await getProductsByUser(userId).get()
+    } else if (dataName === 'shops') {
+      newDataRef = await getShopsByUser(userId).get()
+    } else if (dataName === 'liked_products') {
+      newDataRef = await getLikesByUser({ userId, entityName: 'products' }).get()
+    } else if (dataName === 'liked_shops') {
+      newDataRef = await getLikesByUser({ userId, entityName: 'shops' }).get()
+    } else if (dataName === 'liked_activities') {
+      newDataRef = await getLikesByUser({ userId, entityName: 'activities' }).get()
+    } else if (dataName === 'orders_buyer') {
+      newDataRef = await getOrdersByBuyer(userId).get()
+    } else if (dataName === 'orders_seller') {
+      newDataRef = await getOrdersBySeller(userId).get()
+    } else if (dataName === 'product_subscription_plans_buyer') {
+      newDataRef = await getProductSubscriptionPlansByBuyer(userId).get()
+    } else if (dataName === 'product_subscription_plans_seller') {
+      newDataRef = await getProductSubscriptionPlansBySeller(userId).get()
+    } else if (dataName === 'activities') {
+      newDataRef = await getActivitiesByUser(userId).get()
+    } else if (dataName === 'application_logs') {
+      newDataRef = await getApplicationLogsByUser(userId).get()
+    }
+    let newData = newDataRef
+      ? newDataRef.docs.map((doc: any) => ({ ...doc.data(), id: doc.id }))
+      : []
+    if (dataName === 'products') {
       for (let i = 0; i < newData.length; i++) {
         const data = newData[i]
         const shop = await fetchShopByID(data.shop_id)
@@ -113,10 +172,35 @@ const ProfilePage = ({ match }: Props) => {
           data.shop_name = shopData.name
         }
       }
-    } else if (dataName === 'shops') {
-      const newDataRef = await getShopsByUser(user.id || match.params.id).get()
-      newData = newDataRef.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+    } else if (dataName === 'liked_products') {
+      const extractedData = []
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const product = await fetchProductByID(data.product_id)
+        const productData = product.data()
+        if (productData) {
+          const shop = await fetchShopByID(productData.shop_id)
+          const shopData = shop.data()
+          if (shopData) {
+            productData.shop_name = shopData.name
+          }
+        }
+        extractedData.push({ ...productData, liked_at: data.created_at })
+      }
+      newData = extractedData
+    } else if (dataName === 'liked_shops') {
+      const extractedData = []
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const shop = await fetchShopByID(data.shop_id)
+        const shopData = shop.data()
+        if (shopData) {
+          extractedData.push({ ...shopData, liked_at: data.created_at })
+        }
+      }
+      newData = extractedData
     }
+    console.log('newData', newData)
     setData(newData)
     setLoading(false)
   }
@@ -183,6 +267,8 @@ const ProfilePage = ({ match }: Props) => {
             <>
               {dataToShow === 'products' && <UserProductsTable data={data} />}
               {dataToShow === 'shops' && <UserShopsTable data={data} />}
+              {dataToShow === 'liked_products' && <UserProductLikesTable data={data} />}
+              {dataToShow === 'liked_shops' && <UserShopLikesTable data={data} />}
             </>
           )}
         </div>

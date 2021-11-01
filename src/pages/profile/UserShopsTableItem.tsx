@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import React, { useState } from 'react'
 import ReactCalendar from 'react-calendar'
 import { OutlineButton } from '../../components/buttons'
@@ -12,6 +13,9 @@ type Props = {
 const UserShopsTableItem = ({ data }: Props) => {
   const [showCalendar, setShowCalendar] = useState(false)
   const calendarRef = useOuterClick(() => setShowCalendar(false))
+
+  const created_at = data.created_at ? dayjs(data.created_at.toDate()).fromNow() : '-'
+  const updated_at = data.updated_at ? dayjs(data.updated_at.toDate()).fromNow() : '-'
 
   return (
     <tr>
@@ -46,6 +50,12 @@ const UserShopsTableItem = ({ data }: Props) => {
       </td>
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.status}</p>
+      </td>
+      <td>
+        <p className="text-gray-900 whitespace-no-wrap">{created_at}</p>
+      </td>
+      <td>
+        <p className="text-gray-900 whitespace-no-wrap">{updated_at}</p>
       </td>
     </tr>
   )

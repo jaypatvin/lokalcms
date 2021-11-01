@@ -23,7 +23,11 @@ export const getProductsByShop = (shop_id: string) => {
 }
 
 export const getProductsByUser = (user_id: string) => {
-  return db.collection('products').where('user_id', '==', user_id).where('archived', '==', false)
+  return db
+    .collection('products')
+    .where('user_id', '==', user_id)
+    .where('archived', '==', false)
+    .orderBy('created_at', 'desc')
 }
 
 export const getProducts = ({

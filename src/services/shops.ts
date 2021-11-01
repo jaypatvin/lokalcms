@@ -22,7 +22,11 @@ export const getShopsByCommunity = (community_id: string) => {
 }
 
 export const getShopsByUser = (user_id: string) => {
-  return db.collection('shops').where('user_id', '==', user_id).where('archived', '==', false)
+  return db
+    .collection('shops')
+    .where('user_id', '==', user_id)
+    .where('archived', '==', false)
+    .orderBy('created_at', 'desc')
 }
 
 export const getShops = ({

@@ -11,6 +11,14 @@ type GetProductSubscriptionPlansParamTypes = {
   sortOrder?: SortOrderType
 }
 
+export const getProductSubscriptionPlansByBuyer = (user_id: string) => {
+  return db.collection('product_subscription_plans').where('buyer_id', '==', user_id).orderBy('created_at', 'desc')
+}
+
+export const getProductSubscriptionPlansBySeller = (user_id: string) => {
+  return db.collection('product_subscription_plans').where('seller_id', '==', user_id).orderBy('created_at', 'desc')
+}
+
 export const getProductSubscriptionPlans = ({
   community_id,
   product_id,

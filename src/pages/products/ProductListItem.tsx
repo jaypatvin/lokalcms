@@ -3,14 +3,13 @@ import dayjs from 'dayjs'
 import advancedFormat from 'dayjs/plugin/advancedFormat'
 import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
 import useOuterClick from '../../customHooks/useOuterClick'
-import { DayKeyVal, ListItemProps } from '../../utils/types'
+import { ListItemProps } from '../../utils/types'
 import { OutlineButton } from '../../components/buttons'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
 
 dayjs.extend(advancedFormat)
 
-const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
 
 const ProductListItem = ({
   data,
