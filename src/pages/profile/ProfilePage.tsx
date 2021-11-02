@@ -16,10 +16,13 @@ import {
   getProductSubscriptionPlansByBuyer,
   getProductSubscriptionPlansBySeller,
 } from '../../services/productSubscriptionPlans'
-import { getActivitiesByUser } from '../../services/activities'
+import { fetchActivityByID, getActivitiesByUser } from '../../services/activities'
 import { getApplicationLogsByUser } from '../../services/applicationLogs'
 import UserProductLikesTable from './UserProductLikesTable'
 import UserShopLikesTable from './UserShopLikesTable'
+import UserActivitiesTable from './UserActivitiesTable'
+import UserActivityLikesTable from './UserActivityLikesTable'
+import UserApplicationLogsTable from './UserApplicationLogsTable'
 
 type Props = {
   [x: string]: any
@@ -199,6 +202,22 @@ const ProfilePage = ({ match }: Props) => {
         }
       }
       newData = extractedData
+    } else if (dataName === 'liked_activities') {
+      const extractedData = []
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const activity = await fetchActivityByID(data.activity_id)
+        const activityData = activity.data()
+        if (activityData) {
+          const user = await fetchUserByID(activityData.user_id)
+          const userData = user.data()
+          if (userData) {
+            activityData.owner_email = userData.email
+          }
+        }
+        extractedData.push({ ...activityData, liked_at: data.created_at })
+      }
+      newData = extractedData
     }
     console.log('newData', newData)
     setData(newData)
@@ -241,7 +260,7 @@ const ProfilePage = ({ match }: Props) => {
           </div>
         </div>
         <div className="w-full">
-          <h3 className="text-xl font-semibold capitalize">{dataToShow}</h3>
+          <h3 className="text-xl font-semibold capitalize">{dataToShow.replace('_', ' ')}</h3>
           <div className="flex align-middle mt-2">
             <div className="flex items-center">
               Show:{' '}
@@ -266,9 +285,12 @@ const ProfilePage = ({ match }: Props) => {
           ) : (
             <>
               {dataToShow === 'products' && <UserProductsTable data={data} />}
-              {dataToShow === 'shops' && <UserShopsTable data={data} />}
               {dataToShow === 'liked_products' && <UserProductLikesTable data={data} />}
+              {dataToShow === 'shops' && <UserShopsTable data={data} />}
               {dataToShow === 'liked_shops' && <UserShopLikesTable data={data} />}
+              {dataToShow === 'liked_activities' && <UserActivityLikesTable data={data} />}
+              {dataToShow === 'activities' && <UserActivitiesTable data={data} />}
+              {dataToShow === 'application_logs' && <UserApplicationLogsTable data={data} />}
             </>
           )}
         </div>
