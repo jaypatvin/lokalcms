@@ -14,12 +14,13 @@ export const fetchActivityByID = async (id: string) => {
   return db.collection('activities').doc(id).get()
 }
 
-export const getActivitiesByUser = (user_id: string) => {
+export const getActivitiesByUser = (user_id: string, limit = 10) => {
   return db
     .collection('activities')
     .where('user_id', '==', user_id)
     .where('archived', '==', false)
     .orderBy('created_at', 'desc')
+    .limit(limit)
 }
 
 export const getActivities = ({

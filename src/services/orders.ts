@@ -18,12 +18,20 @@ export const fetchOrderByProductSubscription = async (id: string) => {
   return db.collection('orders').where('product_subscription_id', '==', id).get()
 }
 
-export const getOrdersByBuyer = (user_id: string) => {
-  return db.collection('orders').where('buyer_id', '==', user_id).orderBy('created_at', 'desc')
+export const getOrdersByBuyer = (user_id: string, limit = 10) => {
+  return db
+    .collection('orders')
+    .where('buyer_id', '==', user_id)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
 }
 
-export const getOrdersBySeller = (user_id: string) => {
-  return db.collection('orders').where('seller_id', '==', user_id).orderBy('created_at', 'desc')
+export const getOrdersBySeller = (user_id: string, limit = 10) => {
+  return db
+    .collection('orders')
+    .where('seller_id', '==', user_id)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
 }
 
 export const getOrders = ({
