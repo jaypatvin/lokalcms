@@ -9,6 +9,14 @@ type GetApplicationLogsParamTypes = {
   sortOrder?: SortOrderType
 }
 
+export const getApplicationLogsByUser = (user_id: string, limit = 10) => {
+  return db
+    .collection('application_logs')
+    .where('user_id', '==', user_id)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
 export const getApplicationLogs = ({
   action_type,
   user_id,

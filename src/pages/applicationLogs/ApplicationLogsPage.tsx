@@ -238,7 +238,7 @@ const ApplicationLogsPage = () => {
       {!community ? (
         <h2 className="text-xl ml-5">Select a community first</h2>
       ) : (
-        <div className="table-wrapper w-full overflow-x-auto">
+        <div className="table-wrapper w-full">
           <div className="table-container">
             <table>
               <thead>

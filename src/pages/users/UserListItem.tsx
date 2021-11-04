@@ -81,6 +81,9 @@ const UserListItem = ({
     </div>
   ) : (
     <div className="absolute top-0 right-full shadow w-36 bg-white">
+      <Link to={`/users/${data.id}`} className="block w-full p-2 hover:bg-gray-100 text-center">
+        View profile
+      </Link>
       <button
         onClick={() => {
           openUpdate()
@@ -90,7 +93,10 @@ const UserListItem = ({
       >
         Quick Edit
       </button>
-      <Link to={`/users/${data.id}`} className="block w-full p-2 hover:bg-gray-100 text-center">
+      <Link
+        to={`/users/${data.id}/edit`}
+        className="block w-full p-2 hover:bg-gray-100 text-center"
+      >
         Edit
       </Link>
       {!hideDelete && (
@@ -111,16 +117,20 @@ const UserListItem = ({
     <tr>
       <td>
         <div className="flex">
-          <Avatar
-            url={data.profile_photo}
-            name={display_name}
-            size={10}
-            statusColor={statusColor}
-          />
-          <div className="ml-3">
-            <p className="text-gray-900 whitespace-no-wrap">{display_name}</p>
-            <p className="text-gray-600 whitespace-no-wrap">{data.email}</p>
-          </div>
+          <Link to={`/users/${data.id}`}>
+            <Avatar
+              url={data.profile_photo}
+              name={display_name}
+              size={10}
+              statusColor={statusColor}
+            />
+          </Link>
+          <Link to={`/users/${data.id}`}>
+            <div className="ml-3">
+              <p className="text-gray-900 whitespace-no-wrap">{display_name}</p>
+              <p className="text-gray-600 whitespace-no-wrap">{data.email}</p>
+            </div>
+          </Link>
         </div>
       </td>
       <td>

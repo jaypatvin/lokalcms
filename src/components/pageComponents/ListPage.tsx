@@ -245,7 +245,7 @@ const ListPage = ({
             ''
           )}
         </div>
-        <div className="table-wrapper w-full overflow-x-auto">
+        <div className="table-wrapper w-full">
           {loading ? (
             <div className="h-96 w-full relative">
               <ReactLoading
