@@ -12,6 +12,7 @@ import { fieldIsNum } from '../../../utils/helpers'
 import validateOperatingHours from '../../../utils/validateOperatingHours'
 import generateSchedule from '../../../utils/generateSchedule'
 import isScheduleDerived from '../../../utils/isScheduleDerived'
+import { validateImages } from '../../../utils/validateImages'
 
 /**
  * @openapi
@@ -240,24 +241,14 @@ const createProduct = async (req: Request, res: Response) => {
 
   let gallery
   if (data.gallery) {
-    if (!Array.isArray(data.gallery))
+    const validation = validateImages(data.images)
+    if (!validation.valid) {
       return res.status(400).json({
         status: 'error',
-        message: 'Gallery is not an array of type object: {url: string, order: number}',
+        message: 'Images are not valid.',
+        errors: validation.errorMessages,
       })
-
-    for (let [i, g] of data.gallery.entries()) {
-      if (!g.url)
-        return res
-          .status(400)
-          .json({ status: 'error', message: 'Missing gallery url for item ' + i })
-
-      if (!fieldIsNum(g.order))
-        return res
-          .status(400)
-          .json({ status: 'error', message: 'order is not a type of number for item ' + i })
     }
-
     gallery = data.gallery
   }
 
