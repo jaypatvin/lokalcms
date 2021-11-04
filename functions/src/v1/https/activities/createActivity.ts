@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { UsersService, ActivitiesService } from '../../../service'
 import validateFields from '../../../utils/validateFields'
 import { required_fields } from './index'
-import { fieldIsNum } from '../../../utils/helpers'
+import { validateImages } from '../../../utils/validateImages'
 
 /**
  * @openapi
@@ -85,7 +85,7 @@ import { fieldIsNum } from '../../../utils/helpers'
  */
 const createActivity = async (req: Request, res: Response) => {
   const data = req.body
-  const requestorDocId = res.locals.userDoc.id
+  const requestorDocId = res.locals.userDoc.id || ''
   let _user
 
   const error_fields = validateFields(data, required_fields)
@@ -111,24 +111,13 @@ const createActivity = async (req: Request, res: Response) => {
 
   let images
   if (data.images) {
-    if (!Array.isArray(data.images))
+    const validation = validateImages(data.images)
+    if (!validation.valid) {
       return res.status(400).json({
         status: 'error',
-        message: 'Gallery is not an array of type object: {url: string, order: number}',
+        message: 'Images are not valid.',
+        errors: validation.errorMessages,
       })
-
-    if (data.images.length) {
-      for (let [i, g] of data.images.entries()) {
-        if (!g.url)
-          return res
-            .status(400)
-            .json({ status: 'error', message: 'Missing image url for item ' + i })
-
-        if (!fieldIsNum(g.order))
-          return res
-            .status(400)
-            .json({ status: 'error', message: 'order is not a type of number for item ' + i })
-      }
     }
     images = data.images
   }
@@ -144,15 +133,8 @@ const createActivity = async (req: Request, res: Response) => {
   }
 
   if (images) _activityData.images = images
-  const newActivity = await ActivitiesService.createActivity(_activityData)
-  const result = await newActivity.get().then((doc) => doc.data())
-  await newActivity
-    .collection('images')
-    .get()
-    .then((res) => {
-      result.images = res.docs.map((doc): any => doc.data())
-    })
-  result.id = newActivity.id
+  const result = await ActivitiesService.createActivity(_activityData)
+
   return res.status(200).json({ status: 'ok', data: result })
 }
 

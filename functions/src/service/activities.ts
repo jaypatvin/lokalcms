@@ -63,19 +63,11 @@ export const getAllActivities = async (userId = '') => {
 
 // new post, no comments in here
 export const createActivity = async (data) => {
-  const activityRef = db.collection(collectionName).doc()
-  const batch = db.batch()
-
-  if (data.images) {
-    data.images.forEach((image) => {
-      const imageRef = activityRef.collection('images').doc()
-      batch.set(imageRef, image)
-    })
-    delete data.images
-  }
-  batch.set(activityRef, { ...data, created_at: new Date() })
-  await batch.commit()
-  return activityRef
+  return await db
+    .collection(collectionName)
+    .add({ ...data, created_at: new Date() })
+    .then((res) => res.get())
+    .then((doc): any => ({ id: doc.id, ...doc.data() }))
 }
 
 // this does not handle comment activity and does not support update of images
