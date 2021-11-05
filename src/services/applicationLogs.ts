@@ -17,6 +17,14 @@ export const getApplicationLogsByUser = (user_id: string, limit = 10) => {
     .limit(limit)
 }
 
+export const getApplicationLogsByCommunity = (community_id: string, limit = 10) => {
+  return db
+    .collection('application_logs')
+    .where('community_id', '==', community_id)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
 export const getApplicationLogs = ({
   action_type,
   user_id,

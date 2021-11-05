@@ -31,6 +31,15 @@ export const getProductsByUser = (user_id: string, limit = 10) => {
     .limit(limit)
 }
 
+export const getProductsByCommunity = (community_id: string, limit = 10) => {
+  return db
+    .collection('products')
+    .where('community_id', '==', community_id)
+    .where('archived', '==', false)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
 export const getProducts = ({
   search = '',
   filter = 'all',

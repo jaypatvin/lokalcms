@@ -34,6 +34,14 @@ export const getOrdersBySeller = (user_id: string, limit = 10) => {
     .limit(limit)
 }
 
+export const getOrdersByCommunity = (community_id: string, limit = 10) => {
+  return db
+    .collection('orders')
+    .where('community_id', '==', community_id)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
 export const getOrders = ({
   community_id,
   product_id,
