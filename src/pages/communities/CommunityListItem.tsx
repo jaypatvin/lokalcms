@@ -74,7 +74,7 @@ const CommunityListItem = ({
         Quick Edit
       </button>
       <Link
-        to={`/communities/${data.id}`}
+        to={`/communities/${data.id}/edit`}
         className="block w-full p-2 hover:bg-gray-100 text-center"
       >
         Edit
@@ -122,10 +122,12 @@ const CommunityListItem = ({
     <tr>
       <td>
         <div className="flex items-center">
-          <Avatar url={data.profile_photo} name={data.name} size={10} />
-          <div className="ml-3">
+          <Link to={`/communities/${data.id}`}>
+            <Avatar url={data.profile_photo} name={data.name} size={10} />
+          </Link>
+          <Link to={`/communities/${data.id}`}>
             <p className="text-gray-900">{data.name}</p>
-          </div>
+          </Link>
         </div>
       </td>
       <td>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
 import { fetchCommunityByID } from '../../services/community'
 import CommunityCreateUpdateForm from './CommunityCreateUpdateForm'
 
@@ -33,7 +32,7 @@ const CommunityEditPage = ({ match }: Props) => {
   }
 
   useEffect(() => {
-    if (match.path === '/communities/:id') {
+    if (match.path === '/communities/:id/edit') {
       fetchCommunity(match.params.id)
     }
   }, [])

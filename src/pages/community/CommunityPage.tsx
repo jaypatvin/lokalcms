@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
+import dayjs from 'dayjs'
+import { isEmpty } from 'lodash'
 import { fetchUserByID } from '../../services/users'
 import MenuList from '../../components/MenuList'
 import { LimitType, MenuItemType } from '../../utils/types'
@@ -7,9 +9,7 @@ import { getProductsByCommunity } from '../../services/products'
 import Dropdown from '../../components/Dropdown'
 import { Button } from '../../components/buttons'
 import { fetchShopByID, getShopsByCommunity } from '../../services/shops'
-import {
-  getProductSubscriptionPlansByCommunity,
-} from '../../services/productSubscriptionPlans'
+import { getProductSubscriptionPlansByCommunity } from '../../services/productSubscriptionPlans'
 import { getActivitiesByCommunity } from '../../services/activities'
 import { getApplicationLogsByCommunity } from '../../services/applicationLogs'
 import { getInvitesByCommunity } from '../../services/invites'
@@ -28,7 +28,7 @@ type DataType =
   | 'shops'
   | 'product_subscription_plans'
 
-const ProfilePage = ({ match }: Props) => {
+const CommunityPage = ({ match }: Props) => {
   const [community, setCommunity] = useState<any>({})
   const [dataToShow, setDataToShow] = useState<DataType>('products')
   const [data, setData] = useState<any[]>([])
@@ -54,8 +54,13 @@ const ProfilePage = ({ match }: Props) => {
       onClick: () => onChangeDataToShow('application_logs'),
     },
     {
-      key: 'products',
-      name: 'Products',
+      key: 'invites',
+      name: 'Invites',
+      onClick: () => onChangeDataToShow('invites'),
+    },
+    {
+      key: 'orders',
+      name: 'Orders',
       onClick: () => onChangeDataToShow('orders'),
     },
     {
@@ -69,17 +74,40 @@ const ProfilePage = ({ match }: Props) => {
       onClick: () => onChangeDataToShow('shops'),
     },
     {
-      key: 'product_subscription_plans_buyer',
-      name: 'Subscription Plans as Buyer',
+      key: 'product_subscription_plans',
+      name: 'Subscription Plans',
       onClick: () => onChangeDataToShow('product_subscription_plans'),
     },
   ]
+
+  const normalizeData = async (data: any) => {
+    const createdAt = dayjs(data.created_at.toDate()).format()
+    const createdAtAgo = dayjs(createdAt).fromNow()
+    for (const userId of data.admin) {
+      const admin = await fetchUserByID(userId)
+      const adminData = admin.data()
+      if (adminData) {
+        if (!data.admins) data.admins = []
+        data.admins.push(adminData.email)
+      }
+    }
+    return {
+      address: data.address,
+      admins: data.admins,
+      coverPhoto: data.cover_photo,
+      profilePhoto: data.profile_photo,
+      name: data.name,
+      createdAtAgo,
+    }
+  }
 
   const fetchCommunity = async (id: string) => {
     const communityRef = await fetchCommunityByID(id)
     let communityData = communityRef.data()
     if (communityData) {
-      setCommunity(communityData)
+      console.log('communityData', communityData)
+      const normalizedData = await normalizeData(communityData)
+      setCommunity(normalizedData)
     }
   }
 
@@ -144,10 +172,7 @@ const ProfilePage = ({ match }: Props) => {
           data.shop_name = shopData.name
         }
       }
-    } else if (
-      dataToShow === 'orders' ||
-      dataToShow === 'product_subscription_plans'
-    ) {
+    } else if (dataToShow === 'orders' || dataToShow === 'product_subscription_plans') {
       for (let i = 0; i < newData.length; i++) {
         const data = newData[i]
         const buyer = await fetchUserByID(data.buyer_id)
@@ -194,15 +219,17 @@ const ProfilePage = ({ match }: Props) => {
     setPageNum(Math.max(1, newPageNum))
   }
 
+  if (isEmpty(community)) return null
+
   return (
     <div className="">
-      <h2 className="text-2xl font-semibold leading-tight">{community.displayName}</h2>
+      <h2 className="text-2xl font-semibold leading-tight">{community.name}</h2>
       <div className="flex">
         <div className="p-2 w-80">
-          <img src={community.profilePhoto} alt={community.displayName} className="max-w-32 max-h-32" />
-          <p>{community.email}</p>
-          <p>Member since {community.createdAtAgo}</p>
-          <p>Community: {community.communityName}</p>
+          <img src={community.profilePhoto} alt={community.name} className="max-w-32 max-h-32" />
+          <p className="text-gray-900">{`${community.address.subdivision}, ${community.address.barangay}, ${community.address.city}, ${community.address.state}, ${community.address.country}, ${community.address.zip_code}`}</p>
+          <p>Created {community.createdAtAgo}</p>
+          <p>Admins: {community.admins.join(', ')}</p>
           <div className="py-2">
             <h4 className="text-xl font-semibold">Related Data</h4>
             <MenuList items={items} selected={dataToShow} />
@@ -262,4 +289,4 @@ const ProfilePage = ({ match }: Props) => {
   )
 }
 
-export default ProfilePage
+export default CommunityPage
