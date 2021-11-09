@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { ProductsService } from '../../../service'
+import { getProductLikes } from '../../../service/likes'
 
 /**
  * @openapi
@@ -41,10 +42,11 @@ const getCommunityProducts = async (req: Request, res: Response) => {
 
   const products = await ProductsService.getProductsByCommunityID(communityId)
 
-  // reduce return data
-  products.forEach((product) => {
+  for (const product of products) {
     delete product.keywords
-  })
+    const likes = await getProductLikes(product.id)
+    product.likes = likes.map((like) => like.user_id)
+  }
 
   return res.json({ status: 'ok', data: products })
 }
