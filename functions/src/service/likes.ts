@@ -18,6 +18,15 @@ export const getProductLike = async (product_id: string, user_id: string) => {
   return like.data()
 }
 
+export const getProductLikes = async (product_id: string) => {
+  const like = await db
+    .collection('products')
+    .doc(product_id)
+    .collection('likes')
+    .get()
+  return like.docs.map((doc): any => ({ ...doc.data(), id: doc.id }))
+}
+
 export const addProductLike = async (product_id: string, user_id: string) => {
   const likeRef = db
     .collection('products')
