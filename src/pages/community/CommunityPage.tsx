@@ -14,6 +14,14 @@ import { getActivitiesByCommunity } from '../../services/activities'
 import { getApplicationLogsByCommunity } from '../../services/applicationLogs'
 import { getInvitesByCommunity } from '../../services/invites'
 import { fetchCommunityByID } from '../../services/community'
+import CommunityActivitiesTable from './CommunityActivitiesTable'
+import CommunityApplicationLogsTable from './CommunityApplicationLogsTable'
+import CommunityOrdersTable from './CommunityOrdersTable'
+import CommunityProductsTable from './CommunityProductsTable'
+import CommunityShopsTable from './CommunityShopsTable'
+import CommunitySubscriptionPlansTable from './CommunitySubscriptionPlansTable'
+import { getOrdersByCommunity } from '../../services/orders'
+import CommunityInvitesTable from './CommunityInvitesTable'
 
 type Props = {
   [x: string]: any
@@ -92,6 +100,7 @@ const CommunityPage = ({ match }: Props) => {
       }
     }
     return {
+      id: data.id,
       address: data.address,
       admins: data.admins,
       coverPhoto: data.cover_photo,
@@ -103,9 +112,8 @@ const CommunityPage = ({ match }: Props) => {
 
   const fetchCommunity = async (id: string) => {
     const communityRef = await fetchCommunityByID(id)
-    let communityData = communityRef.data()
+    let communityData = { ...communityRef.data(), id: communityRef.id }
     if (communityData) {
-      console.log('communityData', communityData)
       const normalizedData = await normalizeData(communityData)
       setCommunity(normalizedData)
     }
@@ -120,7 +128,7 @@ const CommunityPage = ({ match }: Props) => {
     } else if (dataName === 'shops') {
       newDataRef = getShopsByCommunity(communityId, limit)
     } else if (dataName === 'orders') {
-      newDataRef = getShopsByCommunity(communityId, limit)
+      newDataRef = getOrdersByCommunity(communityId, limit)
     } else if (dataName === 'product_subscription_plans') {
       newDataRef = getProductSubscriptionPlansByCommunity(communityId, limit)
     } else if (dataName === 'activities') {
@@ -128,7 +136,7 @@ const CommunityPage = ({ match }: Props) => {
     } else if (dataName === 'application_logs') {
       newDataRef = getApplicationLogsByCommunity(communityId, limit)
     } else if (dataName === 'invites') {
-      newDataRef = getInvitesByCommunity(communityId)
+      newDataRef = getInvitesByCommunity(communityId, limit)
     }
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = newDataRef.onSnapshot(async (snapshot: any) => {
@@ -171,6 +179,11 @@ const CommunityPage = ({ match }: Props) => {
         if (shopData) {
           data.shop_name = shopData.name
         }
+        const user = await fetchUserByID(data.user_id)
+        const userData = user.data()
+        if (userData) {
+          data.user_email = userData.email
+        }
       }
     } else if (dataToShow === 'orders' || dataToShow === 'product_subscription_plans') {
       for (let i = 0; i < newData.length; i++) {
@@ -184,6 +197,28 @@ const CommunityPage = ({ match }: Props) => {
         const sellerData = seller.data()
         if (sellerData) {
           data.seller_email = sellerData.email
+        }
+      }
+    } else if (
+      dataToShow === 'activities' ||
+      dataToShow === 'application_logs' ||
+      dataToShow === 'shops'
+    ) {
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const user = await fetchUserByID(data.user_id)
+        const userData = user.data()
+        if (userData) {
+          data.user_email = userData.email
+        }
+      }
+    } else if (dataToShow === 'invites') {
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const user = await fetchUserByID(data.inviter)
+        const userData = user.data()
+        if (userData) {
+          data.inviter_email = userData.email
         }
       }
     }
@@ -275,12 +310,15 @@ const CommunityPage = ({ match }: Props) => {
             </div>
           ) : (
             <>
-              {dataToShow === 'activities' && <h2>activities</h2>}
-              {dataToShow === 'application_logs' && <h2>application_logs</h2>}
-              {dataToShow === 'orders' && <h2>orders</h2>}
-              {dataToShow === 'products' && <h2>products</h2>}
-              {dataToShow === 'shops' && <h2>shops</h2>}
-              {dataToShow === 'product_subscription_plans' && <h2>product_subscription_plans</h2>}
+              {dataToShow === 'activities' && <CommunityActivitiesTable data={data} />}
+              {dataToShow === 'application_logs' && <CommunityApplicationLogsTable data={data} />}
+              {dataToShow === 'invites' && <CommunityInvitesTable data={data} />}
+              {dataToShow === 'orders' && <CommunityOrdersTable data={data} />}
+              {dataToShow === 'products' && <CommunityProductsTable data={data} />}
+              {dataToShow === 'shops' && <CommunityShopsTable data={data} />}
+              {dataToShow === 'product_subscription_plans' && (
+                <CommunitySubscriptionPlansTable data={data} />
+              )}
             </>
           )}
         </div>

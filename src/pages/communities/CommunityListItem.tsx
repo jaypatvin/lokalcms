@@ -126,7 +126,7 @@ const CommunityListItem = ({
             <Avatar url={data.profile_photo} name={data.name} size={10} />
           </Link>
           <Link to={`/communities/${data.id}`}>
-            <p className="text-gray-900">{data.name}</p>
+            <p className="text-primary-600 hover:text-primary-400 ml-2">{data.name}</p>
           </Link>
         </div>
       </td>
