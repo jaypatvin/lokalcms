@@ -22,6 +22,15 @@ export const getProductsByShop = (shop_id: string) => {
     .where('status', '==', 'enabled')
 }
 
+export const getLimitedProductsByShop = (shop_id: string, limit = 10) => {
+  return db
+    .collection('products')
+    .where('shop_id', '==', shop_id)
+    .where('archived', '==', false)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
 export const getProductsByUser = (user_id: string, limit = 10) => {
   return db
     .collection('products')
