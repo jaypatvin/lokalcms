@@ -78,7 +78,7 @@ const ShopListItem = ({
   return (
     <tr>
       <td>
-        <Link to={`/communities/${data.id}`}>
+        <Link to={`/shops/${data.id}`}>
           <p className="text-primary-600 hover:text-primary-400 ml-2">{data.name}</p>
         </Link>
       </td>

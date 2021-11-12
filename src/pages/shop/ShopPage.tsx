@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
+import ReactCalendar from 'react-calendar'
 import dayjs from 'dayjs'
 import { isEmpty } from 'lodash'
 import { fetchUserByID } from '../../services/users'
@@ -7,12 +8,19 @@ import MenuList from '../../components/MenuList'
 import { LimitType, MenuItemType } from '../../utils/types'
 import { getLimitedProductsByShop } from '../../services/products'
 import Dropdown from '../../components/Dropdown'
-import { Button } from '../../components/buttons'
+import { Button, OutlineButton } from '../../components/buttons'
 import { fetchShopByID } from '../../services/shops'
 import { fetchCommunityByID } from '../../services/community'
 import { getOrdersByShop } from '../../services/orders'
 import { getProductSubscriptionPlansByShop } from '../../services/productSubscriptionPlans'
 import { getLikesByShop } from '../../services/likes'
+import ShopLikesTable from './ShopLikesTable'
+import ShopOrdersTable from './ShopOrdersTable'
+import ShopProductsTable from './ShopProductsTable'
+import ShopSubscriptionPlansTable from './ShopSubscriptionPlansTable'
+import useOuterClick from '../../customHooks/useOuterClick'
+import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
+import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
 
 type Props = {
   [x: string]: any
@@ -34,6 +42,9 @@ const ShopPage = ({ match }: Props) => {
   const [isLastPage, setIsLastPage] = useState(false)
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
 
+  const [showCalendar, setShowCalendar] = useState(false)
+  const calendarRef = useOuterClick(() => setShowCalendar(false))
+
   const items: MenuItemType[] = [
     {
       key: 'likes',
@@ -42,7 +53,7 @@ const ShopPage = ({ match }: Props) => {
     },
     {
       key: 'orders',
-      name: 'Orders Logs',
+      name: 'Orders',
       onClick: () => onChangeDataToShow('orders'),
     },
     {
@@ -62,6 +73,7 @@ const ShopPage = ({ match }: Props) => {
     const createdAtAgo = dayjs(createdAt).fromNow()
     return {
       id: data.id,
+      userEmail: data.user_email,
       status: data.status,
       operatingHours: data.operating_hours,
       coverPhoto: data.cover_photo,
@@ -145,6 +157,15 @@ const ShopPage = ({ match }: Props) => {
           data.buyer_email = buyerData.email
         }
       }
+    } else if (dataToShow === 'likes') {
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const user = await fetchUserByID(data.user_id)
+        const userData = user.data()
+        if (userData) {
+          data.user_email = userData.email
+        }
+      }
     }
     setData(newData)
     setLoading(false)
@@ -187,6 +208,28 @@ const ShopPage = ({ match }: Props) => {
         <div className="p-2 w-80">
           <img src={shop.profilePhoto} alt={shop.name} className="max-w-32 max-h-32" />
           <p>Created {shop.createdAtAgo}</p>
+          <p>Owner: {shop.userEmail}</p>
+          <div ref={calendarRef} className="relative my-2">
+            <p>Operating Hours:</p>
+            <p className="text-gray-900 whitespace-no-wrap flex">
+              <OutlineButton
+                className="h-8 text-primary-500 mr-1"
+                size="small"
+                icon="calendar"
+                onClick={() => setShowCalendar(!showCalendar)}
+              />
+              {getAvailabilitySummary(shop.operatingHours)}
+            </p>
+            {showCalendar && (
+              <div className="w-64 absolute z-10 shadow">
+                <ReactCalendar
+                  tileClassName={getCalendarTileClassFn(shop.operatingHours)}
+                  onChange={() => null}
+                  calendarType="US"
+                />
+              </div>
+            )}
+          </div>
           <div className="py-2">
             <h4 className="text-xl font-semibold">Related Data</h4>
             <MenuList items={items} selected={dataToShow} />
@@ -232,10 +275,12 @@ const ShopPage = ({ match }: Props) => {
             </div>
           ) : (
             <>
-              {dataToShow === 'likes' && <h1>Likes data</h1>}
-              {dataToShow === 'orders' && <h1>Orders data</h1>}
-              {dataToShow === 'products' && <h1>Products data</h1>}
-              {dataToShow === 'product_subscription_plans' && <h1>Subscription plans data</h1>}
+              {dataToShow === 'likes' && <ShopLikesTable data={data} />}
+              {dataToShow === 'orders' && <ShopOrdersTable data={data} />}
+              {dataToShow === 'products' && <ShopProductsTable data={data} />}
+              {dataToShow === 'product_subscription_plans' && (
+                <ShopSubscriptionPlansTable data={data} />
+              )}
             </>
           )}
         </div>
