@@ -10,6 +10,14 @@ type GetInvitesParamTypes = {
   community?: string
 }
 
+export const getInvitesByCommunity = (community_id: string, limit = 10) => {
+  return db
+    .collection('invites')
+    .where('community_id', '==', community_id)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
 export const getInvites = ({
   search = '',
   filter = 'all',

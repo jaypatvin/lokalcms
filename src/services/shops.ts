@@ -14,7 +14,7 @@ export const fetchShopByID = async (id: string) => {
   return db.collection('shops').doc(id).get()
 }
 
-export const getShopsByCommunity = (community_id: string) => {
+export const getAllShopsByCommunity = (community_id: string) => {
   return db
     .collection('shops')
     .where('community_id', '==', community_id)
@@ -25,6 +25,15 @@ export const getShopsByUser = (user_id: string, limit = 10) => {
   return db
     .collection('shops')
     .where('user_id', '==', user_id)
+    .where('archived', '==', false)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
+export const getShopsByCommunity = (community_id: string, limit = 10) => {
+  return db
+    .collection('shops')
+    .where('community_id', '==', community_id)
     .where('archived', '==', false)
     .orderBy('created_at', 'desc')
     .limit(limit)

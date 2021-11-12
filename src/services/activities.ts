@@ -23,6 +23,15 @@ export const getActivitiesByUser = (user_id: string, limit = 10) => {
     .limit(limit)
 }
 
+export const getActivitiesByCommunity = (community_id: string, limit = 10) => {
+  return db
+    .collection('activities')
+    .where('community_id', '==', community_id)
+    .where('archived', '==', false)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
 export const getActivities = ({
   filter = 'all',
   sortBy = 'created_at',

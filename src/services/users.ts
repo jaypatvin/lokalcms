@@ -1,19 +1,15 @@
 import { UserSortByType, UserFilterType, SortOrderType } from '../utils/types'
-import { db, auth } from './firebase'
+import { db } from './firebase'
 
-// export const getAuthUserByUID = async (uid: string) => {
-//   try {
-//     console.log(uid);
-//     return await auth
-//                   .getUser(uid)
-//                   .then((userRecord) => {
-//                     return userRecord
-//                   })
-//   } catch (e) {
-//     console.log(e);
-//     return false
-//   }
-// }
+
+export const getUsersByCommunity = (community_id: string, limit = 10) => {
+  return db
+    .collection('users')
+    .where('community_id', '==', community_id)
+    .where('archived', '==', false)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
 
 export const fetchUserByID = async (id: string) => {
   return db.collection('users').doc(id).get()

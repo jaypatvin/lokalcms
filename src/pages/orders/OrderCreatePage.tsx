@@ -3,7 +3,7 @@ import ReactLoading from 'react-loading'
 import { some } from 'lodash'
 import { Checkbox, TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
-import { getShopsByCommunity } from '../../services/shops'
+import { getAllShopsByCommunity } from '../../services/shops'
 import { getProductsByShop } from '../../services/products'
 import { getUsers } from '../../services/users'
 import { formatToPeso } from '../../utils/helper'
@@ -85,7 +85,7 @@ const OrderCreatePage = ({}) => {
   const getCommunityShops = async (community: any) => {
     if (!community) return
     setLoading(true)
-    const shops = getShopsByCommunity(community.id)
+    const shops = getAllShopsByCommunity(community.id)
     const shopsData = await shops.get()
     setupDataList(shopsData.docs)
   }

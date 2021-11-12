@@ -1,7 +1,7 @@
 import React from 'react'
-import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 
-import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { AuthProvider } from './contexts/AuthContext'
 import PrivateRoute from './components/PrivateRoute'
 
 import LoginPage from './pages/LoginPage'
@@ -20,7 +20,6 @@ import UserListPage from './pages/users/UserListPage'
 import InviteListPage from './pages/invites/InviteListPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import HistoryListPage from './pages/history/HistoryListPage'
-
 import UserEditPage from './pages/users/UserEditPage'
 import DiscoverPage from './pages/discover/DiscoverPage'
 import ChatsPage from './pages/chats/ChatsPage'
@@ -29,6 +28,7 @@ import OrderCreatePage from './pages/orders/OrderCreatePage'
 import ProductSubscriptionPlansPage from './pages/productSubscriptionPlans/ProductSubscriptionPlansPage'
 import ApplicationLogsPage from './pages/applicationLogs/ApplicationLogsPage'
 import ProfilePage from './pages/profile/ProfilePage'
+import CommunityPage from './pages/community/CommunityPage'
 
 class App extends React.Component {
   render() {
@@ -42,7 +42,8 @@ class App extends React.Component {
             <PrivateRoute exact path="/" redirect="/dashboard" />
             <PrivateRoute exact path="/dashboard" component={DashboardPage} />
             <PrivateRoute exact path="/communities" component={CommunityListPage} />
-            <PrivateRoute exact path="/communities/:id" component={CommunityEditPage} />
+            <PrivateRoute exact path="/communities/:id" component={CommunityPage} />
+            <PrivateRoute exact path="/communities/:id/edit" component={CommunityEditPage} />
             <PrivateRoute exact path="/activities" component={ActivityListPage} />
             <PrivateRoute exact path="/shops" component={ShopListPage} />
             <PrivateRoute exact path="/products" component={ProductListPage} />

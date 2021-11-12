@@ -126,9 +126,9 @@ const UserListItem = ({
             />
           </Link>
           <Link to={`/users/${data.id}`}>
-            <div className="ml-3">
-              <p className="text-gray-900 whitespace-no-wrap">{display_name}</p>
-              <p className="text-gray-600 whitespace-no-wrap">{data.email}</p>
+            <div className="text-primary-600 hover:text-primary-400 ml-2">
+              <p className="whitespace-no-wrap">{display_name}</p>
+              <p className="whitespace-no-wrap opacity-60">{data.email}</p>
             </div>
           </Link>
         </div>
