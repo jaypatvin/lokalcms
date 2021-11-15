@@ -1,36 +1,36 @@
-import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import ShopSubscriptionPlansTableItem from './ShopSubscriptionPlansTableItem'
 
 type Props = {
   data: any
 }
 
-const UserShopLikesTable = ({ data }: Props) => {
+const ShopSubscriptionPlansTable = ({ data }: Props) => {
   return (
     <div className="table-wrapper w-full">
       <div className="table-container">
         <table>
           <thead>
             <tr>
-              <th key="photo">
+              <th key="product">
                 <SortButton
                   className="text-xs uppercase font-bold"
-                  label="Photo"
+                  label="Product"
                   showSortIcons={false}
                 />
               </th>
-              <th key="name">
+              <th key="buyer">
                 <SortButton
                   className="text-xs uppercase font-bold"
-                  label="Name"
+                  label="Buyer"
                   showSortIcons={false}
                 />
               </th>
-              <th key="description">
+              <th key="plan">
                 <SortButton
                   className="text-xs uppercase font-bold"
-                  label="Description"
+                  label="Plan"
                   showSortIcons={false}
                 />
               </th>
@@ -41,38 +41,19 @@ const UserShopLikesTable = ({ data }: Props) => {
                   showSortIcons={false}
                 />
               </th>
-              <th key="liked_at">
+              <th key="created_at">
                 <SortButton
                   className="text-xs uppercase font-bold"
-                  label="Liked At"
+                  label="Created At"
                   showSortIcons={false}
                 />
               </th>
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
-              const liked_at = d.liked_at ? dayjs(d.liked_at.toDate()).fromNow() : '-'
-              return (
-                <tr>
-                  <td>
-                    <img src={d.profile_photo} alt={d.name} className="max-w-16 max-h-16" />
-                  </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{d.name}</p>
-                  </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{d.description}</p>
-                  </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{d.status}</p>
-                  </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{liked_at}</p>
-                  </td>
-                </tr>
-              )
-            })}
+            {data.map((d: any) => (
+              <ShopSubscriptionPlansTableItem data={d} />
+            ))}
           </tbody>
         </table>
       </div>
@@ -80,4 +61,4 @@ const UserShopLikesTable = ({ data }: Props) => {
   )
 }
 
-export default UserShopLikesTable
+export default ShopSubscriptionPlansTable

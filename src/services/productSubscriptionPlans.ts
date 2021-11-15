@@ -35,6 +35,14 @@ export const getProductSubscriptionPlansByCommunity = (community_id: string, lim
     .limit(limit)
 }
 
+export const getProductSubscriptionPlansByShop = (shop_id: string, limit = 10) => {
+  return db
+    .collection('product_subscription_plans')
+    .where('shop_id', '==', shop_id)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+}
+
 export const getProductSubscriptionPlans = ({
   community_id,
   product_id,

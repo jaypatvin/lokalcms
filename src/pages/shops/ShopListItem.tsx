@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import dayjs from 'dayjs'
 import advancedFormat from 'dayjs/plugin/advancedFormat'
-import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
+import ReactCalendar from 'react-calendar'
 import useOuterClick from '../../customHooks/useOuterClick'
-import { DayKeyVal, ListItemProps, nthDayOfMonthFormat } from '../../utils/types'
+import { ListItemProps } from '../../utils/types'
 import { OutlineButton } from '../../components/buttons'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
@@ -77,7 +78,9 @@ const ShopListItem = ({
   return (
     <tr>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data.name}</p>
+        <Link to={`/shops/${data.id}`}>
+          <p className="text-primary-600 hover:text-primary-400 ml-2">{data.name}</p>
+        </Link>
       </td>
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.description}</p>

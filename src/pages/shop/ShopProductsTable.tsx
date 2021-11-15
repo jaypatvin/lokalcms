@@ -6,7 +6,7 @@ type Props = {
   data: any
 }
 
-const UserShopLikesTable = ({ data }: Props) => {
+const ShopProductsTable = ({ data }: Props) => {
   return (
     <div className="table-wrapper w-full">
       <div className="table-container">
@@ -27,10 +27,17 @@ const UserShopLikesTable = ({ data }: Props) => {
                   showSortIcons={false}
                 />
               </th>
-              <th key="description">
+              <th key="price">
                 <SortButton
                   className="text-xs uppercase font-bold"
-                  label="Description"
+                  label="Price"
+                  showSortIcons={false}
+                />
+              </th>
+              <th key="quantity">
+                <SortButton
+                  className="text-xs uppercase font-bold"
+                  label="Quantity"
                   showSortIcons={false}
                 />
               </th>
@@ -41,10 +48,17 @@ const UserShopLikesTable = ({ data }: Props) => {
                   showSortIcons={false}
                 />
               </th>
-              <th key="liked_at">
+              <th key="created_at">
                 <SortButton
                   className="text-xs uppercase font-bold"
-                  label="Liked At"
+                  label="Created At"
+                  showSortIcons={false}
+                />
+              </th>
+              <th key="updated_at">
+                <SortButton
+                  className="text-xs uppercase font-bold"
+                  label="Last Updated"
                   showSortIcons={false}
                 />
               </th>
@@ -52,23 +66,30 @@ const UserShopLikesTable = ({ data }: Props) => {
           </thead>
           <tbody>
             {data.map((d: any) => {
-              const liked_at = d.liked_at ? dayjs(d.liked_at.toDate()).fromNow() : '-'
+              const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
+              const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow() : '-'
               return (
                 <tr>
                   <td>
-                    <img src={d.profile_photo} alt={d.name} className="max-w-16 max-h-16" />
+                    <img src={d.gallery[0].url} alt={d.name} className="max-w-16 max-h-16" />
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.name}</p>
                   </td>
                   <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{d.description}</p>
+                    <p className="text-gray-900 whitespace-no-wrap">{d.base_price}</p>
+                  </td>
+                  <td>
+                    <p className="text-gray-900 whitespace-no-wrap">{d.quantity}</p>
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.status}</p>
                   </td>
                   <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{liked_at}</p>
+                    <p className="text-gray-900 whitespace-no-wrap">{created_at}</p>
+                  </td>
+                  <td>
+                    <p className="text-gray-900 whitespace-no-wrap">{updated_at}</p>
                   </td>
                 </tr>
               )
@@ -80,4 +101,4 @@ const UserShopLikesTable = ({ data }: Props) => {
   )
 }
 
-export default UserShopLikesTable
+export default ShopProductsTable
