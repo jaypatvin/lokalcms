@@ -64,14 +64,14 @@ const CommunityOrdersTable = ({ data }: Props) => {
               let totalPrice = 0
               let totalItems = 0
               return (
-                <tr>
+                <tr key={d.id}>
                   <td>
                     {d.products.slice(0, 2).map((product: any) => {
                       const subTotalPrice = product.quantity * product.product_price
                       totalPrice += subTotalPrice
                       totalItems += product.quantity
                       return (
-                        <div className="border-b-1 mb-2 py-2 flex items-center">
+                        <div className="border-b-1 mb-2 py-2 flex items-center" key={product.id}>
                           <div className="w-12 mr-2">
                             {product.product_image ? (
                               <img

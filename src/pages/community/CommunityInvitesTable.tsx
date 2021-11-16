@@ -62,7 +62,7 @@ const CommunityInvitesTable = ({ data }: Props) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               const expire_by = dayjs(d.expire_by).fromNow()
               return (
-                <tr>
+                <tr key={d.id}>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.invitee_email}</p>
                   </td>

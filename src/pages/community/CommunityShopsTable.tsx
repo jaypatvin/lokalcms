@@ -66,7 +66,7 @@ const CommunityShopsTable = ({ data }: Props) => {
           </thead>
           <tbody>
             {data.map((d: any) => (
-              <CommunityShopsTableItem data={d} />
+              <CommunityShopsTableItem data={d} key={d.id} />
             ))}
           </tbody>
         </table>

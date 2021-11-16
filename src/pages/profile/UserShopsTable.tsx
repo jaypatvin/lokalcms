@@ -66,7 +66,7 @@ const UserShopsTable = ({ data }: Props) => {
           </thead>
           <tbody>
             {data.map((d: any) => (
-              <UserShopsTableItem data={d} />
+              <UserShopsTableItem data={d} key={d.id} />
             ))}
           </tbody>
         </table>

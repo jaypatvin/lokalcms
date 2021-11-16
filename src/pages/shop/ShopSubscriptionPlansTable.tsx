@@ -52,7 +52,7 @@ const ShopSubscriptionPlansTable = ({ data }: Props) => {
           </thead>
           <tbody>
             {data.map((d: any) => (
-              <ShopSubscriptionPlansTableItem data={d} />
+              <ShopSubscriptionPlansTableItem data={d} key={d.id} />
             ))}
           </tbody>
         </table>
