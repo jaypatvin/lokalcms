@@ -48,7 +48,7 @@ const UserActivitiesTable = ({ data }: Props) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow(): '-'
               return (
-                <tr>
+                <tr key={d.id}>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.message}</p>
                   </td>

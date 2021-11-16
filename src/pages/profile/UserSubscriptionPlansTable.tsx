@@ -54,7 +54,7 @@ const UserSubscriptionPlansTable = ({ data, userType }: Props) => {
           </thead>
           <tbody>
             {data.map((d: any) => (
-              <UserSubscriptionPlansTableItem data={d} userType={userType} />
+              <UserSubscriptionPlansTableItem data={d} userType={userType} key={d.id} />
             ))}
           </tbody>
         </table>

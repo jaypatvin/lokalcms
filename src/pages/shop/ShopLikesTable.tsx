@@ -33,7 +33,7 @@ const ShopLikesTable = ({ data }: Props) => {
             {data.map((d: any) => {
               const liked_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               return (
-                <tr>
+                <tr key={d.id}>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.user_email}</p>
                   </td>

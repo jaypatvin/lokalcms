@@ -155,8 +155,10 @@ const CommunityPage = ({ match }: Props) => {
   }
 
   const onChangeDataToShow = (dataName: DataType) => {
-    setLoading(true)
-    setDataToShow(dataName)
+    if (!loading) {
+      setLoading(true)
+      setDataToShow(dataName)
+    }
   }
 
   useEffect(() => {

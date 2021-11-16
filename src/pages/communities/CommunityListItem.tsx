@@ -136,7 +136,7 @@ const CommunityListItem = ({
       <td>
         {data.admins.length === 0
           ? '--'
-          : data.admins.map((admin: any) => <p className="text-gray-900">{admin.email}</p>)}
+          : data.admins.map((admin: any) => <p className="text-gray-900" key={admin.id}>{admin.email}</p>)}
       </td>
       <td>
         <p className="text-gray-900">{data.meta.users_count || '--'}</p>

@@ -59,7 +59,7 @@ const CommunitySubscriptionPlansTable = ({ data }: Props) => {
           </thead>
           <tbody>
             {data.map((d: any) => (
-              <CommunitySubscriptionPlansTableItem data={d} />
+              <CommunitySubscriptionPlansTableItem data={d} key={d.id} />
             ))}
           </tbody>
         </table>

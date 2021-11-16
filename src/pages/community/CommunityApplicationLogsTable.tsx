@@ -13,17 +13,17 @@ const CommunityApplicationLogsTable = ({ data }: Props) => {
         <table>
           <thead>
             <tr>
-              <th key="action_type">
-                <SortButton
-                  className="text-xs uppercase font-bold"
-                  label="Action"
-                  showSortIcons={false}
-                />
-              </th>
               <th key="user_id">
                 <SortButton
                   className="text-xs uppercase font-bold"
                   label="User"
+                  showSortIcons={false}
+                />
+              </th>
+              <th key="action_type">
+                <SortButton
+                  className="text-xs uppercase font-bold"
+                  label="Action"
                   showSortIcons={false}
                 />
               </th>
@@ -47,7 +47,7 @@ const CommunityApplicationLogsTable = ({ data }: Props) => {
             {data.map((d: any) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               return (
-                <tr>
+                <tr key={d.id}>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.user_email}</p>
                   </td>

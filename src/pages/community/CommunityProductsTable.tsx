@@ -76,7 +76,7 @@ const CommunityProductsTable = ({ data }: Props) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow() : '-'
               return (
-                <tr>
+                <tr key={d.id}>
                   <td>
                     <img src={d.gallery[0].url} alt={d.name} className="max-w-16 max-h-16" />
                   </td>

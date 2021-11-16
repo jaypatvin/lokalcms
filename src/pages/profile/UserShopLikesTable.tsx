@@ -54,7 +54,7 @@ const UserShopLikesTable = ({ data }: Props) => {
             {data.map((d: any) => {
               const liked_at = d.liked_at ? dayjs(d.liked_at.toDate()).fromNow() : '-'
               return (
-                <tr>
+                <tr key={d.id}>
                   <td>
                     <img src={d.profile_photo} alt={d.name} className="max-w-16 max-h-16" />
                   </td>

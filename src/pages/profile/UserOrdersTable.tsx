@@ -59,14 +59,14 @@ const UserOrdersTable = ({ data, userType }: Props) => {
               let totalPrice = 0
               let totalItems = 0
               return (
-                <tr>
+                <tr key={d.id}>
                   <td>
                     {d.products.slice(0, 2).map((product: any) => {
                       const subTotalPrice = product.quantity * product.product_price
                       totalPrice += subTotalPrice
                       totalItems += product.quantity
                       return (
-                        <div className="border-b-1 mb-2 py-2 flex items-center">
+                        <div className="border-b-1 mb-2 py-2 flex items-center" key={product.id}>
                           <div className="w-12 mr-2">
                             {product.product_image ? (
                               <img
@@ -98,7 +98,9 @@ const UserOrdersTable = ({ data, userType }: Props) => {
                     <p>Total Price: {formatToPeso(totalPrice)}</p>
                   </td>
                   <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{d[`${otherUserType}_email`]}</p>
+                    <p className="text-gray-900 whitespace-no-wrap">
+                      {d[`${otherUserType}_email`]}
+                    </p>
                     {otherUserType === 'buyer' && (
                       <p className="text-gray-900 whitespace-no-wrap">Shop: {d.shop_name}</p>
                     )}
