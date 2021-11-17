@@ -80,7 +80,7 @@ const mainSearch = async (req: Request, res: Response) => {
   ) {
     const searchResult = await searchProducts({ search: q, category, community_id })
     const products = searchResult.docs.map((doc) => {
-      const data = doc.data()
+      const data: any = { ...doc.data(), id: doc.id }
       delete data.keywords
       return data
     })
@@ -93,7 +93,7 @@ const mainSearch = async (req: Request, res: Response) => {
   ) {
     const searchResult = await searchShops({ search: q, community_id })
     const shops = searchResult.docs.map((doc) => {
-      const data = doc.data()
+      const data: any = { ...doc.data(), id: doc.id }
       delete data.keywords
       return data
     })
