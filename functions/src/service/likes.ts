@@ -27,15 +27,14 @@ export const getProductLikes = async (product_id: string) => {
   return like.docs.map((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
-export const addProductLike = async (product_id: string, user_id: string) => {
+export const addProductLike = async (product_id: string, user_id: string, data: any = {}) => {
   const likeRef = db
     .collection('products')
     .doc(product_id)
     .collection('likes')
     .doc(`${product_id}_${user_id}_like`)
   return await likeRef.set({
-    parent_collection_path: 'products',
-    parent_collection_name: 'products',
+    ...data,
     user_id,
     product_id,
     created_at: new Date(),
@@ -61,15 +60,14 @@ export const getShopLike = async (shop_id: string, user_id: string) => {
   return like.data()
 }
 
-export const addShopLike = async (shop_id: string, user_id: string) => {
+export const addShopLike = async (shop_id: string, user_id: string, data: any = {}) => {
   const likeRef = db
     .collection('shops')
     .doc(shop_id)
     .collection('likes')
     .doc(`${shop_id}_${user_id}_like`)
   return await likeRef.set({
-    parent_collection_path: 'shops',
-    parent_collection_name: 'shops',
+    ...data,
     user_id,
     shop_id,
     created_at: new Date(),

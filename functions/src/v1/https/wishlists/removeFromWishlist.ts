@@ -1,15 +1,15 @@
 import { Request, Response } from 'express'
-import { WishlistsService, ProductsService } from '../../../service'
+import { WishlistsService, ProductsService, UsersService } from '../../../service'
 
 /**
  * @openapi
- * /v1/products/{productId}/unlike:
+ * /v1/products/{productId}/wishlist:
  *   delete:
  *     tags:
  *       - products
  *     security:
  *       - bearerAuth: []
- *     description: Like a product
+ *     description: Remove a product from the wishlist
  *     parameters:
  *       - in: path
  *         name: productId
@@ -17,15 +17,6 @@ import { WishlistsService, ProductsService } from '../../../service'
  *         description: document id of the product
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: string
 
  *     responses:
  *       200:
@@ -40,8 +31,7 @@ import { WishlistsService, ProductsService } from '../../../service'
  */
 const removeFromWishlist = async (req: Request, res: Response) => {
   const { productId } = req.params
-  const { user_id } = req.body
-  const requestorDocId = res.locals.userDoc.id || user_id
+  const requestorDocId = res.locals.userDoc.id
 
   if (!productId) {
     return res.status(400).json({ status: 'error', message: 'product id is required!' })
@@ -60,6 +50,7 @@ const removeFromWishlist = async (req: Request, res: Response) => {
   const exists = await WishlistsService.getProductWishlist(productId, requestorDocId)
   if (exists) {
     await ProductsService.decrementProductWishlistCount(productId)
+    await UsersService.decrementUserWishlistCount(requestorDocId)
     await WishlistsService.removeProductWishlist(productId, requestorDocId)
   }
 

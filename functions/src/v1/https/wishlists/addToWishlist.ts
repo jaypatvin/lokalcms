@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { WishlistsService, ProductsService } from '../../../service'
+import { WishlistsService, ProductsService, UsersService } from '../../../service'
 
 /**
  * @openapi
@@ -48,8 +48,13 @@ const addToWishlist = async (req: Request, res: Response) => {
 
   const exists = await WishlistsService.getProductWishlist(productId, requestorDocId)
   if (!exists) {
+    const wishlistData = {
+      shop_id: product.shop_id,
+      community_id: product.community_id,
+    }
     await ProductsService.incrementProductWishlistCount(productId)
-    await WishlistsService.addProductWishlist(productId, requestorDocId)
+    await UsersService.incrementUserWishlistCount(requestorDocId)
+    await WishlistsService.addProductWishlist(productId, requestorDocId, wishlistData)
   }
 
   return res.status(200).json({ status: 'ok' })

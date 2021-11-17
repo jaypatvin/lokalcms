@@ -48,8 +48,13 @@ const likeShop = async (req: Request, res: Response) => {
 
   const exists = await LikesService.getShopLike(shopId, requestorDocId)
   if (!exists) {
+    const likeData = {
+      community_id: shop.community_id,
+      parent_collection_path: 'shops',
+      parent_collection_name: 'shops',
+    }
     await ShopsService.incrementShopLikeCount(shopId)
-    await LikesService.addShopLike(shopId, requestorDocId)
+    await LikesService.addShopLike(shopId, requestorDocId, likeData)
   }
 
   return res.status(200).json({ status: 'ok' })

@@ -53,17 +53,29 @@ export const updateUser = async (id, data) => {
 export const archiveUser = async (id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.collection(collectionName).doc(id).update(updateData)
 }
 
 export const unarchiveUser = async (id: string, data?: any) => {
   let updateData = { archived: false, updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
+  return await db.collection(collectionName).doc(id).update(updateData)
+}
+
+export const incrementUserWishlistCount = async (id: string) => {
   return await db
     .collection(collectionName)
     .doc(id)
-    .update(updateData)
+    .update({
+      '_meta.wishlists_count': admin.firestore.FieldValue.increment(1),
+    })
+}
+
+export const decrementUserWishlistCount = async (id: string) => {
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update({
+      '_meta.wishlists_count': admin.firestore.FieldValue.increment(-1),
+    })
 }
