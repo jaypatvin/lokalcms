@@ -76,6 +76,36 @@ exports.activityCounter = functions.firestore
     logActivity(change)
     return runCounter('activities', change, context)
   })
+exports.orderCounter = functions.firestore
+  .document('orders/{docId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('orders', change, context)
+  })
+exports.applicationLogCounter = functions.firestore
+  .document('application_logs/{docId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('application_logs', change, context)
+  })
+exports.actionTypeCounter = functions.firestore
+  .document('action_types/{docId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('action_types', change, context)
+  })
+exports.chatCounter = functions.firestore
+  .document('chats/{docId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('chats', change, context)
+  })
+exports.productSubscriptionPlanCounter = functions.firestore
+  .document('product_subscription_plans/{docId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('product_subscription_plans', change, context)
+  })
 
 exports.generateProductSubscriptions = functions.pubsub
   .schedule('every 12 hours')
