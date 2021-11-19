@@ -199,3 +199,21 @@ export const decrementProductLikeCount = async (id: string) => {
       '_meta.likes_count': admin.firestore.FieldValue.increment(-1),
     })
 }
+
+export const incrementProductWishlistCount = async (id: string) => {
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update({
+      '_meta.wishlists_count': admin.firestore.FieldValue.increment(1),
+    })
+}
+
+export const decrementProductWishlistCount = async (id: string) => {
+  return await db
+    .collection(collectionName)
+    .doc(id)
+    .update({
+      '_meta.wishlists_count': admin.firestore.FieldValue.increment(-1),
+    })
+}

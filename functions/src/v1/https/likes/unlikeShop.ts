@@ -17,15 +17,6 @@ import { LikesService, ShopsService } from '../../../service'
  *         description: document id of the shop
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: string
 
  *     responses:
  *       200:
@@ -40,8 +31,7 @@ import { LikesService, ShopsService } from '../../../service'
  */
 const unlikeShop = async (req: Request, res: Response) => {
   const { shopId } = req.params
-  const { user_id } = req.body
-  const requestorDocId = res.locals.userDoc.id || user_id
+  const requestorDocId = res.locals.userDoc.id
 
   if (!shopId) {
     return res.status(400).json({ status: 'error', message: 'shop id is required!' })

@@ -22,6 +22,7 @@ import {
   ProductSubscriptionPlansAPI,
   ProductSubscriptionsAPI,
   ApplicationLogsApi,
+  WishlistsApi,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -99,6 +100,7 @@ module.exports = (api: Express) => {
   api.route('/v1/users/:userId/activities').get(wrapAsync(ActivitiesAPI.getUserActivities))
   api.route('/v1/users/:userId/comments').get(wrapAsync(CommentsAPI.getUserComments))
   api.route('/v1/users/:userId/toggleNotificationSetting').put(wrapAsync(UsersAPI.toggleNotificationSetting))
+  api.route('/v1/users/:userId/wishlist').get(wrapAsync(ProductsAPI.getUserWishlist))
 
   // -- Shops routes
   api.route('/v1/availableShops').get(wrapAsync(ShopsAPI.getAvailableShops))
@@ -111,6 +113,7 @@ module.exports = (api: Express) => {
   api.route('/v1/shops/:shopId/operatingHours').get(wrapAsync(ShopsAPI.getShopOperatingHours))
   api.route('/v1/shops/:shopId/operatingHours').put(wrapAsync(ShopsAPI.addShopOperatingHours))
   api.route('/v1/shops/:shopId/getDates').get(wrapAsync(ShopsAPI.getDates))
+  api.route('/v1/shops/:shopId/wishlist').get(wrapAsync(UsersAPI.getShopWishlistUsers))
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
@@ -145,6 +148,9 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/availability').put(wrapAsync(ProductsAPI.addProductAvailability))
   api.route('/v1/products/:productId/ratings').post(wrapAsync(ProductsAPI.updateProductRating))
   api.route('/v1/products/:productId/getDates').get(wrapAsync(ProductsAPI.getDates))
+  api.route('/v1/products/:productId/wishlist').post(wrapAsync(WishlistsApi.addToWishlist))
+  api.route('/v1/products/:productId/wishlist').delete(wrapAsync(WishlistsApi.removeFromWishlist))
+  api.route('/v1/products/:productId/wishlist').get(wrapAsync(UsersAPI.getProductWishlistUsers))
 
   // -- Categories routes
   api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))

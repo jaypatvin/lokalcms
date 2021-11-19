@@ -1,15 +1,15 @@
 import { Request, Response } from 'express'
-import { LikesService, ProductsService } from '../../../service'
+import { WishlistsService, ProductsService, UsersService } from '../../../service'
 
 /**
  * @openapi
- * /v1/products/{productId}/unlike:
- *   delete:
+ * /v1/products/{productId}/wishlist:
+ *   post:
  *     tags:
  *       - products
  *     security:
  *       - bearerAuth: []
- *     description: Like a product
+ *     description: Add product to wishlist
  *     parameters:
  *       - in: path
  *         name: productId
@@ -17,7 +17,6 @@ import { LikesService, ProductsService } from '../../../service'
  *         description: document id of the product
  *         schema:
  *           type: string
-
  *     responses:
  *       200:
  *         content:
@@ -29,7 +28,7 @@ import { LikesService, ProductsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const unlikeProduct = async (req: Request, res: Response) => {
+const addToWishlist = async (req: Request, res: Response) => {
   const { productId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
@@ -47,13 +46,18 @@ const unlikeProduct = async (req: Request, res: Response) => {
     })
   }
 
-  const exists = await LikesService.getProductLike(productId, requestorDocId)
-  if (exists) {
-    await ProductsService.decrementProductLikeCount(productId)
-    await LikesService.removeProductLike(productId, requestorDocId)
+  const exists = await WishlistsService.getProductWishlist(productId, requestorDocId)
+  if (!exists) {
+    const wishlistData = {
+      shop_id: product.shop_id,
+      community_id: product.community_id,
+    }
+    await ProductsService.incrementProductWishlistCount(productId)
+    await UsersService.incrementUserWishlistCount(requestorDocId)
+    await WishlistsService.addProductWishlist(productId, requestorDocId, wishlistData)
   }
 
   return res.status(200).json({ status: 'ok' })
 }
 
-export default unlikeProduct
+export default addToWishlist

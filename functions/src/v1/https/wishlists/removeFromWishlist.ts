@@ -1,15 +1,15 @@
 import { Request, Response } from 'express'
-import { LikesService, ProductsService } from '../../../service'
+import { WishlistsService, ProductsService, UsersService } from '../../../service'
 
 /**
  * @openapi
- * /v1/products/{productId}/unlike:
+ * /v1/products/{productId}/wishlist:
  *   delete:
  *     tags:
  *       - products
  *     security:
  *       - bearerAuth: []
- *     description: Like a product
+ *     description: Remove a product from the wishlist
  *     parameters:
  *       - in: path
  *         name: productId
@@ -29,7 +29,7 @@ import { LikesService, ProductsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const unlikeProduct = async (req: Request, res: Response) => {
+const removeFromWishlist = async (req: Request, res: Response) => {
   const { productId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
@@ -47,13 +47,14 @@ const unlikeProduct = async (req: Request, res: Response) => {
     })
   }
 
-  const exists = await LikesService.getProductLike(productId, requestorDocId)
+  const exists = await WishlistsService.getProductWishlist(productId, requestorDocId)
   if (exists) {
-    await ProductsService.decrementProductLikeCount(productId)
-    await LikesService.removeProductLike(productId, requestorDocId)
+    await ProductsService.decrementProductWishlistCount(productId)
+    await UsersService.decrementUserWishlistCount(requestorDocId)
+    await WishlistsService.removeProductWishlist(productId, requestorDocId)
   }
 
   return res.status(200).json({ status: 'ok' })
 }
 
-export default unlikeProduct
+export default removeFromWishlist
