@@ -10,6 +10,8 @@ type UpdateCountsInDocArgType = {
   hasCollection: string
   countName?: string
   isSubcollection?: boolean
+  parentCollection?: string
+  parentDocId?: string
   foreignKey?: string
   count: FirebaseFirestore.FieldValue
   transaction: FirebaseFirestore.Transaction
@@ -31,7 +33,9 @@ const eventsCol = '_events'
 const metaCol = '_meta'
 
 const getCountRef = (params: any) => {
-  return db.doc(`${metaCol}/${params.colId}`)
+  const { colId, docId, subColId, subDocId } = params
+  const isSubDoc = subColId && subDocId
+  return isSubDoc ? db.doc(`${colId}/${docId}`) : db.doc(`${metaCol}/${colId}`)
 }
 
 const updateCountsInDoc = async (options: UpdateCountsInDocArgType) => {
@@ -41,12 +45,14 @@ const updateCountsInDoc = async (options: UpdateCountsInDocArgType) => {
     hasCollection,
     countName,
     isSubcollection,
+    parentCollection,
+    parentDocId,
     foreignKey,
     count,
     transaction,
   } = options
   if (!isSubcollection && !foreignKey) {
-    console.error('foreignKey is required if subcollection')
+    console.error('foreignKey is required if not subcollection')
     return null
   }
   const metaCountName = countName || `${hasCollection}_count`
@@ -62,7 +68,11 @@ const updateCountsInDoc = async (options: UpdateCountsInDocArgType) => {
     db.runTransaction(async (tr: FirebaseFirestore.Transaction) => {
       const subCollectionsRef = isSubcollection
         ? db.collection(`${collection}/${docId}/${hasCollection}`)
-        : db.collection(hasCollection).where(foreignKey, '==', docId)
+        : db
+            .collection(
+              parentDocId ? `${parentCollection}/${parentDocId}/${hasCollection}` : hasCollection
+            )
+            .where(foreignKey, '==', docId)
       const colSnap = await tr.get(subCollectionsRef)
       tr.update(countRef, { [`_meta.${metaCountName}`]: colSnap.size })
     })
@@ -90,6 +100,8 @@ export const runCounter = async (
 
   const eventRef = db.doc(`${eventsCol}/${context.eventId}`)
 
+  const isSubDoc = context.params.subColId && context.params.subDocId
+
   return db
     .runTransaction(async (transaction: FirebaseFirestore.Transaction) => {
       const eventSnap = await transaction.get(eventRef)
@@ -98,22 +110,29 @@ export const runCounter = async (
         return null
       }
 
-      if (countSnap.exists) {
-        await transaction.update(countRef, { count: count })
-      } else {
-        const colRef = db.collection(change.after.ref.parent.path)
-        const colSnap = await transaction.get(colRef)
-        await transaction.set(countRef, { count: colSnap.size })
+      if (!isSubDoc) {
+        if (countSnap.exists) {
+          await transaction.update(countRef, { count: count })
+        } else {
+          const colRef = db.collection(change.after.ref.parent.path)
+          const colSnap = await transaction.get(colRef)
+          await transaction.set(countRef, { count: colSnap.size })
+        }
+      } else if (countSnap.exists) {
+        await transaction.update(countRef, { [`_meta.${context.params.subColId}_count`]: count })
       }
 
       // side effects
       const data = change.before.data() || change.after.data()
+      const parentDocId = context.params.docId
+      let product_id
       let shop_id
       let community_id
       let user_id
       let buyer_id
       let seller_id
-      switch (collection_name) {
+      let activity_id
+      switch (context.params.subColId || collection_name) {
         case 'users':
           community_id = data.community_id
           await updateCountsInDoc({
@@ -213,6 +232,140 @@ export const runCounter = async (
             count,
             transaction,
           })
+          break
+        case 'product_subscription_plans':
+          buyer_id = data.buyer_id
+          seller_id = data.seller_id
+          product_id = data.product_id
+          shop_id = data.shop_id
+          community_id = data.community_id
+          await updateCountsInDoc({
+            docId: buyer_id,
+            collection: 'users',
+            hasCollection: 'product_subscription_plans',
+            foreignKey: 'buyer_id',
+            countName: 'product_subscription_plans_as_buyer_count',
+            count,
+            transaction,
+          })
+          await updateCountsInDoc({
+            docId: seller_id,
+            collection: 'users',
+            hasCollection: 'product_subscription_plans',
+            foreignKey: 'seller_id',
+            countName: 'product_subscription_plans_as_seller_count',
+            count,
+            transaction,
+          })
+          await updateCountsInDoc({
+            docId: product_id,
+            collection: 'products',
+            hasCollection: 'product_subscription_plans',
+            foreignKey: 'product_id',
+            count,
+            transaction,
+          })
+          await updateCountsInDoc({
+            docId: shop_id,
+            collection: 'shops',
+            hasCollection: 'product_subscription_plans',
+            foreignKey: 'shop_id',
+            count,
+            transaction,
+          })
+          await updateCountsInDoc({
+            docId: community_id,
+            collection: 'community',
+            hasCollection: 'product_subscription_plans',
+            foreignKey: 'community_id',
+            count,
+            transaction,
+          })
+          break
+        case 'wishlists':
+          user_id = data.user_id
+          product_id = data.product_id
+          shop_id = data.shop_id
+          community_id = data.community_id
+          await updateCountsInDoc({
+            docId: user_id,
+            collection: 'users',
+            hasCollection: 'wishlists',
+            parentCollection: 'products',
+            parentDocId,
+            foreignKey: 'user_id',
+            count,
+            transaction,
+          })
+          await updateCountsInDoc({
+            docId: product_id,
+            collection: 'products',
+            hasCollection: 'wishlists',
+            isSubcollection: true,
+            count,
+            transaction,
+          })
+          await updateCountsInDoc({
+            docId: shop_id,
+            collection: 'shops',
+            hasCollection: 'wishlists',
+            parentCollection: 'products',
+            parentDocId,
+            foreignKey: 'shop_id',
+            count,
+            transaction,
+          })
+          break
+        case 'likes':
+          user_id = data.user_id
+          activity_id = data.activity_id
+          product_id = data.product_id
+          shop_id = data.shop_id
+          community_id = data.community_id
+          let parentCollectionName
+          if (collection_name === 'products') {
+            await updateCountsInDoc({
+              docId: product_id,
+              collection: 'products',
+              hasCollection: 'likes',
+              isSubcollection: true,
+              count,
+              transaction,
+            })
+          }
+          if (collection_name === 'shops') {
+            await updateCountsInDoc({
+              docId: shop_id,
+              collection: 'shops',
+              hasCollection: 'likes',
+              isSubcollection: true,
+              count,
+              transaction,
+            })
+          }
+          if (collection_name === 'activities') {
+            await updateCountsInDoc({
+              docId: activity_id,
+              collection: 'activities',
+              hasCollection: 'likes',
+              isSubcollection: true,
+              count,
+              transaction,
+            })
+          }
+          if (['products', 'shops', 'activities'].includes(collection_name)) {
+            await updateCountsInDoc({
+              docId: user_id,
+              collection: 'users',
+              hasCollection: 'likes',
+              parentCollection: collection_name,
+              parentDocId,
+              foreignKey: 'user_id',
+              countName: `${collection_name}_likes_count`,
+              count,
+              transaction,
+            })
+          }
           break
         default:
           break

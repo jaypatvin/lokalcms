@@ -52,8 +52,20 @@ exports.shopCounter = functions.firestore
     logActivity(change)
     return runCounter('shops', change, context)
   })
+exports.shopCounter = functions.firestore
+  .document('shops/{docId}/{subColId}/{subDocId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('shops', change, context)
+  })
 exports.productCounter = functions.firestore
   .document('products/{docId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('products', change, context)
+  })
+exports.productCounter = functions.firestore
+  .document('products/{docId}/{subColId}/{subDocId}')
   .onWrite(async (change, context) => {
     logActivity(change)
     return runCounter('products', change, context)
@@ -76,17 +88,17 @@ exports.activityCounter = functions.firestore
     logActivity(change)
     return runCounter('activities', change, context)
   })
+exports.activityCounter = functions.firestore
+  .document('activities/{docId}/{subColId}/{subDocId}')
+  .onWrite(async (change, context) => {
+    logActivity(change)
+    return runCounter('activities', change, context)
+  })
 exports.orderCounter = functions.firestore
   .document('orders/{docId}')
   .onWrite(async (change, context) => {
     logActivity(change)
     return runCounter('orders', change, context)
-  })
-exports.applicationLogCounter = functions.firestore
-  .document('application_logs/{docId}')
-  .onWrite(async (change, context) => {
-    logActivity(change)
-    return runCounter('application_logs', change, context)
   })
 exports.actionTypeCounter = functions.firestore
   .document('action_types/{docId}')
