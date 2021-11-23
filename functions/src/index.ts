@@ -52,7 +52,7 @@ exports.shopCounter = functions.firestore
     logActivity(change)
     return runCounter('shops', change, context)
   })
-exports.shopCounter = functions.firestore
+exports.shopSubCounter = functions.firestore
   .document('shops/{docId}/{subColId}/{subDocId}')
   .onWrite(async (change, context) => {
     logActivity(change)
@@ -64,7 +64,7 @@ exports.productCounter = functions.firestore
     logActivity(change)
     return runCounter('products', change, context)
   })
-exports.productCounter = functions.firestore
+exports.productSubCounter = functions.firestore
   .document('products/{docId}/{subColId}/{subDocId}')
   .onWrite(async (change, context) => {
     logActivity(change)
@@ -88,7 +88,7 @@ exports.activityCounter = functions.firestore
     logActivity(change)
     return runCounter('activities', change, context)
   })
-exports.activityCounter = functions.firestore
+exports.activitySubCounter = functions.firestore
   .document('activities/{docId}/{subColId}/{subDocId}')
   .onWrite(async (change, context) => {
     logActivity(change)

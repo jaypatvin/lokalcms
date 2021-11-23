@@ -65,7 +65,7 @@ const updateCountsInDoc = async (options: UpdateCountsInDocArgType) => {
   if (countData._meta && countData._meta[metaCountName]) {
     await transaction.update(countRef, { [`_meta.${metaCountName}`]: count })
   } else {
-    db.runTransaction(async (tr: FirebaseFirestore.Transaction) => {
+    await db.runTransaction(async (tr: FirebaseFirestore.Transaction) => {
       const subCollectionsRef = isSubcollection
         ? db.collection(`${collection}/${docId}/${hasCollection}`)
         : db
@@ -297,62 +297,9 @@ export const runCounter = async (
             count,
             transaction,
           })
-          await updateCountsInDoc({
-            docId: product_id,
-            collection: 'products',
-            hasCollection: 'wishlists',
-            isSubcollection: true,
-            count,
-            transaction,
-          })
-          await updateCountsInDoc({
-            docId: shop_id,
-            collection: 'shops',
-            hasCollection: 'wishlists',
-            parentCollection: 'products',
-            parentDocId,
-            foreignKey: 'shop_id',
-            count,
-            transaction,
-          })
           break
         case 'likes':
           user_id = data.user_id
-          activity_id = data.activity_id
-          product_id = data.product_id
-          shop_id = data.shop_id
-          community_id = data.community_id
-          let parentCollectionName
-          if (collection_name === 'products') {
-            await updateCountsInDoc({
-              docId: product_id,
-              collection: 'products',
-              hasCollection: 'likes',
-              isSubcollection: true,
-              count,
-              transaction,
-            })
-          }
-          if (collection_name === 'shops') {
-            await updateCountsInDoc({
-              docId: shop_id,
-              collection: 'shops',
-              hasCollection: 'likes',
-              isSubcollection: true,
-              count,
-              transaction,
-            })
-          }
-          if (collection_name === 'activities') {
-            await updateCountsInDoc({
-              docId: activity_id,
-              collection: 'activities',
-              hasCollection: 'likes',
-              isSubcollection: true,
-              count,
-              transaction,
-            })
-          }
           if (['products', 'shops', 'activities'].includes(collection_name)) {
             await updateCountsInDoc({
               docId: user_id,

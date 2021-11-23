@@ -76,12 +76,6 @@ const unlikeActivity = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
   }
 
-  // since delete always succeeds even if the doc does not exist
-  // we should check first if we are removing an existing like
-  // before decrementing likeCount
-  const exists = await LikesService.getActivityLike(activityId, data.user_id)
-  if (exists) await ActivitiesService.deccrementActivityLikeCount(activityId)
-
   const result = await LikesService.removeActivityLike(activityId, data.user_id)
   return res.status(200).json({ status: 'ok', data: result })
 }
