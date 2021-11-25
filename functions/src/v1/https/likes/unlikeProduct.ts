@@ -49,7 +49,6 @@ const unlikeProduct = async (req: Request, res: Response) => {
 
   const exists = await LikesService.getProductLike(productId, requestorDocId)
   if (exists) {
-    await ProductsService.decrementProductLikeCount(productId)
     await LikesService.removeProductLike(productId, requestorDocId)
   }
 

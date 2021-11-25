@@ -76,12 +76,6 @@ const likeActivity = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
   }
 
-  // because we are using "set", we won't know if it is a new "Like"
-  // or we're just overwriting existing ones
-  // we need to check this before incrementing the "liked" count
-  const exists = await LikesService.getActivityLike(activityId, data.user_id)
-  if (!exists) await ActivitiesService.incrementActivityLikeCount(activityId)
-
   const result = await LikesService.addActivityLike(activityId, data.user_id)
   return res.status(200).json({ status: 'ok', data: result })
 }

@@ -53,7 +53,6 @@ const likeShop = async (req: Request, res: Response) => {
       parent_collection_path: 'shops',
       parent_collection_name: 'shops',
     }
-    await ShopsService.incrementShopLikeCount(shopId)
     await LikesService.addShopLike(shopId, requestorDocId, likeData)
   }
 
