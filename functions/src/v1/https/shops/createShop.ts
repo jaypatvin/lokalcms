@@ -5,6 +5,7 @@ import { generateShopKeywords } from '../../../utils/generateKeywords'
 import { required_fields } from './index'
 import validateOperatingHours from '../../../utils/validateOperatingHours'
 import generateSchedule from '../../../utils/generateSchedule'
+import isValidPaymentOptions from '../../../utils/isValidPaymentOptions'
 
 /**
  * @openapi
@@ -64,6 +65,30 @@ import generateSchedule from '../../../utils/generateSchedule'
  *                 type: boolean
  *               status:
  *                 type: string
+ *               payment_options:
+ *                 type: object
+ *                 properties:
+ *                   bank_accounts:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         bank:
+ *                           type: string
+ *                           enum: [bdo, bpi, unionbank, paymaya]
+ *                         account_name:
+ *                           type: string
+ *                         account_number:
+ *                           type: number
+ *                   gcash_accounts:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                         number:
+ *                           type: number
  *               operating_hours:
  *                 type: object
  *                 properties:
@@ -112,22 +137,36 @@ import generateSchedule from '../../../utils/generateSchedule'
  */
 const createShop = async (req: Request, res: Response) => {
   const data = req.body
-  const { user_id, name, description, is_close, status, source, profile_photo, cover_photo } = data
+  const {
+    user_id,
+    name,
+    description,
+    is_close,
+    status,
+    source,
+    profile_photo,
+    cover_photo,
+    payment_options,
+  } = data
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  const requestorCommunityId = res.locals.userDoc.community_id || ''
-  // if (!roles.editor && requestorDocId !== user_id) {
-  //   return res.status(403).json({
-  //     status: 'error',
-  //     message: 'You do not have a permission to create a shop for another user.',
-  //   })
-  // }
+  const requestorCommunityId = res.locals.userDoc.community_id
+  if (!roles.editor && requestorDocId !== user_id) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'You do not have a permission to create a shop for another user.',
+    })
+  }
 
   const error_fields = validateFields(data, required_fields)
   if (error_fields.length) {
     return res
       .status(400)
       .json({ status: 'error', message: 'Required fields missing', error_fields })
+  }
+
+  if (payment_options && !isValidPaymentOptions(payment_options)) {
+    return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
   }
 
   const keywords = generateShopKeywords({ name })
@@ -182,6 +221,7 @@ const createShop = async (req: Request, res: Response) => {
 
   if (profile_photo) shopData.profile_photo = profile_photo
   if (cover_photo) shopData.cover_photo = cover_photo
+  if (payment_options) shopData.payment_options = payment_options
 
   const result = await ShopsService.createShop(shopData)
 

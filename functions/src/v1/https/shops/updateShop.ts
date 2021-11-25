@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { ShopsService } from '../../../service'
 import { validateValue } from '../../../utils/validateFields'
 import { generateShopKeywords } from '../../../utils/generateKeywords'
+import isValidPaymentOptions from '../../../utils/isValidPaymentOptions'
 
 /**
  * @openapi
@@ -27,6 +28,7 @@ import { generateShopKeywords } from '../../../utils/generateKeywords'
  *       {
  *         "is_close": true
  *       }
+ *       ```
  *
  *       ### disabling the shop
  *       ```
@@ -57,6 +59,30 @@ import { generateShopKeywords } from '../../../utils/generateKeywords'
  *                 type: boolean
  *               status:
  *                 type: string
+ *               payment_options:
+ *                 type: object
+ *                 properties:
+ *                   bank_accounts:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         bank:
+ *                           type: string
+ *                           enum: [bdo, bpi, unionbank, paymaya]
+ *                         account_name:
+ *                           type: string
+ *                         account_number:
+ *                           type: number
+ *                   gcash_accounts:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                         number:
+ *                           type: number
  *     responses:
  *       200:
  *         description: Updated shop
@@ -72,7 +98,7 @@ import { generateShopKeywords } from '../../../utils/generateKeywords'
 const updateShop = async (req: Request, res: Response) => {
   const { shopId } = req.params
   const data = req.body
-  const { name, description, is_close, source, profile_photo, cover_photo } = data
+  const { name, description, is_close, source, profile_photo, cover_photo, payment_options } = data
 
   if (!shopId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
@@ -83,11 +109,16 @@ const updateShop = async (req: Request, res: Response) => {
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== currentShop.user_id)
+  if (!roles.editor && requestorDocId !== currentShop.user_id) {
     return res.status(403).json({
       status: 'error',
       message: 'You do not have a permission to update a shop of another user.',
     })
+  }
+
+  if (payment_options && !isValidPaymentOptions(payment_options)) {
+    return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
+  }
 
   const updateData: any = {
     updated_by: requestorDocId || '',
@@ -101,6 +132,7 @@ const updateShop = async (req: Request, res: Response) => {
   if (validateValue(is_close)) updateData.is_close = is_close
   if (profile_photo) updateData.profile_photo = profile_photo
   if (cover_photo) updateData.cover_photo = cover_photo
+  if (payment_options) updateData.payment_options = payment_options
 
   if (!Object.keys(updateData).length)
     return res.status(400).json({ status: 'error', message: 'no field for shop is provided' })
