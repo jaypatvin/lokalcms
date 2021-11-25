@@ -151,6 +151,7 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/wishlist').post(wrapAsync(WishlistsApi.addToWishlist))
   api.route('/v1/products/:productId/wishlist').delete(wrapAsync(WishlistsApi.removeFromWishlist))
   api.route('/v1/products/:productId/wishlist').get(wrapAsync(UsersAPI.getProductWishlistUsers))
+  api.route('/v1/products/:productId/reviews').post(wrapAsync(ProductsAPI.addProductReview))
 
   // -- Categories routes
   api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))

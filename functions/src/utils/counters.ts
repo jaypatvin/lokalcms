@@ -284,13 +284,23 @@ export const runCounter = async (
           break
         case 'wishlists':
           user_id = data.user_id
-          product_id = data.product_id
-          shop_id = data.shop_id
-          community_id = data.community_id
           await updateCountsInDoc({
             docId: user_id,
             collection: 'users',
             hasCollection: 'wishlists',
+            parentCollection: 'products',
+            parentDocId,
+            foreignKey: 'user_id',
+            count,
+            transaction,
+          })
+          break
+        case 'reviews':
+          user_id = data.user_id
+          await updateCountsInDoc({
+            docId: user_id,
+            collection: 'users',
+            hasCollection: 'reviews',
             parentCollection: 'products',
             parentDocId,
             foreignKey: 'user_id',
