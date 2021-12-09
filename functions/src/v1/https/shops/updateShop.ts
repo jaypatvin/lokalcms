@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ShopsService } from '../../../service'
+import { BankCodesService, ShopsService } from '../../../service'
 import { validateValue } from '../../../utils/validateFields'
 import { generateShopKeywords } from '../../../utils/generateKeywords'
 import isValidPaymentOptions from '../../../utils/isValidPaymentOptions'
@@ -60,29 +60,17 @@ import isValidPaymentOptions from '../../../utils/isValidPaymentOptions'
  *               status:
  *                 type: string
  *               payment_options:
- *                 type: object
- *                 properties:
- *                   bank_accounts:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         bank:
- *                           type: string
- *                           enum: [bdo, bpi, unionbank, paymaya]
- *                         account_name:
- *                           type: string
- *                         account_number:
- *                           type: number
- *                   gcash_accounts:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         name:
- *                           type: string
- *                         number:
- *                           type: number
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     bank_code:
+ *                       type: string
+ *                       enum: [bdo, bpi, gcash, paymaya]
+ *                     account_name:
+ *                       type: string
+ *                     account_number:
+ *                       type: number
  *     responses:
  *       200:
  *         description: Updated shop
@@ -116,7 +104,7 @@ const updateShop = async (req: Request, res: Response) => {
     })
   }
 
-  if (payment_options && !isValidPaymentOptions(payment_options)) {
+  if (payment_options && !(await isValidPaymentOptions(payment_options))) {
     return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
   }
 
@@ -132,7 +120,13 @@ const updateShop = async (req: Request, res: Response) => {
   if (validateValue(is_close)) updateData.is_close = is_close
   if (profile_photo) updateData.profile_photo = profile_photo
   if (cover_photo) updateData.cover_photo = cover_photo
-  if (payment_options) updateData.payment_options = payment_options
+  if (payment_options) {
+    for (const paymentOption of payment_options) {
+      const bankCode = await BankCodesService.getBankCodeById(paymentOption.bank_code)
+      paymentOption.type = bankCode.type
+    }
+    updateData.payment_options = payment_options
+  }
 
   if (!Object.keys(updateData).length)
     return res.status(400).json({ status: 'error', message: 'no field for shop is provided' })

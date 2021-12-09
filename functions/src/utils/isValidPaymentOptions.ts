@@ -1,30 +1,26 @@
-import { some, isArray } from 'lodash'
+import { isArray } from 'lodash'
+import { BankCodesService } from '../service'
 
-const isValidPaymentOptions = (paymentOptions) => {
-  if (!paymentOptions || typeof paymentOptions !== 'object') return false
+const isPaymentOptionsValid = async (paymentOptions) => {
+  for (const paymentOption of paymentOptions) {
+    const { bank_code, account_name, account_number } = paymentOption
+    if (!bank_code || !account_name || !account_number) {
+      return false
+    }
 
-  const { bank_accounts, gcash_accounts } = paymentOptions
-  if (
-    (!bank_accounts && !gcash_accounts) ||
-    (bank_accounts && !isArray(bank_accounts)) ||
-    (gcash_accounts && !isArray(gcash_accounts))
-  ) {
+    const bankCode = await BankCodesService.getBankCodeById(bank_code)
+    if (!bankCode) return false
+  }
+
+  return true
+}
+
+const isValidPaymentOptions = async (paymentOptions) => {
+  if (!paymentOptions || !isArray(paymentOptions)) {
     return false
   }
 
-  // any of bank accounts is invalid or have missing fields
-  if (
-    bank_accounts &&
-    some(
-      bank_accounts,
-      ({ bank, account_name, account_number }) => !bank || !account_name || !account_number
-    )
-  ) {
-    return false
-  }
-
-  // any of gcash accounts is invalid or have missing fields
-  if (gcash_accounts && some(gcash_accounts, ({ name, number }) => !name || !number)) {
+  if (!(await isPaymentOptionsValid(paymentOptions))) {
     return false
   }
 
