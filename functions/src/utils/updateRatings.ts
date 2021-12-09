@@ -37,8 +37,8 @@ const updateRatings = async (change: Change<DocumentSnapshot>, context: EventCon
     }
 
     transaction.update(productRef, {
-      avgRating: newAvgRating,
-      numRatings: newNumRatings,
+      '_meta.average_rating': newAvgRating,
+      '_meta.number_of_ratings': newNumRatings,
     })
   })
 }

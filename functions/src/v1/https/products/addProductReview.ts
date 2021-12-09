@@ -22,9 +22,16 @@ import { OrdersService, ProductReviewsService } from '../../../service'
  *       ```
  *       {
  *         "order_id": "id-of-order-that-have-this-product",
- *         "message": "The cake is so delicious! Will order again."
+ *         "message": "The cake is so delicious! Will order again.",
+ *         "rating": 5
  *       }
  *       ```
+ *
+ *       ```
+ *       {
+ *         "order_id": "id-of-order-that-have-this-product",
+ *         "rating": 3
+ *       }
  *       ```
  *
  *     requestBody:
@@ -38,6 +45,10 @@ import { OrdersService, ProductReviewsService } from '../../../service'
  *                 type: string
  *               order_id:
  *                 type: string
+ *                 required: true
+ *               rating:
+ *                 type: string
+ *                 required: true
  *     responses:
  *       200:
  *         content:
@@ -51,26 +62,26 @@ import { OrdersService, ProductReviewsService } from '../../../service'
  */
 const addProductReview = async (req: Request, res: Response) => {
   const { productId } = req.params
-  const { message, order_id } = req.body
-  const requestorDocId = res.locals.userDoc.id || 'ROi3hEkD1qJVmrGuoJR0'
+  const { message = '', order_id, rating } = req.body
+  const requestorDocId = res.locals.userDoc.id
 
   if (!order_id) {
     return res.status(400).json({ status: 'error', message: 'order_id is required.' })
   }
 
-  if (!message) {
-    return res.status(400).json({ status: 'error', message: 'message is required.' })
+  if (!isFinite(rating) || rating < 1 || rating > 5) {
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'the rating is required and must be between 1 and 5' })
   }
 
   const order = await OrdersService.getOrderByID(order_id)
 
   if (!order.product_ids.includes(productId)) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: `The product ${productId} is not included on the order ${order_id}`,
-      })
+    return res.status(400).json({
+      status: 'error',
+      message: `The product ${productId} is not included on the order ${order_id}`,
+    })
   }
 
   const existingReview = await ProductReviewsService.getProductReviewByOrderId(productId, order_id)
@@ -83,14 +94,15 @@ const addProductReview = async (req: Request, res: Response) => {
         message: 'The requestor id does not match the user id of the review.',
       })
     }
-    await ProductReviewsService.updateProductReview(productId, review.id, message)
+    await ProductReviewsService.updateProductReview(productId, review.id, rating, message)
   } else {
-    const newRating = {
+    const newReview = {
       user_id: requestorDocId,
       message,
+      rating,
       order_id,
     }
-    await ProductReviewsService.createProductReview(productId, newRating)
+    await ProductReviewsService.createProductReview(productId, newReview)
   }
 
   return res.status(200).json({ status: 'ok' })

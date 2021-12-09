@@ -55,13 +55,18 @@ export const createProductReview = async (id: string, data: any) => {
     .then((doc): any => ({ id: doc.id, ...doc.data(), created_at: new Date() }))
 }
 
-export const updateProductReview = async (productId: string, reviewId: string, message: string) => {
+export const updateProductReview = async (
+  productId: string,
+  reviewId: string,
+  rating: number,
+  message: string = ''
+) => {
   return await db
     .collection('products')
     .doc(productId)
     .collection('reviews')
     .doc(reviewId)
-    .update({ message, updated_at: new Date() })
+    .update({ rating, message, updated_at: new Date() })
 }
 
 export const deleteProductReview = async (productId: string, reviewId: string) => {

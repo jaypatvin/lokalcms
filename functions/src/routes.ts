@@ -146,7 +146,6 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/unarchive').put(wrapAsync(ProductsAPI.unarchiveProduct))
   api.route('/v1/products/:productId/availability').get(wrapAsync(ProductsAPI.getProductAvailability))
   api.route('/v1/products/:productId/availability').put(wrapAsync(ProductsAPI.addProductAvailability))
-  api.route('/v1/products/:productId/ratings').post(wrapAsync(ProductsAPI.updateProductRating))
   api.route('/v1/products/:productId/getDates').get(wrapAsync(ProductsAPI.getDates))
   api.route('/v1/products/:productId/wishlist').post(wrapAsync(WishlistsApi.addToWishlist))
   api.route('/v1/products/:productId/wishlist').delete(wrapAsync(WishlistsApi.removeFromWishlist))
