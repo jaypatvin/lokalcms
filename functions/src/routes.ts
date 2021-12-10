@@ -23,6 +23,7 @@ import {
   ProductSubscriptionsAPI,
   ApplicationLogsApi,
   WishlistsApi,
+  ReviewsApi,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -218,4 +219,8 @@ module.exports = (api: Express) => {
 
   // -- Product Subscriptions routes
   api.route('/v1/productSubscriptions/:id/createOrder').post(wrapAsync(ProductSubscriptionsAPI.createOrderFromSubscription))
+
+  // -- Reviews routes
+  api.route('/v1/products/:productId/reviews').get(wrapAsync(ReviewsApi.getProductReviews))
+  api.route('/v1/users/:userId/reviews').get(wrapAsync(ReviewsApi.getUserReviews))
 }

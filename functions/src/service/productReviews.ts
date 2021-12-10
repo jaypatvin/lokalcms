@@ -2,6 +2,14 @@ import * as admin from 'firebase-admin'
 
 const db = admin.firestore()
 
+export const getReviewsByUser = async (user_id: string) => {
+  return db
+    .collectionGroup('reviews')
+    .where('user_id', '==', user_id)
+    .get()
+    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+}
+
 export const getAllProductReviews = async (id: string) => {
   return await db
     .collection('products')

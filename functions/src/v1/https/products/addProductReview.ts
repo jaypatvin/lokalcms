@@ -101,6 +101,7 @@ const addProductReview = async (req: Request, res: Response) => {
       message,
       rating,
       order_id,
+      product_id: productId,
     }
     await ProductReviewsService.createProductReview(productId, newReview)
   }
