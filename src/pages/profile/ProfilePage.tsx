@@ -11,7 +11,7 @@ import { fetchShopByID, getShopsByUser } from '../../services/shops'
 import UserProductsTable from './UserProductsTable'
 import UserShopsTable from './UserShopsTable'
 import { getLikesByUser } from '../../services/likes'
-import { getOrdersByBuyer, getOrdersBySeller } from '../../services/orders'
+import { fetchOrderByID, getOrdersByBuyer, getOrdersBySeller } from '../../services/orders'
 import {
   getProductSubscriptionPlansByBuyer,
   getProductSubscriptionPlansBySeller,
@@ -25,6 +25,8 @@ import UserActivityLikesTable from './UserActivityLikesTable'
 import UserApplicationLogsTable from './UserApplicationLogsTable'
 import UserOrdersTable from './UserOrdersTable'
 import UserSubscriptionPlansTable from './UserSubscriptionPlansTable'
+import { getReviewsByUser } from '../../services/reviews'
+import { getWishlistsByUser } from '../../services/wishlists'
 
 type Props = {
   [x: string]: any
@@ -39,9 +41,11 @@ type DataType =
   | 'orders_buyer'
   | 'orders_seller'
   | 'products'
-  | 'shops'
   | 'product_subscription_plans_buyer'
   | 'product_subscription_plans_seller'
+  | 'reviews'
+  | 'shops'
+  | 'wishlist'
 
 const ProfilePage = ({ match }: Props) => {
   const [user, setUser] = useState<any>({})
@@ -172,6 +176,10 @@ const ProfilePage = ({ match }: Props) => {
       newDataRef = getActivitiesByUser(userId, limit)
     } else if (dataName === 'application_logs') {
       newDataRef = getApplicationLogsByUser(userId, limit)
+    } else if (dataName === 'reviews') {
+      newDataRef = getReviewsByUser({ userId, limit })
+    } else if (dataName === 'wishlist') {
+      newDataRef = getWishlistsByUser({ userId, limit })
     }
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = newDataRef.onSnapshot(async (snapshot: any) => {
@@ -277,6 +285,29 @@ const ProfilePage = ({ match }: Props) => {
         const sellerData = seller.data()
         if (sellerData) {
           data.seller_email = sellerData.email
+        }
+      }
+    } else if (dataToShow === 'reviews') {
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const product = await fetchProductByID(data.product_id)
+        const productData = product.data()
+        if (productData) {
+          data.product = productData
+        }
+        const order = await fetchOrderByID(data.order_id)
+        const orderData = order.data()
+        if (orderData) {
+          data.order = orderData
+        }
+      }
+    } else if (dataToShow === 'wishlist') {
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const product = await fetchProductByID(data.product_id)
+        const productData = product.data()
+        if (productData) {
+          data.product = productData
         }
       }
     }
