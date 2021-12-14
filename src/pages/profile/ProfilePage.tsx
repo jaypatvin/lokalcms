@@ -27,6 +27,7 @@ import UserOrdersTable from './UserOrdersTable'
 import UserSubscriptionPlansTable from './UserSubscriptionPlansTable'
 import { getReviewsByUser } from '../../services/reviews'
 import { getWishlistsByUser } from '../../services/wishlists'
+import UserReviewsTable from './UserReviewsTable'
 
 type Props = {
   [x: string]: any
@@ -116,6 +117,16 @@ const ProfilePage = ({ match }: Props) => {
       key: 'product_subscription_plans_seller',
       name: 'Subscription Plans as Seller',
       onClick: () => onChangeDataToShow('product_subscription_plans_seller'),
+    },
+    {
+      key: 'reviews',
+      name: 'Reviews',
+      onClick: () => onChangeDataToShow('reviews'),
+    },
+    {
+      key: 'wishlist',
+      name: 'Wishlist',
+      onClick: () => onChangeDataToShow('wishlist'),
     },
   ]
 
@@ -295,6 +306,11 @@ const ProfilePage = ({ match }: Props) => {
         if (productData) {
           data.product = productData
         }
+        const shop = await fetchShopByID(data.product.shop_id)
+        const shopData = shop.data()
+        if (shopData) {
+          data.shop = shopData
+        }
         const order = await fetchOrderByID(data.order_id)
         const orderData = order.data()
         if (orderData) {
@@ -307,7 +323,12 @@ const ProfilePage = ({ match }: Props) => {
         const product = await fetchProductByID(data.product_id)
         const productData = product.data()
         if (productData) {
-          data.product = productData
+          newData[i] = { ...productData, created_at: data.created_at }
+        }
+        const shop = await fetchShopByID(data.shop_id)
+        const shopData = shop.data()
+        if (shopData) {
+          newData[i].shop_name = shopData.name
         }
       }
     }
@@ -414,6 +435,8 @@ const ProfilePage = ({ match }: Props) => {
               {dataToShow === 'product_subscription_plans_buyer' && (
                 <UserSubscriptionPlansTable data={data} userType={'buyer'} />
               )}
+              {dataToShow === 'wishlist' && <UserProductsTable data={data} isWishlist={true} />}
+              {dataToShow === 'reviews' && <UserReviewsTable data={data} />}
             </>
           )}
         </div>

@@ -4,9 +4,10 @@ import SortButton from '../../components/buttons/SortButton'
 
 type Props = {
   data: any
+  isWishlist?: boolean
 }
 
-const UserProductsTable = ({ data }: Props) => {
+const UserProductsTable = ({ data, isWishlist = false }: Props) => {
   return (
     <div className="table-wrapper w-full">
       <div className="table-container">
@@ -55,26 +56,38 @@ const UserProductsTable = ({ data }: Props) => {
                   showSortIcons={false}
                 />
               </th>
-              <th key="created_at">
-                <SortButton
-                  className="text-xs uppercase font-bold"
-                  label="Created At"
-                  showSortIcons={false}
-                />
-              </th>
-              <th key="updated_at">
-                <SortButton
-                  className="text-xs uppercase font-bold"
-                  label="Last Updated"
-                  showSortIcons={false}
-                />
-              </th>
+              {isWishlist ? (
+                <th key="wishlisted_at">
+                  <SortButton
+                    className="text-xs uppercase font-bold"
+                    label="Wishlisted At"
+                    showSortIcons={false}
+                  />
+                </th>
+              ) : (
+                <>
+                  <th key="created_at">
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Created At"
+                      showSortIcons={false}
+                    />
+                  </th>
+                  <th key="updated_at">
+                    <SortButton
+                      className="text-xs uppercase font-bold"
+                      label="Last Updated"
+                      showSortIcons={false}
+                    />
+                  </th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
             {data.map((d: any) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
-              const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow(): '-'
+              const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow() : '-'
               return (
                 <tr key={d.id}>
                   <td>
@@ -98,9 +111,11 @@ const UserProductsTable = ({ data }: Props) => {
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{created_at}</p>
                   </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{updated_at}</p>
-                  </td>
+                  {!isWishlist && (
+                    <td>
+                      <p className="text-gray-900 whitespace-no-wrap">{updated_at}</p>
+                    </td>
+                  )}
                 </tr>
               )
             })}
