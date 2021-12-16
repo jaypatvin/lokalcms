@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { InvitesService } from '../../../service'
-import { generateInviteKeywords } from '../../../utils/generateKeywords'
+import { generateInviteKeywords } from '../../../utils/generators'
 
 /**
  * @openapi

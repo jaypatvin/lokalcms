@@ -6,7 +6,7 @@ import {
   ProductsService,
   ChatMessageService,
 } from '../../../service'
-import validateFields from '../../../utils/validateFields'
+import { validateFields } from '../../../utils/validations'
 import { required_fields } from './index'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 import { fieldIsNum } from '../../../utils/helpers'

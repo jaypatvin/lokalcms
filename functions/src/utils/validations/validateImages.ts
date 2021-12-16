@@ -1,4 +1,4 @@
-export const validateImages = (images: any) => {
+const validateImages = (images: any) => {
   let errorMessages = []
   if (!Array.isArray(images)) {
     errorMessages.push('Images is not an array of type object: {url: string, order: number}')
@@ -20,3 +20,5 @@ export const validateImages = (images: any) => {
     valid: errorMessages.length === 0,
   }
 }
+
+export default validateImages

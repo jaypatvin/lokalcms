@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
-import { UsersService, ShopsService, CommunityService } from '../../../service'
-import { generateUserKeywords } from '../../../utils/generateKeywords'
-import { validateValue } from '../../../utils/validateFields'
+import { UsersService, CommunityService } from '../../../service'
+import { generateUserKeywords } from '../../../utils/generators'
+import { validateValue } from '../../../utils/validations'
 import { required_fields } from './index'
 import { db } from '../index'
 

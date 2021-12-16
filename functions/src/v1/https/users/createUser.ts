@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { UsersService, CommunityService } from '../../../service'
-import { generateUserKeywords } from '../../../utils/generateKeywords'
-import validateFields from '../../../utils/validateFields'
+import { generateUserKeywords } from '../../../utils/generators'
+import { validateFields } from '../../../utils/validations'
 import { required_fields } from './index'
 import { db, auth } from '../index'
 

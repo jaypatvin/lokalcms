@@ -1,8 +1,7 @@
 import { Request, Response } from 'express'
 import { BankCodesService, ShopsService } from '../../../service'
-import { validateValue } from '../../../utils/validateFields'
-import { generateShopKeywords } from '../../../utils/generateKeywords'
-import isValidPaymentOptions from '../../../utils/isValidPaymentOptions'
+import { validateValue, isValidPaymentOptions } from '../../../utils/validations'
+import { generateShopKeywords } from '../../../utils/generators'
 
 /**
  * @openapi

@@ -1,11 +1,12 @@
 import { Request, Response } from 'express'
 import { BankCodesService, ShopsService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
-import { generateShopKeywords } from '../../../utils/generateKeywords'
+import {
+  validateFields,
+  validateOperatingHours,
+  isValidPaymentOptions,
+} from '../../../utils/validations'
+import { generateShopKeywords, generateSchedule } from '../../../utils/generators'
 import { required_fields } from './index'
-import validateOperatingHours from '../../../utils/validateOperatingHours'
-import generateSchedule from '../../../utils/generateSchedule'
-import isValidPaymentOptions from '../../../utils/isValidPaymentOptions'
 
 /**
  * @openapi

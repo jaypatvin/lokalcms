@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ActionTypesService, ApplicationLogService, CommunityService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
+import { validateFields } from '../../../utils/validations'
 import { required_fields } from './index'
 
 /**

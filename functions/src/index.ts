@@ -11,11 +11,9 @@ admin.initializeApp()
 import { authMiddleware, roleMiddleware } from './middlewares'
 
 import helloRouter from './v1/https/hello.function'
-import { runCounter } from './utils/counters'
-import logActivity from './utils/logActivity'
+import { runCounter, logActivity, updateRatings } from './utils/triggers'
 import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
 import notifyUsersOnproductSubscriptions from './scheduled/notifyUsersOnProductSubscriptions'
-import updateRatings from './utils/updateRatings'
 
 const app = express()
 app.use(cors({ origin: true }))

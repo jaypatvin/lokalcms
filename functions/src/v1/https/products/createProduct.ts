@@ -5,14 +5,15 @@ import {
   ProductsService,
   CategoriesService,
 } from '../../../service'
-import validateFields from '../../../utils/validateFields'
-import { generateProductKeywords } from '../../../utils/generateKeywords'
+import {
+  validateFields,
+  isScheduleDerived,
+  validateImages,
+  validateOperatingHours,
+} from '../../../utils/validations'
+import { generateProductKeywords, generateSchedule } from '../../../utils/generators'
 import { required_fields } from './index'
 import { fieldIsNum } from '../../../utils/helpers'
-import validateOperatingHours from '../../../utils/validateOperatingHours'
-import generateSchedule from '../../../utils/generateSchedule'
-import isScheduleDerived from '../../../utils/isScheduleDerived'
-import { validateImages } from '../../../utils/validateImages'
 
 /**
  * @openapi

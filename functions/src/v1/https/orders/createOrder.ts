@@ -1,7 +1,13 @@
 import { Request, Response } from 'express'
 import { includes, isDate } from 'lodash'
-import { NotificationsService, OrdersService, ProductsService, ShopsService, UsersService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
+import {
+  NotificationsService,
+  OrdersService,
+  ProductsService,
+  ShopsService,
+  UsersService,
+} from '../../../service'
+import { validateFields } from '../../../utils/validations'
 import { required_fields } from './index'
 
 /**
@@ -181,7 +187,10 @@ const createOrder = async (req: Request, res: Response) => {
     if (product.quantity - quantity < 0) {
       return res
         .status(400)
-        .json({ status: 'error', message: `Product "${product.name}" only has ${product.quantity} left.` })
+        .json({
+          status: 'error',
+          message: `Product "${product.name}" only has ${product.quantity} left.`,
+        })
     }
     const orderProduct: any = {
       product_id: id,

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { ProductsService, ProductSubscriptionPlansService, ShopsService } from '../../../service'
-import generateDatesFromSchedule from '../../../utils/generateDatesFromSchedule'
+import { generateDatesFromSchedule } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -42,12 +42,10 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
   )
 
   if (!subscriptionPlan) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: `Product subscription plan with id ${planId} does not exist!`,
-      })
+    return res.status(400).json({
+      status: 'error',
+      message: `Product subscription plan with id ${planId} does not exist!`,
+    })
   }
 
   if (subscriptionPlan.buyer_id !== requestorDocId) {
@@ -60,23 +58,19 @@ const autoRescheduleConflicts = async (req: Request, res: Response) => {
   const shop = await ShopsService.getShopByID(subscriptionPlan.shop_id)
 
   if (!shop) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: `Shop with id ${subscriptionPlan.shop_id} does not exist!`,
-      })
+    return res.status(400).json({
+      status: 'error',
+      message: `Shop with id ${subscriptionPlan.shop_id} does not exist!`,
+    })
   }
 
   const product = await ProductsService.getProductByID(subscriptionPlan.product_id)
 
   if (!product) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: `Product with id ${subscriptionPlan.product_id} does not exist!`,
-      })
+    return res.status(400).json({
+      status: 'error',
+      message: `Product with id ${subscriptionPlan.product_id} does not exist!`,
+    })
   }
 
   const availability = product.availability || shop.operating_hours

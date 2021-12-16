@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { Request, Response } from 'express'
 import { isString } from 'lodash'
 import { ShopsService } from '../../../service'
-import generateDatesFromSchedule from '../../../utils/generateDatesFromSchedule'
+import { generateDatesFromSchedule } from '../../../utils/generators'
 import { dateFormat } from '../../../utils/helpers'
 
 /**

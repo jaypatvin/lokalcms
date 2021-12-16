@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { ProductSubscriptionPlansService, ProductSubscriptionsService } from '../service'
-import isDateValidInSchedule from '../utils/isDateValidInSchedule'
+import { isDateValidInSchedule } from '../utils/validations'
 
 const generateProductSubscriptions = async (planId?: string) => {
   const today = new Date()

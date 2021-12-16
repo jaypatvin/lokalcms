@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import isDateValidInSchedule from './isDateValidInSchedule'
+import { isDateValidInSchedule } from '../validations'
 
 const generateDatesFromSchedule = (
   { start_dates, repeat_unit, repeat_type, schedule },
@@ -8,7 +8,9 @@ const generateDatesFromSchedule = (
   const currentDate = new Date()
   const {
     start_date = dayjs(currentDate).format('YYYY-MM-DD'),
-    end_date = dayjs(start_date || currentDate).add(45, 'days').format('YYYY-MM-DD'),
+    end_date = dayjs(start_date || currentDate)
+      .add(45, 'days')
+      .format('YYYY-MM-DD'),
   } = options
   const maxRangeDays = Math.abs(dayjs(start_date).diff(end_date, 'days'))
   const validDates = []

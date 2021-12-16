@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { get } from 'lodash'
-import { DayKeyVal } from './helpers'
+import { DayKeyVal } from '../helpers'
 
 const isDateValidInSchedule = ({ repeat_unit, repeat_type, schedule, startDate, dateToCheck }) => {
   const currentDate = dayjs(new Date()).format('YYYY-MM-DD')

@@ -1,9 +1,7 @@
 import { Request, Response } from 'express'
 import { UsersService, ActivitiesService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
+import { validateFields, validateImages } from '../../../utils/validations'
 import { required_fields } from './index'
-import { validateImages } from '../../../utils/validateImages'
-
 /**
  * @openapi
  * /v1/activities:

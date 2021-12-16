@@ -2,11 +2,11 @@ import { Request, Response } from 'express'
 import * as functions from 'firebase-functions'
 import humanPassword from 'human-password'
 import sgMail from '@sendgrid/mail'
-import { UsersService, InvitesService } from '../../../service'
-import { generateInviteKeywords } from '../../../utils/generateKeywords'
+import { InvitesService } from '../../../service'
+import { generateInviteKeywords } from '../../../utils/generators'
 import { disableInvitesByEmail } from '../../../service/invites'
 import { required_fields } from './index'
-import validateFields from '../../../utils/validateFields'
+import { validateFields } from '../../../utils/validations'
 
 sgMail.setApiKey(functions.config().mail_service.key)
 
