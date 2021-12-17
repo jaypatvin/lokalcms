@@ -29,8 +29,9 @@ const createOrdersForProductSubscriptions = async () => {
       subscriptionOrder.id,
       date_string
     )
+    const isPlanValid = plan && !plan.archived && plan.status === 'enabled'
 
-    if (plan && !existingOrder.length) {
+    if (isPlanValid && !existingOrder.length) {
       const {
         buyer_id,
         seller_id,

@@ -61,10 +61,19 @@ const confirm = async (req: Request, res: Response) => {
 
   if (!plan) {
     return res
-      .status(403)
+      .status(400)
       .json({
         status: 'error',
         message: `Product subscription plan with id ${planId} does not exist!`,
+      })
+  }
+
+  if (plan.archived) {
+    return res
+      .status(400)
+      .json({
+        status: 'error',
+        message: `Product subscription plan with id ${planId} is archived!`,
       })
   }
 
@@ -73,7 +82,7 @@ const confirm = async (req: Request, res: Response) => {
   }
 
   if (!roles.admin && plan.seller_id !== requestorDocId) {
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: `User with id ${requestorDocId} is not the seller`,
     })
