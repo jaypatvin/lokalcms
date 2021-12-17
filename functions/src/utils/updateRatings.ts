@@ -13,32 +13,32 @@ const updateRatings = async (change: Change<DocumentSnapshot>, context: EventCon
 
   await db.runTransaction(async (transaction) => {
     const productDoc = await transaction.get(productRef)
-    const { numRatings = 0, avgRating = 0 } = productDoc.data()
-    let newNumRatings = numRatings
-    let oldRatingTotal = avgRating * numRatings
-    let newAvgRating = avgRating
+    const { _meta = {} } = productDoc.data()
+    const { average_rating = 0, reviews_count = 0 } = _meta
+    let newNumRatings = reviews_count
+    let oldRatingTotal = average_rating * reviews_count
+    let newAvgRating = average_rating
 
     if (isCreate) {
-      const ratingVal = change.after.data().value
+      const ratingVal = change.after.data().rating
       newNumRatings = newNumRatings + 1
       newAvgRating = (oldRatingTotal + ratingVal) / newNumRatings
     }
 
     if (isUpdate) {
-      const ratingVal = change.after.data().value
-      const prevRatingVal = change.before.data().value
+      const ratingVal = change.after.data().rating
+      const prevRatingVal = change.before.data().rating
       newAvgRating = (oldRatingTotal - prevRatingVal + ratingVal) / newNumRatings
     }
 
     if (isDelete) {
-      const ratingVal = change.before.data().value
+      const ratingVal = change.before.data().rating
       newNumRatings = newNumRatings - 1
       newAvgRating = !newNumRatings ? 0 : (oldRatingTotal - ratingVal) / newNumRatings
     }
 
     transaction.update(productRef, {
-      avgRating: newAvgRating,
-      numRatings: newNumRatings,
+      '_meta.average_rating': newAvgRating,
     })
   })
 }
