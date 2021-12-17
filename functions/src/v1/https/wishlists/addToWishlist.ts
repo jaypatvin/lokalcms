@@ -52,8 +52,6 @@ const addToWishlist = async (req: Request, res: Response) => {
       shop_id: product.shop_id,
       community_id: product.community_id,
     }
-    await ProductsService.incrementProductWishlistCount(productId)
-    await UsersService.incrementUserWishlistCount(requestorDocId)
     await WishlistsService.addProductWishlist(productId, requestorDocId, wishlistData)
   }
 

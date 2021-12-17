@@ -49,8 +49,6 @@ const removeFromWishlist = async (req: Request, res: Response) => {
 
   const exists = await WishlistsService.getProductWishlist(productId, requestorDocId)
   if (exists) {
-    await ProductsService.decrementProductWishlistCount(productId)
-    await UsersService.decrementUserWishlistCount(requestorDocId)
     await WishlistsService.removeProductWishlist(productId, requestorDocId)
   }
 
