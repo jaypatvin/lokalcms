@@ -7,7 +7,11 @@ const generateProductSubscriptions = async (planId?: string) => {
   const maxRangeDays = 14
   let subscriptions = []
   if (planId) {
-    subscriptions = [await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)]
+    const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)
+    if (subscriptionPlan.archived || subscriptionPlan.status !== 'enabled') {
+      return null
+    }
+    subscriptions = [subscriptionPlan]
   } else {
     subscriptions = await ProductSubscriptionPlansService.getAllSubscriptionPlans()
   }

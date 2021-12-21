@@ -23,6 +23,7 @@ import {
   ProductSubscriptionsAPI,
   ApplicationLogsApi,
   WishlistsApi,
+  ReviewsApi,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -146,11 +147,11 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/unarchive').put(wrapAsync(ProductsAPI.unarchiveProduct))
   api.route('/v1/products/:productId/availability').get(wrapAsync(ProductsAPI.getProductAvailability))
   api.route('/v1/products/:productId/availability').put(wrapAsync(ProductsAPI.addProductAvailability))
-  api.route('/v1/products/:productId/ratings').post(wrapAsync(ProductsAPI.updateProductRating))
   api.route('/v1/products/:productId/getDates').get(wrapAsync(ProductsAPI.getDates))
   api.route('/v1/products/:productId/wishlist').post(wrapAsync(WishlistsApi.addToWishlist))
   api.route('/v1/products/:productId/wishlist').delete(wrapAsync(WishlistsApi.removeFromWishlist))
   api.route('/v1/products/:productId/wishlist').get(wrapAsync(UsersAPI.getProductWishlistUsers))
+  api.route('/v1/products/:productId/reviews').post(wrapAsync(ProductsAPI.addProductReview))
 
   // -- Categories routes
   api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))
@@ -213,9 +214,14 @@ module.exports = (api: Express) => {
   api.route('/v1/productSubscriptionPlans').post(wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
   api.route('/v1/productSubscriptionPlans/:planId/autoRescheduleConflicts').post(wrapAsync(ProductSubscriptionPlansAPI.autoRescheduleConflicts))
   api.route('/v1/productSubscriptionPlans/:planId/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))
+  api.route('/v1/productSubscriptionPlans/:planId/disable').put(wrapAsync(ProductSubscriptionPlansAPI.disableProductSubscriptionPlan))
   api.route('/v1/productSubscriptionPlans/:planId/overrideDates').put(wrapAsync(ProductSubscriptionPlansAPI.overrideDates))
   api.route('/v1/productSubscriptionPlans/:planId/getDates').get(wrapAsync(ProductSubscriptionPlansAPI.getDates))
 
   // -- Product Subscriptions routes
   api.route('/v1/productSubscriptions/:id/createOrder').post(wrapAsync(ProductSubscriptionsAPI.createOrderFromSubscription))
+
+  // -- Reviews routes
+  api.route('/v1/products/:productId/reviews').get(wrapAsync(ReviewsApi.getProductReviews))
+  api.route('/v1/users/:userId/reviews').get(wrapAsync(ReviewsApi.getUserReviews))
 }

@@ -126,7 +126,7 @@ exports.notifyUsersOnproductSubscriptions = functions.pubsub
   .onRun(notifyUsersOnproductSubscriptions)
 
 exports.aggregateProductRatings = functions.firestore
-  .document('products/{productId}/ratings/{ratingId}')
+  .document('products/{productId}/reviews/{reviewId}')
   .onWrite(async (change, context) => {
     updateRatings(change, context)
     return

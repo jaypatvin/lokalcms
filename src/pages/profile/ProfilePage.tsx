@@ -11,7 +11,7 @@ import { fetchShopByID, getShopsByUser } from '../../services/shops'
 import UserProductsTable from './UserProductsTable'
 import UserShopsTable from './UserShopsTable'
 import { getLikesByUser } from '../../services/likes'
-import { getOrdersByBuyer, getOrdersBySeller } from '../../services/orders'
+import { fetchOrderByID, getOrdersByBuyer, getOrdersBySeller } from '../../services/orders'
 import {
   getProductSubscriptionPlansByBuyer,
   getProductSubscriptionPlansBySeller,
@@ -25,6 +25,9 @@ import UserActivityLikesTable from './UserActivityLikesTable'
 import UserApplicationLogsTable from './UserApplicationLogsTable'
 import UserOrdersTable from './UserOrdersTable'
 import UserSubscriptionPlansTable from './UserSubscriptionPlansTable'
+import { getReviewsByUser } from '../../services/reviews'
+import { getWishlistsByUser } from '../../services/wishlists'
+import UserReviewsTable from './UserReviewsTable'
 
 type Props = {
   [x: string]: any
@@ -39,9 +42,11 @@ type DataType =
   | 'orders_buyer'
   | 'orders_seller'
   | 'products'
-  | 'shops'
   | 'product_subscription_plans_buyer'
   | 'product_subscription_plans_seller'
+  | 'reviews'
+  | 'shops'
+  | 'wishlist'
 
 const ProfilePage = ({ match }: Props) => {
   const [user, setUser] = useState<any>({})
@@ -113,6 +118,16 @@ const ProfilePage = ({ match }: Props) => {
       name: 'Subscription Plans as Seller',
       onClick: () => onChangeDataToShow('product_subscription_plans_seller'),
     },
+    {
+      key: 'reviews',
+      name: 'Reviews',
+      onClick: () => onChangeDataToShow('reviews'),
+    },
+    {
+      key: 'wishlist',
+      name: 'Wishlist',
+      onClick: () => onChangeDataToShow('wishlist'),
+    },
   ]
 
   const normalizeUserData = (data: any) => {
@@ -172,6 +187,10 @@ const ProfilePage = ({ match }: Props) => {
       newDataRef = getActivitiesByUser(userId, limit)
     } else if (dataName === 'application_logs') {
       newDataRef = getApplicationLogsByUser(userId, limit)
+    } else if (dataName === 'reviews') {
+      newDataRef = getReviewsByUser({ userId, limit })
+    } else if (dataName === 'wishlist') {
+      newDataRef = getWishlistsByUser({ userId, limit })
     }
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = newDataRef.onSnapshot(async (snapshot: any) => {
@@ -279,6 +298,39 @@ const ProfilePage = ({ match }: Props) => {
           data.seller_email = sellerData.email
         }
       }
+    } else if (dataToShow === 'reviews') {
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const product = await fetchProductByID(data.product_id)
+        const productData = product.data()
+        if (productData) {
+          data.product = productData
+        }
+        const shop = await fetchShopByID(data.product.shop_id)
+        const shopData = shop.data()
+        if (shopData) {
+          data.shop = shopData
+        }
+        const order = await fetchOrderByID(data.order_id)
+        const orderData = order.data()
+        if (orderData) {
+          data.order = orderData
+        }
+      }
+    } else if (dataToShow === 'wishlist') {
+      for (let i = 0; i < newData.length; i++) {
+        const data = newData[i]
+        const product = await fetchProductByID(data.product_id)
+        const productData = product.data()
+        if (productData) {
+          newData[i] = { ...productData, created_at: data.created_at }
+        }
+        const shop = await fetchShopByID(data.shop_id)
+        const shopData = shop.data()
+        if (shopData) {
+          newData[i].shop_name = shopData.name
+        }
+      }
     }
     setData(newData)
     setLoading(false)
@@ -383,6 +435,8 @@ const ProfilePage = ({ match }: Props) => {
               {dataToShow === 'product_subscription_plans_buyer' && (
                 <UserSubscriptionPlansTable data={data} userType={'buyer'} />
               )}
+              {dataToShow === 'wishlist' && <UserProductsTable data={data} isWishlist={true} />}
+              {dataToShow === 'reviews' && <UserReviewsTable data={data} />}
             </>
           )}
         </div>
