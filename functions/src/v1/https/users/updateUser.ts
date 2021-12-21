@@ -3,7 +3,8 @@ import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
 import { validateValue } from '../../../utils/validations'
 import { required_fields } from './index'
-import { db } from '../index'
+import { UserUpdateData } from '../../../models/User'
+import db from '../../../utils/db'
 
 /**
  * @openapi
@@ -152,7 +153,7 @@ const updateUser = async (req: Request, res: Response) => {
     })
   }
 
-  const updateData: any = {
+  const updateData: UserUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }
@@ -168,7 +169,7 @@ const updateUser = async (req: Request, res: Response) => {
   if (data.community_id && _community) {
     // TODO: if user is admin of previous community, remove the user from admin array of community
     updateData.community_id = data.community_id
-    updateData.community = db.doc(`community/${data.community_id}`)
+    updateData.community = db.community.doc(data.community_id)
     updateData['address.barangay'] = _community.address.barangay
     updateData['address.city'] = _community.address.city
     updateData['address.state'] = _community.address.state

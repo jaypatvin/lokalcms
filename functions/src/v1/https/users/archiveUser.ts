@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { UserUpdateData } from '../../../models/User'
 import { UsersService, ShopsService, ProductsService } from '../../../service'
 
 /**
@@ -42,7 +43,7 @@ const archiveUser = async (req: Request, res: Response) => {
   const { userId } = req.params
   if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
 
-  const requestData = {
+  const requestData: UserUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }
