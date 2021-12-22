@@ -1,5 +1,22 @@
 import { firestore } from 'firebase-admin'
-import { User, Shop, Product, Community } from '../models'
+import {
+  ActionType,
+  Activity,
+  ApplicationLog,
+  BankCode,
+  Category,
+  Chat,
+  Community,
+  Invite,
+  NotificationType,
+  Order,
+  OrderStatus,
+  Product,
+  ProductSubscription,
+  ProductSubscriptionPlan,
+  Shop,
+  User,
+} from '../models'
 
 const converter = <T>() => ({
   toFirestore: (data: Partial<T>) => data,
@@ -10,10 +27,22 @@ const dataPoint = <T>(collectionPath: string) =>
   firestore().collection(collectionPath).withConverter(converter<T>())
 
 const db = {
-  users: dataPoint<User>('users'),
-  shops: dataPoint<Shop>('shops'),
-  products: dataPoint<Product>('products'),
+  actionTypes: dataPoint<ActionType>('action_types'),
+  activities: dataPoint<Activity>('activities'),
+  applicationLogs: dataPoint<ApplicationLog>('application_logs'),
+  bankCodes: dataPoint<BankCode>('bank_codes'),
+  categories: dataPoint<Category>('categories'),
+  chats: dataPoint<Chat>('chats'),
   community: dataPoint<Community>('community'),
+  invites: dataPoint<Invite>('invites'),
+  notificationTypes: dataPoint<NotificationType>('notification_types'),
+  orders: dataPoint<Order>('orders'),
+  orderStatus: dataPoint<OrderStatus>('order_status'),
+  products: dataPoint<Product>('products'),
+  productSubscriptions: dataPoint<ProductSubscription>('product_subscriptions'),
+  productSubscriptionPlans: dataPoint<ProductSubscriptionPlan>('product_subscription_plans'),
+  shops: dataPoint<Shop>('shops'),
+  users: dataPoint<User>('users'),
 }
 
 export { db }
