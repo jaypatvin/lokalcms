@@ -1,17 +1,13 @@
-import * as admin from 'firebase-admin'
-
-const db = admin.firestore()
-const collectionName = 'product_subscriptions'
+import db from '../utils/db'
 
 export const getAllProductSubscriptions = async () => {
-  return await db
-    .collection(collectionName)
+  return await db.productSubscriptions
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getProductSubscriptionById = async (id) => {
-  const product_subscription = await db.collection(collectionName).doc(id).get()
+  const product_subscription = await db.productSubscriptions.doc(id).get()
 
   const data = product_subscription.data()
   if (data) return { id: product_subscription.id, ...data } as any
@@ -19,8 +15,7 @@ export const getProductSubscriptionById = async (id) => {
 }
 
 export const getProductSubscriptionsByDate = async (dateString: string) => {
-  return await db
-    .collection(collectionName)
+  return await db.productSubscriptions
     .where('date_string', '==', dateString)
     .where('skip', '==', false)
     .get()
@@ -28,8 +23,7 @@ export const getProductSubscriptionsByDate = async (dateString: string) => {
 }
 
 export const getProductSubscriptionByDateAndPlanId = async (planId: string, dateString: string) => {
-  return await db
-    .collection(collectionName)
+  return await db.productSubscriptions
     .where('product_subscription_plan_id', '==', planId)
     .where('date_string', '==', dateString)
     .get()
@@ -37,35 +31,23 @@ export const getProductSubscriptionByDateAndPlanId = async (planId: string, date
 }
 
 export const createProductSubscription = async (data) => {
-  return await db
-    .collection(collectionName)
-    .add({ ...data, created_at: new Date() })
-    .then((res) => {
-      return res
-    })
+  return await db.productSubscriptions.add({ ...data, created_at: new Date() }).then((res) => {
+    return res
+  })
 }
 
 export const updateProductSubscription = async (id, data) => {
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update({ ...data, updated_at: new Date() })
+  return await db.productSubscriptions.doc(id).update({ ...data, updated_at: new Date() })
 }
 
 export const archiveProductSubscription = async (id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.productSubscriptions.doc(id).update(updateData)
 }
 
 export const unarchiveProductSubscription = async (id: string, data?: any) => {
   let updateData = { archived: false, updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.productSubscriptions.doc(id).update(updateData)
 }

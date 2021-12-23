@@ -1,3 +1,5 @@
+import { Like, Review, Wishlist } from '../'
+
 type Product = {
   _meta: {
     average_rating: number
@@ -5,6 +7,9 @@ type Product = {
     wishlists_count: number
     reviews_count: number
   }
+  likes: FirebaseFirestore.CollectionGroup<Like>
+  wishlists: FirebaseFirestore.CollectionGroup<Wishlist>
+  reviews: FirebaseFirestore.CollectionGroup<Review>
   archived: boolean
   availability: {
     end_time: string
@@ -95,7 +100,7 @@ type Product = {
   product_category: string
   quantity: number
   shop_id: string
-  status: 'enabled'| 'disabled'
+  status: 'enabled' | 'disabled'
   updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'

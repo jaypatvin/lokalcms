@@ -1,21 +1,15 @@
-import * as admin from 'firebase-admin'
-
-const db = admin.firestore()
+import db from '../utils/db'
 
 export const getAllUserNotifications = async (id: string) => {
   return await db
-    .collection('users')
-    .doc(id)
-    .collection('notifications')
+    .getNotifications(`users/${id}/notifications`)
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const createUserNotification = async (id: string, data: any) => {
   return await db
-    .collection('users')
-    .doc(id)
-    .collection('notifications')
+    .getNotifications(`users/${id}/notifications`)
     .add({
       ...data,
       created_at: new Date(),
@@ -32,9 +26,7 @@ export const createUserNotification = async (id: string, data: any) => {
 
 export const updateUserNotification = async (userId: string, notificationId: string, data: any) => {
   return await db
-    .collection('users')
-    .doc(userId)
-    .collection('notifications')
+    .getNotifications(`users/${userId}/notifications`)
     .doc(notificationId)
     .update({ ...data, updated_at: new Date() })
 }
@@ -47,9 +39,7 @@ export const archiveUserNotification = async (
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
   return await db
-    .collection('users')
-    .doc(userId)
-    .collection('notifications')
+    .getNotifications(`users/${userId}/notifications`)
     .doc(notificationId)
     .update(updateData)
 }
@@ -62,9 +52,7 @@ export const unarchiveUserNotification = async (
   let updateData = { archived: false, updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
   return await db
-    .collection('users')
-    .doc(userId)
-    .collection('notifications')
+    .getNotifications(`users/${userId}/notifications`)
     .doc(notificationId)
     .update(updateData)
 }

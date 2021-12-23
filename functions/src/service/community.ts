@@ -1,17 +1,13 @@
-import * as admin from 'firebase-admin'
-
-const db = admin.firestore()
-const collectionName = 'community'
+import db from '../utils/db'
 
 export const getCommunities = () => {
-  return db
-    .collection(collectionName)
+  return db.community
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getCommunityByID = async (id): Promise<any> => {
-  const community = await db.collection(collectionName).doc(id).get()
+  const community = await db.community.doc(id).get()
 
   const data = community.data()
   if (data) return { id: community.id, ...data } as any
@@ -19,8 +15,7 @@ export const getCommunityByID = async (id): Promise<any> => {
 }
 
 export const getCommunitiesByName = async (name: string) => {
-  return await db
-    .collection(collectionName)
+  return await db.community
     .where('name', '==', name)
     .get()
     .then((res) => res.docs.map((doc) => doc.data()))
@@ -36,8 +31,7 @@ type NameAndAddressArgs = {
 
 export const getCommunitiesByNameAndAddress = async (options: NameAndAddressArgs) => {
   const { name, subdivision, city, barangay, zip_code } = options
-  return await db
-    .collection(collectionName)
+  return await db.community
     .where('name', '==', name)
     .where('address.subdivision', '==', subdivision)
     .where('address.city', '==', city)
@@ -48,34 +42,25 @@ export const getCommunitiesByNameAndAddress = async (options: NameAndAddressArgs
 }
 
 export const createCommunity = async (data) => {
-  return await db.collection(collectionName).add({ ...data, created_at: new Date() })
+  return await db.community.add({ ...data, created_at: new Date() })
 }
 
 export const updateCommunity = async (id, data) => {
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update({ ...data, updated_at: new Date() })
+  return await db.community.doc(id).update({ ...data, updated_at: new Date() })
 }
 
 export const archiveCommunity = async (id: string, data?: any) => {
   let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.community.doc(id).update(updateData)
 }
 
 export const unarchiveCommunity = async (id: string, data?: any) => {
   let updateData = { archived: false, updated_at: new Date() }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.community.doc(id).update(updateData)
 }
 
 export const deleteCommunity = async (id) => {
-  return await db.collection(collectionName).doc(id).delete()
+  return await db.community.doc(id).delete()
 }

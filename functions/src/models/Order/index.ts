@@ -12,6 +12,7 @@ type Order = {
     zip_code: string
   }
   delivery_date: FirebaseFirestore.Timestamp
+  delivered_date: FirebaseFirestore.Timestamp
   delivery_option: 'delivery' | 'pickup'
   instruction: string
   is_paid: boolean
@@ -33,7 +34,7 @@ type Order = {
   shop_id: string
   shop_image: string
   shop_name: string
-  status_code: number
+  status_code: number | string
   updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'

@@ -9,6 +9,7 @@ type Conversation = {
   message?: string
   sender_id: string
   sent_at: FirebaseFirestore.Timestamp
+  reply_to?: FirebaseFirestore.DocumentReference<Conversation>
 }
 
 export default Conversation

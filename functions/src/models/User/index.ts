@@ -1,4 +1,4 @@
-import { Community } from '../index'
+import { Community, Notification } from '../index'
 
 type User = {
   _meta?: {
@@ -34,6 +34,7 @@ type User = {
   id?: string
   keywords: string[]
   last_name: string
+  notifications: FirebaseFirestore.CollectionGroup<Notification>
   notification_settings?: {
     likes?: boolean
     comments?: boolean

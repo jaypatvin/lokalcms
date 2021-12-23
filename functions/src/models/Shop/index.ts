@@ -1,9 +1,12 @@
+import { Like } from "../"
+
 type Shop = {
   _meta?: {
     orders_count: number
     products_count: number
     product_subscription_plans_count: number
   }
+  likes: FirebaseFirestore.CollectionGroup<Like>
   archived: boolean
   community_id: string
   cover_photo: string

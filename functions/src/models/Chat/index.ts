@@ -4,6 +4,7 @@ type Chat = {
   archived: boolean
   chat_type: 'user' | 'shop' | 'product' | 'group'
   community_id: string
+  conversation: FirebaseFirestore.CollectionGroup<Conversation>
   created_at: FirebaseFirestore.Timestamp
   group_hash?: string
   last_message: {

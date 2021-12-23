@@ -144,8 +144,7 @@ const createCommunity = async (req: Request, res: Response) => {
   }
 
   const new_community = await CommunityService.createCommunity(_newData)
-  const result = await new_community.get().then((doc) => doc.data())
-  result.id = new_community.id
+  const result = await new_community.get().then((doc) => ({ ...doc.data(), id: doc.id }))
 
   return res.json({ status: 'ok', data: result })
 }
