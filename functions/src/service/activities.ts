@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin'
+import { ActivityCreateData, ActivityUpdateData } from '../models/Activity'
 import db from '../utils/db'
 
 const firestoreDb = admin.firestore()
@@ -30,7 +31,7 @@ export const getActivityById = async (id: string, userId = '') => {
       liked,
     }
 
-  return data
+  return null
 }
 
 export const getAllActivities = async (userId = '') => {
@@ -62,37 +63,39 @@ export const getAllActivities = async (userId = '') => {
 }
 
 // new post, no comments in here
-export const createActivity = async (data) => {
+export const createActivity = async (data: ActivityCreateData) => {
   return await db.activities
-    .add({ ...data, created_at: new Date() })
+    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
     .then((res) => res.get())
     .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
 
 // this does not handle comment activity and does not support update of images
-export const updateActivity = async (id: string, data) => {
-  return await db.activities
-    .doc(id)
-    .update({ ...data, updated_at: new Date(), updated_content_at: new Date() })
+export const updateActivity = async (id: string, data: ActivityUpdateData) => {
+  return await db.activities.doc(id).update({
+    ...data,
+    updated_at: FirebaseFirestore.Timestamp.now(),
+    updated_content_at: FirebaseFirestore.Timestamp.now(),
+  })
 }
 
-export const archiveActivity = async (id: string, data?: any) => {
+export const archiveActivity = async (id: string, data?: ActivityUpdateData) => {
   let updateData = {
     archived: true,
-    updated_at: new Date(),
-    archived_at: new Date(),
+    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: FirebaseFirestore.Timestamp.now(),
     unarchived_at: admin.firestore.FieldValue.delete(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.activities.doc(id).update(updateData)
 }
 
-export const unarchiveActivity = async (id: string, data?: any) => {
+export const unarchiveActivity = async (id: string, data?: ActivityUpdateData) => {
   let updateData = {
     archived: false,
-    updated_at: new Date(),
+    updated_at: FirebaseFirestore.Timestamp.now(),
     archived_at: admin.firestore.FieldValue.delete(),
-    unarchived_at: new Date(),
+    unarchived_at: FirebaseFirestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.activities.doc(id).update(updateData)
@@ -146,7 +149,7 @@ const archiveActivityBy = async (status: boolean, idType: string, id: string) =>
     const activityRef = activity.ref
     const updateData = {
       archived: status,
-      updated_at: new Date(),
+      updated_at: FirebaseFirestore.Timestamp.now(),
     }
     batch.update(activityRef, updateData)
   })

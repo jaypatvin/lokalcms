@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { ConversationCreateData } from '../../../models/Conversation'
 import {
   UsersService,
   ShopsService,
@@ -6,8 +7,8 @@ import {
   ProductsService,
   ChatMessageService,
 } from '../../../service'
+import db from '../../../utils/db'
 import { fieldIsNum } from '../../../utils/helpers'
-import { db } from '../index'
 
 /**
  * @openapi
@@ -184,15 +185,16 @@ const createConversation = async (req: Request, res: Response) => {
   if (!message && !messageMedia)
     return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
 
-  const chatMessage: any = {
+  const chatMessage: ConversationCreateData = {
     sender_id: requestorDocId,
-    sent_at: new Date(),
+    sent_at: FirebaseFirestore.Timestamp.now(),
     archived: false,
   }
 
   if (message) chatMessage.message = message
   if (messageMedia) chatMessage.media = media
-  if (reply_to) chatMessage.reply_to = db.doc(`chats/${chatId}/conversation/${reply_to}`)
+  if (reply_to)
+    chatMessage.reply_to = db.getChatConversations(`chats/${chatId}/conversation`).doc(reply_to)
 
   const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
 
@@ -210,12 +212,12 @@ const createConversation = async (req: Request, res: Response) => {
       content = 'sent a message'
     }
   }
-  last_message.ref = db.doc(`chats/${chatId}/conversation/${result.id}`)
+  last_message.ref = db.getChatConversations(`chats/${chatId}/conversation`).doc(result.id)
   last_message.conversation_id = result.id
   last_message.content = content
   last_message.sender = requestorName
   last_message.sender_id = requestorDocId
-  last_message.created_at = new Date()
+  last_message.created_at = FirebaseFirestore.Timestamp.now()
 
   await ChatsService.updateChat(chatId, { last_message })
 

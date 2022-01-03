@@ -8,7 +8,7 @@ type ProductSubscriptionPlan = {
   plan: {
     auto_reschedule: boolean
     last_date: string
-    override_dates: {
+    override_dates?: {
       [x: string]: string
     }
     repeat_type:
@@ -93,6 +93,29 @@ type ProductSubscriptionPlan = {
   shop_id: string
   status: 'enabled' | 'disabled'
   updated_at?: FirebaseFirestore.Timestamp
+  updated_by?: string
+  updated_from?: '' | 'cms' | 'app'
 }
+
+export type ProductSubscriptionPlanCreateData = Pick<
+  ProductSubscriptionPlan,
+  | 'product_id'
+  | 'shop_id'
+  | 'buyer_id'
+  | 'seller_id'
+  | 'community_id'
+  | 'quantity'
+  | 'instruction'
+  | 'archived'
+  | 'status'
+  | 'payment_method'
+  | 'plan'
+  | 'product'
+  | 'shop'
+>
+
+export type ProductSubscriptionPlanUpdateData = Partial<
+  Pick<ProductSubscriptionPlan, 'updated_by' | 'updated_from' | 'status'>
+>
 
 export default ProductSubscriptionPlan

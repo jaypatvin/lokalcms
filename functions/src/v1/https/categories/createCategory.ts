@@ -81,7 +81,7 @@ const createCategory = async (req: Request, res: Response) => {
     name: data.name,
   })
 
-  const _categoryData: any = {
+  const _categoryData = {
     name: data.name,
     description: data.description || '',
     icon_url: data.icon_url || '',

@@ -13,4 +13,19 @@ type ProductSubscription = {
   skip: boolean
 }
 
+export type ProductSubscriptionCreateData = Pick<
+  ProductSubscription,
+  | 'buyer_id'
+  | 'seller_id'
+  | 'product_subscription_plan_id'
+  | 'quantity'
+  | 'confirmed_by_buyer'
+  | 'confirmed_by_seller'
+  | 'skip'
+  | 'instruction'
+  | 'date'
+  | 'date_string'
+  | 'original_date'
+>
+
 export default ProductSubscription

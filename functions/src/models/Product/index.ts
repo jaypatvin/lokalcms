@@ -1,15 +1,15 @@
 import { Like, Review, Wishlist } from '../'
 
 type Product = {
-  _meta: {
-    average_rating: number
-    likes_count: number
-    wishlists_count: number
-    reviews_count: number
+  _meta?: {
+    average_rating?: number
+    likes_count?: number
+    wishlists_count?: number
+    reviews_count?: number
   }
-  likes: FirebaseFirestore.CollectionGroup<Like>
-  wishlists: FirebaseFirestore.CollectionGroup<Wishlist>
-  reviews: FirebaseFirestore.CollectionGroup<Review>
+  likes?: FirebaseFirestore.CollectionGroup<Like>
+  wishlists?: FirebaseFirestore.CollectionGroup<Wishlist>
+  reviews?: FirebaseFirestore.CollectionGroup<Review>
   archived: boolean
   availability: {
     end_time: string
@@ -91,7 +91,7 @@ type Product = {
   community_id: string
   created_at: FirebaseFirestore.Timestamp
   description: string
-  gallery: {
+  gallery?: {
     order: number
     url: string
   }[]
@@ -106,5 +106,43 @@ type Product = {
   updated_from?: '' | 'cms' | 'app'
   user_id: string
 }
+
+export type ProductCreateData = Pick<
+  Product,
+  | 'name'
+  | 'description'
+  | 'shop_id'
+  | 'user_id'
+  | 'community_id'
+  | 'base_price'
+  | 'quantity'
+  | 'product_category'
+  | 'status'
+  | 'keywords'
+  | 'archived'
+  | 'updated_by'
+  | 'updated_from'
+  | 'can_subscribe'
+  | 'availability'
+  | 'gallery'
+>
+
+export type ProductUpdateData = Partial<
+  Pick<
+    Product,
+    | 'name'
+    | 'description'
+    | 'base_price'
+    | 'quantity'
+    | 'gallery'
+    | 'product_category'
+    | 'status'
+    | 'can_subscribe'
+    | 'updated_by'
+    | 'updated_from'
+    | 'keywords'
+    | 'availability'
+  >
+>
 
 export default Product

@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin'
-import { UserUpdateData } from '../models/User'
+import { UserCreateData, UserUpdateData } from '../models/User'
 import db from '../utils/db'
 
 export const getUsers = () => {
@@ -18,7 +18,7 @@ export const getUserByID = async (id) => {
 
   const data = doc.data()
   if (data) return { id: doc.id, ...data }
-  return data
+  return null
 }
 
 export const getUsersByCommunityId = async (id: string) => {
@@ -28,24 +28,30 @@ export const getUsersByCommunityId = async (id: string) => {
     .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
-export const createUser = async (data) => {
-  return await db.users.add({ ...data, created_at: new Date() }).then((res) => {
-    return res
-  })
+export const createUser = async (data: UserCreateData) => {
+  return await db.users
+    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .then((res) => {
+      return res
+    })
 }
 
-export const updateUser = async (id, data) => {
-  return await db.users.doc(id).update({ ...data, updated_at: new Date() })
+export const updateUser = async (id, data: UserUpdateData) => {
+  return await db.users.doc(id).update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
 }
 
 export const archiveUser = async (id: string, data?: UserUpdateData) => {
-  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+  let updateData = {
+    archived: true,
+    archived_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: FirebaseFirestore.Timestamp.now(),
+  }
   if (data) updateData = { ...updateData, ...data }
   return await db.users.doc(id).update(updateData)
 }
 
 export const unarchiveUser = async (id: string, data?: UserUpdateData) => {
-  let updateData = { archived: false, updated_at: new Date() }
+  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.users.doc(id).update(updateData)
 }

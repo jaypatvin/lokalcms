@@ -6,4 +6,6 @@ type Wishlist = {
   community_id: string
 }
 
+export type WishlistCreateData = Pick<Wishlist, 'shop_id' | 'community_id'>
+
 export default Wishlist

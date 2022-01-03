@@ -10,6 +10,8 @@ import { validateFields } from '../../../utils/validations'
 import { required_fields } from './index'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 import { fieldIsNum } from '../../../utils/helpers'
+import { ChatCreateData } from '../../../models/Chat'
+import { ConversationCreateData } from '../../../models/Conversation'
 
 /**
  * @openapi
@@ -269,13 +271,13 @@ const createChat = async (req: Request, res: Response) => {
       }
       newChatTitle = member_names.join(', ')
     }
-    const newChat: any = {
+    const newChat: ChatCreateData = {
       title: newChatTitle,
       members,
       community_id: requestorCommunityId,
       archived: false,
       last_message,
-      chat_type: chatType,
+      chat_type: chatType as ChatCreateData['chat_type'],
     }
     if (shop_id) newChat.shop_id = shop_id
     if (product_id) newChat.product_id = product_id
@@ -292,9 +294,9 @@ const createChat = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'The chat is already existing.' })
   }
 
-  const chatMessage: any = {
+  const chatMessage: ConversationCreateData = {
     sender_id: requestorDocId,
-    sent_at: new Date(),
+    sent_at: FirebaseFirestore.Timestamp.now(),
     archived: false,
   }
 

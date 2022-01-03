@@ -1,15 +1,15 @@
-import { Like } from "../"
+import { Like } from '../'
 
 type Shop = {
   _meta?: {
-    orders_count: number
-    products_count: number
-    product_subscription_plans_count: number
+    orders_count?: number
+    products_count?: number
+    product_subscription_plans_count?: number
   }
-  likes: FirebaseFirestore.CollectionGroup<Like>
+  likes?: FirebaseFirestore.CollectionGroup<Like>
   archived: boolean
   community_id: string
-  cover_photo: string
+  cover_photo?: string
   created_at: FirebaseFirestore.Timestamp
   description: string
   is_close: boolean
@@ -96,12 +96,46 @@ type Shop = {
     account_number: string
     account_name: string
   }[]
-  profile_photo: string
+  profile_photo?: string
   status: 'enabled' | 'disabled'
   updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string
 }
+
+export type ShopCreateData = Pick<
+  Shop,
+  | 'name'
+  | 'description'
+  | 'user_id'
+  | 'community_id'
+  | 'is_close'
+  | 'status'
+  | 'keywords'
+  | 'archived'
+  | 'updated_by'
+  | 'updated_from'
+  | 'operating_hours'
+  | 'profile_photo'
+  | 'cover_photo'
+  | 'payment_options'
+>
+
+export type ShopUpdateData = Partial<
+  Pick<
+    Shop,
+    | 'name'
+    | 'keywords'
+    | 'description'
+    | 'is_close'
+    | 'profile_photo'
+    | 'cover_photo'
+    | 'payment_options'
+    | 'updated_by'
+    | 'updated_from'
+    | 'operating_hours'
+  >
+>
 
 export default Shop

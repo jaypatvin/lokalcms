@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { UsersService } from '../../../service'
 import { isBoolean } from 'lodash'
+import { UserUpdateData } from '../../../models/User'
 
 /**
  * @openapi
@@ -100,7 +101,7 @@ const toggleNotificationSetting = async (req: Request, res: Response) => {
   const user = await UsersService.getUserByID(userId)
   if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
-  const updateData: any = {
+  const updateData: UserUpdateData = {
     updated_by: requestorDocId || '',
     updated_from: data.source || '',
   }
@@ -110,7 +111,8 @@ const toggleNotificationSetting = async (req: Request, res: Response) => {
   if (isBoolean(tags)) updateData['notification_settings.tags'] = tags
   if (isBoolean(messages)) updateData['notification_settings.messages'] = messages
   if (isBoolean(order_status)) updateData['notification_settings.order_status'] = order_status
-  if (isBoolean(community_alerts)) updateData['notification_settings.community_alerts'] = community_alerts
+  if (isBoolean(community_alerts))
+    updateData['notification_settings.community_alerts'] = community_alerts
   if (isBoolean(subscriptions)) updateData['notification_settings.subscriptions'] = subscriptions
 
   const result = await UsersService.updateUser(userId, updateData)

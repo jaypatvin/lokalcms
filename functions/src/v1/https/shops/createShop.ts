@@ -7,6 +7,7 @@ import {
 } from '../../../utils/validations'
 import { generateShopKeywords, generateSchedule } from '../../../utils/generators'
 import { required_fields } from './index'
+import { ShopCreateData } from '../../../models/Shop'
 
 /**
  * @openapi
@@ -160,19 +161,6 @@ const createShop = async (req: Request, res: Response) => {
 
   const keywords = generateShopKeywords({ name })
 
-  const shopData: any = {
-    name,
-    description,
-    user_id,
-    community_id: requestorCommunityId,
-    is_close: is_close || false,
-    status: status || 'enabled',
-    keywords,
-    archived: false,
-    updated_by: requestorDocId || '',
-    updated_from: source || '',
-  }
-
   const operatingHoursValidation = validateOperatingHours(data.operating_hours)
   if (!operatingHoursValidation.valid) {
     return res.status(400).json({
@@ -191,7 +179,7 @@ const createShop = async (req: Request, res: Response) => {
     custom_dates,
   } = data.operating_hours
 
-  shopData.operating_hours = {
+  const operating_hours = {
     start_time,
     end_time,
     start_dates,
@@ -206,6 +194,20 @@ const createShop = async (req: Request, res: Response) => {
       unavailable_dates,
       custom_dates,
     }),
+  }
+
+  const shopData: ShopCreateData = {
+    name,
+    description,
+    user_id,
+    community_id: requestorCommunityId,
+    is_close: is_close || false,
+    status: status || 'enabled',
+    keywords,
+    archived: false,
+    updated_by: requestorDocId || '',
+    updated_from: source || '',
+    operating_hours,
   }
 
   if (profile_photo) shopData.profile_photo = profile_photo

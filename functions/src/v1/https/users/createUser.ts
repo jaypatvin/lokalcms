@@ -3,7 +3,9 @@ import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
 import { validateFields } from '../../../utils/validations'
 import { required_fields } from './index'
-import { db, auth } from '../index'
+import { auth } from '../index'
+import { UserCreateData } from '../../../models/User'
+import db from '../../../utils/db'
 
 /**
  * @openapi
@@ -151,7 +153,7 @@ const createUser = async (req: Request, res: Response) => {
   })
 
   // create a user
-  const _newData: any = {
+  const _newData: UserCreateData = {
     user_uids: [_authUser.uid],
     first_name: data.first_name,
     last_name: data.last_name,
@@ -171,7 +173,7 @@ const createUser = async (req: Request, res: Response) => {
       verified: false,
     },
     community_id: data.community_id,
-    community: db.doc(`community/${data.community_id}`),
+    community: db.community.doc(data.community_id),
     address: {
       barangay: _community.address.barangay,
       street: data.street,

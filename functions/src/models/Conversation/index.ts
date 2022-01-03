@@ -12,4 +12,9 @@ type Conversation = {
   reply_to?: FirebaseFirestore.DocumentReference<Conversation>
 }
 
+export type ConversationCreateData = Pick<
+  Conversation,
+  'sender_id' | 'sent_at' | 'archived' | 'message' | 'media' | 'reply_to'
+>
+
 export default Conversation

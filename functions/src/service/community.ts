@@ -1,17 +1,16 @@
+import { CommunityCreateData, CommunityUpdateData } from '../models/Community'
 import db from '../utils/db'
 
 export const getCommunities = () => {
-  return db.community
-    .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+  return db.community.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
-export const getCommunityByID = async (id): Promise<any> => {
+export const getCommunityByID = async (id) => {
   const community = await db.community.doc(id).get()
 
   const data = community.data()
-  if (data) return { id: community.id, ...data } as any
-  return data
+  if (data) return { id: community.id, ...data }
+  return null
 }
 
 export const getCommunitiesByName = async (name: string) => {
@@ -41,22 +40,28 @@ export const getCommunitiesByNameAndAddress = async (options: NameAndAddressArgs
     .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
-export const createCommunity = async (data) => {
-  return await db.community.add({ ...data, created_at: new Date() })
+export const createCommunity = async (data: CommunityCreateData) => {
+  return await db.community.add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
 }
 
-export const updateCommunity = async (id, data) => {
-  return await db.community.doc(id).update({ ...data, updated_at: new Date() })
+export const updateCommunity = async (id, data: CommunityUpdateData) => {
+  return await db.community
+    .doc(id)
+    .update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
 }
 
-export const archiveCommunity = async (id: string, data?: any) => {
-  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+export const archiveCommunity = async (id: string, data?: CommunityUpdateData) => {
+  let updateData = {
+    archived: true,
+    archived_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: FirebaseFirestore.Timestamp.now(),
+  }
   if (data) updateData = { ...updateData, ...data }
   return await db.community.doc(id).update(updateData)
 }
 
-export const unarchiveCommunity = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at: new Date() }
+export const unarchiveCommunity = async (id: string, data?: CommunityUpdateData) => {
+  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.community.doc(id).update(updateData)
 }

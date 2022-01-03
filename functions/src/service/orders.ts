@@ -1,3 +1,4 @@
+import { OrderCreateData, OrderUpdateData } from '../models/Order'
 import db from '../utils/db'
 
 export const getOrders = () => {
@@ -34,13 +35,15 @@ export const getOrdersByProductSubscriptionIdAndDate = async (id: string, date: 
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
-export const createOrder = async (data) => {
-  return await db.orders.add({ ...data, created_at: new Date() }).then((res) => {
-    return res
-  })
+export const createOrder = async (data: OrderCreateData) => {
+  return await db.orders
+    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .then((res) => {
+      return res
+    })
 }
 
-export const updateOrder = async (id, data) => {
+export const updateOrder = async (id: string, data: OrderUpdateData) => {
   return await db.orders.doc(id).update({ ...data, updated_at: new Date() })
 }
 

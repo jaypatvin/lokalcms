@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { ProductUpdateData } from '../../../models/Product'
 import { ProductsService } from '../../../service'
 
 /**
@@ -46,7 +47,7 @@ const archiveProduct = async (req: Request, res: Response) => {
     })
   }
 
-  const requestData = {
+  const requestData: ProductUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }

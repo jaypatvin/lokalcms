@@ -5,6 +5,7 @@ type ActionType = {
   description: string
   name: string
   user_visible: boolean
+  created_at?: FirebaseFirestore.Timestamp
 }
 
 export default ActionType

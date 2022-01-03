@@ -12,4 +12,15 @@ type ApplicationLog = {
   user_id: string
 }
 
+export type ApplicationLogCreateData = Pick<
+  ApplicationLog,
+  | 'is_authenticated'
+  | 'user_id'
+  | 'community_id'
+  | 'action_type'
+  | 'device_id'
+  | 'associated_document'
+  | 'metadata'
+>
+
 export default ApplicationLog

@@ -11,5 +11,5 @@ export const getOrderStatusById = async (id) => {
 
   const data = status.data()
   if (data) return { id: status.id, ...data } as any
-  return data
+  return null
 }

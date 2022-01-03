@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin'
+import { WishlistCreateData } from '../models/Wishlist'
 import db from '../utils/db'
 
 const firebaseDb = admin.firestore()
@@ -32,7 +33,11 @@ export const getProductWishlists = async (product_id: string) => {
   return wishlists.docs.map((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
-export const addProductWishlist = async (product_id: string, user_id: string, data: any = {}) => {
+export const addProductWishlist = async (
+  product_id: string,
+  user_id: string,
+  data: WishlistCreateData
+) => {
   const wishlistRef = db
     .getProductWishlists(`products/${product_id}/wishlists`)
     .doc(`${product_id}_${user_id}_wishlist`)
@@ -40,7 +45,7 @@ export const addProductWishlist = async (product_id: string, user_id: string, da
     ...data,
     user_id,
     product_id,
-    created_at: new Date(),
+    created_at: FirebaseFirestore.Timestamp.now(),
   })
 }
 

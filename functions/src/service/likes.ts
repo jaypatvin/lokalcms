@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin'
+import { LikeCreateData } from '../models/Like'
 import db from '../utils/db'
 
 const firebaseDb = admin.firestore()
@@ -19,16 +20,16 @@ export const getProductLike = async (product_id: string, user_id: string) => {
 
 export const getProductLikes = async (product_id: string) => {
   const like = await db.getLikes(`products/${product_id}/likes`).get()
-  return like.docs.map((doc): any => ({ ...doc.data(), id: doc.id }))
+  return like.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
 }
 
-export const addProductLike = async (product_id: string, user_id: string, data: any = {}) => {
+export const addProductLike = async (product_id: string, user_id: string, data: LikeCreateData) => {
   const likeRef = db.getLikes(`products/${product_id}/likes`).doc(`${product_id}_${user_id}_like`)
   return await likeRef.set({
     ...data,
     user_id,
     product_id,
-    created_at: new Date(),
+    created_at: FirebaseFirestore.Timestamp.now(),
   })
 }
 
@@ -44,13 +45,13 @@ export const getShopLike = async (shop_id: string, user_id: string) => {
   return like.data()
 }
 
-export const addShopLike = async (shop_id: string, user_id: string, data: any = {}) => {
+export const addShopLike = async (shop_id: string, user_id: string, data: LikeCreateData) => {
   const likeRef = db.getLikes(`shops/${shop_id}/likes`).doc(`${shop_id}_${user_id}_like`)
   return await likeRef.set({
     ...data,
     user_id,
     shop_id,
-    created_at: new Date(),
+    created_at: FirebaseFirestore.Timestamp.now(),
   })
 }
 
@@ -75,8 +76,8 @@ export const addActivityLike = async (activity_id: string, user_id: string) => {
     parent_collection_name: 'activities',
     user_id,
     activity_id,
-    created_at: new Date(),
-  } as any)
+    created_at: FirebaseFirestore.Timestamp.now(),
+  })
 }
 
 export const removeActivityLike = async (activity_id: string, user_id: string) => {
@@ -97,8 +98,8 @@ export const addCommentLike = async (activity_id: string, comment_id: string, us
     parent_collection_name: 'comments',
     user_id,
     comment_id,
-    created_at: new Date(),
-  } as any)
+    created_at: FirebaseFirestore.Timestamp.now(),
+  })
 }
 
 // alternatively, we can add the "id" of comment_likes to its field to access the document through collectionGroup

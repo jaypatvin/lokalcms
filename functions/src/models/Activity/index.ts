@@ -1,15 +1,19 @@
 import { Like, Comment } from '../'
 
 type Activity = {
-  _meta: {
-    comments_count: number
-    likes_count: number
+  _meta?: {
+    comments_count?: number
+    likes_count?: number
   }
   archived: boolean
-  comments: FirebaseFirestore.CollectionGroup<Comment>
+  comments?: FirebaseFirestore.CollectionGroup<Comment>
   community_id: string
   created_at: FirebaseFirestore.Timestamp
-  likes: FirebaseFirestore.CollectionGroup<Like>
+  images?: {
+    url: string
+    order: number
+  }[]
+  likes?: FirebaseFirestore.CollectionGroup<Like>
   message: string
   status: 'enabled' | 'disabled'
   updated_at?: FirebaseFirestore.Timestamp
@@ -17,5 +21,19 @@ type Activity = {
   updated_from?: '' | 'cms' | 'app'
   user_id: string
 }
+
+export type ActivityCreateData = Pick<
+  Activity,
+  | 'message'
+  | 'user_id'
+  | 'community_id'
+  | 'status'
+  | 'archived'
+  | 'updated_by'
+  | 'updated_from'
+  | 'images'
+>
+
+export type ActivityUpdateData = Partial<Pick<Activity, 'message' | 'updated_by' | 'updated_from'>>
 
 export default Activity

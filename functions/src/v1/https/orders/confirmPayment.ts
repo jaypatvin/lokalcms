@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
+import { OrderUpdateData } from '../../../models/Order'
 import { NotificationsService, OrdersService } from '../../../service'
 
 /**
@@ -89,7 +90,7 @@ const confirmPayment = async (req: Request, res: Response) => {
       message: `User with id ${requestorDocId} is not the seller from the order with id ${orderId}`,
     })
 
-  const updateData: any = {
+  const updateData: OrderUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
     status_code: ORDER_STATUS.PENDING_SHIPMENT,

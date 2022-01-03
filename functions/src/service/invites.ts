@@ -1,6 +1,7 @@
+import { InviteCreateData, InviteUpdateData } from '../models/Invite'
 import db from '../utils/db'
 
-export const getInviteByID = async (id) => {
+export const getInviteByID = async (id: string) => {
   return await db.invites
     .doc(id)
     .get()
@@ -23,7 +24,7 @@ export const disableInvitesByEmail = async (email: string) => {
   return invites.size
 }
 
-export const getInviteByCode = async (code) => {
+export const getInviteByCode = async (code: string) => {
   return await db.invites
     .where('code', '==', code)
     .where('status', '==', 'enabled')
@@ -37,25 +38,29 @@ export const getInviteByCode = async (code) => {
     })
 }
 
-export const createInvite = async (data) => {
-  const docRef = await db.invites.add({ ...data, created_at: new Date() })
+export const createInvite = async (data: InviteCreateData) => {
+  const docRef = await db.invites.add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
 
   const doc = await docRef.get()
   return { id: doc.id, ...doc.data() }
 }
 
-export const updateInvite = async (id, data) => {
-  return await db.invites.doc(id).update({ ...data, updated_at: new Date() })
+export const updateInvite = async (id, data: InviteUpdateData) => {
+  return await db.invites.doc(id).update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
 }
 
-export const archiveInvite = async (id: string, data?: any) => {
-  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+export const archiveInvite = async (id: string, data?: InviteUpdateData) => {
+  let updateData = {
+    archived: true,
+    archived_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: FirebaseFirestore.Timestamp.now(),
+  }
   if (data) updateData = { ...updateData, ...data }
   return await db.invites.doc(id).update(updateData)
 }
 
-export const unarchiveInvite = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at: new Date() }
+export const unarchiveInvite = async (id: string, data?: InviteUpdateData) => {
+  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.invites.doc(id).update(updateData)
 }

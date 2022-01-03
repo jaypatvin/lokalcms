@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { includes, isDate } from 'lodash'
+import { OrderCreateData } from '../../../models/Order'
 import {
   NotificationsService,
   OrdersService,
@@ -185,12 +186,10 @@ const createOrder = async (req: Request, res: Response) => {
         .json({ status: 'error', message: `Quantity of ${product.name} is not valid` })
     }
     if (product.quantity - quantity < 0) {
-      return res
-        .status(400)
-        .json({
-          status: 'error',
-          message: `Product "${product.name}" only has ${product.quantity} left.`,
-        })
+      return res.status(400).json({
+        status: 'error',
+        message: `Product "${product.name}" only has ${product.quantity} left.`,
+      })
     }
     const orderProduct: any = {
       product_id: id,
@@ -211,13 +210,14 @@ const createOrder = async (req: Request, res: Response) => {
   }
   const productIds = products.map((p) => p.id)
 
-  const newOrder: any = {
+  const newOrder: OrderCreateData = {
     products: orderProducts,
     product_ids: productIds,
     buyer_id: requestorDocId,
     shop_id,
     seller_id: shop.user_id,
     community_id: shop.community_id,
+    // @ts-ignore
     delivery_date: new Date(delivery_date),
     delivery_option,
     instruction,

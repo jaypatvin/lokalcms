@@ -7,6 +7,7 @@ import { generateInviteKeywords } from '../../../utils/generators'
 import { disableInvitesByEmail } from '../../../service/invites'
 import { required_fields } from './index'
 import { validateFields } from '../../../utils/validations'
+import { InviteCreateData } from '../../../models/Invite'
 
 sgMail.setApiKey(functions.config().mail_service.key)
 
@@ -85,7 +86,7 @@ const createInvite = async (req: Request, res: Response) => {
     expire_by,
     invitee_email: email,
     inviter: requestorDocId,
-    status: 'enabled',
+    status: 'enabled' as InviteCreateData['status'],
     keywords,
     archived: false,
     updated_by: requestorDocId,

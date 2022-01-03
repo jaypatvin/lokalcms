@@ -14,6 +14,7 @@ import {
 import { generateProductKeywords, generateSchedule } from '../../../utils/generators'
 import { required_fields } from './index'
 import { fieldIsNum } from '../../../utils/helpers'
+import { ProductCreateData } from '../../../models/Product'
 
 /**
  * @openapi
@@ -258,22 +259,7 @@ const createProduct = async (req: Request, res: Response) => {
     product_category: data.product_category,
   })
 
-  const productData: any = {
-    name: data.name,
-    description: data.description,
-    shop_id: data.shop_id,
-    user_id: shop.user_id,
-    community_id: shop.community_id,
-    base_price: data.base_price,
-    quantity: data.quantity,
-    product_category: data.product_category,
-    status: data.status || 'enabled',
-    keywords,
-    archived: false,
-    updated_by: requestorDocId || '',
-    updated_from: data.source || '',
-    can_subscribe: data.can_subscribe ?? true,
-  }
+  let availability = shop.operating_hours
 
   if (data.availability) {
     const validation = validateOperatingHours(data.availability)
@@ -294,7 +280,7 @@ const createProduct = async (req: Request, res: Response) => {
       custom_dates,
     } = data.availability
 
-    productData.availability = {
+    availability = {
       start_time,
       end_time,
       start_dates,
@@ -310,14 +296,30 @@ const createProduct = async (req: Request, res: Response) => {
         custom_dates,
       }),
     }
-    if (!isScheduleDerived(productData.availability, shop.operating_hours)) {
+    if (!isScheduleDerived(availability, shop.operating_hours)) {
       return res.status(400).json({
         status: 'error',
         message: 'The product availability must be derived from the shop schedule.',
       })
     }
-  } else if (shop.operating_hours) {
-    productData.availability = shop.operating_hours
+  }
+
+  const productData: ProductCreateData = {
+    name: data.name,
+    description: data.description,
+    shop_id: data.shop_id,
+    user_id: shop.user_id,
+    community_id: shop.community_id,
+    base_price: data.base_price,
+    quantity: data.quantity,
+    product_category: data.product_category,
+    status: data.status || 'enabled',
+    keywords,
+    archived: false,
+    updated_by: requestorDocId || '',
+    updated_from: data.source || '',
+    can_subscribe: data.can_subscribe ?? true,
+    availability,
   }
 
   if (gallery) productData.gallery = gallery

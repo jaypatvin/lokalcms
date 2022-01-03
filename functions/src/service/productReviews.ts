@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin'
+import { ReviewCreateData } from '../models/Review'
 import db from '../utils/db'
 
 const firebaseDb = admin.firestore()
@@ -8,14 +9,14 @@ export const getReviewsByUser = async (user_id: string) => {
     .collectionGroup('reviews')
     .where('user_id', '==', user_id)
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getAllProductReviews = async (id: string) => {
   return await db
     .getProductReviews(`products/${id}/reviews`)
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getProductReview = async (productId: string, reviewId: string) => {
@@ -23,7 +24,7 @@ export const getProductReview = async (productId: string, reviewId: string) => {
     .getProductReviews(`products/${productId}/reviews`)
     .doc(reviewId)
     .get()
-    .then((res): any => ({ id: res.id, ...res.data() }))
+    .then((res) => ({ id: res.id, ...res.data() }))
 }
 
 export const getProductReviewsByUserId = async (productId: string, userId: string) => {
@@ -32,7 +33,7 @@ export const getProductReviewsByUserId = async (productId: string, userId: strin
     .where('user_id', '==', userId)
     .limit(1)
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getProductReviewByOrderId = async (productId: string, order_id: string) => {
@@ -41,17 +42,17 @@ export const getProductReviewByOrderId = async (productId: string, order_id: str
     .where('order_id', '==', order_id)
     .limit(1)
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
-export const createProductReview = async (id: string, data: any) => {
+export const createProductReview = async (id: string, data: ReviewCreateData) => {
   return await db
     .getProductReviews(`products/${id}/reviews`)
-    .add(data)
+    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
     .then((res) => {
       return res.get()
     })
-    .then((doc): any => ({ id: doc.id, ...doc.data(), created_at: new Date() }))
+    .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
 
 export const updateProductReview = async (
@@ -63,7 +64,7 @@ export const updateProductReview = async (
   return await db
     .getProductReviews(`products/${productId}/reviews`)
     .doc(reviewId)
-    .update({ rating, message, updated_at: new Date() })
+    .update({ rating, message, updated_at: FirebaseFirestore.Timestamp.now() })
 }
 
 export const deleteProductReview = async (productId: string, reviewId: string) => {

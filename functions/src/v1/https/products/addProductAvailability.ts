@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import _ from 'lodash'
+import { ProductUpdateData } from '../../../models/Product'
 import { ProductsService, ShopsService } from '../../../service'
 import { generateSchedule } from '../../../utils/generators'
 import { isScheduleDerived, validateOperatingHours } from '../../../utils/validations'
@@ -174,7 +175,7 @@ const addProductAvailability = async (req: Request, res: Response) => {
     })
   }
 
-  const updateData: any = {
+  const updateData: ProductUpdateData = {
     updated_by: requestorDocId || '',
     updated_from: data.source || '',
   }

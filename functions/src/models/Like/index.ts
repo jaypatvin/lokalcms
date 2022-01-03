@@ -9,4 +9,14 @@ type Like = {
   user_id: string
 }
 
+export type LikeCreateData = Pick<
+  Like,
+  | 'activity_id'
+  | 'comment_id'
+  | 'shop_id'
+  | 'product_id'
+  | 'parent_collection_name'
+  | 'parent_collection_path'
+>
+
 export default Like

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { get, includes } from 'lodash'
+import { ProductSubscriptionPlanCreateData } from '../../../models/ProductSubscriptionPlan'
 import {
   UsersService,
   ShopsService,
@@ -197,7 +198,7 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     override_dates,
   } = plan
 
-  const newPlan: any = {
+  const newPlan: ProductSubscriptionPlanCreateData = {
     product_id,
     shop_id,
     buyer_id: requestorDocId,

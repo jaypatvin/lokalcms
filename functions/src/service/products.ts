@@ -1,13 +1,14 @@
 import * as admin from 'firebase-admin'
+import { ProductCreateData, ProductUpdateData } from '../models/Product'
 import db from '../utils/db'
 
 const firestoreDb = admin.firestore()
 
-const getProductsBy = async (idType, id) => {
+const getProductsBy = async (idType: string, id: string) => {
   return await db.products
     .where(idType, '==', id)
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getCommunityProductsWithFilter = async ({
@@ -31,44 +32,47 @@ export const getCommunityProductsWithFilter = async ({
     res = res.orderBy(orderBy, sortOrder)
   }
 
-  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+  return await res.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getCustomAvailableProductsByDate = async (date: string) => {
   let res = db.products.orderBy(`availability.schedule.custom.${date}.start_time`)
 
-  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+  return await res.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getCustomUnavailableProductsByDate = async (date: string) => {
   let res = db.products.orderBy(`availability.schedule.custom.${date}.unavailable`)
 
-  return await res.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+  return await res.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
-export const getProductsByShopID = async (id) => await getProductsBy('shop_id', id)
+export const getProductsByShopID = async (id: string) => await getProductsBy('shop_id', id)
 
-export const getProductsByUserId = async (id) => await getProductsBy('user_id', id)
+export const getProductsByUserId = async (id: string) => await getProductsBy('user_id', id)
 
-export const getProductsByCommunityID = async (id) => await getProductsBy('community_id', id)
+export const getProductsByCommunityID = async (id: string) =>
+  await getProductsBy('community_id', id)
 
-export const getProductByID = async (id) => {
+export const getProductByID = async (id: string) => {
   const product = await db.products.doc(id).get()
 
   const data = product.data()
-  if (data) return { id: product.id, ...data } as any
-  return data
+  if (data) return { id: product.id, ...data }
+  return null
 }
 
-export const createProduct = async (data) => {
+export const createProduct = async (data: ProductCreateData) => {
   return await db.products
-    .add({ ...data, created_at: new Date() })
+    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
     .then((res) => res.get())
-    .then((doc): any => ({ id: doc.id, ...doc.data() }))
+    .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
 
-export const updateProduct = async (id, data) => {
-  return await db.products.doc(id).update({ ...data, updated_at: new Date() })
+export const updateProduct = async (id: string, data: ProductUpdateData) => {
+  return await db.products
+    .doc(id)
+    .update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
 }
 
 export const incrementProductQuantity = async (id: string, amount: number) => {
@@ -83,20 +87,28 @@ export const decrementProductQuantity = async (id: string, amount: number) => {
   })
 }
 
-export const archiveProduct = async (id: string, data?: any) => {
-  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+export const archiveProduct = async (id: string, data?: ProductUpdateData) => {
+  let updateData = {
+    archived: true,
+    archived_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: FirebaseFirestore.Timestamp.now(),
+  }
   if (data) updateData = { ...updateData, ...data }
   return await db.products.doc(id).update(updateData)
 }
 
-export const unarchiveProduct = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at: new Date() }
+export const unarchiveProduct = async (id: string, data?: ProductUpdateData) => {
+  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.products.doc(id).update(updateData)
 }
 
-export const archiveUserProducts = async (user_id: string, data?: any) => {
-  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+export const archiveUserProducts = async (user_id: string, data?: ProductUpdateData) => {
+  let updateData = {
+    archived: true,
+    archived_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: FirebaseFirestore.Timestamp.now(),
+  }
   if (data) updateData = { ...updateData, ...data }
   const productsRef = await db.products.where('user_id', '==', user_id).get()
 
@@ -117,7 +129,7 @@ export const unarchiveUserProducts = async (user_id: string) => {
     const productRef = product.ref
     const updateData: any = {
       archived: false,
-      updated_at: new Date(),
+      updated_at: FirebaseFirestore.Timestamp.now(),
     }
     batch.update(productRef, updateData)
   })
@@ -133,8 +145,8 @@ export const archiveShopProducts = async (shop_id: string) => {
     const productRef = product.ref
     const updateData: any = {
       archived: true,
-      archived_at: new Date(),
-      updated_at: new Date(),
+      archived_at: FirebaseFirestore.Timestamp.now(),
+      updated_at: FirebaseFirestore.Timestamp.now(),
     }
     batch.update(productRef, updateData)
   })
@@ -150,7 +162,7 @@ export const unarchiveShopProducts = async (shop_id: string) => {
     const productRef = product.ref
     const updateData: any = {
       archived: false,
-      updated_at: new Date(),
+      updated_at: FirebaseFirestore.Timestamp.now(),
     }
     batch.update(productRef, updateData)
   })

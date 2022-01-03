@@ -43,7 +43,7 @@ const archiveUser = async (req: Request, res: Response) => {
   const { userId } = req.params
   if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
 
-  const requestData: UserUpdateData = {
+  const requestData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }

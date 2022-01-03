@@ -2,14 +2,14 @@ import { Community, Notification } from '../index'
 
 type User = {
   _meta?: {
-    products_count: number
-    shops_count: number
-    orders_as_buyer_count: number
-    orders_as_seller_count: number
-    product_subscription_plans_as_buyer_count: number
-    product_subscription_plans_as_seller_count: number
-    reviews_count: number
-    likes_count: number
+    products_count?: number
+    shops_count?: number
+    orders_as_buyer_count?: number
+    orders_as_seller_count?: number
+    product_subscription_plans_as_buyer_count?: number
+    product_subscription_plans_as_seller_count?: number
+    reviews_count?: number
+    likes_count?: number
   }
   address: {
     barangay: string
@@ -34,7 +34,7 @@ type User = {
   id?: string
   keywords: string[]
   last_name: string
-  notifications: FirebaseFirestore.CollectionGroup<Notification>
+  notifications?: FirebaseFirestore.CollectionGroup<Notification>
   notification_settings?: {
     likes?: boolean
     comments?: boolean
@@ -44,7 +44,7 @@ type User = {
     community_alerts?: boolean
     subscriptions?: boolean
   }
-  profile_photo: string
+  profile_photo?: string
   registration: {
     id_photo: string
     id_type: string
@@ -55,7 +55,7 @@ type User = {
   roles: {
     admin: boolean
     member: boolean
-    editor: boolean
+    editor?: boolean
   }
   status: 'active' | 'away' | 'disabled' | 'archived'
   updated_at?: FirebaseFirestore.Timestamp
@@ -63,6 +63,27 @@ type User = {
   updated_from?: '' | 'cms' | 'app'
   user_uids: string[]
 }
+
+export type UserCreateData = Pick<
+  User,
+  | 'user_uids'
+  | 'first_name'
+  | 'last_name'
+  | 'display_name'
+  | 'email'
+  | 'roles'
+  | 'status'
+  | 'birthdate'
+  | 'registration'
+  | 'community_id'
+  | 'community'
+  | 'address'
+  | 'keywords'
+  | 'archived'
+  | 'updated_by'
+  | 'updated_from'
+  | 'profile_photo'
+>
 
 export type UserUpdateData = Partial<
   Pick<

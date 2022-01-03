@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { BankCodesService, ShopsService } from '../../../service'
 import { validateValue, isValidPaymentOptions } from '../../../utils/validations'
 import { generateShopKeywords } from '../../../utils/generators'
+import { ShopUpdateData } from '../../../models/Shop'
 
 /**
  * @openapi
@@ -107,7 +108,7 @@ const updateShop = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
   }
 
-  const updateData: any = {
+  const updateData: ShopUpdateData = {
     updated_by: requestorDocId || '',
     updated_from: source || '',
   }

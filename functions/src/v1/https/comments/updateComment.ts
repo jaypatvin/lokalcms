@@ -87,7 +87,7 @@ const updateComment = async (req: Request, res: Response) => {
     })
 
   if (requestorDocId !== _comment.user_id) {
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: 'You do not have a permission to edit the comment.',
     })

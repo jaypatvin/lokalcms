@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { ProductSubscriptionPlanUpdateData } from '../../../models/ProductSubscriptionPlan'
 import { ProductSubscriptionPlansService } from '../../../service'
 
 /**
@@ -56,7 +57,7 @@ const disableProductSubscriptionPlan = async (req: Request, res: Response) => {
   const updateData = {
     updated_by: requestorDocId || '',
     updated_from: data.source || '',
-    status: 'disabled',
+    status: 'disabled' as ProductSubscriptionPlanUpdateData['status'],
   }
 
   const result = await ProductSubscriptionPlansService.updateProductSubscriptionPlan(
