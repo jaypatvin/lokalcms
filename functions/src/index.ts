@@ -14,6 +14,11 @@ import helloRouter from './v1/https/hello.function'
 import { runCounter, logActivity, updateRatings } from './utils/triggers'
 import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
 import notifyUsersOnproductSubscriptions from './scheduled/notifyUsersOnProductSubscriptions'
+import { seedData } from './test/dbseed'
+
+if (process.env.FUNCTIONS_EMULATOR === 'true') {
+  seedData()
+}
 
 const app = express()
 app.use(cors({ origin: true }))
