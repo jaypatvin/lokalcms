@@ -9,14 +9,13 @@
     "@testing-library/react": "^11.2.3",
     "@testing-library/user-event": "^12.6.0",
     "dayjs": "^1.10.3",
-    "faker": "^5.5.3",
     "firebase": "^8.2.2",
     "firebase-admin": "^9.4.2",
     "firebase-functions": "^3.13.0",
     "formik": "^2.2.6",
     "human-password": "^1.0.4",
     "node-sass": "^4.14.1",
-    "postcss": "^7.0.35",
+    "postcss": "^7.0.39",
     "react": "^17.0.1",
     "react-calendar": "^3.4.0",
     "react-dom": "^17.0.1",
@@ -61,7 +60,6 @@
     ]
   },
   "devDependencies": {
-    "@types/faker": "^5.5.9",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.22",
     "@types/react": "^17.0.0",
