@@ -9,7 +9,7 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "dev": "npm run build && firebase emulators:start"
+    "dev": "npm run build && firebase emulators:start --import=./local_data --export-on-exit"
   },
   "engines": {
     "node": "12"

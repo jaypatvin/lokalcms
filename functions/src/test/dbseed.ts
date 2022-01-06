@@ -1,14 +1,14 @@
 /* eslint-disable import/first */
 import * as admin from 'firebase-admin'
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080'
-process.env.GOOGLE_APPLICATION_CREDENTIALS =
-  '/home/jet/Development/lokalcms/functions/src/test/firebase-service-key.json'
+process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099'
 admin.initializeApp({ projectId: 'lokal-1baac' })
 
 import Chance from 'chance'
 import { generateCommunityKeywords, generateUserKeywords } from '../utils/generators'
 import db from '../utils/db'
 import dayjs from 'dayjs'
+import sleep from '../utils/sleep'
 
 const firestoreDb = admin.firestore()
 const auth = admin.auth()
@@ -17,6 +17,7 @@ const chance = new Chance()
 const seedCommunities = async () => {
   try {
     for (let i = 1; i <= 3; i++) {
+      await sleep(100)
       const name = chance.company()
       const subdivision = chance.last({ nationality: 'it' })
       const city = chance.city()
@@ -58,8 +59,8 @@ const seedCommunities = async () => {
 
 const seedUsers = async () => {
   const communities = (await db.community.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  console.log('communities', communities)
   for (let i = 1; i <= 20; i++) {
+    await sleep(100)
     try {
       const email = chance.email()
       const first_name = chance.first()
