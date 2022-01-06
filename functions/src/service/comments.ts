@@ -104,7 +104,7 @@ export const addActivityComment = async (activityId: string, data: CommentCreate
   const commentRef = db.getActivityComments(`activity/${activityId}/comments`).doc()
   const batch = firestoreDb.batch()
 
-  batch.set(commentRef, { ...data, created_at: FirebaseFirestore.Timestamp.now() })
+  batch.set(commentRef, { ...data, created_at: admin.firestore.Timestamp.now() })
   await batch.commit()
   return commentRef
 }
@@ -119,8 +119,8 @@ export const updateActivityComment = async (
     .doc(commentId)
     .update({
       ...data,
-      updated_at: FirebaseFirestore.Timestamp.now(),
-      updated_content_at: FirebaseFirestore.Timestamp.now(),
+      updated_at: admin.firestore.Timestamp.now(),
+      updated_content_at: admin.firestore.Timestamp.now(),
     })
 }
 
@@ -130,7 +130,7 @@ export const archiveActivityComments = async (activityId: string) => {
   const batch = firestoreDb.batch()
   commentsSnapshot.forEach((comment) => {
     const commentRef = comment.ref
-    batch.update(commentRef, { archived: true, updated_at: FirebaseFirestore.Timestamp.now() })
+    batch.update(commentRef, { archived: true, updated_at: admin.firestore.Timestamp.now() })
   })
 
   return await batch.commit()
@@ -148,7 +148,7 @@ export const unarchiveActivityComments = async (activityId: string) => {
     if (_user.status === 'archived') return
 
     const commentRef = comment.ref
-    batch.update(commentRef, { archived: false, updated_at: FirebaseFirestore.Timestamp.now() })
+    batch.update(commentRef, { archived: false, updated_at: admin.firestore.Timestamp.now() })
   })
 
   return await batch.commit()
@@ -165,14 +165,14 @@ export const archiveComment = async (activityId: string, commentId: string) => {
   return await db
     .getActivityComments(`activity/${activityId}/comments`)
     .doc(commentId)
-    .update({ archived: true, updated_at: FirebaseFirestore.Timestamp.now() })
+    .update({ archived: true, updated_at: admin.firestore.Timestamp.now() })
 }
 
 export const unarchiveComment = async (activityId: string, commentId: string) => {
   return await db
     .getActivityComments(`activity/${activityId}/comments`)
     .doc(commentId)
-    .update({ archived: false, updated_at: FirebaseFirestore.Timestamp.now() })
+    .update({ archived: false, updated_at: admin.firestore.Timestamp.now() })
 }
 
 const _archiveUserComments = async (userId: string, state: boolean) => {
@@ -183,7 +183,7 @@ const _archiveUserComments = async (userId: string, state: boolean) => {
 
   const batch = firestoreDb.batch()
   commentsSnapshot.forEach((comment) =>
-    batch.update(comment.ref, { archived: state, updated_at: FirebaseFirestore.Timestamp.now() })
+    batch.update(comment.ref, { archived: state, updated_at: admin.firestore.Timestamp.now() })
   )
 
   return await batch.commit()

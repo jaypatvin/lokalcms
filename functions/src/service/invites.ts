@@ -1,3 +1,4 @@
+import { firestore } from 'firebase-admin'
 import { InviteCreateData, InviteUpdateData } from '../models/Invite'
 import db from '../utils/db'
 
@@ -39,28 +40,28 @@ export const getInviteByCode = async (code: string) => {
 }
 
 export const createInvite = async (data: InviteCreateData) => {
-  const docRef = await db.invites.add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+  const docRef = await db.invites.add({ ...data, created_at: firestore.Timestamp.now() })
 
   const doc = await docRef.get()
   return { id: doc.id, ...doc.data() }
 }
 
 export const updateInvite = async (id, data: InviteUpdateData) => {
-  return await db.invites.doc(id).update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
+  return await db.invites.doc(id).update({ ...data, updated_at: firestore.Timestamp.now() })
 }
 
 export const archiveInvite = async (id: string, data?: InviteUpdateData) => {
   let updateData = {
     archived: true,
-    archived_at: FirebaseFirestore.Timestamp.now(),
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: firestore.Timestamp.now(),
+    updated_at: firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.invites.doc(id).update(updateData)
 }
 
 export const unarchiveInvite = async (id: string, data?: InviteUpdateData) => {
-  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.invites.doc(id).update(updateData)
 }

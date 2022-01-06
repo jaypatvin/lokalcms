@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { firestore } from 'firebase-admin'
 import { ConversationCreateData } from '../../../models/Conversation'
 import {
   UsersService,
@@ -187,7 +188,7 @@ const createConversation = async (req: Request, res: Response) => {
 
   const chatMessage: ConversationCreateData = {
     sender_id: requestorDocId,
-    sent_at: FirebaseFirestore.Timestamp.now(),
+    sent_at: firestore.Timestamp.now(),
     archived: false,
   }
 
@@ -217,7 +218,7 @@ const createConversation = async (req: Request, res: Response) => {
   last_message.content = content
   last_message.sender = requestorName
   last_message.sender_id = requestorDocId
-  last_message.created_at = FirebaseFirestore.Timestamp.now()
+  last_message.created_at = firestore.Timestamp.now()
 
   await ChatsService.updateChat(chatId, { last_message })
 

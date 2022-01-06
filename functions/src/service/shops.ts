@@ -64,27 +64,27 @@ export const getShopByID = async (id: string) => {
 
 export const createShop = async (data: ShopCreateData) => {
   return await db.shops
-    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .add({ ...data, created_at: admin.firestore.Timestamp.now() })
     .then((res) => res.get())
     .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
 
 export const updateShop = async (id: string, data: ShopUpdateData) => {
-  return await db.shops.doc(id).update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
+  return await db.shops.doc(id).update({ ...data, updated_at: admin.firestore.Timestamp.now() })
 }
 
 export const archiveShop = async (id: string, data?: ShopUpdateData) => {
   let updateData = {
     archived: true,
-    archived_at: FirebaseFirestore.Timestamp.now(),
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: admin.firestore.Timestamp.now(),
+    updated_at: admin.firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.shops.doc(id).update(updateData)
 }
 
 export const unarchiveShop = async (id: string, data?: ShopUpdateData) => {
-  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at: admin.firestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.shops.doc(id).update(updateData)
 }
@@ -92,8 +92,8 @@ export const unarchiveShop = async (id: string, data?: ShopUpdateData) => {
 export const archiveUserShops = async (user_id: string, data?: ShopUpdateData) => {
   let updateData = {
     archived: true,
-    archived_at: FirebaseFirestore.Timestamp.now(),
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: admin.firestore.Timestamp.now(),
+    updated_at: admin.firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   const shopsRef = await db.shops.where('user_id', '==', user_id).get()
@@ -115,7 +115,7 @@ export const unarchiveUserShops = async (user_id: string) => {
     const shopRef = shop.ref
     const updateData: any = {
       archived: false,
-      updated_at: FirebaseFirestore.Timestamp.now(),
+      updated_at: admin.firestore.Timestamp.now(),
     }
     batch.update(shopRef, updateData)
   })

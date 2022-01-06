@@ -45,7 +45,7 @@ export const addProductWishlist = async (
     ...data,
     user_id,
     product_id,
-    created_at: FirebaseFirestore.Timestamp.now(),
+    created_at: admin.firestore.Timestamp.now(),
   })
 }
 

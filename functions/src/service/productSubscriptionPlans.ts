@@ -1,3 +1,4 @@
+import { firestore } from 'firebase-admin'
 import {
   ProductSubscriptionPlanCreateData,
   ProductSubscriptionPlanUpdateData,
@@ -21,7 +22,7 @@ export const getProductSubscriptionPlanById = async (id: string) => {
 
 export const createProductSubscriptionPlan = async (data: ProductSubscriptionPlanCreateData) => {
   return await db.productSubscriptionPlans
-    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .add({ ...data, created_at: firestore.Timestamp.now() })
     .then((res) => {
       return res
     })
@@ -33,7 +34,7 @@ export const updateProductSubscriptionPlan = async (
 ) => {
   return await db.productSubscriptionPlans
     .doc(id)
-    .update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
+    .update({ ...data, updated_at: firestore.Timestamp.now() })
 }
 
 export const archiveProductSubscriptionPlan = async (
@@ -42,8 +43,8 @@ export const archiveProductSubscriptionPlan = async (
 ) => {
   let updateData = {
     archived: true,
-    archived_at: FirebaseFirestore.Timestamp.now(),
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: firestore.Timestamp.now(),
+    updated_at: firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.productSubscriptionPlans.doc(id).update(updateData)
@@ -53,7 +54,7 @@ export const unarchiveProductSubscriptionPlan = async (
   id: string,
   data?: ProductSubscriptionPlanUpdateData
 ) => {
-  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.productSubscriptionPlans.doc(id).update(updateData)
 }
