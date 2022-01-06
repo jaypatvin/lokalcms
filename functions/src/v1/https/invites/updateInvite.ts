@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
+import { InviteUpdateData } from '../../../models/Invite'
 import { InvitesService } from '../../../service'
-import { generateInviteKeywords } from '../../../utils/generateKeywords'
+import { generateInviteKeywords } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -68,7 +69,7 @@ const updateInvite = async (req: Request, res: Response) => {
       message: 'You do not have a permission to update an invite',
     })
 
-  const updateData: any = {
+  const updateData: InviteUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }

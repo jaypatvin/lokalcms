@@ -56,6 +56,7 @@ const archiveChatMessage = async (req: Request, res: Response) => {
   const chat = await ChatsService.getChatById(chatId)
 
   if (chat.last_message.conversation_id === messageId) {
+    // @ts-ignore
     await ChatsService.updateChat(chatId, { 'last_message.content': 'Message deleted' })
   }
 

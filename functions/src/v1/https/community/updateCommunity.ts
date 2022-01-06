@@ -1,8 +1,9 @@
 import { Request, Response } from 'express'
-import { generateCommunityKeywords } from '../../../utils/generateKeywords'
+import { generateCommunityKeywords } from '../../../utils/generators'
 import { UsersService, CommunityService } from '../../../service'
-import { validateValue } from '../../../utils/validateFields'
+import { validateValue } from '../../../utils/validations'
 import { required_fields } from './index'
+import { CommunityUpdateData } from '../../../models/Community'
 
 /**
  * @openapi
@@ -143,7 +144,7 @@ export const updateCommunity = async (req: Request, res: Response) => {
       })
   }
 
-  const updateData: any = {
+  const updateData: CommunityUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }

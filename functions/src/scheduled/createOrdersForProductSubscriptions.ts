@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import { OrderCreateData } from '../models/Order'
 import {
   OrdersService,
   ProductSubscriptionPlansService,
@@ -45,11 +46,12 @@ const createOrdersForProductSubscriptions = async () => {
       const buyer = await UsersService.getUserByID(buyer_id)
       const isCod = payment_method === 'cod'
       const statusCode = isCod ? ORDER_STATUS.PENDING_SHIPMENT : ORDER_STATUS.PENDING_PAYMENT
-      const orderData = {
+      const orderData: OrderCreateData = {
         buyer_id,
         seller_id,
         community_id,
         delivery_option: 'delivery',
+        // @ts-ignore
         delivery_date: new Date(orderDate),
         instruction,
         is_paid: isCod,

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { NotificationsService, OrdersService } from '../../../service'
 
@@ -65,7 +66,7 @@ const shipOut = async (req: Request, res: Response) => {
       .status(403)
       .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
 
-  const statusCode = parseInt(order.status_code)
+  const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
 
   if (statusCode >= ORDER_STATUS.PENDING_RECEIPT || statusCode < ORDER_STATUS.PENDING_SHIPMENT) {
     return res.status(403).json({

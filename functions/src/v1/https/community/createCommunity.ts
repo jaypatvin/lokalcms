@@ -1,8 +1,9 @@
 import { Request, Response } from 'express'
-import { generateCommunityKeywords } from '../../../utils/generateKeywords'
+import { generateCommunityKeywords } from '../../../utils/generators'
 import { CommunityService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
+import { validateFields } from '../../../utils/validations'
 import { required_fields } from './index'
+import { CommunityCreateData } from '../../../models/Community'
 
 /**
  * @openapi
@@ -121,7 +122,7 @@ const createCommunity = async (req: Request, res: Response) => {
   })
 
   // create new community
-  const _newData: any = {
+  const _newData: CommunityCreateData = {
     name: data.name,
     address: {
       barangay: data.barangay,
@@ -144,8 +145,7 @@ const createCommunity = async (req: Request, res: Response) => {
   }
 
   const new_community = await CommunityService.createCommunity(_newData)
-  const result = await new_community.get().then((doc) => doc.data())
-  result.id = new_community.id
+  const result = await new_community.get().then((doc) => ({ ...doc.data(), id: doc.id }))
 
   return res.json({ status: 'ok', data: result })
 }

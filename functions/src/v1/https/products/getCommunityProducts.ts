@@ -42,13 +42,16 @@ const getCommunityProducts = async (req: Request, res: Response) => {
 
   const products = await ProductsService.getProductsByCommunityID(communityId)
 
+  const result = []
+
   for (const product of products) {
     delete product.keywords
     const likes = await getProductLikes(product.id)
-    product.likes = likes.map((like) => like.user_id)
+    const likeUsers = likes.map((like) => like.user_id)
+    result.push({ ...product, likes: likeUsers })
   }
 
-  return res.json({ status: 'ok', data: products })
+  return res.json({ status: 'ok', data: result })
 }
 
 export default getCommunityProducts

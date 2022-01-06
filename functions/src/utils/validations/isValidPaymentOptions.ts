@@ -1,5 +1,5 @@
 import { isArray } from 'lodash'
-import { BankCodesService } from '../service'
+import { BankCodesService } from '../../service'
 
 const isPaymentOptionsValid = async (paymentOptions) => {
   for (const paymentOption of paymentOptions) {

@@ -6,7 +6,7 @@ import {
   nthDayOfMonthFormat,
   repeatTypeValues,
   timeFormatError,
-} from './helpers'
+} from '../helpers'
 
 const validateOperatingHours = (operating_hours: any) => {
   const {

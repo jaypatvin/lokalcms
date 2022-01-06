@@ -42,10 +42,12 @@ const getShopOperatingHours = async (req: Request, res: Response) => {
 
   let output: any = {}
   if (operating_hours) {
-    const { start_time, end_time, repeat, start_dates, schedule } = operating_hours
+    const { start_time, end_time, repeat_type, repeat_unit, start_dates, schedule } =
+      operating_hours
     output.start_time = start_time
     output.end_time = end_time
-    output.repeat = repeat
+    output.repeat_type = repeat_type
+    output.repeat_unit = repeat_unit
     output.start_dates = start_dates
 
     if (schedule && schedule.custom) {

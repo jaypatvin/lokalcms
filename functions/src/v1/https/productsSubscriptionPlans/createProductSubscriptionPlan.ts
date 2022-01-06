@@ -1,15 +1,18 @@
 import { Request, Response } from 'express'
 import { get, includes } from 'lodash'
+import { ProductSubscriptionPlanCreateData } from '../../../models/ProductSubscriptionPlan'
 import {
   UsersService,
   ShopsService,
   ProductsService,
   ProductSubscriptionPlansService,
 } from '../../../service'
-import generateSubscriptionPlanSchedule from '../../../utils/generateSubscriptionPlanSchedule'
-import validateDateFormat from '../../../utils/validateDateFormat'
-import validateFields from '../../../utils/validateFields'
-import validateSubscriptionPlan from '../../../utils/validateSubscriptionPlan'
+import { generateSubscriptionPlanSchedule } from '../../../utils/generators'
+import {
+  validateDateFormat,
+  validateFields,
+  validateSubscriptionPlan,
+} from '../../../utils/validations'
 import { payment_methods, required_fields } from './index'
 
 /**
@@ -170,7 +173,9 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   const product = await ProductsService.getProductByID(product_id)
   if (!product) return res.status(400).json({ status: 'error', message: 'Invalid Product ID!' })
   if (!product.can_subscribe) {
-    return res.status(400).json({ status: 'error', message: 'This product is not available for subscription.' })
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'This product is not available for subscription.' })
   }
 
   const shop = await ShopsService.getShopByID(shop_id)
@@ -193,7 +198,7 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     override_dates,
   } = plan
 
-  const newPlan: any = {
+  const newPlan: ProductSubscriptionPlanCreateData = {
     product_id,
     shop_id,
     buyer_id: requestorDocId,

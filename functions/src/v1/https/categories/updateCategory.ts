@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { CategoryUpdateData } from '../../../models/Category'
 import { CategoriesService } from '../../../service'
 
 /**
@@ -74,7 +75,7 @@ const updateCategory = async (req: Request, res: Response) => {
   const product = await CategoriesService.getCategoryById(categoryId)
   if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Category Id!' })
 
-  const updateData: any = {
+  const updateData: CategoryUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }

@@ -9,16 +9,19 @@ import {
   UsersService,
 } from '../service'
 import { ORDER_STATUS } from '../v1/https/orders'
+import { OrderCreateData } from '../models/Order'
+import { ProductSubscription, ProductSubscriptionPlan } from '../models'
 
 sgMail.setApiKey(functions.config().mail_service.key)
 
 const notifyDays = 3
 
+type Subscriptions = ProductSubscription & { plan?: ProductSubscriptionPlan; id: string }
+
 const notifyUsersOnproductSubscriptions = async () => {
   const orderDate = dayjs(new Date()).add(notifyDays, 'days').format('YYYY-MM-DD')
-  const upcomingSubscriptions = await ProductSubscriptionsService.getProductSubscriptionsByDate(
-    orderDate
-  )
+  const upcomingSubscriptions: Subscriptions[] =
+    await ProductSubscriptionsService.getProductSubscriptionsByDate(orderDate)
   if (!upcomingSubscriptions.length) {
     console.log('There are no upcoming subscription orders 3 days from now.')
   }
@@ -62,11 +65,12 @@ const notifyUsersOnproductSubscriptions = async () => {
       const buyer = await UsersService.getUserByID(buyer_id)
       const isCod = payment_method === 'cod'
       const statusCode = isCod ? ORDER_STATUS.PENDING_SHIPMENT : ORDER_STATUS.PENDING_PAYMENT
-      const orderData = {
+      const orderData: OrderCreateData = {
         buyer_id,
         seller_id,
         community_id,
         delivery_option: 'delivery',
+        // @ts-ignore
         delivery_date: new Date(orderDate),
         instruction,
         is_paid: isCod,
@@ -130,7 +134,7 @@ const notifyUsersOnproductSubscriptions = async () => {
         title,
         message: notificationMessage,
         associated_collection: 'product_subscriptions',
-        associated_documents: subscriptions.map(s => s.id),
+        associated_documents: subscriptions.map((s) => s.id),
       }
 
       await NotificationsService.createUserNotification(seller_id, notificationData)
@@ -164,7 +168,7 @@ const notifyUsersOnproductSubscriptions = async () => {
         title,
         message: notificationMessage,
         associated_collection: 'product_subscriptions',
-        associated_documents: subscriptions.map(s => s.id),
+        associated_documents: subscriptions.map((s) => s.id),
       }
 
       await NotificationsService.createUserNotification(buyer_id, notificationData)

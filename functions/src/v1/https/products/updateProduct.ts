@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 import { isBoolean } from 'lodash'
+import { ProductUpdateData } from '../../../models/Product'
 import { ProductsService } from '../../../service'
-import { generateProductKeywords } from '../../../utils/generateKeywords'
+import { generateProductKeywords } from '../../../utils/generators'
 import { fieldIsNum } from '../../../utils/helpers'
 
 /**
@@ -121,7 +122,7 @@ const updateProduct = async (req: Request, res: Response) => {
     }
   }
 
-  const updateData: any = {
+  const updateData: ProductUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }

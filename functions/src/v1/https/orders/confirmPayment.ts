@@ -1,5 +1,7 @@
 import { Request, Response } from 'express'
+import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
+import { OrderUpdateData } from '../../../models/Order'
 import { NotificationsService, OrdersService } from '../../../service'
 
 /**
@@ -66,7 +68,7 @@ const confirmPayment = async (req: Request, res: Response) => {
       .status(403)
       .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
 
-  const statusCode = parseInt(order.status_code)
+  const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
 
   if (
     statusCode >= ORDER_STATUS.PENDING_SHIPMENT ||
@@ -88,7 +90,7 @@ const confirmPayment = async (req: Request, res: Response) => {
       message: `User with id ${requestorDocId} is not the seller from the order with id ${orderId}`,
     })
 
-  const updateData: any = {
+  const updateData: OrderUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
     status_code: ORDER_STATUS.PENDING_SHIPMENT,

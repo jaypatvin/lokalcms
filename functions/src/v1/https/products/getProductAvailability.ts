@@ -46,10 +46,11 @@ const getProductAvailability = async (req: Request, res: Response) => {
 
   let output: any = {}
   if (availability) {
-    const { start_time, end_time, repeat, start_dates, schedule } = availability
+    const { start_time, end_time, repeat_type, repeat_unit, start_dates, schedule } = availability
     output.start_time = start_time
     output.end_time = end_time
-    output.repeat = repeat
+    output.repeat_type = repeat_type
+    output.repeat_unit = repeat_unit
     output.start_dates = start_dates
 
     if (schedule && schedule.custom) {

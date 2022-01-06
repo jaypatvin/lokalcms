@@ -1,54 +1,47 @@
-import * as admin from 'firebase-admin'
-
-const db = admin.firestore()
-const collectionName = 'categories'
+import { CategoryCreateData, CategoryUpdateData } from '../models/Category'
+import db from '../utils/db'
 
 export const getAllCategories = async () => {
-  return await db
-    .collection(collectionName)
+  return await db.categories
     .get()
     .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getCategoryById = async (id) => {
-  const product = await db.collection(collectionName).doc(id).get()
+  const product = await db.categories.doc(id).get()
 
   const data = product.data()
   if (data) return { id: product.id, ...data } as any
-  return data
+  return null
 }
 
-export const createCategory = async (data) => {
-  return await db
-    .collection(collectionName)
+export const createCategory = async (data: CategoryCreateData) => {
+  return await db.categories
     .doc(data.name)
-    .set({ ...data, created_at: new Date() })
+    .set({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
     .then((res) => res)
-    .then(() => db.collection(collectionName).doc(data.name).get())
+    .then(() => db.categories.doc(data.name).get())
     .then((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
-export const updateCategory = async (id, data) => {
-  return await db
-    .collection(collectionName)
+export const updateCategory = async (id, data: CategoryUpdateData) => {
+  return await db.categories
     .doc(id)
-    .update({ ...data, updated_at: new Date() })
+    .update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
 }
 
 export const archiveCategory = async (id: string, data?: any) => {
-  let updateData = { archived: true, archived_at: new Date(), updated_at: new Date() }
+  let updateData = {
+    archived: true,
+    archived_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: FirebaseFirestore.Timestamp.now(),
+  }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.categories.doc(id).update(updateData)
 }
 
 export const unarchiveCategory = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at: new Date() }
+  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
-  return await db
-    .collection(collectionName)
-    .doc(id)
-    .update(updateData)
+  return await db.categories.doc(id).update(updateData)
 }

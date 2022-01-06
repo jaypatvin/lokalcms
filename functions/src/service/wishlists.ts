@@ -1,9 +1,11 @@
 import * as admin from 'firebase-admin'
+import { WishlistCreateData } from '../models/Wishlist'
+import db from '../utils/db'
 
-const db = admin.firestore()
+const firebaseDb = admin.firestore()
 
 export const getWishlistsByUser = async (user_id: string) => {
-  return db
+  return firebaseDb
     .collectionGroup('wishlists')
     .where('user_id', '==', user_id)
     .get()
@@ -11,7 +13,7 @@ export const getWishlistsByUser = async (user_id: string) => {
 }
 
 export const getWishlistsByShop = async (shop_id: string) => {
-  return db
+  return firebaseDb
     .collectionGroup('wishlists')
     .where('shop_id', '==', shop_id)
     .get()
@@ -20,38 +22,36 @@ export const getWishlistsByShop = async (shop_id: string) => {
 
 export const getProductWishlist = async (product_id: string, user_id: string) => {
   const wishlist = await db
-    .collection('products')
-    .doc(product_id)
-    .collection('wishlists')
+    .getProductWishlists(`products/${product_id}/wishlists`)
     .doc(`${product_id}_${user_id}_wishlist`)
     .get()
   return wishlist.data()
 }
 
 export const getProductWishlists = async (product_id: string) => {
-  const wishlists = await db.collection('products').doc(product_id).collection('wishlists').get()
+  const wishlists = await db.getProductWishlists(`products/${product_id}/wishlists`).get()
   return wishlists.docs.map((doc): any => ({ ...doc.data(), id: doc.id }))
 }
 
-export const addProductWishlist = async (product_id: string, user_id: string, data: any = {}) => {
+export const addProductWishlist = async (
+  product_id: string,
+  user_id: string,
+  data: WishlistCreateData
+) => {
   const wishlistRef = db
-    .collection('products')
-    .doc(product_id)
-    .collection('wishlists')
+    .getProductWishlists(`products/${product_id}/wishlists`)
     .doc(`${product_id}_${user_id}_wishlist`)
   return await wishlistRef.set({
     ...data,
     user_id,
     product_id,
-    created_at: new Date(),
+    created_at: FirebaseFirestore.Timestamp.now(),
   })
 }
 
 export const removeProductWishlist = async (product_id: string, user_id: string) => {
   return await db
-    .collection('products')
-    .doc(product_id)
-    .collection('wishlists')
+    .getProductWishlists(`products/${product_id}/wishlists`)
     .doc(`${product_id}_${user_id}_wishlist`)
     .delete()
 }

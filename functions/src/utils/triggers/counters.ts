@@ -79,7 +79,7 @@ const updateCountsInDoc = async (options: UpdateCountsInDocArgType) => {
   }
 }
 
-export const runCounter = async (
+const runCounter = async (
   collection_name: Collections,
   change: Change<DocumentSnapshot>,
   context: EventContext
@@ -337,3 +337,5 @@ export const runCounter = async (
     })
     .catch(console.error)
 }
+
+export default runCounter

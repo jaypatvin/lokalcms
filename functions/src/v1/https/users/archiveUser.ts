@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { UserUpdateData } from '../../../models/User'
 import { UsersService, ShopsService, ProductsService } from '../../../service'
 
 /**

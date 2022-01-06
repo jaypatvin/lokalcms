@@ -1,9 +1,8 @@
 import { Request, Response } from 'express'
+import { ActivityCreateData } from '../../../models/Activity'
 import { UsersService, ActivitiesService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
+import { validateFields, validateImages } from '../../../utils/validations'
 import { required_fields } from './index'
-import { validateImages } from '../../../utils/validateImages'
-
 /**
  * @openapi
  * /v1/activities:
@@ -122,7 +121,7 @@ const createActivity = async (req: Request, res: Response) => {
     images = data.images
   }
 
-  const _activityData: any = {
+  const _activityData: ActivityCreateData = {
     message: data.message || '',
     user_id: data.user_id,
     community_id: _user.community_id,

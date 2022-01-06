@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isNumber } from 'lodash'
 import { ORDER_STATUS } from './index'
 import { NotificationsService, OrdersService, ProductsService } from '../../../service'
 
@@ -69,7 +70,7 @@ const declineOrder = async (req: Request, res: Response) => {
       .status(403)
       .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
 
-  const statusCode = parseInt(order.status_code)
+  const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
 
   if (statusCode >= ORDER_STATUS.PENDING_CONFIRM_PAYMENT) {
     return res.status(403).json({

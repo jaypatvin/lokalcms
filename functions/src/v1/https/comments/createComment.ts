@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 import { UsersService, ActivitiesService, CommentsService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
+import { validateFields } from '../../../utils/validations'
 import { fieldIsNum } from '../../../utils/helpers'
+import { CommentCreateData } from '../../../models/Comment'
 
 /**
  * @openapi
@@ -129,11 +130,10 @@ const createComment = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
   }
 
-  const commentData: any = {
+  const commentData: CommentCreateData = {
     message: data.message,
     user_id: data.user_id,
     status: data.status || 'enabled',
-    created_at: new Date(),
     archived: false,
   }
 
@@ -161,14 +161,7 @@ const createComment = async (req: Request, res: Response) => {
   }
 
   const newComment = await CommentsService.addActivityComment(activityId, commentData)
-  let result = await newComment.get().then((doc) => doc.data())
-  await newComment
-    .collection('images')
-    .get()
-    .then((res) => {
-      result.images = res.docs.map((doc) => doc.data())
-    })
-  result.id = newComment.id
+  let result = await newComment.get().then((doc) => ({ ...doc.data(), id: doc.id }))
   await ActivitiesService.incrementActivityCommentCount(activityId)
   return res.status(200).json({ status: 'ok', data: result })
 }

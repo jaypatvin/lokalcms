@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import { chain, get, includes, map } from 'lodash'
 import { DayKeyVal } from './helpers'
-import isDateValidInSchedule from './isDateValidInSchedule'
+import { isDateValidInSchedule } from './validations'
 
 const getScheduledAvailableItems = (
   items: any[],

@@ -1,5 +1,7 @@
 import { Request, Response } from 'express'
+import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
+import { OrderUpdateData } from '../../../models/Order'
 import { NotificationsService, OrdersService } from '../../../service'
 
 /**
@@ -67,7 +69,7 @@ const received = async (req: Request, res: Response) => {
       .status(403)
       .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
 
-  const statusCode = parseInt(order.status_code)
+  const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
 
   if (statusCode >= ORDER_STATUS.FINISHED || statusCode < ORDER_STATUS.PENDING_RECEIPT) {
     return res.status(403).json({
@@ -86,7 +88,7 @@ const received = async (req: Request, res: Response) => {
       message: `User with id ${requestorDocId} is not the buyer from the order with id ${orderId}`,
     })
 
-  const updateData: any = {
+  const updateData: OrderUpdateData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
     status_code: ORDER_STATUS.FINISHED,
@@ -96,7 +98,7 @@ const received = async (req: Request, res: Response) => {
     updateData.is_paid = true
   }
   if (!order.delivered_date) {
-    updateData.delivered_date = new Date()
+    updateData.delivered_date = FirebaseFirestore.Timestamp.now()
   }
 
   const statusChange = {

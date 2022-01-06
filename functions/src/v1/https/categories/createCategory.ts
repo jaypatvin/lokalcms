@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { CategoriesService } from '../../../service'
-import { generateCategoryKeywords } from '../../../utils/generateKeywords'
-import validateFields from '../../../utils/validateFields'
+import { generateCategoryKeywords } from '../../../utils/generators'
+import { validateFields } from '../../../utils/validations'
 import { required_fields } from './index'
 
 /**
@@ -81,7 +81,7 @@ const createCategory = async (req: Request, res: Response) => {
     name: data.name,
   })
 
-  const _categoryData: any = {
+  const _categoryData = {
     name: data.name,
     description: data.description || '',
     icon_url: data.icon_url || '',

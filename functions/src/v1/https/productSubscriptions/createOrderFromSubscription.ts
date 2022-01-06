@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { includes } from 'lodash'
+import { OrderCreateData } from '../../../models/Order'
 import {
   UsersService,
   ProductSubscriptionPlansService,
@@ -152,13 +153,14 @@ const createOrderFromSubscription = async (req: Request, res: Response) => {
   const { seller_id, community_id, product_id, product, shop_id, shop } = plan
   const buyer = await UsersService.getUserByID(buyer_id)
   const statusCode = ORDER_STATUS.PENDING_CONFIRM_PAYMENT
-  const orderData = {
+  const orderData: OrderCreateData = {
     buyer_id,
     seller_id,
     community_id,
     delivery_option: 'delivery',
     delivery_date: orderDate,
     instruction,
+    is_paid: true,
     product_ids: [product_id],
     products: [
       {

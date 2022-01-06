@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { UsersService, ActivitiesService, LikesService } from '../../../service'
-import validateFields from '../../../utils/validateFields'
+import { validateFields } from '../../../utils/validations'
 
 /**
  * @openapi

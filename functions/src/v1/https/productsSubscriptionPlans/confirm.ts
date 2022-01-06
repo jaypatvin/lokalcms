@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { ProductSubscriptionPlanUpdateData } from '../../../models/ProductSubscriptionPlan'
 import generateProductSubscriptions from '../../../scheduled/generateProductSubscriptions'
 import { ProductSubscriptionPlansService } from '../../../service'
 
@@ -60,21 +61,17 @@ const confirm = async (req: Request, res: Response) => {
   const plan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)
 
   if (!plan) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: `Product subscription plan with id ${planId} does not exist!`,
-      })
+    return res.status(400).json({
+      status: 'error',
+      message: `Product subscription plan with id ${planId} does not exist!`,
+    })
   }
 
   if (plan.archived) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: `Product subscription plan with id ${planId} is archived!`,
-      })
+    return res.status(400).json({
+      status: 'error',
+      message: `Product subscription plan with id ${planId} is archived!`,
+    })
   }
 
   if (seller_id && roles.admin) {
@@ -91,7 +88,7 @@ const confirm = async (req: Request, res: Response) => {
   const updateData = {
     updated_by: requestorDocId || '',
     updated_from: data.source || '',
-    status: 'enabled',
+    status: 'enabled' as ProductSubscriptionPlanUpdateData['status'],
   }
 
   const result = await ProductSubscriptionPlansService.updateProductSubscriptionPlan(

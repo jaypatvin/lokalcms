@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
 import _ from 'lodash'
+import { ProductUpdateData } from '../../../models/Product'
 import { ProductsService, ShopsService } from '../../../service'
-import generateSchedule from '../../../utils/generateSchedule'
-import isScheduleDerived from '../../../utils/isScheduleDerived'
-import validateOperatingHours from '../../../utils/validateOperatingHours'
+import { generateSchedule } from '../../../utils/generators'
+import { isScheduleDerived, validateOperatingHours } from '../../../utils/validations'
 
 /**
  * @openapi
@@ -175,7 +175,7 @@ const addProductAvailability = async (req: Request, res: Response) => {
     })
   }
 
-  const updateData: any = {
+  const updateData: ProductUpdateData = {
     updated_by: requestorDocId || '',
     updated_from: data.source || '',
   }

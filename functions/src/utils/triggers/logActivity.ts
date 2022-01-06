@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin'
 import { Change } from 'firebase-functions'
 import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
-import { generateHistoryKeywords } from './generateKeywords'
+import { generateHistoryKeywords } from '../generators'
 
 const db = admin.firestore()
 
@@ -10,7 +10,9 @@ const logActivity = async (change: Change<DocumentSnapshot>) => {
   const isUpdate = change.before.exists && change.after.exists
   const isDelete = change.before.exists && !change.after.exists
 
-  const collection_name = change.after.exists ? change.after.ref.parent.path : change.before.ref.parent.path
+  const collection_name = change.after.exists
+    ? change.after.ref.parent.path
+    : change.before.ref.parent.path
   const document_id = change.after.exists ? change.after.id : change.before.id
   const beforeData: any = change.before.data()
   const afterData: any = change.after.data()
@@ -25,7 +27,7 @@ const logActivity = async (change: Change<DocumentSnapshot>) => {
     collection_name,
     actor_id,
     document_id,
-    community_id
+    community_id,
   })
   const history: any = {
     actor_id,
@@ -34,7 +36,7 @@ const logActivity = async (change: Change<DocumentSnapshot>) => {
     collection_name,
     document_id,
     created_at: new Date(),
-    keywords
+    keywords,
   }
   if (beforeData) {
     delete beforeData.updated_from
