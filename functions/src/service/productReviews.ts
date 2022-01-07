@@ -48,7 +48,7 @@ export const getProductReviewByOrderId = async (productId: string, order_id: str
 export const createProductReview = async (id: string, data: ReviewCreateData) => {
   return await db
     .getProductReviews(`products/${id}/reviews`)
-    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .add({ ...data, created_at: admin.firestore.Timestamp.now() })
     .then((res) => {
       return res.get()
     })
@@ -64,7 +64,7 @@ export const updateProductReview = async (
   return await db
     .getProductReviews(`products/${productId}/reviews`)
     .doc(reviewId)
-    .update({ rating, message, updated_at: FirebaseFirestore.Timestamp.now() })
+    .update({ rating, message, updated_at: admin.firestore.Timestamp.now() })
 }
 
 export const deleteProductReview = async (productId: string, reviewId: string) => {

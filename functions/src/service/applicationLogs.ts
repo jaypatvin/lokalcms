@@ -1,3 +1,4 @@
+import { firestore } from 'firebase-admin'
 import { ApplicationLogCreateData } from '../models/ApplicationLog'
 import db from '../utils/db'
 
@@ -35,7 +36,7 @@ export const getApplicationLogsByAssociatedDocumentAndActionType = async (
 
 export const createApplicationLog = async (data: ApplicationLogCreateData) => {
   return await db.applicationLogs
-    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now(), archived: false })
+    .add({ ...data, created_at: firestore.Timestamp.now(), archived: false })
     .then((res) => {
       return res
     })
@@ -44,15 +45,15 @@ export const createApplicationLog = async (data: ApplicationLogCreateData) => {
 export const archiveApplicationLog = async (id: string, data?: any) => {
   let updateData = {
     archived: true,
-    archived_at: FirebaseFirestore.Timestamp.now(),
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: firestore.Timestamp.now(),
+    updated_at: firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.applicationLogs.doc(id).update(updateData)
 }
 
 export const unarchiveApplicationLog = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.applicationLogs.doc(id).update(updateData)
 }

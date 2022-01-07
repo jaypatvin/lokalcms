@@ -30,28 +30,28 @@ export const getUsersByCommunityId = async (id: string) => {
 
 export const createUser = async (data: UserCreateData) => {
   return await db.users
-    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .add({ ...data, created_at: admin.firestore.Timestamp.now() })
     .then((res) => {
       return res
     })
 }
 
 export const updateUser = async (id, data: UserUpdateData) => {
-  return await db.users.doc(id).update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
+  return await db.users.doc(id).update({ ...data, updated_at: admin.firestore.Timestamp.now() })
 }
 
 export const archiveUser = async (id: string, data?: UserUpdateData) => {
   let updateData = {
     archived: true,
-    archived_at: FirebaseFirestore.Timestamp.now(),
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: admin.firestore.Timestamp.now(),
+    updated_at: admin.firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.users.doc(id).update(updateData)
 }
 
 export const unarchiveUser = async (id: string, data?: UserUpdateData) => {
-  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at: admin.firestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.users.doc(id).update(updateData)
 }

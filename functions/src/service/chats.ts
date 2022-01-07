@@ -1,3 +1,4 @@
+import { firestore } from 'firebase-admin'
 import { ChatCreateData, ChatUpdateData } from '../models/Chat'
 import db from '../utils/db'
 
@@ -22,7 +23,7 @@ export const getGroupChatByHash = async (group_hash: string) => {
 
 export const createChat = async (data: ChatCreateData) => {
   return await db.chats
-    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .add({ ...data, created_at: firestore.Timestamp.now() })
     .then((res) => res.get())
     .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
@@ -30,28 +31,28 @@ export const createChat = async (data: ChatCreateData) => {
 export const createChatWithHashId = async (hash_id: string, data: ChatCreateData) => {
   return await db.chats
     .doc(hash_id)
-    .set({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .set({ ...data, created_at: firestore.Timestamp.now() })
     .then((res) => res)
     .then(() => db.chats.doc(hash_id).get())
     .then((doc) => ({ ...doc.data(), id: doc.id }))
 }
 
 export const updateChat = async (id: string, data: ChatUpdateData) => {
-  return await db.chats.doc(id).update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
+  return await db.chats.doc(id).update({ ...data, updated_at: firestore.Timestamp.now() })
 }
 
 export const archiveChat = async (id: string, data?: ChatUpdateData) => {
   let updateData = {
     archived: true,
-    archived_at: FirebaseFirestore.Timestamp.now(),
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: firestore.Timestamp.now(),
+    updated_at: firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.chats.doc(id).update(updateData)
 }
 
 export const unarchiveChat = async (id: string, data?: ChatUpdateData) => {
-  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db.chats.doc(id).update(updateData)
 }

@@ -21,7 +21,7 @@ const logActivity = async (change: Change<DocumentSnapshot>) => {
   const isArchive = beforeData && afterData && !beforeData.isArchived && afterData.isArchived
   const actor_id = afterData && afterData.updated_by ? afterData.updated_by : ''
   const source = afterData && afterData.updated_from ? afterData.updated_from : 'api'
-  const community_id = collection_name === 'community' ? document_id : data.community_id
+  const community_id = collection_name === 'community' ? document_id : data.community_id || ''
 
   const keywords = generateHistoryKeywords({
     collection_name,

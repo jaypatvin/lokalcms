@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { firestore } from 'firebase-admin'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { OrderUpdateData } from '../../../models/Order'
@@ -98,7 +99,7 @@ const received = async (req: Request, res: Response) => {
     updateData.is_paid = true
   }
   if (!order.delivered_date) {
-    updateData.delivered_date = FirebaseFirestore.Timestamp.now()
+    updateData.delivered_date = firestore.Timestamp.now()
   }
 
   const statusChange = {
