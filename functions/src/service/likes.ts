@@ -29,7 +29,7 @@ export const addProductLike = async (product_id: string, user_id: string, data: 
     ...data,
     user_id,
     product_id,
-    created_at: FirebaseFirestore.Timestamp.now(),
+    created_at: admin.firestore.Timestamp.now(),
   })
 }
 
@@ -51,7 +51,7 @@ export const addShopLike = async (shop_id: string, user_id: string, data: LikeCr
     ...data,
     user_id,
     shop_id,
-    created_at: FirebaseFirestore.Timestamp.now(),
+    created_at: admin.firestore.Timestamp.now(),
   })
 }
 
@@ -76,7 +76,7 @@ export const addActivityLike = async (activity_id: string, user_id: string) => {
     parent_collection_name: 'activities',
     user_id,
     activity_id,
-    created_at: FirebaseFirestore.Timestamp.now(),
+    created_at: admin.firestore.Timestamp.now(),
   })
 }
 
@@ -98,7 +98,7 @@ export const addCommentLike = async (activity_id: string, comment_id: string, us
     parent_collection_name: 'comments',
     user_id,
     comment_id,
-    created_at: FirebaseFirestore.Timestamp.now(),
+    created_at: admin.firestore.Timestamp.now(),
   })
 }
 

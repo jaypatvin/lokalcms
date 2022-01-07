@@ -1,6 +1,8 @@
 import { ActionType } from '../models'
 import db from '../utils/db'
 
+import { firestore } from 'firebase-admin'
+
 export const getAllActionTypes = async () => {
   return await db.actionTypes
     .get()
@@ -18,7 +20,7 @@ export const getActionTypeById = async (id: string) => {
 export const createActionType = async (id: string, data: ActionType) => {
   return await db.actionTypes
     .doc(id)
-    .set({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .set({ ...data, created_at: firestore.Timestamp.now() })
     .then((res) => res)
     .then(() => db.actionTypes.doc(id).get())
     .then((doc) => ({ ...doc.data(), id: doc.id }))

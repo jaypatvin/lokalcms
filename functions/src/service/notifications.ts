@@ -1,3 +1,4 @@
+import { firestore } from 'firebase-admin'
 import { NotificationCreateData } from '../models/Notification'
 import db from '../utils/db'
 
@@ -13,7 +14,7 @@ export const createUserNotification = async (id: string, data: NotificationCreat
     .getNotifications(`users/${id}/notifications`)
     .add({
       ...data,
-      created_at: FirebaseFirestore.Timestamp.now(),
+      created_at: firestore.Timestamp.now(),
       viewed: false,
       opened: false,
       unread: true,
@@ -29,7 +30,7 @@ export const updateUserNotification = async (userId: string, notificationId: str
   return await db
     .getNotifications(`users/${userId}/notifications`)
     .doc(notificationId)
-    .update({ ...data, updated_at: FirebaseFirestore.Timestamp.now() })
+    .update({ ...data, updated_at: firestore.Timestamp.now() })
 }
 
 export const archiveUserNotification = async (
@@ -39,8 +40,8 @@ export const archiveUserNotification = async (
 ) => {
   let updateData = {
     archived: true,
-    archived_at: FirebaseFirestore.Timestamp.now(),
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    archived_at: firestore.Timestamp.now(),
+    updated_at: firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db
@@ -54,7 +55,7 @@ export const unarchiveUserNotification = async (
   notificationId: string,
   data?: any
 ) => {
-  let updateData = { archived: false, updated_at: FirebaseFirestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
   if (data) updateData = { ...updateData, ...data }
   return await db
     .getNotifications(`users/${userId}/notifications`)

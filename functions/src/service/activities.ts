@@ -65,7 +65,7 @@ export const getAllActivities = async (userId = '') => {
 // new post, no comments in here
 export const createActivity = async (data: ActivityCreateData) => {
   return await db.activities
-    .add({ ...data, created_at: FirebaseFirestore.Timestamp.now() })
+    .add({ ...data, created_at: admin.firestore.Timestamp.now() })
     .then((res) => res.get())
     .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
@@ -74,16 +74,16 @@ export const createActivity = async (data: ActivityCreateData) => {
 export const updateActivity = async (id: string, data: ActivityUpdateData) => {
   return await db.activities.doc(id).update({
     ...data,
-    updated_at: FirebaseFirestore.Timestamp.now(),
-    updated_content_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: admin.firestore.Timestamp.now(),
+    updated_content_at: admin.firestore.Timestamp.now(),
   })
 }
 
 export const archiveActivity = async (id: string, data?: ActivityUpdateData) => {
   let updateData = {
     archived: true,
-    updated_at: FirebaseFirestore.Timestamp.now(),
-    archived_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: admin.firestore.Timestamp.now(),
+    archived_at: admin.firestore.Timestamp.now(),
     unarchived_at: admin.firestore.FieldValue.delete(),
   }
   if (data) updateData = { ...updateData, ...data }
@@ -93,9 +93,9 @@ export const archiveActivity = async (id: string, data?: ActivityUpdateData) => 
 export const unarchiveActivity = async (id: string, data?: ActivityUpdateData) => {
   let updateData = {
     archived: false,
-    updated_at: FirebaseFirestore.Timestamp.now(),
+    updated_at: admin.firestore.Timestamp.now(),
     archived_at: admin.firestore.FieldValue.delete(),
-    unarchived_at: FirebaseFirestore.Timestamp.now(),
+    unarchived_at: admin.firestore.Timestamp.now(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.activities.doc(id).update(updateData)
@@ -149,7 +149,7 @@ const archiveActivityBy = async (status: boolean, idType: string, id: string) =>
     const activityRef = activity.ref
     const updateData = {
       archived: status,
-      updated_at: FirebaseFirestore.Timestamp.now(),
+      updated_at: admin.firestore.Timestamp.now(),
     }
     batch.update(activityRef, updateData)
   })

@@ -1,11 +1,14 @@
 const generateKeywords = (stringArr: string[]) => {
   const keywords = ['']
   const wordedStrings = stringArr.reduce((arr, str) => {
-    const subArr = str.split(' ')
-    if (subArr.length > 1) {
-      subArr.push(str)
+    if (str) {
+      const subArr = str.split(' ')
+      if (subArr.length > 1) {
+        subArr.push(str)
+      }
+      return [...arr, ...subArr]
     }
-    return [...arr, ...subArr]
+    return arr
   }, [])
   wordedStrings.forEach((str) => {
     let currentKeyword = ''
