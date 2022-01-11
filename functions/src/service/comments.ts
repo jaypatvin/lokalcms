@@ -6,7 +6,7 @@ import db from '../utils/db'
 const firestoreDb = admin.firestore()
 
 export const getActivityComments = async (activityId: string, userId = '') => {
-  const commentsRef = db.getActivityComments(`activity/${activityId}/comments`)
+  const commentsRef = db.getActivityComments(`activities/${activityId}/comments`)
   const comments = await commentsRef.get()
 
   return await Promise.all(
@@ -42,7 +42,7 @@ export const getUserComments = async (userId: string) => {
       const activities = await db.activities.get()
       for (let activity of activities.docs) {
         const data = await db
-          .getActivityComments(`activity/${activity.id}/comments`)
+          .getActivityComments(`activities/${activity.id}/comments`)
           .doc(commentDoc.id)
           .get()
 
@@ -50,7 +50,7 @@ export const getUserComments = async (userId: string) => {
           let liked = false
           if (userId) {
             const likeDoc = await db
-              .getActivityComments(`activity/${activity.id}/comments`)
+              .getActivityComments(`activities/${activity.id}/comments`)
               .doc(commentDoc.id)
               .collection('likes')
               .doc(`${commentDoc.id}_${userId}_like`)
@@ -81,7 +81,7 @@ export const getAllComments = async () => {
 export const getCommentById = async (activityId: string, commentId: string, userId = '') => {
   // alternatively, we can use db.collectionGroup to query from all subcollections of 'comments'
   // however, we need to add a field for 'id' inside of 'comments' documents for querying
-  const commentRef = db.getActivityComments(`activity/${activityId}/comments`).doc(commentId)
+  const commentRef = db.getActivityComments(`activities/${activityId}/comments`).doc(commentId)
   const comment = await commentRef.get()
   let liked = false
   if (userId) {
@@ -101,7 +101,7 @@ export const getCommentById = async (activityId: string, commentId: string, user
 }
 
 export const addActivityComment = async (activityId: string, data: CommentCreateData) => {
-  const commentRef = db.getActivityComments(`activity/${activityId}/comments`).doc()
+  const commentRef = db.getActivityComments(`activities/${activityId}/comments`).doc()
   const batch = firestoreDb.batch()
 
   batch.set(commentRef, { ...data, created_at: admin.firestore.Timestamp.now() })
@@ -115,7 +115,7 @@ export const updateActivityComment = async (
   data: CommentUpdateData
 ) => {
   return await db
-    .getActivityComments(`activity/${activityId}/comments`)
+    .getActivityComments(`activities/${activityId}/comments`)
     .doc(commentId)
     .update({
       ...data,
@@ -125,7 +125,7 @@ export const updateActivityComment = async (
 }
 
 export const archiveActivityComments = async (activityId: string) => {
-  const commentsSnapshot = await db.getActivityComments(`activity/${activityId}/comments`).get()
+  const commentsSnapshot = await db.getActivityComments(`activities/${activityId}/comments`).get()
 
   const batch = firestoreDb.batch()
   commentsSnapshot.forEach((comment) => {
@@ -137,7 +137,7 @@ export const archiveActivityComments = async (activityId: string) => {
 }
 
 export const unarchiveActivityComments = async (activityId: string) => {
-  const commentsSnapshot = await db.getActivityComments(`activity/${activityId}/comments`).get()
+  const commentsSnapshot = await db.getActivityComments(`activities/${activityId}/comments`).get()
 
   const batch = firestoreDb.batch()
   commentsSnapshot.forEach(async (comment) => {
@@ -163,14 +163,14 @@ export const unarchiveUserComments = async (userId: string) => _archiveUserComme
 
 export const archiveComment = async (activityId: string, commentId: string) => {
   return await db
-    .getActivityComments(`activity/${activityId}/comments`)
+    .getActivityComments(`activities/${activityId}/comments`)
     .doc(commentId)
     .update({ archived: true, updated_at: admin.firestore.Timestamp.now() })
 }
 
 export const unarchiveComment = async (activityId: string, commentId: string) => {
   return await db
-    .getActivityComments(`activity/${activityId}/comments`)
+    .getActivityComments(`activities/${activityId}/comments`)
     .doc(commentId)
     .update({ archived: false, updated_at: admin.firestore.Timestamp.now() })
 }
