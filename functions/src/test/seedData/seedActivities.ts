@@ -23,16 +23,20 @@ const seedActivityLikes = async ({
   for (const user of users) {
     if (chance.bool()) {
       await sleep(100)
-      const likeRef = db
-        .getLikes(`activities/${activity.id}/likes`)
-        .doc(`${activity.id}_${user.id}_like`)
-      await likeRef.set({
-        parent_collection_path: 'activities',
-        parent_collection_name: 'activities',
-        user_id: user.id,
-        activity_id: activity.id,
-        created_at: admin.firestore.Timestamp.now(),
-      })
+      try {
+        await db
+          .getLikes(`activities/${activity.id}/likes`)
+          .doc(`${activity.id}_${user.id}_like`)
+          .set({
+            parent_collection_path: 'activities',
+            parent_collection_name: 'activities',
+            user_id: user.id,
+            activity_id: activity.id,
+            created_at: admin.firestore.Timestamp.now(),
+          })
+      } catch (error) {
+        console.error('Error creating activity like:', error)
+      }
     }
   }
 }
@@ -53,19 +57,23 @@ const seedActivityComments = async ({
   for (const user of users) {
     if (chance.bool()) {
       await sleep(100)
-      const numOfImages = chance.integer({ min: 0, max: 2 })
-      const images = [...Array(numOfImages).keys()].map((order) => ({
-        order,
-        url: chance.pickone(samples.comments),
-      }))
-      await db.getActivityComments(`activities/${activity.id}/comments`).add({
-        archived: false,
-        created_at: admin.firestore.Timestamp.now(),
-        images,
-        message: chance.sentence(),
-        status: chance.pickone(['enabled', 'disabled']),
-        user_id: user.id,
-      })
+      try {
+        const numOfImages = chance.integer({ min: 0, max: 2 })
+        const images = [...Array(numOfImages).keys()].map((order) => ({
+          order,
+          url: chance.pickone(samples.comments),
+        }))
+        await db.getActivityComments(`activities/${activity.id}/comments`).add({
+          archived: false,
+          created_at: admin.firestore.Timestamp.now(),
+          images,
+          message: chance.sentence(),
+          status: chance.pickone(['enabled', 'disabled']),
+          user_id: user.id,
+        })
+      } catch (error) {
+        console.error('Error creating activity comment:', error)
+      }
     }
   }
 }
@@ -100,7 +108,7 @@ export const seedActivities = async ({ admin }: { admin: AdminType }) => {
           await seedActivityComments({ activity, admin })
         }
       } catch (error) {
-        console.error('Error creating new activity:', error)
+        console.error('Error creating activity:', error)
       }
     }
   }

@@ -9,15 +9,7 @@ import { AdminType, AuthType } from '../dbseed'
 
 const chance = new Chance()
 
-export const seedUsers = async ({
-  admin,
-  auth,
-  firestoreDb,
-}: {
-  firestoreDb: FirebaseFirestore.Firestore
-  admin: AdminType
-  auth: AuthType
-}) => {
+export const seedUsers = async ({ admin, auth }: { admin: AdminType; auth: AuthType }) => {
   const communities = (await db.community.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   for (let i = 1; i <= 20; i++) {
     await sleep(100)
@@ -41,7 +33,7 @@ export const seedUsers = async ({
         displayName,
         disabled: false,
       })
-      const { id: userId } = await firestoreDb.collection('users').add({
+      const { id: userId } = await db.users.add({
         user_uids: [uid],
         first_name: firstName,
         last_name: lastName,
@@ -62,7 +54,7 @@ export const seedUsers = async ({
           verified: false,
         },
         community_id: community.id,
-        community: firestoreDb.collection('community').doc(community.id),
+        community: db.community.doc(community.id),
         address: {
           barangay: community.address.barangay,
           street: chance.street(),
@@ -83,10 +75,9 @@ export const seedUsers = async ({
         communityId: community.id,
         displayName,
         admin,
-        firestoreDb,
       })
     } catch (error) {
-      console.error('Error creating new user:', error)
+      console.error('Error creating user:', error)
     }
   }
 }

@@ -7,16 +7,17 @@ admin.initializeApp({ projectId: 'lokal-1baac' })
 import { seedCommunities } from './seedData/seedCommunities'
 import { seedUsers } from './seedData/seedUsers'
 import { seedActivities } from './seedData/seedActivities'
+import { seedCategories } from './seedData/seedCategories'
 
 export type AdminType = typeof admin
 export type AuthType = typeof auth
 
-const firestoreDb = admin.firestore()
 const auth = admin.auth()
 
 const seedData = async () => {
-  await seedCommunities({ admin, firestoreDb })
-  await seedUsers({ admin, auth, firestoreDb })
+  await seedCommunities({ admin })
+  await seedCategories({ admin })
+  await seedUsers({ admin, auth })
   await seedActivities({ admin })
 }
 
