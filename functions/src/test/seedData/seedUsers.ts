@@ -11,13 +11,13 @@ const chance = new Chance()
 
 export const seedUsers = async ({ admin, auth }: { admin: AdminType; auth: AuthType }) => {
   const communities = (await db.community.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  for (let i = 1; i <= 20; i++) {
+  for (let i = 1; i <= 5; i++) {
     await sleep(100)
     try {
-      const email = chance.email()
       const firstName = chance.first()
       const lastName = chance.last()
       const displayName = `${firstName} ${lastName}`
+      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@lokalapp.ph`
       const isAdmin = chance.bool()
       const community = chance.pickone(communities)
       const keywords = generateUserKeywords({

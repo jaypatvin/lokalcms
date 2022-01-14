@@ -76,6 +76,41 @@ const sampleSchedules = [
     repeat_unit: 3,
     repeat_type: 'month',
   },
+  {
+    start_time: '06:00 am',
+    end_time: '06:00 pm',
+    start_dates: ['2022-01-01'],
+    repeat_unit: 3,
+    repeat_type: '1-sat',
+  },
+  {
+    start_time: '06:00 am',
+    end_time: '06:00 pm',
+    start_dates: ['2022-01-09'],
+    repeat_unit: 3,
+    repeat_type: '2-sun',
+  },
+  {
+    start_time: '06:00 am',
+    end_time: '06:00 pm',
+    start_dates: ['2022-01-14'],
+    repeat_unit: 3,
+    repeat_type: '2-fri',
+  },
+  {
+    start_time: '06:00 am',
+    end_time: '06:00 pm',
+    start_dates: ['2022-01-17'],
+    repeat_unit: 3,
+    repeat_type: '3-mon',
+  },
+  {
+    start_time: '06:00 am',
+    end_time: '06:00 pm',
+    start_dates: ['2022-01-30'],
+    repeat_unit: 3,
+    repeat_type: '5-sun',
+  },
 ]
 
 export const seedShopsAndProductsOfUser = async ({

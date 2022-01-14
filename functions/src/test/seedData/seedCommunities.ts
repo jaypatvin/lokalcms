@@ -8,7 +8,7 @@ import * as samples from '../sampleImages'
 const chance = new Chance()
 
 export const seedCommunities = async ({ admin }: { admin: AdminType }) => {
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 2; i++) {
     try {
       await sleep(100)
       const name = chance.last({ nationality: 'it' })
