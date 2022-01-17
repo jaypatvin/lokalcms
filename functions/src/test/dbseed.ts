@@ -14,6 +14,10 @@ import { seedOrderStatusCodes } from './seedData/seedOrderStatus'
 import { seedActionTypes } from './seedData/seedActionTypes'
 import { seedNotificationTypes } from './seedData/seedNotificationTypes'
 import { seedProductSubscriptionPlans } from './seedData/seedProductSubscriptionPlans'
+import { seedProductLikes } from './seedData/seedProductLikes'
+import { seedShopLikes } from './seedData/seedShopLikes'
+import { seedWishlists } from './seedData/seedWishlists'
+import { seedProductReviews } from './seedData/seedProductReviews'
 
 export type AdminType = typeof admin
 export type AuthType = typeof auth
@@ -31,6 +35,10 @@ const seedData = async () => {
   await seedActivities({ admin })
   await seedOrders({ admin })
   await seedProductSubscriptionPlans({ admin })
+  await seedProductLikes({ admin })
+  await seedShopLikes({ admin })
+  await seedWishlists({ admin })
+  await seedProductReviews({ admin })
 }
 
 seedData().finally(() => {
