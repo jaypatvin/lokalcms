@@ -72,12 +72,18 @@ const ChatsPage = ({}) => {
           if (product_id) {
             const product = await fetchProductByID(memberId)
             const data = product.data()
-            if (data) membersInfo[memberId] = { name: data.name }
+            if (data) {
+              membersInfo[memberId] = { name: data.name }
+              membersInfo[data.user_id] = { name: data.name }
+            }
           }
           if (!membersInfo[memberId] && shop_id) {
             const shop = await fetchShopByID(memberId)
             const data = shop.data()
-            if (data) membersInfo[memberId] = { name: data.name }
+            if (data) {
+              membersInfo[memberId] = { name: data.name }
+              membersInfo[data.user_id] = { name: data.name }
+            }
           }
           if (!membersInfo[memberId]) {
             const user = await fetchUserByID(memberId)

@@ -9,9 +9,9 @@ type Chat = {
   group_hash?: string
   last_message: {
     content: string
-    conversation_id: string
+    conversation_id?: string
     created_at: FirebaseFirestore.Timestamp
-    ref: FirebaseFirestore.DocumentReference<Conversation>
+    ref?: FirebaseFirestore.DocumentReference<Conversation>
     sender: string
     sender_id: string
   }

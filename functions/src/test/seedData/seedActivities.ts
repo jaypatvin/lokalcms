@@ -80,36 +80,35 @@ const seedActivityComments = async ({
 
 export const seedActivities = async ({ admin }: { admin: AdminType }) => {
   const users = (await db.users.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  for (const user of users) {
-    if (chance.bool({ likelihood: 70 })) {
-      const numOfImages = chance.integer({ min: 0, max: 5 })
-      const images = [...Array(numOfImages).keys()].map((order) => ({
-        order,
-        url: chance.pickone(samples.activities),
-      }))
-      const numOfActivities = chance.integer({ min: 0, max: 3 })
-      try {
-        for (let i = 1; i <= numOfActivities; i++) {
-          await sleep(100)
-          const activity = await db.activities
-            .add({
-              archived: false,
-              community_id: user.community_id,
-              images,
-              message: chance.sentence(),
-              status: chance.pickone(['enabled', 'disabled']),
-              user_id: user.id,
-              created_at: admin.firestore.Timestamp.now(),
-            })
-            .then((res) => res.get())
-            .then((doc) => ({ id: doc.id, ...doc.data() }))
+  const randomUsers = chance.pickset(users, 15)
+  for (const user of randomUsers) {
+    const numOfImages = chance.integer({ min: 0, max: 5 })
+    const images = [...Array(numOfImages).keys()].map((order) => ({
+      order,
+      url: chance.pickone(samples.activities),
+    }))
+    const numOfActivities = chance.integer({ min: 0, max: 3 })
+    try {
+      for (let i = 1; i <= numOfActivities; i++) {
+        await sleep(100)
+        const activity = await db.activities
+          .add({
+            archived: false,
+            community_id: user.community_id,
+            images,
+            message: chance.sentence(),
+            status: chance.pickone(['enabled', 'disabled']),
+            user_id: user.id,
+            created_at: admin.firestore.Timestamp.now(),
+          })
+          .then((res) => res.get())
+          .then((doc) => ({ id: doc.id, ...doc.data() }))
 
-          await seedActivityLikes({ activity, admin })
-          await seedActivityComments({ activity, admin })
-        }
-      } catch (error) {
-        console.error('Error creating activity:', error)
+        await seedActivityLikes({ activity, admin })
+        await seedActivityComments({ activity, admin })
       }
+    } catch (error) {
+      console.error('Error creating activity:', error)
     }
   }
 }

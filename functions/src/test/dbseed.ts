@@ -18,6 +18,7 @@ import { seedProductLikes } from './seedData/seedProductLikes'
 import { seedShopLikes } from './seedData/seedShopLikes'
 import { seedWishlists } from './seedData/seedWishlists'
 import { seedProductReviews } from './seedData/seedProductReviews'
+import { seedChats } from './seedData/seedChats'
 
 export type AdminType = typeof admin
 export type AuthType = typeof auth
@@ -39,6 +40,7 @@ const seedData = async () => {
   await seedShopLikes({ admin })
   await seedWishlists({ admin })
   await seedProductReviews({ admin })
+  await seedChats({ admin })
 }
 
 seedData().finally(() => {
