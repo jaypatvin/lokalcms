@@ -1,5 +1,5 @@
 import { SortOrderType } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetApplicationLogsParamTypes = {
   action_type?: string
@@ -10,16 +10,14 @@ type GetApplicationLogsParamTypes = {
 }
 
 export const getApplicationLogsByUser = (user_id: string, limit = 10) => {
-  return db
-    .collection('application_logs')
+  return db.applicationLogs
     .where('user_id', '==', user_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
 }
 
 export const getApplicationLogsByCommunity = (community_id: string, limit = 10) => {
-  return db
-    .collection('application_logs')
+  return db.applicationLogs
     .where('community_id', '==', community_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
@@ -32,7 +30,7 @@ export const getApplicationLogs = ({
   limit = 10,
   sortOrder = 'desc',
 }: GetApplicationLogsParamTypes) => {
-  let ref = db.collection('application_logs').where('community_id', '==', community_id)
+  let ref = db.applicationLogs.where('community_id', '==', community_id)
   if (action_type) {
     ref = ref.where('action_type', '==', action_type)
   }

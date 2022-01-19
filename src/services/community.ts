@@ -1,8 +1,9 @@
 import { SortOrderType, CommunitySortByType, CommunityFilterType } from '../utils/types'
-import { db, auth } from './firebase'
+import { db } from '../utils'
+import { db as firestoreDb } from './firebase'
 
 export const fetchCommunityByID = async (id: string) => {
-  return db.collection('community').doc(id).get()
+  return db.community.doc(id).get()
 }
 
 type GetCommunitiesParamTypes = {
@@ -20,8 +21,7 @@ export const getCommunities = ({
   sortOrder = 'asc',
   limit = 50,
 }: GetCommunitiesParamTypes) => {
-  return db
-    .collection('community')
+  return db.community
     .where('keywords', 'array-contains', search.toLowerCase())
     .where('archived', '==', filter === 'archived')
     .orderBy(sortBy, sortOrder)
@@ -29,11 +29,16 @@ export const getCommunities = ({
 }
 
 export const communityHaveMembers = async (id: string) => {
-  let user = await db.collection('users').where('community_id', '==', id).limit(1).get()
+  let user = await db.users.where('community_id', '==', id).limit(1).get()
   return !user.empty
 }
 
 export const getCommunityMeta = async (id: string) => {
-  let meta = await db.collection('_meta').doc('community').collection('_meta').doc(id).get()
+  let meta = await firestoreDb
+    .collection('_meta')
+    .doc('community')
+    .collection('_meta')
+    .doc(id)
+    .get()
   return meta.data() || {}
 }
