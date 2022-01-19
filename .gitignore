@@ -7,13 +7,13 @@
 
 # testing
 /coverage
-/local_data
+local_data
 
 # production
 /build
 
-/src/services/firebase-config.json
-/src/services/firebase-service-key.json
+firebase-config.json
+firebase-service-key.json
 /functions/src/getstream-config.json
 
 # misc

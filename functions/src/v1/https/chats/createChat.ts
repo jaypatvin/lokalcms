@@ -235,6 +235,7 @@ const createChat = async (req: Request, res: Response) => {
   }
   last_message.content = content
   last_message.sender = requestorName
+  last_message.sender_id = requestorDocId
   last_message.created_at = new Date()
 
   const hashId = hashArrayOfStrings(members)

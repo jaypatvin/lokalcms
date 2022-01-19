@@ -35,7 +35,7 @@ Copy the settings to create a file in the repo as `/src/services/firebase-config
 
 For security reasons these values will not be saved in the git repository.
 
-## Local Development Setup:
+## CMS Local Development Setup:
 
 In the project directory, run:
 
@@ -48,6 +48,22 @@ then run:
 This will initially compile/build and automatically load http://localhost:3000 to your browser, if not just open your browser and load http://localhost:3000
 
 This will also watch changes to the development files and will automatically reload compile and reload your browser.
+## Backend Local Development Setup:
+
+In the project directory, run:
+
+### `cd functions`
+
+run:
+### `npm install`
+
+then run:
+
+### `npm run dev`
+
+For seeding the local firestore emulator, you can run:
+### `npm run seed`
+This might take a while (~3-5mins). It will populate your local firestore with dummy data enough for local development.
 
 ## Deploy
 
