@@ -1,5 +1,5 @@
 import { SortOrderType, ShopSortByType, ShopFilterType } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetShopsParamTypes = {
   search?: string
@@ -11,19 +11,15 @@ type GetShopsParamTypes = {
 }
 
 export const fetchShopByID = async (id: string) => {
-  return db.collection('shops').doc(id).get()
+  return db.shops.doc(id).get()
 }
 
 export const getAllShopsByCommunity = (community_id: string) => {
-  return db
-    .collection('shops')
-    .where('community_id', '==', community_id)
-    .where('archived', '==', false)
+  return db.shops.where('community_id', '==', community_id).where('archived', '==', false)
 }
 
 export const getShopsByUser = (user_id: string, limit = 10) => {
-  return db
-    .collection('shops')
+  return db.shops
     .where('user_id', '==', user_id)
     .where('archived', '==', false)
     .orderBy('created_at', 'desc')
@@ -31,8 +27,7 @@ export const getShopsByUser = (user_id: string, limit = 10) => {
 }
 
 export const getShopsByCommunity = (community_id: string, limit = 10) => {
-  return db
-    .collection('shops')
+  return db.shops
     .where('community_id', '==', community_id)
     .where('archived', '==', false)
     .orderBy('created_at', 'desc')
@@ -47,7 +42,7 @@ export const getShops = ({
   limit = 10,
   community,
 }: GetShopsParamTypes) => {
-  let ref = db.collection('shops').where('keywords', 'array-contains', search.toLowerCase())
+  let ref = db.shops.where('keywords', 'array-contains', search.toLowerCase())
 
   if (community) {
     ref = ref.where('community_id', '==', community)

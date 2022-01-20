@@ -1,4 +1,5 @@
-import { db } from './firebase'
+import { db } from '../utils'
+import { db as firestoreDb } from './firebase'
 
 type GetReviewsByUserParamTypes = {
   userId: string
@@ -11,19 +12,9 @@ type GetReviewsByProductParamTypes = {
 }
 
 export const getReviewsByProduct = ({ productId, limit = 10 }: GetReviewsByProductParamTypes) => {
-  return db
-    .collection('products')
-    .doc(productId)
-    .collection('reviews')
-    .limit(limit)
+  return db.getProductReviews(`products/${productId}/reviews`).limit(limit)
 }
 
-export const getReviewsByUser = ({
-  userId,
-  limit = 10,
-}: GetReviewsByUserParamTypes) => {
-  return db
-    .collectionGroup('reviews')
-    .where('user_id', '==', userId)
-    .limit(limit)
+export const getReviewsByUser = ({ userId, limit = 10 }: GetReviewsByUserParamTypes) => {
+  return firestoreDb.collectionGroup('reviews').where('user_id', '==', userId).limit(limit)
 }

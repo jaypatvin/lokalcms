@@ -1,5 +1,5 @@
 import { SortOrderType } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetProductSubscriptionPlansParamTypes = {
   community_id: string
@@ -12,32 +12,28 @@ type GetProductSubscriptionPlansParamTypes = {
 }
 
 export const getProductSubscriptionPlansByBuyer = (user_id: string, limit = 10) => {
-  return db
-    .collection('product_subscription_plans')
+  return db.productSubscriptionPlans
     .where('buyer_id', '==', user_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
 }
 
 export const getProductSubscriptionPlansBySeller = (user_id: string, limit = 10) => {
-  return db
-    .collection('product_subscription_plans')
+  return db.productSubscriptionPlans
     .where('seller_id', '==', user_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
 }
 
 export const getProductSubscriptionPlansByCommunity = (community_id: string, limit = 10) => {
-  return db
-    .collection('product_subscription_plans')
+  return db.productSubscriptionPlans
     .where('community_id', '==', community_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
 }
 
 export const getProductSubscriptionPlansByShop = (shop_id: string, limit = 10) => {
-  return db
-    .collection('product_subscription_plans')
+  return db.productSubscriptionPlans
     .where('shop_id', '==', shop_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
@@ -52,7 +48,7 @@ export const getProductSubscriptionPlans = ({
   limit = 10,
   sortOrder = 'desc',
 }: GetProductSubscriptionPlansParamTypes) => {
-  let ref = db.collection('product_subscription_plans').where('community_id', '==', community_id)
+  let ref = db.productSubscriptionPlans.where('community_id', '==', community_id)
   if (shop_id) {
     ref = ref.where('shop_id', '==', shop_id)
   }

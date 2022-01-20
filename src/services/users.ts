@@ -1,10 +1,8 @@
 import { UserSortByType, UserFilterType, SortOrderType } from '../utils/types'
-import { db } from './firebase'
-
+import { db } from '../utils'
 
 export const getUsersByCommunity = (community_id: string, limit = 10) => {
-  return db
-    .collection('users')
+  return db.users
     .where('community_id', '==', community_id)
     .where('archived', '==', false)
     .orderBy('created_at', 'desc')
@@ -12,13 +10,13 @@ export const getUsersByCommunity = (community_id: string, limit = 10) => {
 }
 
 export const fetchUserByID = async (id: string) => {
-  return db.collection('users').doc(id).get()
+  return db.users.doc(id).get()
 }
 
 export const fetchUserByUID = async (uid = '') => {
   try {
     // valid login
-    const userRef = db.collection('users')
+    const userRef = db.users
     const userId = await userRef
       .where('user_uids', 'array-contains', uid)
       .get()
@@ -28,7 +26,7 @@ export const fetchUserByUID = async (uid = '') => {
       return false
     }
     // fetch user info
-    const userInfoRef = await db.collection('users').doc(userId[0]).get()
+    const userInfoRef = await db.users.doc(userId[0]).get()
     if (!userInfoRef.exists) {
       return false
     }
@@ -57,7 +55,7 @@ export const getUsers = ({
   limit = 50,
   community,
 }: GetUsersParamTypes) => {
-  let ref = db.collection('users').where('keywords', 'array-contains', search.toLowerCase())
+  let ref = db.users.where('keywords', 'array-contains', search.toLowerCase())
 
   if (community) {
     ref = ref.where('community_id', '==', community)

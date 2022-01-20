@@ -1,9 +1,9 @@
-import { db } from './firebase'
+import { db } from '../utils'
 
 export const fetchOrderStatusByID = async (id: string) => {
-  return db.collection('order_status').doc(id).get()
+  return db.orderStatus.doc(id).get()
 }
 
 export const getOrderStatuses = () => {
-  return db.collection('order_status')
+  return db.orderStatus
 }

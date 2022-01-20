@@ -1,4 +1,5 @@
-import { db } from './firebase'
+import { db } from '../utils'
+import { db as firestoreDb } from './firebase'
 
 type GetWishlistsByUserParamTypes = {
   userId: string
@@ -10,20 +11,13 @@ type GetWishlistsByProductParamTypes = {
   limit?: number
 }
 
-export const getWishlistsByProduct = ({ productId, limit = 10 }: GetWishlistsByProductParamTypes) => {
-  return db
-    .collection('products')
-    .doc(productId)
-    .collection('wishlists')
-    .limit(limit)
+export const getWishlistsByProduct = ({
+  productId,
+  limit = 10,
+}: GetWishlistsByProductParamTypes) => {
+  return db.getProductWishlists(`products/${productId}/wishlists`).limit(limit)
 }
 
-export const getWishlistsByUser = ({
-  userId,
-  limit = 10,
-}: GetWishlistsByUserParamTypes) => {
-  return db
-    .collectionGroup('wishlists')
-    .where('user_id', '==', userId)
-    .limit(limit)
+export const getWishlistsByUser = ({ userId, limit = 10 }: GetWishlistsByUserParamTypes) => {
+  return firestoreDb.collectionGroup('wishlists').where('user_id', '==', userId).limit(limit)
 }

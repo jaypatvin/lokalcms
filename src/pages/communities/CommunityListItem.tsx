@@ -139,13 +139,13 @@ const CommunityListItem = ({
           : data.admins.map((admin: any) => <p className="text-gray-900" key={admin.id}>{admin.email}</p>)}
       </td>
       <td>
-        <p className="text-gray-900">{data.meta.users_count || '--'}</p>
+        <p className="text-gray-900">{data._meta.users_count || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900">{data.meta.shops_count || '--'}</p>
+        <p className="text-gray-900">{data._meta.shops_count || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900">{data.meta.products_count || '--'}</p>
+        <p className="text-gray-900">{data._meta.products_count || '--'}</p>
       </td>
       <td title={created_at}>
         <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>

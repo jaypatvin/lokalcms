@@ -1,5 +1,5 @@
 import { SortOrderType } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetProductSubscriptionsParamTypes = {
   product_subscription_plan_id: string
@@ -12,8 +12,7 @@ export const getProductSubscriptions = ({
   limit = 10,
   sortOrder = 'desc',
 }: GetProductSubscriptionsParamTypes) => {
-  return db
-    .collection('product_subscriptions')
+  return db.productSubscriptions
     .where('product_subscription_plan_id', '==', product_subscription_plan_id)
     .orderBy('created_at', sortOrder)
     .limit(limit)

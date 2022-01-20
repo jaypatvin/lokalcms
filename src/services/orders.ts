@@ -1,5 +1,5 @@
 import { SortOrderType } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetOrdersParamTypes = {
   community_id: string
@@ -11,43 +11,30 @@ type GetOrdersParamTypes = {
 }
 
 export const fetchOrderByID = async (id: string) => {
-  return db.collection('orders').doc(id).get()
+  return db.orders.doc(id).get()
 }
 
 export const fetchOrderByProductSubscription = async (id: string) => {
-  return db.collection('orders').where('product_subscription_id', '==', id).get()
+  return db.orders.where('product_subscription_id', '==', id).get()
 }
 
 export const getOrdersByBuyer = (user_id: string, limit = 10) => {
-  return db
-    .collection('orders')
-    .where('buyer_id', '==', user_id)
-    .orderBy('created_at', 'desc')
-    .limit(limit)
+  return db.orders.where('buyer_id', '==', user_id).orderBy('created_at', 'desc').limit(limit)
 }
 
 export const getOrdersBySeller = (user_id: string, limit = 10) => {
-  return db
-    .collection('orders')
-    .where('seller_id', '==', user_id)
-    .orderBy('created_at', 'desc')
-    .limit(limit)
+  return db.orders.where('seller_id', '==', user_id).orderBy('created_at', 'desc').limit(limit)
 }
 
 export const getOrdersByCommunity = (community_id: string, limit = 10) => {
-  return db
-    .collection('orders')
+  return db.orders
     .where('community_id', '==', community_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
 }
 
 export const getOrdersByShop = (shop_id: string, limit = 10) => {
-  return db
-    .collection('orders')
-    .where('shop_id', '==', shop_id)
-    .orderBy('created_at', 'desc')
-    .limit(limit)
+  return db.orders.where('shop_id', '==', shop_id).orderBy('created_at', 'desc').limit(limit)
 }
 
 export const getOrders = ({
@@ -58,7 +45,7 @@ export const getOrders = ({
   limit = 10,
   sortOrder = 'desc',
 }: GetOrdersParamTypes) => {
-  let ref = db.collection('orders').where('community_id', '==', community_id)
+  let ref = db.orders.where('community_id', '==', community_id)
   if (status_code) {
     ref = ref.where('status_code', '==', status_code)
   }

@@ -32,13 +32,3 @@ export const communityHaveMembers = async (id: string) => {
   let user = await db.users.where('community_id', '==', id).limit(1).get()
   return !user.empty
 }
-
-export const getCommunityMeta = async (id: string) => {
-  let meta = await firestoreDb
-    .collection('_meta')
-    .doc('community')
-    .collection('_meta')
-    .doc(id)
-    .get()
-  return meta.data() || {}
-}

@@ -8,7 +8,7 @@ import {
   SortOrderType,
 } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
-import { communityHaveMembers, getCommunities, getCommunityMeta } from '../../services/community'
+import { communityHaveMembers, getCommunities } from '../../services/community'
 import { fetchUserByID } from '../../services/users'
 
 const CommunityListPage = (props: any) => {
@@ -75,7 +75,6 @@ const CommunityListPage = (props: any) => {
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]
       data.haveMembers = await communityHaveMembers(data.id)
-      data.meta = await getCommunityMeta(data.id)
       const admins = []
       if (data.admin && data.admin.length) {
         for (let i = 0; i < data.admin.length; i++) {
