@@ -1,5 +1,5 @@
 const validateImages = (images: any) => {
-  let errorMessages = []
+  let errorMessages: string[] = []
   if (!Array.isArray(images)) {
     errorMessages.push('Images is not an array of type object: {url: string, order: number}')
   }

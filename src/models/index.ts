@@ -1,22 +1,28 @@
-export { default as ActionType } from './ActionType'
-export { default as Activity } from './Activity'
-export { default as ApplicationLog } from './ApplicationLog'
-export { default as BankCode } from './BankCode'
-export { default as Category } from './Category'
-export { default as Chat } from './Chat'
-export { default as Comment } from './Comment'
-export { default as Community } from './Community'
-export { default as Conversation } from './Conversation'
-export { default as Invite } from './Invite'
-export { default as Like } from './Like'
-export { default as Notification } from './Notification'
-export { default as NotificationType } from './NotificationType'
-export { default as Order } from './Order'
-export { default as OrderStatus } from './OrderStatus'
-export { default as Product } from './Product'
-export { default as ProductSubscription } from './ProductSubscription'
-export { default as ProductSubscriptionPlan } from './ProductSubscriptionPlan'
-export { default as Review } from './Review'
-export { default as Shop } from './Shop'
-export { default as User } from './User'
-export { default as Wishlist } from './Wishlist'
+import Activity from './Activity'
+import ApplicationLog from './ApplicationLog'
+import Category from './Category'
+import Chat from './Chat'
+import Community from './Community'
+import Invite from './Invite'
+import Order from './Order'
+import Product from './Product'
+import ProductSubscription from './ProductSubscription'
+import ProductSubscriptionPlan from './ProductSubscriptionPlan'
+import Shop from './Shop'
+import User from './User'
+export * from './types'
+
+export type DocumentType = (
+  | Activity
+  | ApplicationLog
+  | Category
+  | Chat
+  | Community
+  | Invite
+  | Order
+  | Product
+  | ProductSubscription
+  | ProductSubscriptionPlan
+  | Shop
+  | User
+) & { id?: string; archived?: boolean }

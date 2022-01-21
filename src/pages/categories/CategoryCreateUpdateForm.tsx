@@ -10,7 +10,30 @@ import { useAuth } from '../../contexts/AuthContext'
 import { storage } from '../../services/firebase'
 import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 
-const initialData = {}
+type Response = {
+  status?: string
+  data?: unknown
+  message?: string
+  errors?: string[]
+  error_fields?: Field[]
+}
+
+type CategoryFormType = {
+  id?: string
+  status?: 'enabled' | 'disabled'
+  name?: string
+  description?: string
+  icon_url?: string
+  icon_url_file?: File
+  icon_url_preview?: string
+  cover_url?: string
+  cover_url_file?: File
+  cover_url_preview?: string
+}
+
+type Field = 'status' | 'name' | 'description'
+
+const initialData: CategoryFormType = {}
 
 const CategoryCreateUpdateForm = ({
   isOpen = false,
@@ -20,7 +43,7 @@ const CategoryCreateUpdateForm = ({
   isModal = true,
 }: CreateUpdateFormProps) => {
   const history = useHistory()
-  const [data, setData] = useState<any>(dataToUpdate || initialData)
+  const [data, setData] = useState<CategoryFormType>(dataToUpdate || initialData)
   const [responseData, setResponseData] = useState<any>({})
   const { firebaseToken } = useAuth()
 
@@ -38,7 +61,7 @@ const CategoryCreateUpdateForm = ({
     setData(newData)
   }
 
-  const fileChangeHandler = (e: ChangeEvent<HTMLInputElement>, field: string) => {
+  const fileChangeHandler = (e: ChangeEvent<HTMLInputElement>, field: 'icon_url' | 'cover_url') => {
     const newData = { ...data }
     if (!e.target.files) {
       if (newData[field]) {
@@ -52,7 +75,7 @@ const CategoryCreateUpdateForm = ({
     setData(newData)
   }
 
-  const removePhotoHandler = (field: string) => {
+  const removePhotoHandler = (field: 'icon_url' | 'cover_url') => {
     const newData = { ...data }
     if (newData[field]) {
       newData[field] = ''
@@ -89,15 +112,16 @@ const CategoryCreateUpdateForm = ({
         delete data.cover_url_preview
       }
       console.log('data', data)
-      let res: any = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method,
-        body: JSON.stringify({...data, source: 'cms'}),
-      })
-      res = await res.json()
+      const res = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify({ ...data, source: 'cms' }),
+        })
+      ).json()
       setResponseData(res)
       if (res.status !== 'error') {
         setResponseData({})
@@ -130,7 +154,7 @@ const CategoryCreateUpdateForm = ({
           currentValue={data.status}
           size="small"
           onSelect={(option) => changeHandler('status', option.value)}
-          buttonColor={statusColorMap[data.status]}
+          buttonColor={statusColorMap[data.status || 'enabled']}
         />
       </div>
       <div className="grid grid-cols-2 gap-x-2">

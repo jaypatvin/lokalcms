@@ -1,4 +1,3 @@
-import React from 'react'
 import dayjs from 'dayjs'
 
 type Props = {
@@ -7,13 +6,13 @@ type Props = {
 }
 
 const ConversationItem = ({ doc, currentUser }: Props) => {
-  const sent_at = dayjs(doc.created_at.toDate()).format()
-  const sent_at_ago = dayjs(sent_at).fromNow()
-  let reply_to_at
-  let reply_to_at_ago
+  const sentAt = dayjs(doc.created_at.toDate()).format()
+  const sentAtAgo = dayjs(sentAt).fromNow()
+  let replyToAt
+  let replyToAtAgo
   if (doc.reply_to) {
-    reply_to_at = dayjs(doc.reply_to.created_at.toDate()).format()
-    reply_to_at_ago = dayjs(reply_to_at).fromNow()
+    replyToAt = dayjs(doc.reply_to.created_at.toDate()).format()
+    replyToAtAgo = dayjs(replyToAt).fromNow()
   }
   return (
     <div
@@ -42,7 +41,7 @@ const ConversationItem = ({ doc, currentUser }: Props) => {
           ) : (
             ''
           )}
-          <span className="text-xs text-secondary-600 italic">{reply_to_at_ago}</span>
+          <span className="text-xs text-secondary-600 italic">{replyToAtAgo}</span>
         </div>
       ) : (
         ''
@@ -63,7 +62,7 @@ const ConversationItem = ({ doc, currentUser }: Props) => {
       ) : (
         ''
       )}
-      <span className="text-xs text-secondary-600">{sent_at_ago}</span>
+      <span className="text-xs text-secondary-600">{sentAtAgo}</span>
     </div>
   )
 }

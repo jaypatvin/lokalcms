@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { ListItemProps } from '../../utils/types'
@@ -14,18 +14,18 @@ const ActivityListItem = ({
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
-  let created_at = '-'
-  let created_at_ago = '-'
-  if (data.created_at) {
-    created_at = dayjs(data.created_at.toDate()).format()
-    created_at_ago = dayjs(created_at).fromNow()
+  let createdAt = '-'
+  let createdAtAgo = '-'
+  if (data.createdAt) {
+    createdAt = dayjs(data.createdAt.toDate()).format()
+    createdAtAgo = dayjs(createdAt).fromNow()
   }
 
-  let updated_at = '-'
-  let updated_at_ago = '-'
-  if (data.updated_at) {
-    updated_at = dayjs(data.updated_at.toDate()).format()
-    updated_at_ago = dayjs(updated_at).fromNow()
+  let updatedAt = '-'
+  let updatedAtAgo = '-'
+  if (data.updatedAt) {
+    updatedAt = dayjs(data.updatedAt.toDate()).format()
+    updatedAtAgo = dayjs(updatedAt).fromNow()
   }
 
   const OptionsComponent = isArchived ? (
@@ -71,7 +71,9 @@ const ActivityListItem = ({
         <p className="text-gray-900 whitespace-no-wrap">{data.user_email || data.user_id}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data.community_name || data.community_id}</p>
+        <p className="text-gray-900 whitespace-no-wrap">
+          {data.community_name || data.community_id}
+        </p>
       </td>
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.message}</p>
@@ -79,11 +81,11 @@ const ActivityListItem = ({
       <td>
         <p className="text-gray-900 whitespace-no-wrap">{data.status}</p>
       </td>
-      <td title={created_at}>
-        <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>
+      <td title={createdAt}>
+        <p className="text-gray-900 whitespace-no-wrap">{createdAtAgo}</p>
       </td>
-      <td title={updated_at}>
-        <p className="text-gray-900 whitespace-no-wrap">{updated_at_ago}</p>
+      <td title={updatedAt}>
+        <p className="text-gray-900 whitespace-no-wrap">{updatedAtAgo}</p>
       </td>
 
       <td className="action-col">
