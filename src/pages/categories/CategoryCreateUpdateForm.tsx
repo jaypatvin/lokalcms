@@ -7,14 +7,14 @@ import { TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
+import { Category } from '../../models'
 import { storage } from '../../services/firebase'
 import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 
 type Response = {
   status?: string
-  data?: unknown
+  data?: Category
   message?: string
-  errors?: string[]
   error_fields?: Field[]
 }
 
@@ -44,7 +44,7 @@ const CategoryCreateUpdateForm = ({
 }: CreateUpdateFormProps) => {
   const history = useHistory()
   const [data, setData] = useState<CategoryFormType>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<any>({})
+  const [responseData, setResponseData] = useState<Response>({})
   const { firebaseToken } = useAuth()
 
   useEffect(() => {
@@ -55,9 +55,13 @@ const CategoryCreateUpdateForm = ({
     }
   }, [dataToUpdate])
 
-  const changeHandler = (field: string, value: string | number | boolean | null) => {
+  const changeHandler = (field: Field, value: string) => {
     const newData = { ...data }
-    newData[field] = value
+    if (field === 'status' && (value === 'enabled' || value === 'disabled')) {
+      newData.status = value
+    } else if (field === 'name' || field === 'description') {
+      newData[field] = value
+    }
     setData(newData)
   }
 
@@ -70,8 +74,13 @@ const CategoryCreateUpdateForm = ({
       }
       return
     }
-    newData[`${field}_file`] = e.target.files[0]
-    newData[`${field}_preview`] = URL.createObjectURL(e.target.files[0])
+    if (field === 'icon_url') {
+      newData.icon_url_file = e.target.files[0]
+      newData.icon_url_preview = URL.createObjectURL(e.target.files[0])
+    } else if (field === 'cover_url') {
+      newData.cover_url_file = e.target.files[0]
+      newData.cover_url_preview = URL.createObjectURL(e.target.files[0])
+    }
     setData(newData)
   }
 
@@ -80,8 +89,13 @@ const CategoryCreateUpdateForm = ({
     if (newData[field]) {
       newData[field] = ''
     }
-    if (newData[`${field}_file`]) delete newData[`${field}_file`]
-    if (newData[`${field}_preview`]) delete newData[`${field}_preview`]
+    if (field === 'icon_url') {
+      delete newData.icon_url_file
+      delete newData.icon_url_preview
+    } else if (field === 'cover_url') {
+      delete newData.cover_url_file
+      delete newData.cover_url_preview
+    }
     setData(newData)
   }
 
@@ -137,7 +151,7 @@ const CategoryCreateUpdateForm = ({
     }
   }
 
-  const fieldIsError = (field: string) => {
+  const fieldIsError = (field: Field) => {
     const { status, error_fields } = responseData
     if (status === 'error' && error_fields && error_fields.length) {
       return error_fields.includes(field)
@@ -153,7 +167,7 @@ const CategoryCreateUpdateForm = ({
           simpleOptions={['enabled', 'disabled']}
           currentValue={data.status}
           size="small"
-          onSelect={(option) => changeHandler('status', option.value)}
+          onSelect={(option) => changeHandler('status', option.value as string)}
           buttonColor={statusColorMap[data.status || 'enabled']}
         />
       </div>

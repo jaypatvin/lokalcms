@@ -6,11 +6,12 @@ import { TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
+import { Activity } from '../../models'
 import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 
 type Response = {
   status?: string
-  data?: unknown
+  data?: Activity
   message?: string
   errors?: string[]
   error_fields?: Field[]

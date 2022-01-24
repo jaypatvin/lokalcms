@@ -2,6 +2,9 @@ import { useState } from 'react'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { ListItemProps } from '../../utils/types'
+import { Category } from '../../models'
+
+type Props = Omit<ListItemProps, 'data'> & { data: Category }
 
 const CategoryListItem = ({
   data,
@@ -10,21 +13,21 @@ const CategoryListItem = ({
   onUnarchive,
   hideDelete,
   isArchived = false,
-}: ListItemProps) => {
+}: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
   let createdAt = '-'
   let createdAtAgo = '-'
-  if (data.createdAt) {
-    createdAt = dayjs(data.createdAt.toDate()).format()
+  if (data.created_at) {
+    createdAt = dayjs(data.created_at.toDate()).format()
     createdAtAgo = dayjs(createdAt).fromNow()
   }
 
   let updatedAt = '-'
   let updatedAtAgo = '-'
-  if (data.updatedAt) {
-    updatedAt = dayjs(data.updatedAt.toDate()).format()
+  if (data.updated_at) {
+    updatedAt = dayjs(data.updated_at.toDate()).format()
     updatedAtAgo = dayjs(updatedAt).fromNow()
   }
 

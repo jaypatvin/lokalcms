@@ -6,10 +6,29 @@ import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
+import { Invite } from '../../models'
 import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 const humanPassword = require('human-password')
 
-const initialData = {}
+type Response = {
+  status?: string
+  data?: Invite
+  message?: string
+  error_fields?: Field[]
+}
+
+type InviteFormType = {
+  id?: string
+  status?: 'enabled' | 'disabled'
+  claimed?: boolean
+  email?: string
+  user_id?: string
+  code?: string
+}
+
+type Field = 'status' | 'claimed' | 'email' | 'user_id' | 'code'
+
+const initialData: InviteFormType = {}
 
 const InviteCreateUpdateForm = ({
   isOpen = false,
@@ -19,8 +38,8 @@ const InviteCreateUpdateForm = ({
   isModal = true,
 }: CreateUpdateFormProps) => {
   const history = useHistory()
-  const [data, setData] = useState<any>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<any>({})
+  const [data, setData] = useState<InviteFormType>(dataToUpdate || initialData)
+  const [responseData, setResponseData] = useState<Response>({})
   const { currentUserInfo, firebaseToken } = useAuth()
 
   useEffect(() => {
@@ -30,7 +49,7 @@ const InviteCreateUpdateForm = ({
 
       setTimeout(() => {
         setData(newData)
-      }, 100);
+      }, 100)
     }
   }, [])
 
@@ -42,9 +61,18 @@ const InviteCreateUpdateForm = ({
     }
   }, [dataToUpdate])
 
-  const changeHandler = (field: string, value: string | number | boolean | null) => {
+  const changeHandler = (field: string, value: string | boolean) => {
     const newData = { ...data }
-    newData[field] = value
+    if (field === 'status' && (value === 'enabled' || value === 'disabled')) {
+      newData.status = value
+    } else if (
+      (field === 'email' || field === 'email' || field === 'code') &&
+      typeof value === 'string'
+    ) {
+      newData[field] = value
+    } else if (field === 'claimed' && typeof value === 'boolean') {
+      newData[field] = value
+    }
     setData(newData)
   }
 
@@ -56,15 +84,16 @@ const InviteCreateUpdateForm = ({
         url = `${url}/${data.id}`
         method = 'PUT'
       }
-      let res: any = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method,
-        body: JSON.stringify({...data, source: 'cms'}),
-      })
-      res = await res.json()
+      let res = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify({ ...data, source: 'cms' }),
+        })
+      ).json()
       setResponseData(res)
       if (res.status !== 'error') {
         setResponseData({})
@@ -80,7 +109,7 @@ const InviteCreateUpdateForm = ({
     }
   }
 
-  const fieldIsError = (field: string) => {
+  const fieldIsError = (field: Field) => {
     const { status, error_fields } = responseData
     if (status === 'error' && error_fields && error_fields.length) {
       return error_fields.includes(field)
@@ -97,8 +126,8 @@ const InviteCreateUpdateForm = ({
             simpleOptions={['enabled', 'disabled']}
             currentValue={data.status}
             size="small"
-            onSelect={(option) => changeHandler('status', option.value)}
-            buttonColor={statusColorMap[data.status]}
+            onSelect={(option) => changeHandler('status', option.value as string)}
+            buttonColor={statusColorMap[data.status || 'enabled']}
           />
           <Checkbox
             label="Claimed"

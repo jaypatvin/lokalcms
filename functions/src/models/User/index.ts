@@ -31,7 +31,6 @@ type User = {
   display_name: string
   email: string
   first_name: string
-  id?: string
   keywords: string[]
   last_name: string
   notifications?: FirebaseFirestore.CollectionGroup<Notification>

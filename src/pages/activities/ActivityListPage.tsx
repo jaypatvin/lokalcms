@@ -87,7 +87,7 @@ const ActivityListPage = () => {
     }
     return newList
   }
-  const normalizeData = (activity: Activity & { id?: string }) => {
+  const normalizeData = (activity: Activity & { id: string }) => {
     const data = {
       id: activity.id,
       message: activity.message,

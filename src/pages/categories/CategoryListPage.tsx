@@ -61,7 +61,7 @@ const CategoryListPage = () => {
       sortable: true,
     },
   ]
-  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<DocumentType>[]) => {
+  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Category>[]) => {
     return docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   }
   const normalizeData = (data: Category & { id: string }) => {

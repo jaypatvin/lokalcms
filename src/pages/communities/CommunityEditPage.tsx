@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Community } from '../../models'
 import { fetchCommunityByID } from '../../services/community'
 import CommunityCreateUpdateForm from './CommunityCreateUpdateForm'
 
@@ -6,10 +7,24 @@ type Props = {
   [x: string]: any
 }
 
-const CommunityEditPage = ({ match }: Props) => {
-  const [community, setCommunity] = useState<any>()
+type CommunityFormType = {
+  id?: string
+  name?: string
+  cover_photo?: string
+  profile_photo?: string
+  subdivision?: string
+  city?: string
+  barangay?: string
+  state?: string
+  country?: string
+  zip_code?: string
+  admin?: string[]
+}
 
-  const normalizeCommunityData = (data: any) => {
+const CommunityEditPage = ({ match }: Props) => {
+  const [community, setCommunity] = useState<CommunityFormType>()
+
+  const normalizeCommunityData = (data: Community) => {
     return {
       name: data.name,
       admin: data.admin,
@@ -25,10 +40,11 @@ const CommunityEditPage = ({ match }: Props) => {
   }
 
   const fetchCommunity = async (id: string) => {
-    const communityRef: any = await fetchCommunityByID(id)
-    let communityToEdit = communityRef.data()
-    communityToEdit = { ...normalizeCommunityData(communityToEdit), id }
-    setCommunity(communityToEdit)
+    const communityRef = await fetchCommunityByID(id)
+    const communityToEdit = communityRef.data()
+    if (communityToEdit) {
+      setCommunity({ ...normalizeCommunityData(communityToEdit), id })
+    }
   }
 
   useEffect(() => {

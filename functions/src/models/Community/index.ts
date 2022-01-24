@@ -3,6 +3,8 @@ type Community = {
     orders_count?: number
     product_subscription_plans_count?: number
     shops_count?: number
+    users_count?: number
+    products_count?: number
   }
   address: {
     barangay: string
