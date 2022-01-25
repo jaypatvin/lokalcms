@@ -12,6 +12,12 @@ import { communityHaveMembers, getCommunities } from '../../services/community'
 import { fetchUserByID } from '../../services/users'
 import { Community, DocumentType, User } from '../../models'
 
+type CommunityData = Community & {
+  id: string
+  haveMembers?: boolean
+  admins: User[]
+}
+
 const CommunityListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<CommunityFilterType>('all')
@@ -70,11 +76,10 @@ const CommunityListPage = () => {
     },
   ]
   const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Community>[]) => {
-    const newList = docs.map((doc) => ({
-      ...doc.data(),
+    const newList: CommunityData[] = docs.map((doc) => ({
       id: doc.id,
-      haveMembers: false,
-      admins: [] as User[],
+      ...doc.data(),
+      admins: [],
     }))
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]

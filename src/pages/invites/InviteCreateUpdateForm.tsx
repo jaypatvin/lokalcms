@@ -61,12 +61,12 @@ const InviteCreateUpdateForm = ({
     }
   }, [dataToUpdate])
 
-  const changeHandler = (field: string, value: string | boolean) => {
+  const changeHandler = (field: Field, value: string | boolean) => {
     const newData = { ...data }
     if (field === 'status' && (value === 'enabled' || value === 'disabled')) {
       newData.status = value
     } else if (
-      (field === 'email' || field === 'email' || field === 'code') &&
+      (field === 'email' || field === 'user_id' || field === 'code') &&
       typeof value === 'string'
     ) {
       newData[field] = value

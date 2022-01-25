@@ -57,7 +57,7 @@ type User = {
     member: boolean
     editor?: boolean
   }
-  status: 'active' | 'away' | 'disabled' | 'archived'
+  status: 'active' | 'suspended' | 'pending' | 'locked'
   updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'

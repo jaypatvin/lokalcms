@@ -12,6 +12,11 @@ import { fetchUserByID } from '../../services/users'
 import { getInvites } from '../../services/invites'
 import { DocumentType, Invite } from '../../models'
 
+type InviteData = Invite & {
+  id: string
+  inviter_email?: string
+}
+
 const InviteListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<InviteFilterType>('all')
@@ -86,7 +91,7 @@ const InviteListPage = () => {
     },
   ]
   const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Invite>[]) => {
-    const newList = docs.map((doc) => ({ id: doc.id, ...doc.data(), inviter_email: '' }))
+    const newList: InviteData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]
       if (data.inviter) {

@@ -5,17 +5,23 @@ import { getShops } from '../../services/shops'
 import {
   DaysType,
   GenericGetArgType,
+  nthDayOfMonthFormat,
   ShopFilterType,
   ShopSortByType,
   SortOrderType,
 } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { fetchUserByID } from '../../services/users'
+import { DocumentType, Shop } from '../../models'
 
-const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
+type ShopData = Shop & {
+  id: string
+  user_email?: string
+}
+
 const days: DaysType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
-const ShopListPage = (props: any) => {
+const ShopListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<ShopFilterType>('all')
   const [sortBy, setSortBy] = useState<ShopSortByType>('name')
@@ -88,10 +94,8 @@ const ShopListPage = (props: any) => {
       sortable: true,
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
-    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Shop>[]) => {
+    const newList: ShopData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]
       const user = await fetchUserByID(data.user_id)
@@ -103,15 +107,13 @@ const ShopListPage = (props: any) => {
     return newList
   }
 
-  const constructOperatingHours = (data: any) => {
-    if (!data.operating_hours) return null
-    const { repeat_type, repeat_unit, start_time, end_time, start_dates, schedule } =
-      data.operating_hours
-    const unavailable_dates: any = []
-    const custom_dates: any = []
-    const days_open: any = []
+  const constructOperatingHours = (data: Shop['operating_hours']) => {
+    const { repeat_type, repeat_unit, start_time, end_time, start_dates, schedule } = data
+    const unavailable_dates: string[] = []
+    const custom_dates: string[] = []
+    const days_open: DaysType[] = []
     if (schedule && schedule.custom) {
-      Object.entries(schedule.custom).forEach(([key, val]: any) => {
+      Object.entries(schedule.custom).forEach(([key, val]) => {
         if (val.unavailable) {
           unavailable_dates.push(key)
         } else if (val.start_time || val.end_time) {
@@ -120,16 +122,16 @@ const ShopListPage = (props: any) => {
       })
     }
     if (schedule) {
-      Object.keys(schedule).forEach((key: any) => {
-        if (days.includes(key)) {
-          days_open.push(key)
+      Object.keys(schedule).forEach((key) => {
+        if (days.includes(key as DaysType)) {
+          days_open.push(key as DaysType)
         }
       })
     }
-    const operatingHours: any = {
+    const operatingHours = {
       start_time,
       end_time,
-      start_dates: start_dates.map((d: any) => new Date(d)).sort(),
+      start_dates: start_dates.map((d) => new Date(d)).sort(),
       repeat_unit,
       repeat_type: ['day', 'week', 'month'].includes(repeat_type) ? repeat_type : 'month',
       repeat_month_type: nthDayOfMonthFormat.test(repeat_type) ? 'sameDay' : 'sameDate',
@@ -140,7 +142,7 @@ const ShopListPage = (props: any) => {
     return operatingHours
   }
 
-  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+  const normalizeData = (data: Shop & { id: string }) => {
     return {
       id: data.id,
       user_id: data.user_id,
@@ -148,12 +150,12 @@ const ShopListPage = (props: any) => {
       description: data.description,
       is_close: data.is_close,
       status: data.status,
-      operating_hours: constructOperatingHours(data),
+      operating_hours: constructOperatingHours(data.operating_hours),
     }
   }
 
-  const onArchive = async (data: any) => {
-    let res: any
+  const onArchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       const { id } = data
       let url = `${API_URL}/shops/${id}`
@@ -171,8 +173,8 @@ const ShopListPage = (props: any) => {
     return res
   }
 
-  const onUnarchive = async (data: any) => {
-    let res: any
+  const onUnarchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/shops/${data.id}/unarchive`
       res = await fetch(url, {

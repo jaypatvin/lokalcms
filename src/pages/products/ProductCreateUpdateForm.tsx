@@ -2,6 +2,7 @@ import React, { ChangeEvent, useEffect, useState } from 'react'
 import { Link, useHistory } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
 import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
+import { isFinite } from 'lodash'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { TextField, Checkbox } from '../../components/inputs'
@@ -13,8 +14,45 @@ import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 import { fetchShopByID } from '../../services/shops'
 import dayjs from 'dayjs'
 import { isAvailableByDefault } from '../../utils/dates'
+import { Product, Shop } from '../../models'
 
-const initialData = {}
+type Response = {
+  status?: string
+  data?: Product
+  message?: string
+  error_fields?: Field[]
+}
+
+type Gallery = {
+  url?: string
+  order: number
+  file?: File
+  preview?: string
+}[]
+
+type ProductFormType = {
+  id?: string
+  status?: 'enabled' | 'disabled'
+  name?: string
+  description?: string
+  shop_id?: string
+  base_price?: number
+  quantity?: number
+  product_category?: string
+  gallery?: Gallery
+  availability?: Omit<Product['availability'], 'schedule'>
+}
+
+type Field =
+  | 'status'
+  | 'name'
+  | 'description'
+  | 'shop_id'
+  | 'base_price'
+  | 'quantity'
+  | 'product_category'
+
+const initialData: ProductFormType = {}
 const maxNumOfPhotos = 6 // TODO: this should be configurable on the CMS
 
 const ProductCreateUpdateForm = ({
@@ -32,18 +70,20 @@ const ProductCreateUpdateForm = ({
   const [unavailableDates, setUnavailableDates] = useState<string[]>(
     dataToUpdate ? dataToUpdate.unavailable_dates : []
   )
-  const [data, setData] = useState<any>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<any>({})
-  const [shop, setShop] = useState<any>()
+  const [data, setData] = useState<ProductFormType>(dataToUpdate || initialData)
+  const [responseData, setResponseData] = useState<Response>({})
+  const [shop, setShop] = useState<Shop>()
   const { firebaseToken } = useAuth()
 
   const getShopData = async () => {
-    const shop = await fetchShopByID(data.shop_id)
-    if (shop.exists) {
-      const shopData = shop.data()
-      setShop(shopData)
-    } else {
-      console.error(`shop with id ${data.shop_id} does not exist.`)
+    if (data.shop_id) {
+      const shop = await fetchShopByID(data.shop_id)
+      if (shop.exists) {
+        const shopData = shop.data()
+        setShop(shopData)
+      } else {
+        console.error(`shop with id ${data.shop_id} does not exist.`)
+      }
     }
   }
 
@@ -61,13 +101,27 @@ const ProductCreateUpdateForm = ({
     }
   }, [useCustomAvailability])
 
-  const changeHandler = (field: string, value: string | number | boolean | null) => {
+  const changeHandler = (field: Field, value: string) => {
     if (field === 'shop_id') {
       setUseCustomAvailability(false)
       setUnavailableDates([])
     }
     const newData = { ...data }
-    newData[field] = value
+    if (field === 'status' && (value === 'enabled' || value === 'disabled')) {
+      newData.status = value
+    } else if (
+      field === 'name' ||
+      field === 'description' ||
+      field === 'shop_id' ||
+      field === 'product_category'
+    ) {
+      newData[field] = value
+    } else if (field === 'base_price' || field === 'quantity') {
+      const numValue = parseInt(value)
+      if (isFinite(numValue) && numValue > 0) {
+        newData[field] = numValue
+      }
+    }
     setData(newData)
   }
 
@@ -75,13 +129,13 @@ const ProductCreateUpdateForm = ({
     const newData = { ...data }
     if (!e.target.files) {
       if (newData.gallery) {
-        newData.gallery = newData.gallery.filter((photo: any) => photo.order !== order)
+        newData.gallery = newData.gallery.filter((photo) => photo.order !== order)
         setData(newData)
       }
       return
     }
     if (!newData.gallery) newData.gallery = []
-    const photo = newData.gallery.find((file: any) => file.order === order)
+    const photo = newData.gallery.find((file) => file.order === order)
     if (photo) {
       photo.file = e.target.files[0]
       photo.preview = URL.createObjectURL(e.target.files[0])
@@ -98,12 +152,12 @@ const ProductCreateUpdateForm = ({
   const removePhotoHandler = (order: number) => {
     const newData = { ...data }
     if (newData.gallery && newData.gallery.length) {
-      const photo = newData.gallery.find((photo: any) => photo.order === order)
+      const photo = newData.gallery.find((photo) => photo.order === order)
       if (photo) {
         if (photo.hasOwnProperty('url')) {
           photo.url = ''
         } else {
-          newData.gallery = newData.gallery.filter((photo: any) => photo.order !== order)
+          newData.gallery = newData.gallery.filter((photo) => photo.order !== order)
         }
         setData(newData)
       }
@@ -112,11 +166,11 @@ const ProductCreateUpdateForm = ({
 
   const constructAvailability = () => {
     const { repeat_type, repeat_unit, start_time, end_time, start_dates, schedule } =
-      shop.operating_hours
+      shop!.operating_hours
     let unavailable_dates = unavailableDates
-    const custom_dates: any = []
+    const custom_dates: { date: string }[] = []
     if (schedule && schedule.custom) {
-      Object.entries(schedule.custom).forEach(([key, val]: any) => {
+      Object.entries(schedule.custom).forEach(([key, val]) => {
         if (val.unavailable && !dataToUpdate) {
           unavailable_dates.push(key)
         } else if (!unavailable_dates.includes(key) && (val.start_time || val.end_time)) {
@@ -124,16 +178,15 @@ const ProductCreateUpdateForm = ({
         }
       })
     }
-    console.log('unavailable_dates', unavailable_dates)
-    const availability: any = {
+    const availability = {
       start_time,
       end_time,
       start_dates,
       repeat_unit,
       repeat_type,
       unavailable_dates,
+      custom_dates: custom_dates.length ? custom_dates : [],
     }
-    if (custom_dates.length) availability.custom_dates = custom_dates
     return availability
   }
 
@@ -164,15 +217,16 @@ const ProductCreateUpdateForm = ({
         productData.availability = constructAvailability()
       }
       console.log('data', productData)
-      let res: any = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method,
-        body: JSON.stringify({ ...productData, source: 'cms' }),
-      })
-      res = await res.json()
+      let res = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify({ ...productData, source: 'cms' }),
+        })
+      ).json()
       setResponseData(res)
       if (res.status !== 'error') {
         setData(initialData)
@@ -187,7 +241,7 @@ const ProductCreateUpdateForm = ({
     }
   }
 
-  const fieldIsError = (field: string) => {
+  const fieldIsError = (field: Field) => {
     const { status, error_fields } = responseData
     if (status === 'error' && error_fields && error_fields.length) {
       return error_fields.includes(field)
@@ -225,8 +279,8 @@ const ProductCreateUpdateForm = ({
           simpleOptions={['enabled', 'disabled']}
           currentValue={data.status}
           size="small"
-          onSelect={(option) => changeHandler('status', option.value)}
-          buttonColor={statusColorMap[data.status]}
+          onSelect={(option) => changeHandler('status', option.value as string)}
+          buttonColor={statusColorMap[data.status ?? 'enabled']}
         />
       </div>
       <div className="grid grid-cols-2 gap-x-2">
@@ -264,7 +318,7 @@ const ProductCreateUpdateForm = ({
           size="small"
           onChange={(e) => changeHandler('base_price', e.target.value)}
           isError={fieldIsError('base_price')}
-          value={data.base_price}
+          value={data.base_price?.toString()}
         />
         <TextField
           required
@@ -273,7 +327,7 @@ const ProductCreateUpdateForm = ({
           size="small"
           onChange={(e) => changeHandler('quantity', e.target.value)}
           isError={fieldIsError('quantity')}
-          value={data.quantity}
+          value={data.quantity?.toString()}
         />
         <TextField
           required
@@ -292,7 +346,7 @@ const ProductCreateUpdateForm = ({
             let havePhoto = false
             let currentPhoto
             if (data.gallery && data.gallery.length) {
-              currentPhoto = data.gallery.find((file: any) => file.order === i)
+              currentPhoto = data.gallery.find((file) => file.order === i)
               if (currentPhoto && (currentPhoto.url || currentPhoto.preview)) havePhoto = true
             }
             return (
@@ -322,11 +376,11 @@ const ProductCreateUpdateForm = ({
                   <img
                     className="w-full h-full absolute top-0 left-0 z-10"
                     src={
-                      currentPhoto.preview ||
-                      currentPhoto.url ||
+                      currentPhoto?.preview ||
+                      currentPhoto?.url ||
                       'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
                     }
-                    alt={currentPhoto.order}
+                    alt={`#${currentPhoto?.order}`}
                   />
                 )}
                 <span className=" bg-black bg-opacity-10 text-white h-full w-full flex items-center justify-center absolute top-0 left-0 text-4xl z-0">
@@ -363,7 +417,7 @@ const ProductCreateUpdateForm = ({
             <ReactCalendar
               className="w-72"
               onChange={(date: any) => onCustomizeDates(date)}
-              tileDisabled={({ date }: any) => !isAvailableByDefault(date, shop)}
+              tileDisabled={({ date }) => !isAvailableByDefault(date, shop)}
               tileClassName={getTileClass}
               calendarType="US"
               value={null}

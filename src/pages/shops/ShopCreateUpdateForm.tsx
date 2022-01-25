@@ -8,13 +8,39 @@ import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
-import { CreateUpdateFormProps, DayKeyVal, DaysType, statusColorMap } from '../../utils/types'
+import {
+  CreateUpdateFormProps,
+  DayKeyVal,
+  DaysType,
+  RepeatType,
+  statusColorMap,
+} from '../../utils/types'
 import dayjs from 'dayjs'
 import advancedFormat from 'dayjs/plugin/advancedFormat'
+import { Shop } from '../../models'
 
 dayjs.extend(advancedFormat)
 
-const initialData = {}
+type Response = {
+  status?: string
+  data?: Shop
+  message?: string
+  error_fields?: Field[]
+}
+
+type ShopFormType = {
+  id?: string
+  status?: 'enabled' | 'disabled'
+  is_close?: boolean
+  name?: string
+  description?: string
+  user_id?: string
+  operating_hours?: Omit<Shop['operating_hours'], 'schedule'>
+}
+
+type Field = 'status' | 'is_close' | 'name' | 'description' | 'user_id'
+
+const initialData: ShopFormType = {}
 const days: DaysType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 const defaultStartDate = new Date()
@@ -39,11 +65,10 @@ const ShopCreateUpdateForm = ({
     end_time,
   }: any = dataToUpdate && dataToUpdate.operating_hours ? dataToUpdate.operating_hours : {}
   const history = useHistory()
-  const [openSchedule, setOpenSchedule] = useState(false)
   const [showStartCalendar, setShowStartCalendar] = useState(false)
   const [showCustomizeCalendar, setShowCustomizeCalendar] = useState(false)
   const [repeatUnit, setRepeatUnit] = useState(repeat_unit || 1)
-  const [repeatType, setRepeatType] = useState<'day' | 'week' | 'month'>(repeat_type || 'day')
+  const [repeatType, setRepeatType] = useState<RepeatType>(repeat_type || 'day')
   const [repeatMonthType, setRepeatMonthType] = useState<'sameDate' | 'sameDay'>(
     repeat_month_type || 'sameDate'
   )
@@ -55,8 +80,8 @@ const ShopCreateUpdateForm = ({
   const [unavailableDates, setUnavailableDates] = useState<string[]>(unavailable_dates || [])
   const [startTime, setStartTime] = useState(start_time || '09:00 AM')
   const [endTime, setEndTime] = useState(end_time || '05:00 PM')
-  const [data, setData] = useState<any>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<any>({})
+  const [data, setData] = useState<ShopFormType>(dataToUpdate || initialData)
+  const [responseData, setResponseData] = useState<Response>({})
   const { firebaseToken } = useAuth()
   const startCalendarRef = useOuterClick(() => setShowStartCalendar(false))
   const customizeCalendarRef = useOuterClick(() => setShowCustomizeCalendar(false))
@@ -69,19 +94,29 @@ const ShopCreateUpdateForm = ({
     }
   }, [dataToUpdate])
 
-  const changeHandler = (field: string, value: string | number | boolean | null) => {
+  const changeHandler = (field: Field, value: string | boolean) => {
     const newData = { ...data }
-    newData[field] = value
+    if (field === 'status' && (value === 'enabled' || value === 'disabled')) {
+      newData.status = value
+    } else if (
+      (field === 'name' || field === 'user_id' || field === 'description') &&
+      typeof value === 'string'
+    ) {
+      newData[field] = value
+    } else if (field === 'is_close' && typeof value === 'boolean') {
+      newData.is_close = value
+    }
     setData(newData)
   }
 
   const constructOperatingHours = () => {
-    let repeat_type: any = repeatType
+    let repeat_type = repeatType
     if (repeatMonthType === 'sameDay') {
       const firstDate = startDates[0]
       const firstDateDay = DayKeyVal[firstDate.getDay()]
       const firstDateNumToCheck = dayjs(firstDate).date()
       const firstDateNthWeek = Math.ceil(firstDateNumToCheck / 7)
+      // @ts-ignore
       repeat_type = `${firstDateNthWeek}-${firstDateDay}`
     }
     return {
@@ -103,19 +138,20 @@ const ShopCreateUpdateForm = ({
         url = `${url}/${data.id}`
         method = 'PUT'
       }
-      let res: any = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method,
-        body: JSON.stringify({
-          ...data,
-          operating_hours: constructOperatingHours(),
-          source: 'cms',
-        }),
-      })
-      res = await res.json()
+      let res = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify({
+            ...data,
+            operating_hours: constructOperatingHours(),
+            source: 'cms',
+          }),
+        })
+      ).json()
       setResponseData(res)
       if (res.status !== 'error') {
         setData(initialData)
@@ -130,7 +166,7 @@ const ShopCreateUpdateForm = ({
     }
   }
 
-  const fieldIsError = (field: string) => {
+  const fieldIsError = (field: Field) => {
     const { status, error_fields } = responseData
     if (status === 'error' && error_fields && error_fields.length) {
       return error_fields.includes(field)
@@ -148,7 +184,7 @@ const ShopCreateUpdateForm = ({
     setUnavailableDates([])
   }
 
-  const tileDisabled = ({ date }: any) => {
+  const tileDisabled = ({ date }: CalendarTileProperties) => {
     if (repeatType === 'week') {
       return !daysOpen.includes(DayKeyVal[date.getDay()])
     }
@@ -181,10 +217,14 @@ const ShopCreateUpdateForm = ({
           tileClass = 'orange'
         }
       } else if (repeatType === 'week' && daysOpen.includes(day)) {
-        let dayOpenDate: any = startDates.find((d) => DayKeyVal[d.getDay()] === day)
-        if (dayOpenDate) dayOpenDate = dayjs(dayOpenDate).format('YYYY-MM-DD')
-        const isValid = dayOpenDate && dayjs(date).diff(dayOpenDate, 'weeks') % repeatUnit === 0
-        if (isValid && (dayjs(dayOpenDate).isBefore(date) || dayjs(dayOpenDate).isSame(date))) {
+        const dayOpenDate = startDates.find((d) => DayKeyVal[d.getDay()] === day)
+        const dayOpenDateFormatted = dayjs(dayOpenDate).format('YYYY-MM-DD')
+        const isValid =
+          dayOpenDate && dayjs(date).diff(dayOpenDateFormatted, 'weeks') % repeatUnit === 0
+        if (
+          isValid &&
+          (dayjs(dayOpenDateFormatted).isBefore(date) || dayjs(dayOpenDateFormatted).isSame(date))
+        ) {
           tileClass = 'orange'
         }
       } else if (repeatType === 'month') {
@@ -221,10 +261,14 @@ const ShopCreateUpdateForm = ({
         return true
       }
     } else if (repeatType === 'week' && daysOpen.includes(day)) {
-      let dayOpenDate: any = startDates.find((d) => DayKeyVal[d.getDay()] === day)
-      if (dayOpenDate) dayOpenDate = dayjs(dayOpenDate).format('YYYY-MM-DD')
-      const isValid = dayOpenDate && dayjs(date).diff(dayOpenDate, 'weeks') % repeatUnit === 0
-      if (isValid && (dayjs(dayOpenDate).isBefore(date) || dayjs(dayOpenDate).isSame(date))) {
+      const dayOpenDate = startDates.find((d) => DayKeyVal[d.getDay()] === day)
+      const dayOpenDateFormatted = dayjs(dayOpenDate).format('YYYY-MM-DD')
+      const isValid =
+        dayOpenDate && dayjs(date).diff(dayOpenDateFormatted, 'weeks') % repeatUnit === 0
+      if (
+        isValid &&
+        (dayjs(dayOpenDateFormatted).isBefore(date) || dayjs(dayOpenDateFormatted).isSame(date))
+      ) {
         return true
       }
     } else if (repeatType === 'month') {
@@ -295,8 +339,8 @@ const ShopCreateUpdateForm = ({
           simpleOptions={['enabled', 'disabled']}
           currentValue={data.status}
           size="small"
-          onSelect={(option) => changeHandler('status', option.value)}
-          buttonColor={statusColorMap[data.status]}
+          onSelect={(option) => changeHandler('status', option.value as string)}
+          buttonColor={statusColorMap[data.status || 'enabled']}
         />
         <Checkbox
           label="Is Close"
@@ -367,8 +411,8 @@ const ShopCreateUpdateForm = ({
           <Dropdown
             className="ml-2 z-10"
             simpleOptions={['day', 'week', 'month']}
-            onSelect={(option: any) => {
-              setRepeatType(option.value)
+            onSelect={(option) => {
+              setRepeatType(option.value as RepeatType)
               resetDates()
             }}
             currentValue={repeatType}

@@ -13,6 +13,8 @@ import {
 import { useAuth } from '../../contexts/AuthContext'
 import { Activity, DocumentType } from '../../models'
 
+type ActivityData = Activity & { id: string; user_email?: string; community_name?: string }
+
 const ActivityListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<ActivityFilterType>('all')
@@ -69,9 +71,7 @@ const ActivityListPage = () => {
     },
   ]
   const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Activity>[]) => {
-    const newList: (Activity & { user_email?: string; community_name?: string })[] = docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() })
-    )
+    const newList: ActivityData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const activity = newList[i]
       const user = await fetchUserByID(activity.user_id)
