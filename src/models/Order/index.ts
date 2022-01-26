@@ -39,6 +39,7 @@ type Order = {
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   decline_reason?: string
+  cancellation_reason?: string
   product_subscription_id?: string
   product_subscription_date?: string
 }

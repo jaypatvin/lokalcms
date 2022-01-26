@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { InviteData } from './CommunityPage'
 
 type Props = {
-  data: any
+  data: InviteData[]
 }
 
 const CommunityInvitesTable = ({ data }: Props) => {
@@ -58,7 +59,7 @@ const CommunityInvitesTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               const expire_by = dayjs(d.expire_by).fromNow()
               return (
@@ -74,7 +75,9 @@ const CommunityInvitesTable = ({ data }: Props) => {
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.status}</p>
-                    <p className="text-gray-900 whitespace-no-wrap">{d.claimed ? 'Claimed' : 'Not claimed'}</p>
+                    <p className="text-gray-900 whitespace-no-wrap">
+                      {d.claimed ? 'Claimed' : 'Not claimed'}
+                    </p>
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{created_at}</p>

@@ -33,6 +33,10 @@ const dataPoint = <T>(collectionPath: string) => {
   return firestore().collection(collectionPath).withConverter(converter<T>())
 }
 
+const groupDataPoint = <T>(subCollectionPath: string) => {
+  return firestore().collectionGroup(subCollectionPath).withConverter(converter<T>())
+}
+
 const db = {
   actionTypes: dataPoint<ActionType>('action_types'),
   activities: dataPoint<Activity>('activities'),
@@ -56,6 +60,9 @@ const db = {
   productSubscriptionPlans: dataPoint<ProductSubscriptionPlan>('product_subscription_plans'),
   shops: dataPoint<Shop>('shops'),
   users: dataPoint<User>('users'),
+  likes: groupDataPoint<Like>('likes'),
+  reviews: groupDataPoint<Review>('reviews'),
+  wishlists: groupDataPoint<Wishlist>('wishlists'),
 }
 
 export { db }

@@ -1,10 +1,11 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { Order } from '../../models'
 import { formatToPeso } from '../../utils/helper'
 
 type Props = {
-  data: any
+  data: (Order & { id: string; buyer_email?: string; seller_email?: string })[]
 }
 
 const ShopOrdersTable = ({ data }: Props) => {
@@ -52,7 +53,7 @@ const ShopOrdersTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               let totalPrice = 0
               let totalItems = 0

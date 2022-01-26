@@ -1,5 +1,4 @@
 import { db } from '../utils'
-import { db as firestoreDb } from './firebase'
 
 type GetLikesByUserParamTypes = {
   userId: string
@@ -21,8 +20,7 @@ export const getLikesByUser = ({
   entityName = 'products',
   limit = 10,
 }: GetLikesByUserParamTypes) => {
-  return firestoreDb
-    .collectionGroup('likes')
+  return db.likes
     .where('user_id', '==', userId)
     .where('parent_collection_name', '==', entityName)
     .orderBy('created_at', 'desc')

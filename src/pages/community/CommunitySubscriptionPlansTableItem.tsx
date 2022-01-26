@@ -3,12 +3,18 @@ import React, { useState } from 'react'
 import ReactCalendar from 'react-calendar'
 import { OutlineButton } from '../../components/buttons'
 import useOuterClick from '../../customHooks/useOuterClick'
+import { ProductSubscriptionPlan } from '../../models'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
 import { formatToPeso } from '../../utils/helper'
 
 type Props = {
-  data: any
+  data: ProductSubscriptionPlan & {
+    id: string
+    buyer_email: string
+    seller_email: string
+    shop_name: string
+  }
 }
 
 const CommunitySubscriptionPlanTableItem = ({ data }: Props) => {

@@ -2,9 +2,10 @@ import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
 import { formatToPeso } from '../../utils/helper'
+import { OrderData } from './ProfilePage'
 
 type Props = {
-  data: any
+  data: OrderData[]
   userType: 'seller' | 'buyer'
 }
 
@@ -54,7 +55,7 @@ const UserOrdersTable = ({ data, userType }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               let totalPrice = 0
               let totalItems = 0
@@ -99,7 +100,7 @@ const UserOrdersTable = ({ data, userType }: Props) => {
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">
-                      {d[`${otherUserType}_email`]}
+                      {otherUserType === 'buyer' ? d.buyer_email : d.seller_email}
                     </p>
                     {otherUserType === 'buyer' && (
                       <p className="text-gray-900 whitespace-no-wrap">Shop: {d.shop_name}</p>

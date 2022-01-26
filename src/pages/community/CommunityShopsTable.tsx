@@ -1,9 +1,10 @@
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { ShopData } from './CommunityPage'
 import CommunityShopsTableItem from './CommunityShopsTableItem'
 
 type Props = {
-  data: any
+  data: ShopData[]
 }
 
 const CommunityShopsTable = ({ data }: Props) => {
@@ -65,7 +66,7 @@ const CommunityShopsTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => (
+            {data.map((d) => (
               <CommunityShopsTableItem data={d} key={d.id} />
             ))}
           </tbody>

@@ -156,7 +156,7 @@ const HistoryListPage = (props: any) => {
       onChangeSortBy={setSortBy}
       sortOrder={sortOrder}
       onChangeSortOrder={setSortOrder}
-      getData={getData}
+      getData={getData as any}
       setupDataList={setupDataList}
     />
   )

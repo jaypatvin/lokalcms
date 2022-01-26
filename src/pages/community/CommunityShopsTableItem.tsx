@@ -5,9 +5,10 @@ import { OutlineButton } from '../../components/buttons'
 import useOuterClick from '../../customHooks/useOuterClick'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
+import { ShopData } from './CommunityPage'
 
 type Props = {
-  data: any
+  data: ShopData
 }
 
 const CommunityShopsTableItem = ({ data }: Props) => {

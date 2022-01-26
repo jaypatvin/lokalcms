@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { ActivityData } from './ProfilePage'
 
 type Props = {
-  data: any
+  data: ActivityData[]
 }
 
 const UserActivitiesTable = ({ data }: Props) => {
@@ -44,9 +45,9 @@ const UserActivitiesTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
-              const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow(): '-'
+              const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow() : '-'
               return (
                 <tr key={d.id}>
                   <td>

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
 import ReactCalendar from 'react-calendar'
 import dayjs from 'dayjs'
-import { isEmpty } from 'lodash'
 import { fetchUserByID } from '../../services/users'
 import MenuList from '../../components/MenuList'
 import { LimitType, MenuItemType } from '../../utils/types'
@@ -21,24 +20,37 @@ import ShopSubscriptionPlansTable from './ShopSubscriptionPlansTable'
 import useOuterClick from '../../customHooks/useOuterClick'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
+import { Like, Order, Product, ProductSubscriptionPlan, Shop } from '../../models'
 
 type Props = {
   [x: string]: any
 }
 
+type ShopData = Shop & {
+  id: string
+  community_name?: string
+  user_email?: string
+}
+type OrderData = Order & { id: string; buyer_email?: string; seller_email?: string }
+type LikeData = Like & { id: string; user_email?: string }
+type DataRefType = FirebaseFirestore.Query<Product | Order | Like | ProductSubscriptionPlan>
+type DataDocType = FirebaseFirestore.QueryDocumentSnapshot<
+  Product | Order | Like | ProductSubscriptionPlan
+>
+
 type DataType = 'likes' | 'orders' | 'products' | 'product_subscription_plans'
 
 const ShopPage = ({ match }: Props) => {
-  const [shop, setShop] = useState<any>({})
+  const [shop, setShop] = useState<ShopData>()
   const [dataToShow, setDataToShow] = useState<DataType>('products')
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
 
-  const [dataRef, setDataRef] = useState<any>()
-  const [firstDataOnList, setFirstDataOnList] = useState<any>()
-  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [dataRef, setDataRef] = useState<DataRefType>()
+  const [firstDataOnList, setFirstDataOnList] = useState<DataDocType>()
+  const [lastDataOnList, setLastDataOnList] = useState<DataDocType>()
   const [isLastPage, setIsLastPage] = useState(false)
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
 
@@ -68,25 +80,11 @@ const ShopPage = ({ match }: Props) => {
     },
   ]
 
-  const normalizeData = (data: any) => {
-    const createdAt = dayjs(data.created_at.toDate()).format()
-    const createdAtAgo = dayjs(createdAt).fromNow()
-    return {
-      id: data.id,
-      userEmail: data.user_email,
-      status: data.status,
-      operatingHours: data.operating_hours,
-      coverPhoto: data.cover_photo,
-      profilePhoto: data.profile_photo,
-      name: data.name,
-      createdAtAgo,
-    }
-  }
-
   const fetchShop = async (id: string) => {
     const shopRef = await fetchShopByID(id)
-    let shopData = shopRef.data()
-    if (shopData) {
+    const shopRefData = shopRef.data()
+    if (shopRefData) {
+      const shopData = { ...shopRefData, id: shopRef.id, community_name: '', user_email: '' }
       const community = await fetchCommunityByID(shopData.community_id)
       const communityData = community.data()
       if (communityData) {
@@ -97,15 +95,14 @@ const ShopPage = ({ match }: Props) => {
       if (userData) {
         shopData.user_email = userData.email
       }
-      shopData = { ...normalizeData(shopData), id }
       setShop(shopData)
     }
   }
 
   const fetchData = async (dataName: DataType) => {
     setLoading(true)
-    const shopId = shop.id || match.params.id
-    let newDataRef: any
+    const shopId = shop?.id || match.params.id
+    let newDataRef: DataRefType | undefined
     if (dataName === 'products') {
       newDataRef = getLimitedProductsByShop(shopId, limit)
     } else if (dataName === 'orders') {
@@ -116,13 +113,15 @@ const ShopPage = ({ match }: Props) => {
       newDataRef = getLikesByShop({ shopId, limit })
     }
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = newDataRef.onSnapshot(async (snapshot: any) => {
-      setupDataList(snapshot.docs)
-    })
-    setSnapshot({ unsubscribe: newUnsubscribe })
-    setDataRef(newDataRef)
-    setPageNum(1)
-    setIsLastPage(false)
+    if (newDataRef) {
+      const newUnsubscribe = newDataRef.onSnapshot(async (snapshot) => {
+        setupDataList(snapshot.docs)
+      })
+      setSnapshot({ unsubscribe: newUnsubscribe })
+      setDataRef(newDataRef)
+      setPageNum(1)
+      setIsLastPage(false)
+    }
   }
 
   const setupData = async () => {
@@ -141,16 +140,16 @@ const ShopPage = ({ match }: Props) => {
   }, [match.params])
 
   useEffect(() => {
-    if (shop.id) {
+    if (shop?.id) {
       fetchData(dataToShow)
     }
   }, [dataToShow, limit])
 
-  const setupDataList = async (docs: any) => {
-    let newData = docs.map((doc: any) => ({ ...doc.data(), id: doc.id }))
+  const setupDataList = async (docs: DataDocType[]) => {
+    let newData = docs.map((doc) => ({ ...doc.data(), id: doc.id }))
     if (dataToShow === 'orders' || dataToShow === 'product_subscription_plans') {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as OrderData
         const buyer = await fetchUserByID(data.buyer_id)
         const buyerData = buyer.data()
         if (buyerData) {
@@ -159,7 +158,7 @@ const ShopPage = ({ match }: Props) => {
       }
     } else if (dataToShow === 'likes') {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as LikeData
         const user = await fetchUserByID(data.user_id)
         const userData = user.data()
         if (userData) {
@@ -176,7 +175,7 @@ const ShopPage = ({ match }: Props) => {
   const onNextPage = () => {
     if (dataRef && lastDataOnList && !isLastPage) {
       const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         if (snapshot.docs.length) {
           setupDataList(snapshot.docs)
           setPageNum(pageNum + 1)
@@ -191,7 +190,7 @@ const ShopPage = ({ match }: Props) => {
     const newPageNum = pageNum - 1
     if (dataRef && firstDataOnList && newPageNum > 0) {
       const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         setupDataList(snapshot.docs)
       })
     }
@@ -199,16 +198,16 @@ const ShopPage = ({ match }: Props) => {
     setPageNum(Math.max(1, newPageNum))
   }
 
-  if (isEmpty(shop)) return null
+  if (!shop) return null
 
   return (
     <div className="">
       <h2 className="text-2xl font-semibold leading-tight">{shop.name}</h2>
       <div className="flex">
         <div className="p-2 w-80">
-          <img src={shop.profilePhoto} alt={shop.name} className="max-w-32 max-h-32" />
-          <p>Created {shop.createdAtAgo}</p>
-          <p>Owner: {shop.userEmail}</p>
+          <img src={shop.profile_photo} alt={shop.name} className="max-w-32 max-h-32" />
+          <p>Created {dayjs(shop.created_at.toDate()).fromNow()}</p>
+          <p>Owner: {shop.user_email}</p>
           <div ref={calendarRef} className="relative my-2">
             <p>Operating Hours:</p>
             <p className="text-gray-900 whitespace-no-wrap flex">
@@ -218,12 +217,12 @@ const ShopPage = ({ match }: Props) => {
                 icon="calendar"
                 onClick={() => setShowCalendar(!showCalendar)}
               />
-              {getAvailabilitySummary(shop.operatingHours)}
+              {getAvailabilitySummary(shop.operating_hours)}
             </p>
             {showCalendar && (
               <div className="w-64 absolute z-10 shadow">
                 <ReactCalendar
-                  tileClassName={getCalendarTileClassFn(shop.operatingHours)}
+                  tileClassName={getCalendarTileClassFn(shop.operating_hours)}
                   onChange={() => null}
                   calendarType="US"
                 />
@@ -246,7 +245,7 @@ const ShopPage = ({ match }: Props) => {
                 className="ml-1 z-10"
                 simpleOptions={[10, 25, 50, 100]}
                 size="small"
-                onSelect={(option: any) => setLimit(option.value)}
+                onSelect={(option) => setLimit(option.value as LimitType)}
                 currentValue={limit}
               />
             </div>

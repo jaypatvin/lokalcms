@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { ShopLikeData } from './ProfilePage'
 
 type Props = {
-  data: any
+  data: ShopLikeData[]
 }
 
 const UserShopLikesTable = ({ data }: Props) => {
@@ -51,7 +52,7 @@ const UserShopLikesTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const liked_at = d.liked_at ? dayjs(d.liked_at.toDate()).fromNow() : '-'
               return (
                 <tr key={d.id}>
