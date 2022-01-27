@@ -14,25 +14,49 @@ import dayjs from 'dayjs'
 import CreateSubscriptionPlanModal from './CreateSubscriptionPlanModal'
 import { ShopDateModal, TextModal } from '../../components/modals'
 import { useCommunity } from '../../components/BasePage'
+import { Community, Product, Shop, User } from '../../models'
 
-const OrderCreatePage = ({}) => {
+type UserData = User & { id: string }
+type CommunityData = Community & { id: string }
+type ProductData = Product & { id: string }
+type ShopData = Shop & { id: string; shop_id?: string; products?: ProductData[] }
+type CartProduct = {
+  id: string
+  name: string
+  price: number
+  image?: string
+  quantity: number
+  instruction?: string
+}
+type Cart = {
+  shop_id: string
+  name: string
+  operating_hours: Shop['operating_hours']
+  products: CartProduct[]
+  delivery_option: 'delivery' | 'pickup'
+  totalPrice?: number
+  delivery_date?: Date
+  instruction?: string
+}
+
+const OrderCreatePage = () => {
   const community = useCommunity()
 
-  const [user, setUser] = useState<any>()
+  const [user, setUser] = useState<UserData>()
   const [showUserSearchResult, setShowUserSearchResult] = useState(false)
   const userSearchResultRef = useOuterClick(() => setShowUserSearchResult(false))
   const [userSearchText, setUserSearchText] = useState('')
-  const [userSearchResult, setUserSearchResult] = useState<any>([])
+  const [userSearchResult, setUserSearchResult] = useState<UserData[]>([])
 
-  const [shops, setShops] = useState<any[]>([])
+  const [shops, setShops] = useState<ShopData[]>([])
   const [loading, setLoading] = useState(false)
-  const [cart, setCart] = useState<any[]>([])
+  const [cart, setCart] = useState<Cart[]>([])
 
   const [showCalendar, setShowCalendar] = useState(false)
   const [showInstructionModal, setShowInstructionModal] = useState(false)
-  const [currentShopCart, setCurrentShopCart] = useState<any>()
-  const [currentProduct, setCurrentProduct] = useState<any>()
-  const [currentShop, setCurrentShop] = useState<any>()
+  const [currentShopCart, setCurrentShopCart] = useState<Cart>()
+  const [currentProduct, setCurrentProduct] = useState<ProductData>()
+  const [currentShop, setCurrentShop] = useState<ShopData>()
 
   const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 
@@ -59,30 +83,27 @@ const OrderCreatePage = ({}) => {
     }
   }
 
-  const userSelectHandler = (user: any) => {
+  const userSelectHandler = (user: UserData) => {
     setShowUserSearchResult(false)
     setUserSearchResult([])
     setUser(user)
     setUserSearchText(user.email)
   }
 
-  const setupDataList = async (docs: any) => {
-    const newShops = docs.map((doc: any): any => ({
+  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Shop>[]) => {
+    const newShops: ShopData[] = docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-      products: [],
     }))
     for (let shop of newShops) {
-      let products: any = getProductsByShop(shop.id)
-      products = await products.get()
-      products = products.docs.map((doc: any): any => ({ id: doc.id, ...doc.data() }))
-      shop.products = products
+      let productsRef = await getProductsByShop(shop.id).get()
+      shop.products = productsRef.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     }
     setShops(newShops)
     setLoading(false)
   }
 
-  const getCommunityShops = async (community: any) => {
+  const getCommunityShops = async (community: CommunityData) => {
     if (!community) return
     setLoading(true)
     const shops = getAllShopsByCommunity(community.id)
@@ -90,7 +111,7 @@ const OrderCreatePage = ({}) => {
     setupDataList(shopsData.docs)
   }
 
-  const addToCart = (shop: any, product: any) => {
+  const addToCart = (shop: ShopData, product: ProductData) => {
     const newCart = [...cart]
     let shopCart = newCart.find((c) => c.shop_id === (shop.shop_id || shop.id))
     if (!shopCart) {
@@ -103,19 +124,19 @@ const OrderCreatePage = ({}) => {
       }
       newCart.push(shopCart)
     }
-    let cartProduct = shopCart.products.find((p: any) => p.id === product.id)
+    let cartProduct = shopCart.products.find((p) => p.id === product.id)
     if (!cartProduct) {
       cartProduct = {
         id: product.id,
         name: product.name,
         price: product.base_price,
-        image: product.gallery ? product.gallery[0].url : null,
+        image: product.gallery?.[0].url,
         quantity: 0,
       }
       shopCart.products.push(cartProduct)
     }
     cartProduct.quantity += 1
-    const newShopCartPrice = shopCart.products.reduce((totalPrice: number, p: any) => {
+    const newShopCartPrice = shopCart.products.reduce((totalPrice, p) => {
       const subtotalPrice = p.quantity * p.price
       totalPrice += subtotalPrice
       return totalPrice
@@ -124,20 +145,20 @@ const OrderCreatePage = ({}) => {
     setCart(newCart)
   }
 
-  const removeFromCart = (shop: any, product: any) => {
+  const removeFromCart = (shop: Cart, product: CartProduct) => {
     let newCart = [...cart]
     let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
     if (!shopCart) return
-    let cartProduct = shopCart.products.find((p: any) => p.id === product.id)
+    let cartProduct = shopCart.products.find((p) => p.id === product.id)
     if (!cartProduct) return
     cartProduct.quantity -= 1
     if (cartProduct.quantity <= 0) {
-      shopCart.products = shopCart.products.filter((p: any) => p.id !== product.id)
+      shopCart.products = shopCart.products.filter((p) => p.id !== product.id)
     }
     if (!shopCart.products.length) {
       newCart = newCart.filter((c) => c.shop_id !== shop.shop_id)
     } else {
-      const newShopCartPrice = shopCart.products.reduce((totalPrice: number, p: any) => {
+      const newShopCartPrice = shopCart.products.reduce((totalPrice, p) => {
         const subtotalPrice = p.quantity * p.price
         totalPrice += subtotalPrice
         return totalPrice
@@ -147,17 +168,17 @@ const OrderCreatePage = ({}) => {
     setCart(newCart)
   }
 
-  const removeAllProductFromCart = (shop: any, product: any) => {
+  const removeAllProductFromCart = (shop: ShopData, product: ProductData) => {
     let newCart = [...cart]
     let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
     if (!shopCart) return
-    let cartProduct = shopCart.products.find((p: any) => p.id === product.id)
+    let cartProduct = shopCart.products.find((p) => p.id === product.id)
     if (!cartProduct) return
-    shopCart.products = shopCart.products.filter((p: any) => p.id !== product.id)
+    shopCart.products = shopCart.products.filter((p) => p.id !== product.id)
     if (!shopCart.products.length) {
       newCart = newCart.filter((c) => c.shop_id !== shop.shop_id)
     } else {
-      const newShopCartPrice = shopCart.products.reduce((totalPrice: number, p: any) => {
+      const newShopCartPrice = shopCart.products.reduce((totalPrice, p) => {
         const subtotalPrice = p.quantity * p.price
         totalPrice += subtotalPrice
         return totalPrice
@@ -169,20 +190,20 @@ const OrderCreatePage = ({}) => {
 
   const setDeliveryDateOnShopCart = (date: Date) => {
     let newCart = [...cart]
-    let shopCart = newCart.find((c) => c.shop_id === currentShopCart.shop_id)
+    let shopCart = newCart.find((c) => c.shop_id === currentShopCart?.shop_id)
     if (!shopCart) return
     shopCart.delivery_date = date
     setCart(newCart)
     setShowCalendar(false)
-    setCurrentShopCart(null)
+    setCurrentShopCart(undefined)
   }
 
-  const onClickDeliveryDate = (shop: any) => {
+  const onClickDeliveryDate = (shop: Cart) => {
     setShowCalendar(true)
     setCurrentShopCart(shop)
   }
 
-  const onClickInstruction = (shop: any, product?: any) => {
+  const onClickInstruction = (shop: Cart, product?: CartProduct) => {
     if (product) {
       setCurrentProduct(product)
     }
@@ -192,10 +213,10 @@ const OrderCreatePage = ({}) => {
 
   const onSaveInstruction = (value: string) => {
     let newCart = [...cart]
-    let shopCart = newCart.find((c) => c.shop_id === currentShopCart.shop_id)
+    let shopCart = newCart.find((c) => c.shop_id === currentShopCart?.shop_id)
     if (!shopCart) return
     if (currentProduct) {
-      let cartProduct = shopCart.products.find((p: any) => p.id === currentProduct.id)
+      let cartProduct = shopCart.products.find((p) => p.id === currentProduct.id)
       if (!cartProduct) return
       cartProduct.instruction = value
     } else {
@@ -203,11 +224,11 @@ const OrderCreatePage = ({}) => {
     }
     setCart(newCart)
     setShowInstructionModal(false)
-    setCurrentShopCart(null)
-    setCurrentProduct(null)
+    setCurrentShopCart(undefined)
+    setCurrentProduct(undefined)
   }
 
-  const onClickSubscribe = (shop: any, product: any) => {
+  const onClickSubscribe = (shop: ShopData, product: ProductData) => {
     setCurrentShop(shop)
     setCurrentProduct(product)
     setShowSubscribeModal(true)
@@ -227,7 +248,7 @@ const OrderCreatePage = ({}) => {
       for (let shopCart of cart) {
         let url = `${API_URL}/orders`
         let method = 'POST'
-        let res: any = await fetch(url, {
+        let res = await fetch(url, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${firebaseToken}`,
@@ -294,7 +315,7 @@ const OrderCreatePage = ({}) => {
           />
           {showUserSearchResult && userSearchResult.length > 0 && (
             <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-              {userSearchResult.map((user: any) => (
+              {userSearchResult.map((user) => (
                 <button
                   className="w-full p-1 hover:bg-gray-200 block text-left"
                   key={user.id}
@@ -325,7 +346,7 @@ const OrderCreatePage = ({}) => {
                   </button>
                 </div>
               </div>
-              {shopCart.products.map((product: any) => (
+              {shopCart.products.map((product) => (
                 <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
                   <div className="w-16 mr-2">
                     <img src={product.image} alt={product.name} className="max-w-16 max-h-16" />
@@ -376,7 +397,7 @@ const OrderCreatePage = ({}) => {
                   noMargin
                 />
               </div>
-              <p className="text-right text-sm">Total Price: {formatToPeso(shopCart.totalPrice)}</p>
+              <p className="text-right text-sm">Total Price: {shopCart.totalPrice ? formatToPeso(shopCart.totalPrice) : '--'}</p>
             </div>
           ))}
           <div className="flex">
@@ -413,7 +434,7 @@ const OrderCreatePage = ({}) => {
               <div className="w-1/3 h-96 p-2 overflow-y-auto border border-2">
                 <p className="text-2xl">{shop.name}</p>
                 <img src={shop.profile_photo} alt={shop.name} className="max-w-full max-h-40 m-2" />
-                {shop.products.map((product: any) => (
+                {shop.products?.map((product) => (
                   <div className="border-b-1 mb-2 py-2 flex items-center">
                     <div className="w-24 mr-2">
                       {product.gallery ? (
