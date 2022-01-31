@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isBoolean } from 'lodash'
 import {
   ShopsService,
   CommunityService,
@@ -111,6 +112,16 @@ import { ProductCreateData } from '../../../models/Product'
  *                 type: string
  *               can_subscribe:
  *                 type: boolean
+ *               delivery_options:
+ *                 type: object
+ *                 required: true
+ *                 properties:
+ *                     delivery:
+ *                       type: boolean
+ *                       required: true
+ *                     pickup:
+ *                       type: boolean
+ *                       required: true
  *               gallery:
  *                 type: array
  *                 items:
@@ -208,13 +219,13 @@ const createProduct = async (req: Request, res: Response) => {
     })
   }
 
-  // const roles = res.locals.userRoles
-  // if (!roles.editor && requestorDocId !== shop.user_id) {
-  //   return res.status(403).json({
-  //     status: 'error',
-  //     message: 'You do not have a permission to create a product for another user.',
-  //   })
-  // }
+  const roles = res.locals.userRoles
+  if (!roles.editor && requestorDocId !== shop.user_id) {
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to create a product for another user.',
+    })
+  }
 
   // get community from shop.communityID and validate
   const community = await CommunityService.getCommunityByID(shop.community_id)
@@ -243,7 +254,7 @@ const createProduct = async (req: Request, res: Response) => {
 
   let gallery
   if (data.gallery) {
-    const validation = validateImages(data.images)
+    const validation = validateImages(data.gallery)
     if (!validation.valid) {
       return res.status(400).json({
         status: 'error',
@@ -252,6 +263,13 @@ const createProduct = async (req: Request, res: Response) => {
       })
     }
     gallery = data.gallery
+  }
+
+  if (!isBoolean(data.delivery_options.pickup) || !isBoolean(data.delivery_options.delivery)) {
+    return res.status(400).json({
+      status: 'error',
+      message: "delivery_options must contain 'pickup' and 'delivery' boolean field",
+    })
   }
 
   const keywords = generateProductKeywords({

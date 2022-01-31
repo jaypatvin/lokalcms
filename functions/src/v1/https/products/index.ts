@@ -118,6 +118,7 @@ export const required_fields = [
   'base_price',
   'quantity',
   'product_category',
+  'delivery_options',
 ]
 
 export { default as createProduct } from './createProduct'

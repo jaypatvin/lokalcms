@@ -105,6 +105,10 @@ type Product = {
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string
+  delivery_options?: {
+    pickup: boolean
+    delivery: boolean
+  }
 }
 
 export type ProductCreateData = Pick<
@@ -125,6 +129,7 @@ export type ProductCreateData = Pick<
   | 'can_subscribe'
   | 'availability'
   | 'gallery'
+  | 'delivery_options'
 >
 
 export type ProductUpdateData = Partial<
@@ -142,6 +147,7 @@ export type ProductUpdateData = Partial<
     | 'updated_from'
     | 'keywords'
     | 'availability'
+    | 'delivery_options'
   >
 >
 

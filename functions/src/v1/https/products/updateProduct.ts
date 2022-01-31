@@ -65,6 +65,15 @@ import { fieldIsNum } from '../../../utils/helpers'
  *                 type: string
  *               can_subscribe:
  *                 type: boolean
+ *               delivery_options:
+ *                 type: object
+ *                 properties:
+ *                     delivery:
+ *                       type: boolean
+ *                       required: true
+ *                     pickup:
+ *                       type: boolean
+ *                       required: true
  *               gallery:
  *                 type: object
  *                 properties:
@@ -170,6 +179,15 @@ const updateProduct = async (req: Request, res: Response) => {
   if (data.product_category) updateData.product_category = data.product_category
   if (data.status) updateData.status = data.status
   if (isBoolean(data.can_subscribe)) updateData.can_subscribe = data.can_subscribe
+  if (data.delivery_options) {
+    if (!isBoolean(data.delivery_options.pickup) || !isBoolean(data.delivery_options.delivery)) {
+      return res.status(400).json({
+        status: 'error',
+        message: "delivery_options must contain 'pickup' and 'delivery' boolean field",
+      })
+    }
+    updateData.delivery_options = data.delivery_options
+  }
 
   if (!Object.keys(updateData).length)
     return res.status(400).json({ status: 'error', message: 'no field for shop is provided' })
