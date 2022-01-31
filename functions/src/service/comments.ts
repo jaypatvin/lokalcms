@@ -33,8 +33,7 @@ export const getActivityComments = async (activityId: string, userId = '') => {
 // if they contain the comment document
 // additional optimizations are required
 export const getUserComments = async (userId: string) => {
-  const commentsRef = firestoreDb.collectionGroup('comments')
-  const comments = await commentsRef.where('user_id', '==', userId).get()
+  const comments = await db.comments.where('user_id', '==', userId).get()
 
   return await Promise.all(
     comments.docs.map(async (commentDoc) => {
@@ -72,8 +71,7 @@ export const getUserComments = async (userId: string) => {
 }
 
 export const getAllComments = async () => {
-  return await firestoreDb
-    .collectionGroup('comments')
+  return await db.comments
     .get()
     .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
@@ -95,7 +93,7 @@ export const getCommentById = async (activityId: string, commentId: string, user
       id: comment.id,
       ...data,
       liked,
-    } as any
+    }
 
   return null
 }
@@ -145,7 +143,7 @@ export const unarchiveActivityComments = async (activityId: string) => {
     // we don't want the users to retrieve and see archived users in the activity comments
     const userId = comment.data().user_id
     const _user = await UsersService.getUserByID(userId)
-    if (_user.status === 'archived') return
+    if (_user.archived) return
 
     const commentRef = comment.ref
     batch.update(commentRef, { archived: false, updated_at: admin.firestore.Timestamp.now() })
@@ -176,10 +174,7 @@ export const unarchiveComment = async (activityId: string, commentId: string) =>
 }
 
 const _archiveUserComments = async (userId: string, state: boolean) => {
-  const commentsSnapshot = await firestoreDb
-    .collectionGroup('comments')
-    .where('user_id', '==', userId)
-    .get()
+  const commentsSnapshot = await db.comments.where('user_id', '==', userId).get()
 
   const batch = firestoreDb.batch()
   commentsSnapshot.forEach((comment) =>

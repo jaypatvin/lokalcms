@@ -55,7 +55,7 @@ const OrderCreatePage = () => {
   const [showCalendar, setShowCalendar] = useState(false)
   const [showInstructionModal, setShowInstructionModal] = useState(false)
   const [currentShopCart, setCurrentShopCart] = useState<Cart>()
-  const [currentProduct, setCurrentProduct] = useState<ProductData>()
+  const [currentProduct, setCurrentProduct] = useState<ProductData | CartProduct>()
   const [currentShop, setCurrentShop] = useState<ShopData>()
 
   const [showSubscribeModal, setShowSubscribeModal] = useState(false)
@@ -90,7 +90,7 @@ const OrderCreatePage = () => {
     setUserSearchText(user.email)
   }
 
-  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Shop>[]) => {
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Shop>[]) => {
     const newShops: ShopData[] = docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -104,19 +104,19 @@ const OrderCreatePage = () => {
   }
 
   const getCommunityShops = async (community: CommunityData) => {
-    if (!community) return
+    if (!community || !community.id) return
     setLoading(true)
     const shops = getAllShopsByCommunity(community.id)
     const shopsData = await shops.get()
     setupDataList(shopsData.docs)
   }
 
-  const addToCart = (shop: ShopData, product: ProductData) => {
+  const addToCart = (shop: ShopData | Cart, product: ProductData | CartProduct) => {
     const newCart = [...cart]
-    let shopCart = newCart.find((c) => c.shop_id === (shop.shop_id || shop.id))
+    let shopCart = newCart.find((c) => c.shop_id === (shop.shop_id || (shop as ShopData).id))
     if (!shopCart) {
       shopCart = {
-        shop_id: shop.id,
+        shop_id: (shop as ShopData).id,
         name: shop.name,
         operating_hours: shop.operating_hours,
         products: [],
@@ -129,8 +129,8 @@ const OrderCreatePage = () => {
       cartProduct = {
         id: product.id,
         name: product.name,
-        price: product.base_price,
-        image: product.gallery?.[0].url,
+        price: (product as ProductData).base_price,
+        image: (product as ProductData).gallery?.[0].url,
         quantity: 0,
       }
       shopCart.products.push(cartProduct)
@@ -168,7 +168,7 @@ const OrderCreatePage = () => {
     setCart(newCart)
   }
 
-  const removeAllProductFromCart = (shop: ShopData, product: ProductData) => {
+  const removeAllProductFromCart = (shop: Cart, product: CartProduct) => {
     let newCart = [...cart]
     let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
     if (!shopCart) return
@@ -228,13 +228,13 @@ const OrderCreatePage = () => {
     setCurrentProduct(undefined)
   }
 
-  const onClickSubscribe = (shop: ShopData, product: ProductData) => {
+  const onClickSubscribe = (shop: ShopData, product: ProductData | CartProduct) => {
     setCurrentShop(shop)
     setCurrentProduct(product)
     setShowSubscribeModal(true)
   }
 
-  const onClickPickup = (shop: any, value: boolean) => {
+  const onClickPickup = (shop: Cart, value: boolean) => {
     let newCart = [...cart]
     let shopCart = newCart.find((c) => c.shop_id === shop.shop_id)
     if (!shopCart) return
@@ -274,7 +274,7 @@ const OrderCreatePage = () => {
       <ShopDateModal
         isOpen={showCalendar}
         setIsOpen={setShowCalendar}
-        shop={currentShopCart}
+        shop={currentShopCart as unknown as Shop}
         value={currentShopCart?.delivery_date}
         onSelect={setDeliveryDateOnShopCart}
       />
@@ -283,7 +283,7 @@ const OrderCreatePage = () => {
           title="Instruction"
           isOpen={showInstructionModal}
           setIsOpen={setShowInstructionModal}
-          value={currentProduct?.instruction || currentShopCart?.instruction}
+          value={(currentProduct as CartProduct)?.instruction || currentShopCart?.instruction}
           onSave={onSaveInstruction}
         />
       ) : (
@@ -293,7 +293,7 @@ const OrderCreatePage = () => {
         <CreateSubscriptionPlanModal
           isOpen={showSubscribeModal}
           setIsOpen={setShowSubscribeModal}
-          product={currentProduct}
+          product={currentProduct as ProductData}
           shop={currentShop}
           user={user}
         />
@@ -397,7 +397,9 @@ const OrderCreatePage = () => {
                   noMargin
                 />
               </div>
-              <p className="text-right text-sm">Total Price: {shopCart.totalPrice ? formatToPeso(shopCart.totalPrice) : '--'}</p>
+              <p className="text-right text-sm">
+                Total Price: {shopCart.totalPrice ? formatToPeso(shopCart.totalPrice) : '--'}
+              </p>
             </div>
           ))}
           <div className="flex">
@@ -426,7 +428,7 @@ const OrderCreatePage = () => {
               color="gray"
             />
           </div>
-        ) : !community ? (
+        ) : !community || !community.id ? (
           <h2 className="text-xl ml-5">Select a community first</h2>
         ) : (
           <div className="h-full w-full overflow-y-auto mb-10 flex flex-wrap gap-8">

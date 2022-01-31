@@ -8,7 +8,7 @@ export const getAllProductRatings = async (id: string) => {
     .doc(id)
     .collection('ratings')
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getProductRating = async (productId: string, ratingId: string) => {
@@ -18,7 +18,7 @@ export const getProductRating = async (productId: string, ratingId: string) => {
     .collection('ratings')
     .doc(ratingId)
     .get()
-    .then((res): any => ({ id: res.id, ...res.data() }))
+    .then((res) => ({ id: res.id, ...res.data() }))
 }
 
 export const getProductRatingsByUserId = async (productId: string, userId: string) => {
@@ -29,7 +29,7 @@ export const getProductRatingsByUserId = async (productId: string, userId: strin
     .where('user_id', '==', userId)
     .limit(1)
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getProductRatingByOrderId = async (productId: string, order_id: string) => {
@@ -40,7 +40,7 @@ export const getProductRatingByOrderId = async (productId: string, order_id: str
     .where('order_id', '==', order_id)
     .limit(1)
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const createProductRating = async (id: string, data: any) => {
@@ -52,7 +52,7 @@ export const createProductRating = async (id: string, data: any) => {
     .then((res) => {
       return res.get()
     })
-    .then((doc): any => ({ id: doc.id, ...doc.data(), created_at: new Date() }))
+    .then((doc) => ({ id: doc.id, ...doc.data(), created_at: new Date() }))
 }
 
 export const updateProductRating = async (productId: string, ratingId: string, value: number) => {

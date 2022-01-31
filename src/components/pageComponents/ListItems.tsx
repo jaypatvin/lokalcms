@@ -79,7 +79,7 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
           openUpdate={() => openUpdate(data)}
           onArchive={() => deleteClicked(data)}
           onUnarchive={() => unarchiveClicked(data)}
-          hideDelete={currentUserInfo.id === data.id}
+          hideDelete={currentUserInfo?.id === data.id}
           isArchived={data.archived}
         />
       ))}

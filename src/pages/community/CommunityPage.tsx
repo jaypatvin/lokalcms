@@ -46,10 +46,10 @@ export type ShopData = Shop & { id: string; user_email?: string }
 export type ApplicationLogData = ApplicationLog & { id: string; user_email?: string }
 export type OrderData = Order & { id: string; buyer_email?: string; seller_email?: string }
 export type InviteData = Invite & { id: string; inviter_email?: string }
-type DataRefType = FirebaseFirestore.Query<
+type DataRefType = firebase.default.firestore.Query<
   Activity | ApplicationLog | Product | Shop | Order | Invite | ProductSubscriptionPlan
 >
-type DataDocType = FirebaseFirestore.QueryDocumentSnapshot<
+type DataDocType = firebase.default.firestore.QueryDocumentSnapshot<
   Activity | ApplicationLog | Product | Shop | Order | Invite | ProductSubscriptionPlan
 >
 

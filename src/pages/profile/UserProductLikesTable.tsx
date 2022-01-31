@@ -4,7 +4,7 @@ import SortButton from '../../components/buttons/SortButton'
 import { Product } from '../../models'
 
 type Props = {
-  data: (Product & { id: string; shop_name: string; liked_at: FirebaseFirestore.Timestamp })[]
+  data: (Product & { id: string; shop_name: string; liked_at: firebase.default.firestore.Timestamp })[]
 }
 
 const UserProductLikesTable = ({ data }: Props) => {

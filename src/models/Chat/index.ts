@@ -4,14 +4,14 @@ type Chat = {
   archived: boolean
   chat_type: 'user' | 'shop' | 'product' | 'group'
   community_id: string
-  conversation?: FirebaseFirestore.CollectionGroup<Conversation>
-  created_at: FirebaseFirestore.Timestamp
+  conversation?: firebase.default.firestore.CollectionReference<Conversation>
+  created_at: firebase.default.firestore.Timestamp
   group_hash?: string
   last_message: {
     content: string
     conversation_id?: string
-    created_at: FirebaseFirestore.Timestamp
-    ref?: FirebaseFirestore.DocumentReference<Conversation>
+    created_at: firebase.default.firestore.Timestamp
+    ref?: firebase.default.firestore.DocumentReference<Conversation>
     sender: string
     sender_id: string
   }
@@ -20,7 +20,7 @@ type Chat = {
   product_id?: string
   customer_name?: string
   title: string
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
 }

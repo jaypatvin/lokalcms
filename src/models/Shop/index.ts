@@ -6,11 +6,11 @@ type Shop = {
     products_count?: number
     product_subscription_plans_count?: number
   }
-  likes?: FirebaseFirestore.CollectionGroup<Like>
+  likes?: firebase.default.firestore.CollectionReference<Like>
   archived: boolean
   community_id: string
   cover_photo?: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   description: string
   is_close: boolean
   keywords: string[]
@@ -98,7 +98,7 @@ type Shop = {
   }[]
   profile_photo?: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

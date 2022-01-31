@@ -94,7 +94,7 @@ const ShopListPage = () => {
       sortable: true,
     },
   ]
-  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Shop>[]) => {
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Shop>[]) => {
     const newList: ShopData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]

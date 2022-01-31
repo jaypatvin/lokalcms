@@ -75,7 +75,7 @@ const CommunityListPage = () => {
       sortable: true,
     },
   ]
-  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Community>[]) => {
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Community>[]) => {
     const newList: CommunityData[] = docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),

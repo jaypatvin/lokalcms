@@ -3,14 +3,14 @@ type Invite = {
   claimed: boolean
   code: string
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   expire_by: number
   invitee_email: string
   invitee?: string
   inviter: string
   keywords: string[]
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
 }

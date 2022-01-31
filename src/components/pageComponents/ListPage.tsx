@@ -50,7 +50,7 @@ type Props = {
     search?: string
     limit?: number
     community?: any
-  }) => FirebaseFirestore.Query<DocumentType>
+  }) => firebase.default.firestore.Query<DocumentType>
   setupDataList: (arg: any[]) => Promise<any[]>
   normalizeDataToUpdate?: (arg: any) => any
   onDelete?: (arg: DocumentType) => Promise<any>
@@ -85,19 +85,19 @@ const ListPage = ({
   const [search, setSearch] = useState('')
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
-  const [dataRef, setDataRef] = useState<FirebaseFirestore.Query<DocumentType>>()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<DocumentType>>()
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
   const [firstDataOnList, setFirstDataOnList] =
-    useState<FirebaseFirestore.QueryDocumentSnapshot<DocumentType>>()
+    useState<firebase.default.firestore.QueryDocumentSnapshot<DocumentType>>()
   const [lastDataOnList, setLastDataOnList] =
-    useState<FirebaseFirestore.QueryDocumentSnapshot<DocumentType>>()
+    useState<firebase.default.firestore.QueryDocumentSnapshot<DocumentType>>()
   const [isLastPage, setIsLastPage] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'update'>('create')
   const [dataToUpdate, setDataToUpdate] = useState<DocumentType>()
   const [loading, setLoading] = useState(false)
 
-  const getDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<DocumentType>[]) => {
+  const getDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<DocumentType>[]) => {
     const newDataList = await setupDataList(docs)
     setDataList(newDataList)
     setLastDataOnList(docs[docs.length - 1])

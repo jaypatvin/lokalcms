@@ -1,6 +1,6 @@
 type Wishlist = {
   user_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   shop_id: string
   product_id: string
   community_id: string

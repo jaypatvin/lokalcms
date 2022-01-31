@@ -11,13 +11,13 @@ type Notification = {
   }
   image?: string
   viewed: boolean
-  date_viewed?: FirebaseFirestore.Timestamp
+  date_viewed?: firebase.default.firestore.Timestamp
   opened: boolean
-  date_opened?: FirebaseFirestore.Timestamp
+  date_opened?: firebase.default.firestore.Timestamp
   unread: boolean
   archived: boolean
-  created_at: FirebaseFirestore.Timestamp
-  updated_at?: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
 }
 
 export type NotificationCreateData = Pick<

@@ -35,11 +35,11 @@ const ApplicationLogsPage = () => {
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
 
-  const [dataRef, setDataRef] = useState<FirebaseFirestore.Query<ApplicationLog>>()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<ApplicationLog>>()
   const [firstDataOnList, setFirstDataOnList] =
-    useState<FirebaseFirestore.QueryDocumentSnapshot<ApplicationLog>>()
+    useState<firebase.default.firestore.QueryDocumentSnapshot<ApplicationLog>>()
   const [lastDataOnList, setLastDataOnList] =
-    useState<FirebaseFirestore.QueryDocumentSnapshot<ApplicationLog>>()
+    useState<firebase.default.firestore.QueryDocumentSnapshot<ApplicationLog>>()
   const [isLastPage, setIsLastPage] = useState(false)
 
   const community = useCommunity()
@@ -101,7 +101,7 @@ const ApplicationLogsPage = () => {
     setActionTypeSearchText(actionType.name)
   }
 
-  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<ApplicationLog>[]) => {
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<ApplicationLog>[]) => {
     const data: ApplicationLogData[] = []
     for (let log of docs) {
       const logData = log.data()
@@ -121,7 +121,7 @@ const ApplicationLogsPage = () => {
   }
 
   const getCommunityApplicationLogs = async () => {
-    if (!community) return
+    if (!community || !community.id) return
     const dataRef = getApplicationLogs({
       community_id: community.id,
       limit,
@@ -244,7 +244,7 @@ const ApplicationLogsPage = () => {
           />
         </div>
       </div>
-      {!community ? (
+      {!community || !community.id ? (
         <h2 className="text-xl ml-5">Select a community first</h2>
       ) : (
         <div className="table-wrapper w-full">

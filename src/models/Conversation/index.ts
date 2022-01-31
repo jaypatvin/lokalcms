@@ -1,6 +1,6 @@
 type Conversation = {
   archived: boolean
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   media?: {
     order: number
     type: 'image' | 'video'
@@ -8,8 +8,8 @@ type Conversation = {
   }[]
   message?: string
   sender_id: string
-  sent_at: FirebaseFirestore.Timestamp
-  reply_to?: FirebaseFirestore.DocumentReference<Conversation>
+  sent_at: firebase.default.firestore.Timestamp
+  reply_to?: firebase.default.firestore.DocumentReference<Conversation>
 }
 
 export type ConversationCreateData = Pick<

@@ -1,4 +1,4 @@
-import { firestore } from 'firebase-admin'
+import { db as firestoreDb } from '../services/firebase'
 import {
   ActionType,
   Activity,
@@ -9,6 +9,7 @@ import {
   Comment,
   Community,
   Conversation,
+  HistoryLog,
   Invite,
   Like,
   Notification,
@@ -26,36 +27,37 @@ import {
 
 const converter = <T>() => ({
   toFirestore: (data: Partial<T>) => data,
-  fromFirestore: (snap: FirebaseFirestore.QueryDocumentSnapshot) => snap.data() as T,
+  fromFirestore: (snap: firebase.default.firestore.QueryDocumentSnapshot) => snap.data() as T,
 })
 
 const dataPoint = <T>(collectionPath: string) => {
-  return firestore().collection(collectionPath).withConverter(converter<T>())
+  return firestoreDb.collection(collectionPath).withConverter(converter<T>())
 }
 
 const groupDataPoint = <T>(subCollectionPath: string) => {
-  return firestore().collectionGroup(subCollectionPath).withConverter(converter<T>())
+  return firestoreDb.collectionGroup(subCollectionPath).withConverter(converter<T>())
 }
 
 const db = {
   actionTypes: dataPoint<ActionType>('action_types'),
   activities: dataPoint<Activity>('activities'),
-  getActivityComments: (subCollectionPath: any) => dataPoint<Comment>(subCollectionPath),
+  getActivityComments: (subCollectionPath: string) => dataPoint<Comment>(subCollectionPath),
   applicationLogs: dataPoint<ApplicationLog>('application_logs'),
   bankCodes: dataPoint<BankCode>('bank_codes'),
   categories: dataPoint<Category>('categories'),
   chats: dataPoint<Chat>('chats'),
-  getChatConversations: (subCollectionPath: any) => dataPoint<Conversation>(subCollectionPath),
+  getChatConversations: (subCollectionPath: string) => dataPoint<Conversation>(subCollectionPath),
   community: dataPoint<Community>('community'),
+  historyLogs: dataPoint<HistoryLog>('history_logs'),
   invites: dataPoint<Invite>('invites'),
-  getLikes: (subCollectionPath: any) => dataPoint<Like>(subCollectionPath),
-  getNotifications: (subCollectionPath: any) => dataPoint<Notification>(subCollectionPath),
+  getLikes: (subCollectionPath: string) => dataPoint<Like>(subCollectionPath),
+  getNotifications: (subCollectionPath: string) => dataPoint<Notification>(subCollectionPath),
   notificationTypes: dataPoint<NotificationType>('notification_types'),
   orders: dataPoint<Order>('orders'),
   orderStatus: dataPoint<OrderStatus>('order_status'),
   products: dataPoint<Product>('products'),
-  getProductReviews: (subCollectionPath: any) => dataPoint<Review>(subCollectionPath),
-  getProductWishlists: (subCollectionPath: any) => dataPoint<Wishlist>(subCollectionPath),
+  getProductReviews: (subCollectionPath: string) => dataPoint<Review>(subCollectionPath),
+  getProductWishlists: (subCollectionPath: string) => dataPoint<Wishlist>(subCollectionPath),
   productSubscriptions: dataPoint<ProductSubscription>('product_subscriptions'),
   productSubscriptionPlans: dataPoint<ProductSubscriptionPlan>('product_subscription_plans'),
   shops: dataPoint<Shop>('shops'),
@@ -63,6 +65,7 @@ const db = {
   likes: groupDataPoint<Like>('likes'),
   reviews: groupDataPoint<Review>('reviews'),
   wishlists: groupDataPoint<Wishlist>('wishlists'),
+  comments: groupDataPoint<Comment>('comments'),
 }
 
 export { db }

@@ -254,7 +254,7 @@ const ProductCreateUpdateForm = ({
     if (unavailableDates.includes(formattedDate)) {
       const newUnavailableDates = unavailableDates.filter((d) => !dayjs(d).isSame(formattedDate))
       setUnavailableDates(newUnavailableDates)
-    } else if (isAvailableByDefault(date, shop)) {
+    } else if (isAvailableByDefault(date, shop!)) {
       const newUnavailableDates = [...unavailableDates]
       newUnavailableDates.push(dayjs(date).format('YYYY-MM-DD'))
       setUnavailableDates(newUnavailableDates)
@@ -265,7 +265,7 @@ const ProductCreateUpdateForm = ({
     const formattedDate = dayjs(date).format('YYYY-MM-DD')
     if (unavailableDates.includes(formattedDate)) {
       return null
-    } else if (isAvailableByDefault(date, shop)) {
+    } else if (isAvailableByDefault(date, shop!)) {
       return 'orange'
     }
     return null
@@ -416,7 +416,7 @@ const ProductCreateUpdateForm = ({
           {useCustomAvailability && shop && (
             <ReactCalendar
               className="w-72"
-              onChange={(date: any) => onCustomizeDates(date)}
+              onChange={(date) => onCustomizeDates(date as Date)}
               tileDisabled={({ date }) => !isAvailableByDefault(date, shop)}
               tileClassName={getTileClass}
               calendarType="US"

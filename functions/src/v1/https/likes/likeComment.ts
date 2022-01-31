@@ -89,7 +89,7 @@ const likeComment = async (req: Request, res: Response) => {
   // get user and validate
   try {
     const _user = await UsersService.getUserByID(data.user_id)
-    if (_user.status === 'archived')
+    if (_user.archived)
       return res.status(400).json({
         status: 'error',
         message: `User with id ${data.user_id} is currently archived!`,

@@ -1,8 +1,9 @@
 import dayjs from 'dayjs'
+import { Shop } from '../../models'
 import { DayKeyVal } from '../types'
 import { validateNthDayOfMonth } from './validateNthDayOfMonth'
 
-export const isAvailableByDefault = (date: Date, shop: any) => {
+export const isAvailableByDefault = (date: Date, shop: Shop) => {
   const { start_dates, repeat_unit, repeat_type, schedule } = shop.operating_hours
   const firstDate = start_dates[0]
   const firstDateDay = DayKeyVal[dayjs(firstDate).day()]

@@ -3,8 +3,16 @@ import dayjs from 'dayjs'
 import { isObjectLike } from 'lodash'
 import { ListItemProps } from '../../utils/types'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
+import { HistoryLog } from '../../models'
 
-const HistoryListItem = ({ data }: ListItemProps) => {
+type Props = Omit<ListItemProps, 'data'> & {
+  data: HistoryLog & {
+    actor_email: string
+    community_name: string
+  }
+}
+
+const HistoryListItem = ({ data }: Props) => {
   const [expanded, setExpanded] = useState(false)
   let created_at = '-'
   let created_at_ago = '-'

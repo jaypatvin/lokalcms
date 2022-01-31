@@ -9,22 +9,33 @@ import { fetchShopByID } from '../../services/shops'
 import { fetchUserByID, getUsers } from '../../services/users'
 import ChatItem from './ChatItem'
 import ConversationItem from './ConversationItem'
+import { Chat, Conversation, User } from '../../models'
 
-const ChatsPage = ({}) => {
-  const [user, setUser] = useState<any>()
+type UserData = User & { id: string }
+type MembersInfo = { [x: string]: { name: string } }
+type ChatData = Chat & { id: string; membersInfo: MembersInfo }
+type ConversationData = Conversation & {
+  id: string
+  sender_name: string
+  reply_to_data?: ConversationData
+}
+
+const ChatsPage = () => {
+  const [user, setUser] = useState<UserData>()
   const [showUserSearchResult, setShowUserSearchResult] = useState(false)
   const userSearchResultRef = useOuterClick(() => setShowUserSearchResult(false))
   const [userSearchText, setUserSearchText] = useState('')
-  const [userSearchResult, setUserSearchResult] = useState<any>([])
-  const [userChats, setUserChats] = useState<any[]>([])
-  const [activeChat, setActiveChat] = useState<any>()
-  const [chatConversation, setChatConversation] = useState<any[]>([])
+  const [userSearchResult, setUserSearchResult] = useState<UserData[]>([])
+  const [userChats, setUserChats] = useState<ChatData[]>([])
+  const [activeChat, setActiveChat] = useState<ChatData>()
+  const [chatConversation, setChatConversation] = useState<ConversationData[]>([])
   const [chatsSnapshot, setChatsSnapshot] = useState<{ unsubscribe: () => void }>()
   const [conversationSnapshot, setConversationSnapshot] = useState<{ unsubscribe: () => void }>()
   const [loading, setLoading] = useState(false)
   const [pageNum, setPageNum] = useState(1)
-  const [conversationRef, setConversationRef] = useState<any>()
-  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [conversationRef, setConversationRef] = useState<firebase.default.firestore.Query<Conversation>>()
+  const [lastDataOnList, setLastDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<Conversation>>()
   const [isLastPage, setIsLastPage] = useState(false)
   const conversationScrollRef = useRef<any>()
 
@@ -45,7 +56,7 @@ const ChatsPage = ({}) => {
     }
   }
 
-  const userSelectHandler = (user: any) => {
+  const userSelectHandler = (user: UserData) => {
     setShowUserSearchResult(false)
     setUserSearchResult([])
     setUser(user)
@@ -53,20 +64,21 @@ const ChatsPage = ({}) => {
     getUserChats(user)
   }
 
-  const getUserChats = async (user: any) => {
+  const getUserChats = async (user: UserData) => {
     if (!user) return
     setLoading(true)
     const chatsRef = getChats({ userId: user.id })
     if (chatsSnapshot && chatsSnapshot.unsubscribe) chatsSnapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = chatsRef.onSnapshot(async (snapshot) => {
-      const newUserChats = snapshot.docs.map((doc): any => ({
+      const newUserChats = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        membersInfo: {} as MembersInfo,
       }))
       for (let i = 0; i < newUserChats.length; i++) {
         const userChat = newUserChats[i]
         const { product_id, shop_id, members } = userChat
-        const membersInfo: any = {}
+        const membersInfo: MembersInfo = {}
         for (let j = 0; j < members.length; j++) {
           const memberId = members[j]
           if (product_id) {
@@ -106,11 +118,14 @@ const ChatsPage = ({}) => {
     setLoading(false)
   }
 
-  const setupConversation = async (docs: any, chat: any) => {
-    const newChatConversation = docs.map((doc: any): any => ({
+  const setupConversation = async (
+    docs: firebase.default.firestore.QueryDocumentSnapshot<Conversation>[],
+    chat: ChatData
+  ) => {
+    const newChatConversation = docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    }))
+    })) as ConversationData[]
     for (let i = 0; i < newChatConversation.length; i++) {
       const message = newChatConversation[i]
       const senderName = chat.membersInfo[message.sender_id]
@@ -120,17 +135,19 @@ const ChatsPage = ({}) => {
       if (message.reply_to) {
         const replyTo = await message.reply_to.get()
         const replyToData = replyTo.data()
-        replyToData.sender_name = chat.membersInfo[replyToData.sender_id]
-          ? chat.membersInfo[replyToData.sender_id].name
-          : 'Unknown'
-        message.reply_to = replyToData
+        if (replyToData) {
+          const sender_name = chat.membersInfo[replyToData.sender_id]
+            ? chat.membersInfo[replyToData.sender_id].name
+            : 'Unknown'
+          message.reply_to_data = { ...replyToData, id: replyTo.id, sender_name }
+        }
       }
     }
     return newChatConversation
   }
 
-  const onSelectChat = async (chat: any) => {
-    if (activeChat === chat.id) return
+  const onSelectChat = async (chat: ChatData) => {
+    if (activeChat?.id === chat.id) return
     setIsLastPage(false)
     setActiveChat(chat)
     setChatConversation([])
@@ -151,9 +168,9 @@ const ChatsPage = ({}) => {
   }
 
   const onNextPage = (p: number) => {
-    if (conversationRef && lastDataOnList && !isLastPage) {
+    if (activeChat && conversationRef && lastDataOnList && !isLastPage) {
       const newDataRef = conversationRef.startAfter(lastDataOnList).limit(10)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         if (snapshot.docs.length) {
           const moreChatConversation = await setupConversation(snapshot.docs, activeChat)
           const newChatConversation = [...chatConversation, ...moreChatConversation]
@@ -183,7 +200,7 @@ const ChatsPage = ({}) => {
           />
           {showUserSearchResult && userSearchResult.length > 0 && (
             <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-              {userSearchResult.map((user: any) => (
+              {userSearchResult.map((user) => (
                 <button
                   className="w-full p-1 hover:bg-gray-200 block text-left"
                   key={user.id}
@@ -225,7 +242,7 @@ const ChatsPage = ({}) => {
                 <ChatItem
                   key={chat.id}
                   chat={chat}
-                  activeChat={activeChat.id}
+                  activeChat={activeChat?.id}
                   onClick={onSelectChat}
                 />
               ))}
@@ -242,7 +259,7 @@ const ChatsPage = ({}) => {
                   threshold={10}
                 >
                   {chatConversation.map((doc) => (
-                    <ConversationItem key={doc.id} doc={doc} currentUser={user} />
+                    <ConversationItem key={doc.id} doc={doc} currentUser={user!} />
                   ))}
                 </InfiniteScroll>
               </div>

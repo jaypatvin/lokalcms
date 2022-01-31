@@ -1,7 +1,7 @@
 type Order = {
   buyer_id: string
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   delivery_address: {
     barangay: string
     city: string
@@ -11,8 +11,8 @@ type Order = {
     subdivision: string
     zip_code: string
   }
-  delivery_date: FirebaseFirestore.Timestamp
-  delivered_date?: FirebaseFirestore.Timestamp
+  delivery_date: firebase.default.firestore.Timestamp
+  delivered_date?: firebase.default.firestore.Timestamp
   delivery_option: 'delivery' | 'pickup'
   instruction: string
   is_paid: boolean
@@ -35,7 +35,7 @@ type Order = {
   shop_image: string
   shop_name: string
   status_code: number | string
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   decline_reason?: string

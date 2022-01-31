@@ -45,7 +45,7 @@ const InviteCreateUpdateForm = ({
   useEffect(() => {
     if (mode === 'create') {
       const code = humanPassword({ couples: 3, digits: 3 })
-      const newData = { ...initialData, code, user_id: currentUserInfo.id }
+      const newData = { ...initialData, code, user_id: currentUserInfo?.id }
 
       setTimeout(() => {
         setData(newData)

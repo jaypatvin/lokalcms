@@ -35,11 +35,11 @@ const OrdersPage = ({}) => {
   const [statusCode, setStatusCode] = useState<number>()
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
-  const [dataRef, setDataRef] = useState<FirebaseFirestore.Query<Order>>()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Order>>()
   const [firstDataOnList, setFirstDataOnList] =
-    useState<FirebaseFirestore.QueryDocumentSnapshot<Order>>()
+    useState<firebase.default.firestore.QueryDocumentSnapshot<Order>>()
   const [lastDataOnList, setLastDataOnList] =
-    useState<FirebaseFirestore.QueryDocumentSnapshot<Order>>()
+    useState<firebase.default.firestore.QueryDocumentSnapshot<Order>>()
   const [isLastPage, setIsLastPage] = useState(false)
 
   useEffect(() => {
@@ -65,7 +65,7 @@ const OrdersPage = ({}) => {
     getCommunityOrders(community)
   }, [statusCode, community, limit])
 
-  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Order>[]) => {
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Order>[]) => {
     const newOrders: OrderData[] = docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -81,7 +81,7 @@ const OrdersPage = ({}) => {
   }
 
   const getCommunityOrders = async (community: CommunityData) => {
-    if (!community) return
+    if (!community || !community.id) return
     setLoading(true)
     const ordersRef = getOrders({
       community_id: community.id,
@@ -176,7 +176,7 @@ const OrdersPage = ({}) => {
               color="gray"
             />
           </div>
-        ) : !community ? (
+        ) : !community || !community.id ? (
           <h2 className="text-xl ml-5">Select a community first</h2>
         ) : (
           <div className="h-full w-full overflow-y-auto mb-10">

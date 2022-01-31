@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin'
-import { ProductCreateData, ProductUpdateData } from '../models/Product'
+import Product, { ProductCreateData, ProductUpdateData } from '../models/Product'
 import db from '../utils/db'
 
 const firestoreDb = admin.firestore()
@@ -169,7 +169,7 @@ export const unarchiveShopProducts = async (shop_id: string) => {
 }
 
 export const searchProducts = async ({ search, category, community_id }) => {
-  let ref: admin.firestore.Query<admin.firestore.DocumentData> = db.products
+  let ref: admin.firestore.Query<Product> = db.products
   if (search) ref = ref.where('keywords', 'array-contains', search)
   if (category) ref = ref.where('product_category', '==', category)
   if (community_id) ref = ref.where('community_id', '==', community_id)

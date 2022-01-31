@@ -6,17 +6,17 @@ type Activity = {
     likes_count?: number
   }
   archived: boolean
-  comments?: FirebaseFirestore.CollectionGroup<Comment>
+  comments?: firebase.default.firestore.CollectionReference<Comment>
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   images?: {
     url: string
     order: number
   }[]
-  likes?: FirebaseFirestore.CollectionGroup<Like>
+  likes?: firebase.default.firestore.CollectionReference<Like>
   message: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

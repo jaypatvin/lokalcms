@@ -446,7 +446,7 @@ const ShopCreateUpdateForm = ({
               {showStartCalendar && (
                 <ReactCalendar
                   className="w-72 absolute bottom-0 left-full z-20"
-                  onChange={(date: any) => onClickStartDate(date)}
+                  onChange={(date) => onClickStartDate(date as Date)}
                   value={startDates[0] || null}
                   tileDisabled={tileDisabled}
                   calendarType="US"
@@ -467,7 +467,7 @@ const ShopCreateUpdateForm = ({
               {showStartCalendar && (
                 <ReactCalendar
                   className="w-72 absolute bottom-0 left-full z-20"
-                  onChange={(date: any) => setStartDates([date])}
+                  onChange={(date) => setStartDates([date as Date])}
                   value={startDates[0]}
                   tileDisabled={tileDisabled}
                   calendarType="US"
@@ -508,7 +508,7 @@ const ShopCreateUpdateForm = ({
           {showCustomizeCalendar && (
             <ReactCalendar
               className="w-72 absolute bottom-0 left-full z-20"
-              onChange={(date: any) => onCustomizeDates(date)}
+              onChange={(date) => onCustomizeDates(date as Date)}
               tileClassName={getTileClass}
               calendarType="US"
               value={null}

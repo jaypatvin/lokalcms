@@ -6,7 +6,7 @@ export const getAllUserNotifications = async (id: string) => {
   return await db
     .getNotifications(`users/${id}/notifications`)
     .get()
-    .then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const createUserNotification = async (id: string, data: NotificationCreateData) => {
@@ -23,7 +23,7 @@ export const createUserNotification = async (id: string, data: NotificationCreat
     .then((res) => {
       return res.get()
     })
-    .then((doc): any => ({ id: doc.id, ...doc.data() }))
+    .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
 
 export const updateUserNotification = async (userId: string, notificationId: string, data: any) => {

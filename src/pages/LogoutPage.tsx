@@ -1,9 +1,8 @@
-import React from 'react'
 import { Redirect } from 'react-router-dom'
 
 import { useAuth } from '../contexts/AuthContext'
 
-const LogoutPage = (props: any) => {
+const LogoutPage = () => {
   const { currentUser, logout, setRedirect } = useAuth()
 
   if (currentUser) {

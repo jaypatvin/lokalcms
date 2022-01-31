@@ -80,7 +80,7 @@ const updateComment = async (req: Request, res: Response) => {
   const _user = await UsersService.getUserByID(requestorDocId)
   if (!_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
   // this should not happen, comment should also be archived
-  if (_user.status === 'archived')
+  if (_user.archived)
     return res.status(406).json({
       status: 'error',
       message: `User with id ${_user.id} is currently archived!`,

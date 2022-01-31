@@ -90,7 +90,7 @@ const InviteListPage = () => {
       sortable: true,
     },
   ]
-  const setupDataList = async (docs: FirebaseFirestore.QueryDocumentSnapshot<Invite>[]) => {
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Invite>[]) => {
     const newList: InviteData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]

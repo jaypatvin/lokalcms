@@ -33,8 +33,8 @@ type ShopData = Shop & {
 }
 type OrderData = Order & { id: string; buyer_email?: string; seller_email?: string }
 type LikeData = Like & { id: string; user_email?: string }
-type DataRefType = FirebaseFirestore.Query<Product | Order | Like | ProductSubscriptionPlan>
-type DataDocType = FirebaseFirestore.QueryDocumentSnapshot<
+type DataRefType = firebase.default.firestore.Query<Product | Order | Like | ProductSubscriptionPlan>
+type DataDocType = firebase.default.firestore.QueryDocumentSnapshot<
   Product | Order | Like | ProductSubscriptionPlan
 >
 

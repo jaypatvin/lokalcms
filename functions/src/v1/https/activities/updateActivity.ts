@@ -73,7 +73,7 @@ const updateActivity = async (req: Request, res: Response) => {
 
   if (!_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
   // this should not happen, activity should also be archived
-  if (_user.status === 'archived')
+  if (_user.archived)
     return res.status(406).json({
       status: 'error',
       message: `User with id ${data.user_id} is currently archived!`,

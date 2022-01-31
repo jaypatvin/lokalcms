@@ -1,20 +1,14 @@
-import React from 'react'
+import { Product } from '../../models'
 
+type ProductData = Product & { id: string; nextAvailable?: string; availableMessage?: string }
 type Props = {
-  product: any
+  product: ProductData
   unavailable?: boolean
 }
 
 const DiscoverProduct = ({ product, unavailable }: Props) => {
-  const {
-    name,
-    product_category,
-    quantity,
-    gallery,
-    description,
-    base_price,
-    availableMessage,
-  } = product
+  const { name, product_category, quantity, gallery, description, base_price, availableMessage } =
+    product
   return (
     <div className="w-80 p-3 shadow-lg m-3">
       <div className="w-full">
@@ -33,9 +27,7 @@ const DiscoverProduct = ({ product, unavailable }: Props) => {
       </p>
       <p>category: {product_category}</p>
       <p>{description}</p>
-      {
-        availableMessage ? <p>Availability: {availableMessage}</p> : ''
-      }
+      {availableMessage ? <p>Availability: {availableMessage}</p> : ''}
       <div className="flex justify-between">
         <p>Php{base_price}</p>
         <p>Quantity: {quantity}</p>

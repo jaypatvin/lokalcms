@@ -12,7 +12,7 @@ export const getBankCodeById = async (id) => {
   const bankCode = await db.bankCodes.doc(id).get()
 
   const data = bankCode.data()
-  if (data) return { id: bankCode.id, ...data } as any
+  if (data) return { id: bankCode.id, ...data }
   return null
 }
 

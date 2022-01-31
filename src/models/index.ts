@@ -9,6 +9,7 @@ import Product from './Product'
 import ProductSubscription from './ProductSubscription'
 import ProductSubscriptionPlan from './ProductSubscriptionPlan'
 import Shop from './Shop'
+import { HistoryLog } from './types'
 import User from './User'
 export * from './types'
 
@@ -18,6 +19,7 @@ export type DocumentType = (
   | Category
   | Chat
   | Community
+  | HistoryLog
   | Invite
   | Order
   | Product

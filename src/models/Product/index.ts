@@ -7,9 +7,9 @@ type Product = {
     wishlists_count?: number
     reviews_count?: number
   }
-  likes?: FirebaseFirestore.CollectionGroup<Like>
-  wishlists?: FirebaseFirestore.CollectionGroup<Wishlist>
-  reviews?: FirebaseFirestore.CollectionGroup<Review>
+  likes?: firebase.default.firestore.CollectionReference<Like>
+  wishlists?: firebase.default.firestore.CollectionReference<Wishlist>
+  reviews?: firebase.default.firestore.CollectionReference<Review>
   archived: boolean
   availability: {
     end_time: string
@@ -89,7 +89,7 @@ type Product = {
   base_price: number
   can_subscribe: boolean
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   description: string
   gallery?: {
     order: number
@@ -101,7 +101,7 @@ type Product = {
   quantity: number
   shop_id: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

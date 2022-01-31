@@ -60,7 +60,7 @@ const ShopOrdersTable = ({ data }: Props) => {
               return (
                 <tr key={d.id}>
                   <td>
-                    {d.products.slice(0, 2).map((product: any) => {
+                    {d.products.slice(0, 2).map((product) => {
                       const subTotalPrice = product.quantity * product.product_price
                       totalPrice += subTotalPrice
                       totalItems += product.quantity

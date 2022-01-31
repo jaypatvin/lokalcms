@@ -50,13 +50,13 @@ type UserData = User & {
   community_name?: string
 }
 export type ProductData = Product & { id: string; shop_name?: string }
-export type ProductLikeData = ProductData & { liked_at: FirebaseFirestore.Timestamp }
+export type ProductLikeData = ProductData & { liked_at: firebase.default.firestore.Timestamp }
 export type ActivityData = Activity & { id: string; owner_email?: string }
-export type ActivityLikeData = ActivityData & { liked_at: FirebaseFirestore.Timestamp }
-export type ShopLikeData = Shop & { id: string; liked_at: FirebaseFirestore.Timestamp }
+export type ActivityLikeData = ActivityData & { liked_at: firebase.default.firestore.Timestamp }
+export type ShopLikeData = Shop & { id: string; liked_at: firebase.default.firestore.Timestamp }
 export type OrderData = Order & { id: string; buyer_email?: string; seller_email?: string }
 export type ReviewData = Review & { id: string; product?: Product; shop?: Shop; order?: Order }
-type DataRefType = FirebaseFirestore.Query<
+type DataRefType = firebase.default.firestore.Query<
   | Activity
   | ApplicationLog
   | Product
@@ -67,7 +67,7 @@ type DataRefType = FirebaseFirestore.Query<
   | Wishlist
   | ProductSubscriptionPlan
 >
-type DataDocType = FirebaseFirestore.QueryDocumentSnapshot<
+type DataDocType = firebase.default.firestore.QueryDocumentSnapshot<
   | Activity
   | ApplicationLog
   | Product

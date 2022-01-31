@@ -56,6 +56,7 @@ const ListItem = ({
   if (!ListItemComponent) return null
   return (
     <ListItemComponent
+      // @ts-ignore
       data={data}
       openUpdate={openUpdate}
       onDelete={onDelete}

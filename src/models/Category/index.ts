@@ -1,13 +1,13 @@
 type Category = {
   archived: boolean
   cover_url: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   description: string
   icon_url: string
   keywords?: string[]
   name: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
 }

@@ -3,8 +3,8 @@ type Review = {
   message: string
   order_id: string
   product_id: string
-  created_at: FirebaseFirestore.Timestamp
-  updated_at?: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   rating: 1 | 2 | 3 | 4 | 5
 }
 

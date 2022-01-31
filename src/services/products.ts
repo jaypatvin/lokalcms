@@ -7,7 +7,7 @@ type GetProductsParamTypes = {
   sortBy?: ProductSortByType
   sortOrder?: SortOrderType
   limit?: number
-  community?: any
+  community?: string
 }
 
 export const fetchProductByID = async (id: string) => {

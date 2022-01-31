@@ -1,30 +1,58 @@
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
-import ReactCalendar from 'react-calendar'
+import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
 import Dropdown from '../../components/Dropdown'
 import { Checkbox, TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { useAuth } from '../../contexts/AuthContext'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { formatToPeso } from '../../utils/helper'
-import { DayKeyVal, DaysType } from '../../utils/types'
+import { DayKeyVal, DaysType, RepeatType } from '../../utils/types'
 import { API_URL } from '../../config/variables'
+import { Product, Shop, User } from '../../models'
 
 const days: DaysType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const defaultStartDate = new Date()
 defaultStartDate.setHours(0, 0, 0, 0)
 
+type ShopData = Shop & { id: string }
+type ProductData = Product & { id: string }
+type UserData = User & { id: string }
+type SubscriptionData = {
+  shop: {
+    id: string
+    name: string
+    image?: string
+  }
+  product: {
+    id: string
+    name: string
+    price: number
+    image?: string
+    quantity: number
+  }
+  quantity: number
+  instruction: string
+  plan: {
+    days: DaysType[]
+    start_dates: Date[]
+    repeat_unit: number
+    repeat_type: RepeatType
+    repeat_month_type: 'sameDay' | 'sameDate'
+  }
+}
+
 type Props = {
-  shop: any
-  product: any
+  shop: ShopData
+  product: ProductData
   isOpen: boolean
   setIsOpen: (val: boolean) => void
-  user?: any
+  user?: UserData
 }
 
 const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }: Props) => {
   const { firebaseToken } = useAuth()
-  const [subscriptionData, setSubscriptionData] = useState<any>()
+  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>()
   const [showStartCalendar, setShowStartCalendar] = useState(false)
   const startCalendarRef = useOuterClick(() => setShowStartCalendar(false))
 
@@ -33,7 +61,7 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
       id: product.id,
       name: product.name,
       price: product.base_price,
-      image: product.gallery ? product.gallery[0].url : null,
+      image: product.gallery?.[0].url,
       quantity: 0,
     }
     const subscriptionShop = {
@@ -56,14 +84,15 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
     })
   }, [])
 
-  const tileDisabled = ({ date }: any) => {
-    if (subscriptionData.plan.repeat_type === 'week') {
+  const tileDisabled = ({ date }: CalendarTileProperties) => {
+    if (subscriptionData && subscriptionData.plan.repeat_type === 'week') {
       return !subscriptionData.plan.days.includes(DayKeyVal[date.getDay()])
     }
     return false
   }
 
   const onClickStartDate = (date: Date) => {
+    if (!subscriptionData) return
     if (subscriptionData.plan.repeat_type === 'day') {
       setSubscriptionData({
         ...subscriptionData,
@@ -92,6 +121,7 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
   }
 
   const onSaveSubscribe = async () => {
+    if (!subscriptionData) return
     const { shop, product, quantity, instruction, plan } = subscriptionData
     const { start_dates, repeat_unit, repeat_type: repeatType, repeat_month_type } = plan
     let repeat_type = repeatType
@@ -100,7 +130,7 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
       const firstDateDay = DayKeyVal[firstDate.getDay()]
       const firstDateNumToCheck = dayjs(firstDate).date()
       const firstDateNthWeek = Math.ceil(firstDateNumToCheck / 7)
-      repeat_type = `${firstDateNthWeek}-${firstDateDay}`
+      repeat_type = `${firstDateNthWeek}-${firstDateDay}` as RepeatType
     }
     const normalizedData = {
       product_id: product.id,
@@ -118,15 +148,16 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/productSubscriptionPlans`
       let method = 'POST'
-      let res: any = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method,
-        body: JSON.stringify(normalizedData),
-      })
-      res = await res.json()
+      let res = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify(normalizedData),
+        })
+      ).json()
       console.log('res', res)
     } else {
       console.error('environment variable for the api does not exist.')
@@ -219,12 +250,12 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
             <Dropdown
               className="ml-2 z-10"
               simpleOptions={['day', 'week', 'month']}
-              onSelect={(option: any) => {
+              onSelect={(option) => {
                 setSubscriptionData({
                   ...subscriptionData,
                   plan: {
                     ...subscriptionData.plan,
-                    repeat_type: option.value,
+                    repeat_type: option.value as RepeatType,
                     start_dates: [defaultStartDate],
                   },
                 })
@@ -280,7 +311,7 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
                 {showStartCalendar && (
                   <ReactCalendar
                     className="w-72 absolute bottom-full left-0 z-20"
-                    onChange={(date: any) => onClickStartDate(date)}
+                    onChange={(date) => onClickStartDate(date as Date)}
                     value={subscriptionData.plan.start_dates[0] || null}
                     tileDisabled={tileDisabled}
                     calendarType="US"
@@ -301,12 +332,12 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
                 {showStartCalendar && (
                   <ReactCalendar
                     className="w-72 absolute bottom-full left-0 z-20"
-                    onChange={(date: any) => {
+                    onChange={(date) => {
                       setSubscriptionData({
                         ...subscriptionData,
                         plan: {
                           ...subscriptionData.plan,
-                          start_dates: [date],
+                          start_dates: [date as Date],
                         },
                       })
                     }}

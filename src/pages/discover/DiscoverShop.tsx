@@ -1,17 +1,14 @@
 import React from 'react'
+import { Shop } from '../../models'
 
+type ShopData = Shop & { id: string; nextAvailable?: string; availableMessage?: string }
 type Props = {
-  shop: any
+  shop: ShopData
   unavailable?: boolean
 }
 
 const DiscoverShop = ({ shop, unavailable }: Props) => {
-  const {
-    name,
-    profile_photo,
-    description,
-    availableMessage,
-  } = shop
+  const { name, profile_photo, description, availableMessage } = shop
   return (
     <div className="w-80 p-3 shadow-lg m-3">
       <div className="w-full">
@@ -29,9 +26,7 @@ const DiscoverShop = ({ shop, unavailable }: Props) => {
         <strong>{name}</strong>
       </p>
       <p>{description}</p>
-      {
-        availableMessage ? <p>Availability: {availableMessage}</p> : ''
-      }
+      {availableMessage ? <p>Availability: {availableMessage}</p> : ''}
     </div>
   )
 }

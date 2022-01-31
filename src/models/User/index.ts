@@ -25,16 +25,16 @@ type User = {
   chat_settings?: {
     show_read_receipts?: boolean
   }
-  community: FirebaseFirestore.DocumentReference<Community>
+  community: firebase.default.firestore.DocumentReference<Community>
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: firebase.default.firestore.Timestamp
   display_name: string
   email: string
   first_name: string
   id?: string
   keywords: string[]
   last_name: string
-  notifications?: FirebaseFirestore.CollectionGroup<Notification>
+  notifications?: firebase.default.firestore.CollectionReference<Notification>
   notification_settings?: {
     likes?: boolean
     comments?: boolean
@@ -58,7 +58,7 @@ type User = {
     editor?: boolean
   }
   status: 'active' | 'suspended' | 'pending' | 'locked'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: firebase.default.firestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_uids: string[]
