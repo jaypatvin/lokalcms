@@ -208,13 +208,13 @@ const createProduct = async (req: Request, res: Response) => {
     })
   }
 
-  // const roles = res.locals.userRoles
-  // if (!roles.editor && requestorDocId !== shop.user_id) {
-  //   return res.status(403).json({
-  //     status: 'error',
-  //     message: 'You do not have a permission to create a product for another user.',
-  //   })
-  // }
+  const roles = res.locals.userRoles
+  if (!roles.editor && requestorDocId !== shop.user_id) {
+    return res.status(403).json({
+      status: 'error',
+      message: 'You do not have a permission to create a product for another user.',
+    })
+  }
 
   // get community from shop.communityID and validate
   const community = await CommunityService.getCommunityByID(shop.community_id)
@@ -243,7 +243,7 @@ const createProduct = async (req: Request, res: Response) => {
 
   let gallery
   if (data.gallery) {
-    const validation = validateImages(data.images)
+    const validation = validateImages(data.gallery)
     if (!validation.valid) {
       return res.status(400).json({
         status: 'error',
