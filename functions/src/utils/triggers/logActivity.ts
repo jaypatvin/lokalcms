@@ -1,18 +1,18 @@
 import * as admin from 'firebase-admin'
 import { Change } from 'firebase-functions'
 import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
+import { HistoryLog } from '../../models'
+import { db } from '../db'
 import { generateHistoryKeywords } from '../generators'
-
-const db = admin.firestore()
 
 const logActivity = async (change: Change<DocumentSnapshot>) => {
   const isCreate = !change.before.exists && change.after.exists
   const isUpdate = change.before.exists && change.after.exists
   const isDelete = change.before.exists && !change.after.exists
 
-  const collection_name = change.after.exists
-    ? change.after.ref.parent.path
-    : change.before.ref.parent.path
+  const collection_name = (
+    change.after.exists ? change.after.ref.parent.path : change.before.ref.parent.path
+  ) as HistoryLog['collection_name']
   const document_id = change.after.exists ? change.after.id : change.before.id
   const beforeData: any = change.before.data()
   const afterData: any = change.after.data()
@@ -29,13 +29,13 @@ const logActivity = async (change: Change<DocumentSnapshot>) => {
     document_id,
     community_id,
   })
-  const history: any = {
+  const history: HistoryLog = {
     actor_id,
     source,
     community_id,
     collection_name,
     document_id,
-    created_at: new Date(),
+    created_at: admin.firestore.Timestamp.now(),
     keywords,
   }
   if (beforeData) {
@@ -59,7 +59,7 @@ const logActivity = async (change: Change<DocumentSnapshot>) => {
     history.before = data
   }
 
-  return db.collection('history_logs').add(history)
+  return db.historyLogs.add(history)
 }
 
 export default logActivity

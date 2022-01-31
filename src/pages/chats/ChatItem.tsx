@@ -1,15 +1,17 @@
-import React from 'react'
 import dayjs from 'dayjs'
+import { Chat } from '../../models'
 
+type MembersInfo = { [x: string]: { name: string } }
+type ChatData = Chat & { id: string; membersInfo: MembersInfo }
 type Props = {
-  chat: any
+  chat: ChatData
   activeChat?: string
-  onClick: (chat: any) => void
+  onClick: (chat: ChatData) => void
 }
 
 const ChatItem = ({ chat, activeChat, onClick }: Props) => {
-  const last_message_at = dayjs(chat.last_message.created_at.toDate()).format()
-  const last_message_at_ago = dayjs(last_message_at).fromNow()
+  const lastMessage = dayjs(chat.last_message.created_at.toDate()).format()
+  const lastMessageAgo = dayjs(lastMessage).fromNow()
   return (
     <div
       key={chat.id}
@@ -20,7 +22,7 @@ const ChatItem = ({ chat, activeChat, onClick }: Props) => {
     >
       <h3 className="text-md pr-36 font-bold">{chat.title}</h3>
       <p className="pl-2 text-secondary-600">{`${chat.last_message.sender}: ${chat.last_message.content}`}</p>
-      <span className="absolute right-2 top-2">{last_message_at_ago}</span>
+      <span className="absolute right-2 top-2">{lastMessageAgo}</span>
     </div>
   )
 }

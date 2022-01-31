@@ -1,4 +1,4 @@
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetChatsParamTypes = {
   userId: string
@@ -14,7 +14,7 @@ type GetChatConversationParamTypes = {
 
 export const getChats = ({ userId, limit = 10, order = 'desc' }: GetChatsParamTypes) => {
   return db
-    .collection('chats')
+    .chats
     .where('members', 'array-contains', userId)
     .orderBy('last_message.created_at', order)
     .limit(limit)
@@ -26,9 +26,7 @@ export const getChatConversation = ({
   limit = 10,
 }: GetChatConversationParamTypes) => {
   return db
-    .collection('chats')
-    .doc(chatId)
-    .collection('conversation')
+    .getChatConversations(`chats/${chatId}/conversation`)
     .where('archived', '==', false)
     .orderBy('created_at', order)
     .limit(limit)

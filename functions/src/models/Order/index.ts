@@ -38,6 +38,7 @@ type Order = {
   updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
+  cancellation_reason?: string
   decline_reason?: string
   product_subscription_id?: string
   product_subscription_date?: string

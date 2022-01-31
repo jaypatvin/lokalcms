@@ -1,6 +1,6 @@
 import React from 'react'
 
-const ShopEditPage = (props: any) => {
+const ShopEditPage = () => {
   return (
     <div>
       <h3>Shop Edit</h3>

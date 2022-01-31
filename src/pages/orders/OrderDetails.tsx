@@ -9,16 +9,25 @@ import Modal, { TextModal } from '../../components/modals'
 import { formatToPeso } from '../../utils/helper'
 import { Checkbox } from '../../components/inputs'
 import { storage } from '../../services/firebase'
+import { OrderData, OrderStatusMap } from './OrdersPage'
 
 type Props = {
-  order: any
-  orderStatusMap: any
+  order: OrderData
+  orderStatusMap: OrderStatusMap
 }
 
 type ProofOfPayment = {
   url?: string
   file: File
   preview: string
+}
+
+type ProgressData = {
+  buyer_id?: string
+  seller_id?: string
+  payment_method?: 'cod' | 'bank'
+  proof_of_payment?: string
+  reason?: string
 }
 
 const OrderDetails = ({ order, orderStatusMap }: Props) => {
@@ -36,7 +45,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
-  const statusCodeAPI: any = {
+  const statusCodeAPI: { [x: number]: string } = {
     10: 'cancel',
     20: 'decline',
     100: 'confirm',
@@ -46,7 +55,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
     500: 'receive',
   }
 
-  const statusCodeAction: any = {
+  const statusCodeAction: { [x: number]: string } = {
     100: 'Confirm',
     200: 'Pay',
     300: 'Confirm Payment',
@@ -54,11 +63,11 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
     500: 'Receive',
   }
 
-  const callApiProgress = async (order: any, data: any = {}, method?: string) => {
+  const callApiProgress = async (order: OrderData, data: ProgressData = {}, method?: string) => {
     let res = null
     setLoading(true)
     if (API_URL && firebaseToken) {
-      const statusCode = parseInt(order.status_code)
+      const statusCode = parseInt(order.status_code as string)
       const apiMethod = method || statusCodeAPI[statusCode]
       let url = `${API_URL}/orders/${order.id}/${apiMethod}`
       try {
@@ -88,7 +97,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
   }
 
   const onProgress = async () => {
-    switch (parseInt(order.status_code)) {
+    switch (parseInt(order.status_code as string)) {
       case 100: // Waiting for Confirmation
         await callApiProgress(order, { seller_id: order.seller_id })
         break
@@ -113,7 +122,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
   }
 
   const payOrder = async () => {
-    const data: any = { buyer_id: order.buyer_id }
+    const data = { buyer_id: order.buyer_id, proof_of_payment: '', payment_method: paymentMethod }
     if (paymentMethod !== 'cod') {
       if (!proofOfPayment) return
       try {
@@ -127,18 +136,17 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
         return
       }
     }
-    data.payment_method = paymentMethod
     await callApiProgress(order, data)
   }
 
   const cancelOrder = async (reason: string) => {
-    const data: any = { buyer_id: order.buyer_id }
+    const data: ProgressData = { buyer_id: order.buyer_id }
     if (reason) data.reason = reason
     await callApiProgress(order, data, 'cancel')
   }
 
   const declineOrder = async (reason: string) => {
-    const data: any = { seller_id: order.seller_id }
+    const data: ProgressData = { seller_id: order.seller_id }
     if (reason) data.reason = reason
     await callApiProgress(order, data, 'decline')
   }
@@ -152,8 +160,10 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
     setProofOfPayment(newProofOfPayment)
   }
 
-  const canChangeStatus = parseInt(order.status_code) < 600 && parseInt(order.status_code) >= 100
-  const canCancelOrDecline = parseInt(order.status_code) < 400 && parseInt(order.status_code) >= 100
+  const canChangeStatus =
+    parseInt(order.status_code as string) < 600 && parseInt(order.status_code as string) >= 100
+  const canCancelOrDecline =
+    parseInt(order.status_code as string) < 400 && parseInt(order.status_code as string) >= 100
 
   return (
     <>
@@ -212,7 +222,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
                 }}
                 className="block w-full p-2 hover:bg-primary-400 hover:text-white"
               >
-                {statusCodeAction[order.status_code]}
+                {statusCodeAction[order.status_code as number]}
               </button>
               {canCancelOrDecline && (
                 <>
@@ -270,7 +280,7 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
           )}
         </div>
         <div className="w-1/4">
-          {order.products.map((product: any) => {
+          {order.products.map((product) => {
             const subTotalPrice = product.quantity * product.product_price
             totalPrice += subTotalPrice
             totalItems += product.quantity
@@ -289,7 +299,9 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
                     )}
                   </div>
                   <p>
-                    {`${product.product_name} (${product.quantity}) = ${formatToPeso(subTotalPrice)}`}{' '}
+                    {`${product.product_name} (${product.quantity}) = ${formatToPeso(
+                      subTotalPrice
+                    )}`}{' '}
                     {product.instruction ? (
                       <span className="block">
                         <i>Instruction: {product.instruction}</i>

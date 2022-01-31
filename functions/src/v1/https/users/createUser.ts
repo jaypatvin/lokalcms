@@ -195,12 +195,7 @@ const createUser = async (req: Request, res: Response) => {
   const _newUser = await UsersService.createUser(_newData)
 
   // get the created user's data
-  let _result = await _newUser.get().then((doc) => {
-    return doc.data()
-  })
-
-  // add the user document id
-  _result.id = _newUser.id
+  const _result = await _newUser.get().then((doc) => ({ ...doc.data(), id: doc.id }))
 
   return res.json({ status: 'ok', data: _result })
 }

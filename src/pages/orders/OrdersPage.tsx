@@ -8,29 +8,45 @@ import { fetchUserByID } from '../../services/users'
 import { LimitType } from '../../utils/types'
 import OrderDetails from './OrderDetails'
 import { useCommunity } from '../../components/BasePage'
+import { Community, Order, OrderStatus } from '../../models'
+
+export type OrderData = Order & {
+  id: string
+  buyer_email?: string
+}
+export type OrderStatusMap = {
+  [x: string]: OrderStatus
+}
+type StatusKeyLabel = {
+  key: string
+  label: string
+}
+type CommunityData = Community & { id: string }
 
 const OrdersPage = ({}) => {
   const community = useCommunity()
 
-  const [orders, setOrders] = useState<any[]>([])
+  const [orders, setOrders] = useState<OrderData[]>([])
   const [ordersSnapshot, setOrdersSnapshot] = useState<{ unsubscribe: () => void }>()
   const [loading, setLoading] = useState(false)
-  const [orderStatusMap, setOrderStatusMap] = useState<any>({})
-  const [orderStatuses, setOrderStatuses] = useState<any[]>([])
+  const [orderStatusMap, setOrderStatusMap] = useState<OrderStatusMap>({})
+  const [orderStatuses, setOrderStatuses] = useState<StatusKeyLabel[]>([])
 
   const [statusCode, setStatusCode] = useState<number>()
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
-  const [dataRef, setDataRef] = useState<any>()
-  const [firstDataOnList, setFirstDataOnList] = useState<any>()
-  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Order>>()
+  const [firstDataOnList, setFirstDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<Order>>()
+  const [lastDataOnList, setLastDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<Order>>()
   const [isLastPage, setIsLastPage] = useState(false)
 
   useEffect(() => {
     getOrderStatuses()
       .get()
       .then((statuses) => {
-        const allStatusMap = statuses.docs.reduce<any>((obj, doc) => {
+        const allStatusMap = statuses.docs.reduce<{ [x: string]: OrderStatus }>((obj, doc) => {
           obj[doc.id] = doc.data()
           return obj
         }, {})
@@ -49,8 +65,8 @@ const OrdersPage = ({}) => {
     getCommunityOrders(community)
   }, [statusCode, community, limit])
 
-  const setupDataList = async (docs: any) => {
-    const newOrders = docs.map((doc: any): any => ({
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Order>[]) => {
+    const newOrders: OrderData[] = docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }))
@@ -64,8 +80,8 @@ const OrdersPage = ({}) => {
     setLoading(false)
   }
 
-  const getCommunityOrders = async (community: any) => {
-    if (!community) return
+  const getCommunityOrders = async (community: CommunityData) => {
+    if (!community || !community.id) return
     setLoading(true)
     const ordersRef = getOrders({
       community_id: community.id,
@@ -86,7 +102,7 @@ const OrdersPage = ({}) => {
     if (dataRef && lastDataOnList && !isLastPage) {
       setLoading(true)
       const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         if (snapshot.docs.length) {
           setupDataList(snapshot.docs)
           setPageNum(pageNum + 1)
@@ -103,7 +119,7 @@ const OrdersPage = ({}) => {
     if (dataRef && firstDataOnList && newPageNum > 0) {
       setLoading(true)
       const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         setupDataList(snapshot.docs)
       })
     }
@@ -120,8 +136,8 @@ const OrdersPage = ({}) => {
           className="ml-2 z-10"
           options={orderStatuses}
           size="small"
-          onSelect={(option: any) => setStatusCode(parseInt(option.key))}
-          currentValue={statusCode ? orderStatusMap[statusCode].buyer_status : null}
+          onSelect={(option) => setStatusCode(parseInt(option.key as string))}
+          currentValue={statusCode ? orderStatusMap[statusCode].buyer_status : undefined}
           showLabel
         />
         <div className="flex justify-between align-middle ml-4">
@@ -131,7 +147,7 @@ const OrdersPage = ({}) => {
               className="ml-1 z-10"
               simpleOptions={[10, 25, 50, 100]}
               size="small"
-              onSelect={(option: any) => setLimit(option.value)}
+              onSelect={(option) => setLimit(option.value as LimitType)}
               currentValue={limit}
             />
           </div>
@@ -160,7 +176,7 @@ const OrdersPage = ({}) => {
               color="gray"
             />
           </div>
-        ) : !community ? (
+        ) : !community || !community.id ? (
           <h2 className="text-xl ml-5">Select a community first</h2>
         ) : (
           <div className="h-full w-full overflow-y-auto mb-10">

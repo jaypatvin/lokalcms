@@ -1,9 +1,10 @@
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { ProductSubscriptionPlan } from '../../models'
 import ShopSubscriptionPlansTableItem from './ShopSubscriptionPlansTableItem'
 
 type Props = {
-  data: any
+  data: (ProductSubscriptionPlan & { id: string; buyer_email?: string; seller_email?: string })[]
 }
 
 const ShopSubscriptionPlansTable = ({ data }: Props) => {
@@ -51,7 +52,7 @@ const ShopSubscriptionPlansTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => (
+            {data.map((d) => (
               <ShopSubscriptionPlansTableItem data={d} key={d.id} />
             ))}
           </tbody>

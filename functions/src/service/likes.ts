@@ -2,12 +2,10 @@ import * as admin from 'firebase-admin'
 import { LikeCreateData } from '../models/Like'
 import db from '../utils/db'
 
-const firebaseDb = admin.firestore()
-
 export const getLikesByUser = async (user_id: string, entity_name?: string) => {
-  let result = firebaseDb.collectionGroup('likes').where('user_id', '==', user_id)
+  let result = db.likes.where('user_id', '==', user_id)
   if (entity_name) result = result.where('parent_collection_name', '==', entity_name)
-  return result.get().then((res) => res.docs.map((doc): any => ({ id: doc.id, ...doc.data() })))
+  return result.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
 }
 
 export const getProductLike = async (product_id: string, user_id: string) => {

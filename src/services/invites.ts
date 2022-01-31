@@ -1,5 +1,5 @@
 import { SortOrderType, InviteSortByType, InviteFilterType } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetInvitesParamTypes = {
   search?: string
@@ -11,8 +11,7 @@ type GetInvitesParamTypes = {
 }
 
 export const getInvitesByCommunity = (community_id: string, limit = 10) => {
-  return db
-    .collection('invites')
+  return db.invites
     .where('community_id', '==', community_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
@@ -26,7 +25,7 @@ export const getInvites = ({
   limit = 10,
   community,
 }: GetInvitesParamTypes) => {
-  let ref = db.collection('invites').where('keywords', 'array-contains', search.toLowerCase())
+  let ref = db.invites.where('keywords', 'array-contains', search.toLowerCase())
 
   if (community) {
     ref = ref.where('community_id', '==', community)

@@ -8,10 +8,17 @@ import {
   SortOrderType,
 } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
-import { communityHaveMembers, getCommunities, getCommunityMeta } from '../../services/community'
+import { communityHaveMembers, getCommunities } from '../../services/community'
 import { fetchUserByID } from '../../services/users'
+import { Community, DocumentType, User } from '../../models'
 
-const CommunityListPage = (props: any) => {
+type CommunityData = Community & {
+  id: string
+  haveMembers?: boolean
+  admins: User[]
+}
+
+const CommunityListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<CommunityFilterType>('all')
   const [sortBy, setSortBy] = useState<CommunitySortByType>('name')
@@ -68,28 +75,27 @@ const CommunityListPage = (props: any) => {
       sortable: true,
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
-    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Community>[]) => {
+    const newList: CommunityData[] = docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      admins: [],
+    }))
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]
       data.haveMembers = await communityHaveMembers(data.id)
-      data.meta = await getCommunityMeta(data.id)
-      const admins = []
       if (data.admin && data.admin.length) {
         for (let i = 0; i < data.admin.length; i++) {
           const adminId = data.admin[i]
           const admin = await fetchUserByID(adminId)
           const adminData = admin.data()
-          if (adminData) admins.push(adminData)
+          if (adminData) data.admins.push(adminData)
         }
       }
-      data.admins = admins
     }
     return newList
   }
-  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+  const normalizeData = (data: Community & { id: string }) => {
     return {
       id: data.id,
       name: data.name,
@@ -100,8 +106,8 @@ const CommunityListPage = (props: any) => {
     }
   }
 
-  const onArchive = async (data: any) => {
-    let res: any
+  const onArchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       const { id } = data
       let url = `${API_URL}/community/${id}`
@@ -119,8 +125,8 @@ const CommunityListPage = (props: any) => {
     return res
   }
 
-  const onUnarchive = async (data: any) => {
-    let res: any
+  const onUnarchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/community/${data.id}/unarchive`
       res = await fetch(url, {

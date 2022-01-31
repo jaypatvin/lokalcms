@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { ActivityLikeData } from './ProfilePage'
 
 type Props = {
-  data: any
+  data: ActivityLikeData[]
 }
 
 const UserActivityLikesTable = ({ data }: Props) => {
@@ -51,12 +52,12 @@ const UserActivityLikesTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const liked_at = d.liked_at ? dayjs(d.liked_at.toDate()).fromNow() : '-'
               return (
                 <tr key={d.id}>
                   <td>
-                    <img src={d.gallery[0].url} alt={d.name} className="max-w-16 max-h-16" />
+                    <img src={d.images?.[0].url} alt={d.message} className="max-w-16 max-h-16" />
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.owner_email}</p>

@@ -28,10 +28,56 @@ import UserSubscriptionPlansTable from './UserSubscriptionPlansTable'
 import { getReviewsByUser } from '../../services/reviews'
 import { getWishlistsByUser } from '../../services/wishlists'
 import UserReviewsTable from './UserReviewsTable'
+import {
+  Activity,
+  ApplicationLog,
+  Like,
+  Order,
+  Product,
+  ProductSubscriptionPlan,
+  Review,
+  Shop,
+  User,
+  Wishlist,
+} from '../../models'
 
 type Props = {
   [x: string]: any
 }
+
+type UserData = User & {
+  id: string
+  community_name?: string
+}
+export type ProductData = Product & { id: string; shop_name?: string }
+export type ProductLikeData = ProductData & { liked_at: firebase.default.firestore.Timestamp }
+export type ActivityData = Activity & { id: string; owner_email?: string }
+export type ActivityLikeData = ActivityData & { liked_at: firebase.default.firestore.Timestamp }
+export type ShopLikeData = Shop & { id: string; liked_at: firebase.default.firestore.Timestamp }
+export type OrderData = Order & { id: string; buyer_email?: string; seller_email?: string }
+export type ReviewData = Review & { id: string; product?: Product; shop?: Shop; order?: Order }
+type DataRefType = firebase.default.firestore.Query<
+  | Activity
+  | ApplicationLog
+  | Product
+  | Shop
+  | Order
+  | Like
+  | Review
+  | Wishlist
+  | ProductSubscriptionPlan
+>
+type DataDocType = firebase.default.firestore.QueryDocumentSnapshot<
+  | Activity
+  | ApplicationLog
+  | Product
+  | Shop
+  | Order
+  | Like
+  | Review
+  | Wishlist
+  | ProductSubscriptionPlan
+>
 
 type DataType =
   | 'activities'
@@ -49,16 +95,16 @@ type DataType =
   | 'wishlist'
 
 const ProfilePage = ({ match }: Props) => {
-  const [user, setUser] = useState<any>({})
+  const [user, setUser] = useState<UserData>()
   const [dataToShow, setDataToShow] = useState<DataType>('products')
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
 
-  const [dataRef, setDataRef] = useState<any>()
-  const [firstDataOnList, setFirstDataOnList] = useState<any>()
-  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [dataRef, setDataRef] = useState<DataRefType>()
+  const [firstDataOnList, setFirstDataOnList] = useState<DataDocType>()
+  const [lastDataOnList, setLastDataOnList] = useState<DataDocType>()
   const [isLastPage, setIsLastPage] = useState(false)
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
 
@@ -130,41 +176,24 @@ const ProfilePage = ({ match }: Props) => {
     },
   ]
 
-  const normalizeUserData = (data: any) => {
-    const createdAt = dayjs(data.created_at.toDate()).format()
-    const createdAtAgo = dayjs(createdAt).fromNow()
-    return {
-      status: data.status,
-      email: data.email,
-      firstName: data.first_name,
-      lastName: data.last_name,
-      displayName: data.display_name,
-      communityName: data.community_name,
-      profilePhoto: data.profile_photo,
-      street: data.address.street,
-      isAdmin: data.roles.admin,
-      createdAtAgo,
-    }
-  }
-
   const fetchUser = async (id: string) => {
     const userRef = await fetchUserByID(id)
-    let userData = userRef.data()
-    if (userData) {
+    const userRefData = userRef.data()
+    if (userRefData) {
+      const userData = { ...userRefData, id: userRef.id, community_name: '' }
       const community = await userData.community.get()
       const communityData = community.data()
       if (communityData) {
         userData.community_name = communityData.name
       }
-      userData = { ...normalizeUserData(userData), id }
       setUser(userData)
     }
   }
 
   const fetchData = async (dataName: DataType) => {
     setLoading(true)
-    const userId = user.id || match.params.id
-    let newDataRef: any
+    const userId = user?.id || match.params.id
+    let newDataRef: DataRefType | undefined
     if (dataName === 'products') {
       newDataRef = getProductsByUser(userId, limit)
     } else if (dataName === 'shops') {
@@ -193,13 +222,15 @@ const ProfilePage = ({ match }: Props) => {
       newDataRef = getWishlistsByUser({ userId, limit })
     }
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = newDataRef.onSnapshot(async (snapshot: any) => {
-      setupDataList(snapshot.docs)
-    })
-    setSnapshot({ unsubscribe: newUnsubscribe })
-    setDataRef(newDataRef)
-    setPageNum(1)
-    setIsLastPage(false)
+    if (newDataRef) {
+      const newUnsubscribe = newDataRef.onSnapshot(async (snapshot) => {
+        setupDataList(snapshot.docs)
+      })
+      setSnapshot({ unsubscribe: newUnsubscribe })
+      setDataRef(newDataRef)
+      setPageNum(1)
+      setIsLastPage(false)
+    }
   }
 
   const setupData = async () => {
@@ -218,16 +249,19 @@ const ProfilePage = ({ match }: Props) => {
   }, [match.params])
 
   useEffect(() => {
-    if (user.id) {
+    if (user?.id) {
       fetchData(dataToShow)
     }
   }, [dataToShow, limit])
 
-  const setupDataList = async (docs: any) => {
-    let newData = docs.map((doc: any) => ({ ...doc.data(), id: doc.id }))
+  const setupDataList = async (docs: DataDocType[]) => {
+    let newData = docs.map((doc) => ({
+      ...doc.data(),
+      id: doc.id,
+    }))
     if (dataToShow === 'products') {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as ProductData
         const shop = await fetchShopByID(data.shop_id)
         const shopData = shop.data()
         if (shopData) {
@@ -235,46 +269,52 @@ const ProfilePage = ({ match }: Props) => {
         }
       }
     } else if (dataToShow === 'liked_products') {
-      const extractedData = []
+      const extractedData: ProductLikeData[] = []
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
-        const product = await fetchProductByID(data.product_id)
+        const data = newData[i] as Like
+        const product = await fetchProductByID(data.product_id!)
         const productData = product.data()
         if (productData) {
           const shop = await fetchShopByID(productData.shop_id)
           const shopData = shop.data()
           if (shopData) {
-            productData.shop_name = shopData.name
+            extractedData.push({
+              ...productData,
+              shop_name: shopData.name,
+              liked_at: data.created_at,
+              id: data.product_id!,
+            })
           }
         }
-        extractedData.push({ ...productData, liked_at: data.created_at })
       }
       newData = extractedData
     } else if (dataToShow === 'liked_shops') {
-      const extractedData = []
+      const extractedData: ShopLikeData[] = []
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
-        const shop = await fetchShopByID(data.shop_id)
+        const data = newData[i] as Like
+        const shop = await fetchShopByID(data.shop_id!)
         const shopData = shop.data()
         if (shopData) {
-          extractedData.push({ ...shopData, liked_at: data.created_at })
+          extractedData.push({ ...shopData, liked_at: data.created_at, id: data.shop_id! })
         }
       }
       newData = extractedData
     } else if (dataToShow === 'liked_activities') {
-      const extractedData = []
+      const extractedData: ActivityLikeData[] = []
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
-        const activity = await fetchActivityByID(data.activity_id)
+        const data = newData[i] as Like
+        const activity = await fetchActivityByID(data.activity_id!)
         const activityData = activity.data()
         if (activityData) {
           const user = await fetchUserByID(activityData.user_id)
           const userData = user.data()
-          if (userData) {
-            activityData.owner_email = userData.email
-          }
+          extractedData.push({
+            ...activityData,
+            liked_at: data.created_at,
+            owner_email: userData?.email ?? 'unknown',
+            id: data.activity_id!,
+          })
         }
-        extractedData.push({ ...activityData, liked_at: data.created_at })
       }
       newData = extractedData
     } else if (
@@ -282,7 +322,7 @@ const ProfilePage = ({ match }: Props) => {
       dataToShow === 'product_subscription_plans_seller'
     ) {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as OrderData
         const buyer = await fetchUserByID(data.buyer_id)
         const buyerData = buyer.data()
         if (buyerData) {
@@ -291,7 +331,7 @@ const ProfilePage = ({ match }: Props) => {
       }
     } else if (dataToShow === 'orders_buyer' || dataToShow === 'product_subscription_plans_buyer') {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as OrderData
         const seller = await fetchUserByID(data.seller_id)
         const sellerData = seller.data()
         if (sellerData) {
@@ -300,37 +340,43 @@ const ProfilePage = ({ match }: Props) => {
       }
     } else if (dataToShow === 'reviews') {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as ReviewData
         const product = await fetchProductByID(data.product_id)
         const productData = product.data()
         if (productData) {
           data.product = productData
-        }
-        const shop = await fetchShopByID(data.product.shop_id)
-        const shopData = shop.data()
-        if (shopData) {
-          data.shop = shopData
-        }
-        const order = await fetchOrderByID(data.order_id)
-        const orderData = order.data()
-        if (orderData) {
-          data.order = orderData
+          const shop = await fetchShopByID(data.product.shop_id)
+          const shopData = shop.data()
+          if (shopData) {
+            data.shop = shopData
+            const order = await fetchOrderByID(data.order_id)
+            const orderData = order.data()
+            if (orderData) {
+              data.order = orderData
+            }
+          }
         }
       }
     } else if (dataToShow === 'wishlist') {
+      const extractedData: ProductData[] = []
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as Wishlist
         const product = await fetchProductByID(data.product_id)
         const productData = product.data()
         if (productData) {
-          newData[i] = { ...productData, created_at: data.created_at }
-        }
-        const shop = await fetchShopByID(data.shop_id)
-        const shopData = shop.data()
-        if (shopData) {
-          newData[i].shop_name = shopData.name
+          const shop = await fetchShopByID(data.shop_id)
+          const shopData = shop.data()
+          if (shopData) {
+            extractedData.push({
+              ...productData,
+              shop_name: shopData.name,
+              created_at: data.created_at,
+              id: data.product_id,
+            })
+          }
         }
       }
+      newData = extractedData
     }
     setData(newData)
     setLoading(false)
@@ -341,7 +387,7 @@ const ProfilePage = ({ match }: Props) => {
   const onNextPage = () => {
     if (dataRef && lastDataOnList && !isLastPage) {
       const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         if (snapshot.docs.length) {
           setupDataList(snapshot.docs)
           setPageNum(pageNum + 1)
@@ -356,7 +402,7 @@ const ProfilePage = ({ match }: Props) => {
     const newPageNum = pageNum - 1
     if (dataRef && firstDataOnList && newPageNum > 0) {
       const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         setupDataList(snapshot.docs)
       })
     }
@@ -364,15 +410,17 @@ const ProfilePage = ({ match }: Props) => {
     setPageNum(Math.max(1, newPageNum))
   }
 
+  if (!user) return null
+
   return (
     <div className="">
-      <h2 className="text-2xl font-semibold leading-tight">{user.displayName}</h2>
+      <h2 className="text-2xl font-semibold leading-tight">{user.display_name}</h2>
       <div className="flex">
         <div className="p-2 w-80">
-          <img src={user.profilePhoto} alt={user.displayName} className="max-w-32 max-h-32" />
+          <img src={user.profile_photo} alt={user.display_name} className="max-w-32 max-h-32" />
           <p>{user.email}</p>
-          <p>Member since {user.createdAtAgo}</p>
-          <p>Community: {user.communityName}</p>
+          <p>Member since {dayjs(user.created_at.toDate()).fromNow()}</p>
+          <p>Community: {user.community_name}</p>
           <div className="py-2">
             <h4 className="text-xl font-semibold">Related Data</h4>
             <MenuList items={items} selected={dataToShow} />
@@ -389,7 +437,7 @@ const ProfilePage = ({ match }: Props) => {
                 className="ml-1 z-10"
                 simpleOptions={[10, 25, 50, 100]}
                 size="small"
-                onSelect={(option: any) => setLimit(option.value)}
+                onSelect={(option) => setLimit(option.value as LimitType)}
                 currentValue={limit}
               />
             </div>

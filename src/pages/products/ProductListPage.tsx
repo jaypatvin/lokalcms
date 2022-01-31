@@ -12,8 +12,16 @@ import {
 import { useAuth } from '../../contexts/AuthContext'
 import { fetchUserByID } from '../../services/users'
 import { fetchShopByID } from '../../services/shops'
+import { DocumentType, Product, Shop } from '../../models'
 
-const ProductListPage = (props: any) => {
+type ProductData = Product & {
+  id: string
+  user_email?: string
+  shop?: Shop
+  shop_name?: string
+}
+
+const ProductListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<ProductFilterType>('all')
   const [sortBy, setSortBy] = useState<ProductSortByType>('name')
@@ -93,10 +101,8 @@ const ProductListPage = (props: any) => {
       sortable: true,
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
-    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Product>[]) => {
+    const newList: ProductData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]
       const user = await fetchUserByID(data.user_id)
@@ -114,12 +120,12 @@ const ProductListPage = (props: any) => {
     return newList
   }
 
-  const getUnavailableDates = (data: any) => {
+  const getUnavailableDates = (data: Product['availability']) => {
     if (!data) return []
     const { schedule } = data
-    const unavailable_dates: any = []
+    const unavailable_dates: string[] = []
     if (schedule && schedule.custom) {
-      Object.entries(schedule.custom).forEach(([key, val]: any) => {
+      Object.entries(schedule.custom).forEach(([key, val]) => {
         if (val.unavailable) {
           unavailable_dates.push(key)
         }
@@ -128,7 +134,7 @@ const ProductListPage = (props: any) => {
     return unavailable_dates
   }
 
-  const isUsingShopSchedule = (data: any) => {
+  const isUsingShopSchedule = (data: ProductData) => {
     if (!data.availability || !data.shop || !data.shop.operating_hours) return true
     const productUnavailableDates = getUnavailableDates(data.availability)
     const shopUnavailableDates = getUnavailableDates(data.shop.operating_hours)
@@ -136,7 +142,7 @@ const ProductListPage = (props: any) => {
     return true
   }
 
-  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+  const normalizeData = (data: Product & { id: string }) => {
     const unavailable_dates = getUnavailableDates(data.availability)
     return {
       id: data.id,
@@ -147,15 +153,15 @@ const ProductListPage = (props: any) => {
       quantity: data.quantity,
       status: data.status,
       product_category: data.product_category,
-      gallery: data.gallery ? data.gallery.map((photo: any) => ({ ...photo })) : null,
+      gallery: data.gallery ?? null,
       availability: data.availability,
       unavailable_dates: unavailable_dates,
       custom_availability: !isUsingShopSchedule(data),
     }
   }
 
-  const onArchive = async (data: any) => {
-    let res: any
+  const onArchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       const { id } = data
       let url = `${API_URL}/products/${id}`
@@ -173,8 +179,8 @@ const ProductListPage = (props: any) => {
     return res
   }
 
-  const onUnarchive = async (data: any) => {
-    let res: any
+  const onUnarchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/products/${data.id}/unarchive`
       res = await fetch(url, {

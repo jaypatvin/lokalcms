@@ -1,9 +1,9 @@
-import { db } from './firebase'
+import { db } from '../utils'
 
 export const fetchActionTypesByID = async (id: string) => {
-  return db.collection('action_types').doc(id).get()
+  return db.actionTypes.doc(id).get()
 }
 
 export const getActionTypes = () => {
-  return db.collection('action_types')
+  return db.actionTypes
 }

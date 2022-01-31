@@ -20,7 +20,7 @@ const loginValidation = object().shape({
   password: string().required('Please enter your password'),
 })
 
-const LoginPage = (props: any) => {
+const LoginPage = () => {
   const { login, withError, errorMsg, setRedirect } = useAuth()
   const [isError, setIsError] = useState(false)
   const [errors, setErrors] = useState<any>({})

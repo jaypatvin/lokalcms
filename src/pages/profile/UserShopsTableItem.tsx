@@ -3,11 +3,12 @@ import React, { useState } from 'react'
 import ReactCalendar from 'react-calendar'
 import { OutlineButton } from '../../components/buttons'
 import useOuterClick from '../../customHooks/useOuterClick'
+import { Shop } from '../../models'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
 
 type Props = {
-  data: any
+  data: Shop & { id: string }
 }
 
 const UserShopsTableItem = ({ data }: Props) => {

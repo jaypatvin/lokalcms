@@ -10,8 +10,14 @@ import {
 import { useAuth } from '../../contexts/AuthContext'
 import { fetchUserByID } from '../../services/users'
 import { getInvites } from '../../services/invites'
+import { DocumentType, Invite } from '../../models'
 
-const InviteListPage = (props: any) => {
+type InviteData = Invite & {
+  id: string
+  inviter_email?: string
+}
+
+const InviteListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<InviteFilterType>('all')
   const [sortBy, setSortBy] = useState<InviteSortByType>('created_at')
@@ -84,10 +90,8 @@ const InviteListPage = (props: any) => {
       sortable: true,
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
-    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Invite>[]) => {
+    const newList: InviteData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]
       if (data.inviter) {
@@ -100,7 +104,7 @@ const InviteListPage = (props: any) => {
     }
     return newList
   }
-  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+  const normalizeData = (data: Invite & { id: string }) => {
     return {
       id: data.id,
       email: data.invitee_email,
@@ -112,8 +116,8 @@ const InviteListPage = (props: any) => {
     }
   }
 
-  const onArchive = async (data: any) => {
-    let res: any
+  const onArchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       const { id } = data
       let url = `${API_URL}/invite/${id}`
@@ -131,8 +135,8 @@ const InviteListPage = (props: any) => {
     return res
   }
 
-  const onUnarchive = async (data: any) => {
-    let res: any
+  const onUnarchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/invite/${data.id}/unarchive`
       res = await fetch(url, {

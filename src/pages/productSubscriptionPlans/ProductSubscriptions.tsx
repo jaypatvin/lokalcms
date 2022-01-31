@@ -3,24 +3,36 @@ import { Button } from '../../components/buttons'
 import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
 import ViewModal from '../../components/modals/ViewModal'
+import { Order, ProductSubscription, ProductSubscriptionPlan } from '../../models'
 import { fetchOrderByProductSubscription } from '../../services/orders'
 import { getProductSubscriptions } from '../../services/productSubscriptions'
 import { LimitType } from '../../utils/types'
 
+type ProductSubscriptionPlanData = ProductSubscriptionPlan & {
+  id: string
+  buyer_email?: string
+  seller_email?: string
+}
+type ProductSubscriptionData = ProductSubscription & {
+  id: string
+  order?: Order & { id: string }
+}
 type Props = {
-  subscriptionPlan: any
+  subscriptionPlan?: ProductSubscriptionPlanData
   show: boolean
   onClose: () => void
 }
 
 const ProductSubscriptions = ({ subscriptionPlan, show, onClose }: Props) => {
-  const [productSubscriptions, setProductSubscriptions] = useState<any>([])
+  const [productSubscriptions, setProductSubscriptions] = useState<ProductSubscriptionData[]>([])
 
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
-  const [dataRef, setDataRef] = useState<any>()
-  const [firstDataOnList, setFirstDataOnList] = useState<any>()
-  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<ProductSubscription>>()
+  const [firstDataOnList, setFirstDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<ProductSubscription>>()
+  const [lastDataOnList, setLastDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<ProductSubscription>>()
   const [isLastPage, setIsLastPage] = useState(false)
 
   const [productSubscriptionPlansSnapshot, setProductSubscriptionPlansSnapshot] =
@@ -35,12 +47,14 @@ const ProductSubscriptions = ({ subscriptionPlan, show, onClose }: Props) => {
     onClose()
   }
 
-  const setupDataList = async (docs: any) => {
+  const setupDataList = async (
+    docs: firebase.default.firestore.QueryDocumentSnapshot<ProductSubscription>[]
+  ) => {
     const data = []
     for (let productSubscription of docs) {
       const relatedOrder = await fetchOrderByProductSubscription(productSubscription.id)
       const orderData = relatedOrder.empty
-        ? null
+        ? undefined
         : { ...relatedOrder.docs[0].data(), id: relatedOrder.docs[0].id }
       data.push({
         ...productSubscription.data(),
@@ -73,7 +87,7 @@ const ProductSubscriptions = ({ subscriptionPlan, show, onClose }: Props) => {
   const onNextPage = () => {
     if (dataRef && lastDataOnList && !isLastPage) {
       const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         if (snapshot.docs.length) {
           setupDataList(snapshot.docs)
           setPageNum(pageNum + 1)
@@ -88,7 +102,7 @@ const ProductSubscriptions = ({ subscriptionPlan, show, onClose }: Props) => {
     const newPageNum = pageNum - 1
     if (dataRef && firstDataOnList && newPageNum > 0) {
       const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         setupDataList(snapshot.docs)
       })
     }
@@ -116,7 +130,7 @@ const ProductSubscriptions = ({ subscriptionPlan, show, onClose }: Props) => {
                 className="ml-1 z-10"
                 simpleOptions={[10, 25, 50, 100]}
                 size="small"
-                onSelect={(option: any) => setLimit(option.value)}
+                onSelect={(option) => setLimit(option.value as LimitType)}
                 currentValue={limit}
               />
             </div>
@@ -171,7 +185,7 @@ const ProductSubscriptions = ({ subscriptionPlan, show, onClose }: Props) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {productSubscriptions.map((data: any) => (
+                  {productSubscriptions.map((data) => (
                     <tr>
                       <td>
                         <p className="text-gray-900 whitespace-no-wrap">{data.date_string}</p>

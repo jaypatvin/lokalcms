@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { User } from '../../models'
 import { fetchUserByID } from '../../services/users'
 import UserCreateUpdateForm from './UserCreateUpdateForm'
 
@@ -7,10 +8,22 @@ type Props = {
   [x: string]: any
 }
 
-const UserEditPage = ({ match }: Props) => {
-  const [user, setUser] = useState<any>()
+type UserFormType = {
+  id?: string
+  status?: 'active' | 'suspended' | 'pending' | 'locked'
+  is_admin?: boolean
+  email?: string
+  first_name?: string
+  last_name?: string
+  display_name?: string
+  profile_photo?: string
+  street?: string
+}
 
-  const normalizeUserData = (data: any) => {
+const UserEditPage = ({ match }: Props) => {
+  const [user, setUser] = useState<UserFormType>()
+
+  const normalizeUserData = (data: User) => {
     return {
       status: data.status,
       email: data.email,
@@ -25,10 +38,11 @@ const UserEditPage = ({ match }: Props) => {
   }
 
   const fetchUser = async (id: string) => {
-    const userRef: any = await fetchUserByID(id)
-    let userToEdit = userRef.data()
-    userToEdit = { ...normalizeUserData(userToEdit), id }
-    setUser(userToEdit)
+    const userRef = await fetchUserByID(id)
+    const userToEdit = userRef.data()
+    if (userToEdit) {
+      setUser({ ...normalizeUserData(userToEdit), id })
+    }
   }
 
   useEffect(() => {

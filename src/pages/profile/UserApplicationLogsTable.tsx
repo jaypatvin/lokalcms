@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { ApplicationLog } from '../../models'
 
 type Props = {
-  data: any
+  data: (ApplicationLog & { id: string })[]
 }
 
 const UserApplicationLogsTable = ({ data }: Props) => {
@@ -37,7 +38,7 @@ const UserApplicationLogsTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               return (
                 <tr key={d.id}>

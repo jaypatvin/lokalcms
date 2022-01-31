@@ -3,14 +3,15 @@ import { ConfirmationDialog } from '../../components/Dialog'
 import ListItem from './ListItem'
 import { useAuth } from '../../contexts/AuthContext'
 import { PageNames } from '../../utils/types'
+import { DocumentType } from '../../models'
 
 type Props = {
   name: PageNames
-  onDelete?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  onArchive?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  onUnarchive?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  dataList: firebase.default.firestore.DocumentData[]
-  openUpdate: (arg: firebase.default.firestore.DocumentData) => void
+  onDelete?: (arg: DocumentType) => Promise<any>
+  onArchive?: (arg: DocumentType) => Promise<any>
+  onUnarchive?: (arg: DocumentType) => Promise<any>
+  dataList: DocumentType[]
+  openUpdate: (arg: DocumentType) => void
 }
 
 const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
@@ -20,7 +21,7 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
   const [dataToUnarchive, setDataToUnarchive] = useState<any>({})
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
-  const deleteData = async (data: firebase.default.firestore.DocumentData) => {
+  const deleteData = async (data: DocumentType) => {
     if (onArchive) {
       const res = await onArchive(data)
       console.log('res', res)
@@ -34,7 +35,7 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
     setDataToDelete(data)
   }
 
-  const unarchiveData = async (data: firebase.default.firestore.DocumentData) => {
+  const unarchiveData = async (data: DocumentType) => {
     setIsUnarchiveDialogOpen(false)
     setDataToUnarchive({})
   }
@@ -78,7 +79,7 @@ const ListItems = ({ name, onArchive, dataList, openUpdate }: Props) => {
           openUpdate={() => openUpdate(data)}
           onArchive={() => deleteClicked(data)}
           onUnarchive={() => unarchiveClicked(data)}
-          hideDelete={currentUserInfo.id === data.id}
+          hideDelete={currentUserInfo?.id === data.id}
           isArchived={data.archived}
         />
       ))}

@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { ProductData } from './CommunityPage'
 
 type Props = {
-  data: any
+  data: ProductData[]
 }
 
 const CommunityProductsTable = ({ data }: Props) => {
@@ -72,13 +73,13 @@ const CommunityProductsTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const created_at = d.created_at ? dayjs(d.created_at.toDate()).fromNow() : '-'
               const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow() : '-'
               return (
                 <tr key={d.id}>
                   <td>
-                    <img src={d.gallery[0].url} alt={d.name} className="max-w-16 max-h-16" />
+                    <img src={d.gallery?.[0].url} alt={d.name} className="max-w-16 max-h-16" />
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.name}</p>

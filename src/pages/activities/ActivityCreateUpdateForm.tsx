@@ -6,9 +6,27 @@ import { TextField } from '../../components/inputs'
 import Modal from '../../components/modals'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
+import { Activity } from '../../models'
 import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 
-const initialData = {}
+type Response = {
+  status?: string
+  data?: Activity
+  message?: string
+  errors?: string[]
+  error_fields?: Field[]
+}
+
+type ActivityFormType = {
+  id?: string
+  user_id?: string
+  message?: string
+  status?: 'enabled' | 'disabled'
+}
+
+type Field = 'user_id' | 'message' | 'status'
+
+const initialData: ActivityFormType = {}
 
 const ActivityCreateUpdateForm = ({
   isOpen = false,
@@ -18,8 +36,8 @@ const ActivityCreateUpdateForm = ({
   isModal = true,
 }: CreateUpdateFormProps) => {
   const history = useHistory()
-  const [data, setData] = useState<any>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<any>({})
+  const [data, setData] = useState<ActivityFormType>(dataToUpdate || initialData)
+  const [responseData, setResponseData] = useState<Response>({})
   const { firebaseToken } = useAuth()
 
   useEffect(() => {
@@ -30,9 +48,13 @@ const ActivityCreateUpdateForm = ({
     }
   }, [dataToUpdate])
 
-  const changeHandler = (field: string, value: string | number | boolean | null) => {
+  const changeHandler = (field: Field, value: string) => {
     const newData = { ...data }
-    newData[field] = value
+    if (field === 'user_id' || field === 'message') {
+      newData[field] = value
+    } else if (field === 'status' && (value === 'enabled' || value === 'disabled')) {
+      newData.status = value
+    }
     setData(newData)
   }
 
@@ -45,15 +67,16 @@ const ActivityCreateUpdateForm = ({
         method = 'PUT'
       }
       console.log('data', data)
-      let res: any = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method,
-        body: JSON.stringify({...data, source: 'cms'}),
-      })
-      res = await res.json()
+      const res = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify({ ...data, source: 'cms' }),
+        })
+      ).json()
       setResponseData(res)
       if (res.status !== 'error') {
         setResponseData({})
@@ -69,7 +92,7 @@ const ActivityCreateUpdateForm = ({
     }
   }
 
-  const fieldIsError = (field: string) => {
+  const fieldIsError = (field: Field) => {
     const { status, error_fields } = responseData
     if (status === 'error' && error_fields && error_fields.length) {
       return error_fields.includes(field)
@@ -85,8 +108,8 @@ const ActivityCreateUpdateForm = ({
           simpleOptions={['enabled', 'disabled']}
           currentValue={data.status}
           size="small"
-          onSelect={(option) => changeHandler('status', option.value)}
-          buttonColor={statusColorMap[data.status]}
+          onSelect={(option) => changeHandler('status', option.value as string)}
+          buttonColor={statusColorMap[data.status || 'enabled']}
         />
       </div>
       <div className="grid grid-cols-2 gap-x-2">

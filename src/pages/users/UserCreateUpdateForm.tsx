@@ -9,8 +9,38 @@ import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { fetchCommunityByID, getCommunities } from '../../services/community'
+import { Community, User } from '../../models'
 
-const initialData = { status: 'active' }
+type Response = {
+  status?: string
+  data?: User
+  message?: string
+  error_fields?: Field[]
+}
+
+type UserFormType = {
+  id?: string
+  status?: 'active' | 'suspended' | 'pending' | 'locked'
+  is_admin?: boolean
+  email?: string
+  first_name?: string
+  last_name?: string
+  display_name?: string
+  profile_photo?: string
+  street?: string
+}
+
+type Field =
+  | 'status'
+  | 'is_admin'
+  | 'email'
+  | 'first_name'
+  | 'last_name'
+  | 'display_name'
+  | 'profile_photo'
+  | 'street'
+
+const initialData: UserFormType = { status: 'active' }
 
 const UserCreateUpdateForm = ({
   isOpen = false,
@@ -21,12 +51,14 @@ const UserCreateUpdateForm = ({
 }: CreateUpdateFormProps) => {
   const history = useHistory()
   const { firebaseToken } = useAuth()
-  const [data, setData] = useState<any>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<any>({})
+  const [data, setData] = useState<UserFormType>(dataToUpdate || initialData)
+  const [responseData, setResponseData] = useState<Response>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
-  const [community, setCommunity] = useState<any>()
+  const [community, setCommunity] = useState<Community>()
   const [communitySearchText, setCommunitySearchText] = useState('')
-  const [communitySearchResult, setCommunitySearchResult] = useState<any>([])
+  const [communitySearchResult, setCommunitySearchResult] = useState<
+    (Community & { id: string })[]
+  >([])
   const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
   const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
 
@@ -63,9 +95,26 @@ const UserCreateUpdateForm = ({
     }
   }, [dataToUpdate])
 
-  const changeHandler = (field: string, value: string | number | boolean | null) => {
+  const changeHandler = (field: Field, value: string | boolean) => {
     const newData = { ...data }
-    newData[field] = value
+    if (
+      field === 'status' &&
+      (value === 'active' || value === 'suspended' || value === 'pending' || value === 'locked')
+    ) {
+      newData.status = value
+    } else if (
+      (field === 'email' ||
+        field === 'first_name' ||
+        field === 'last_name' ||
+        field === 'display_name' ||
+        field === 'profile_photo' ||
+        field === 'street') &&
+      typeof value === 'string'
+    ) {
+      newData[field] = value
+    } else if (field === 'is_admin' && typeof value === 'boolean') {
+      newData.is_admin = value
+    }
     setData(newData)
   }
 
@@ -86,7 +135,7 @@ const UserCreateUpdateForm = ({
     setCommunitySearchText(e.target.value)
   }
 
-  const communitySelectHandler = (community: any) => {
+  const communitySelectHandler = (community: Community & { id: string }) => {
     const newData = { ...data, community_id: community.id }
     setShowCommunitySearchResult(false)
     setData(newData)
@@ -99,21 +148,19 @@ const UserCreateUpdateForm = ({
       let url = `${API_URL}/users`
       let method = 'POST'
       if (mode === 'update' && dataToUpdate.id) {
-        for (let key in data) {
-          if (data[key] === dataToUpdate[key]) delete data[key]
-        }
         url = `${url}/${dataToUpdate.id}`
         method = 'PUT'
       }
-      let res: any = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method,
-        body: JSON.stringify({...data, source: 'cms'}),
-      })
-      res = await res.json()
+      let res = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify({ ...data, source: 'cms' }),
+        })
+      ).json()
       setResponseData(res)
       if (res.status !== 'error') {
         setResponseData({})
@@ -129,7 +176,7 @@ const UserCreateUpdateForm = ({
     }
   }
 
-  const fieldIsError = (field: string) => {
+  const fieldIsError = (field: Field) => {
     const { status, error_fields } = responseData
     if (status === 'error' && error_fields && error_fields.length) {
       return error_fields.includes(field)
@@ -147,8 +194,8 @@ const UserCreateUpdateForm = ({
           simpleOptions={['active', 'suspended', 'pending', 'locked']}
           currentValue={data.status}
           size="small"
-          onSelect={(option) => changeHandler('status', option.value)}
-          buttonColor={statusColorMap[data.status]}
+          onSelect={(option) => changeHandler('status', option.value as string)}
+          buttonColor={statusColorMap[data.status || 'enabled']}
         />
         <Checkbox
           label="Admin"
@@ -215,7 +262,7 @@ const UserCreateUpdateForm = ({
             />
             {showCommunitySearchResult && communitySearchResult.length > 0 && (
               <div className="absolute bottom-full left-0 w-64 bg-white shadow z-10">
-                {communitySearchResult.map((community: any) => (
+                {communitySearchResult.map((community) => (
                   <button
                     className="w-full p-1 hover:bg-gray-200 block text-left"
                     key={community.id}

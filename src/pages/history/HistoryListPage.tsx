@@ -11,8 +11,14 @@ import {
 import { getHistoryLogs } from '../../services/historyLog'
 import { fetchUserByID } from '../../services/users'
 import { fetchCommunityByID } from '../../services/community'
+import { HistoryLog } from '../../models'
 
-const HistoryListPage = (props: any) => {
+type HistoryLogData = HistoryLog & {
+  actor_email?: string
+  community_name?: string
+}
+
+const HistoryListPage = () => {
   const [filter, setFilter] = useState<HistoryLogFilterType>('all')
   const [sourceFilter, setSourceFilter] = useState<HistoryLogSourceType>('all_sources')
   const [sortBy, setSortBy] = useState<HistoryLogSortByType>('created_at')
@@ -116,10 +122,8 @@ const HistoryListPage = (props: any) => {
       sortable: true,
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
-    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<HistoryLog>[]) => {
+    const newList: HistoryLogData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     console.log('newList', newList)
     for (let i = 0; i < newList.length; i++) {
       const data = newList[i]

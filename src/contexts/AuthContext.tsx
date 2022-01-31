@@ -1,12 +1,14 @@
 import React, { useContext, useState, useEffect, createContext, ReactNode } from 'react'
 import ReactLoading from 'react-loading'
+import { User } from '../models'
 
 import { auth, firebase } from '../services/firebase'
 import { fetchUserByUID } from '../services/users'
 
+type UserData = User & { id: string }
 type ContextType = {
   currentUser?: firebase.User
-  currentUserInfo?: any
+  currentUserInfo?: UserData
   login?: (email: string, password: string) => Promise<firebase.auth.UserCredential>
   logout?: () => void
   reauthenticate?: (email: string, password: string) => Promise<any>
@@ -24,7 +26,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<firebase.User>()
-  const [currentUserInfo, setCurrentUserInfo] = useState<any>()
+  const [currentUserInfo, setCurrentUserInfo] = useState<UserData>()
   const [withError, setWithError] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [redirect, setRedirect] = useState('')
@@ -56,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function reauthenticate(email: string, password: string) {
-    if (currentUser) {
+    if (currentUser && currentUserInfo) {
       const credential = firebase.auth.EmailAuthProvider.credential(currentUserInfo.email, password)
 
       return currentUser.reauthenticateWithCredential(credential)
@@ -71,20 +73,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user !== null) {
         setCurrentUser(user)
         const userRef = await fetchUserByUID(user.uid)
-        if (userRef === false) {
+        if (!userRef) {
           // if user is not mapped to the users collection
           // log out the user
-          setCurrentUserInfo(null)
+          setCurrentUserInfo(undefined)
           setWithError(true)
           setErrorMsg('User does not exist or not mapped.')
           // logout
           await logout()
         } else {
-          const token = await user.getIdToken()
-          console.log('token', token)
-          const userInfo = { ...userRef.data(), id: userRef.id }
-          setFirebaseToken(token)
-          setCurrentUserInfo(userInfo)
+          const userData = userRef.data()
+          if (userData) {
+            const token = await user.getIdToken()
+            console.log('token', token)
+            const userInfo = { ...userData, id: userRef.id }
+            setFirebaseToken(token)
+            setCurrentUserInfo(userInfo)
+          }
         }
 
         if (redirect.length > 0) {

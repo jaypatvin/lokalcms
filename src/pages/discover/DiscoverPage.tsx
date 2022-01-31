@@ -11,37 +11,49 @@ import { OutlineButton } from '../../components/buttons'
 import useOuterClick from '../../customHooks/useOuterClick'
 import DiscoverProduct from './DiscoverProduct'
 import DiscoverShop from './DiscoverShop'
+import { Shop, Product } from '../../models'
 
-const DiscoverPage = ({}) => {
+type ShopData = Shop & { id: string; nextAvailable?: string; availableMessage?: string }
+type ProductData = Product & { id: string; nextAvailable?: string; availableMessage?: string }
+
+type ShopsResponse = {
+  data: ShopData[]
+}
+type ProductsResponse = {
+  data: ProductData[]
+}
+type DataType = 'shops' | 'products'
+
+const DiscoverPage = () => {
   const { firebaseToken } = useAuth()
   const [loading, setLoading] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const calendarRef = useOuterClick(() => setShowCalendar(false))
-  const [dataType, setDataType] = useState<'shops' | 'products'>('products')
+  const [dataType, setDataType] = useState<DataType>('products')
   const [searchFilter, setSearchFilter] = useState('')
   const [category, setCategory] = useState('')
   const [dateFilter, setDateFilter] = useState(dayjs(new Date()).format('YYYY-MM-DD'))
-  const [availableList, setAvailableList] = useState<any[]>([])
-  const [unavailableList, setUnavailableList] = useState<any[]>([])
-  const [categories, setCategories] = useState([])
+  const [availableList, setAvailableList] = useState<(ShopData | ProductData)[]>([])
+  const [unavailableList, setUnavailableList] = useState<(ShopData | ProductData)[]>([])
+  const [categories, setCategories] = useState<string[]>([])
 
   const community = useCommunity()
 
   const getAvailableShops = async (urlParams: string = '') => {
     setLoading(true)
-    let res: any
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/availableShops?${urlParams}`
-      res = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method: 'GET',
-      })
-      res = await res.json()
-      const availables = res.data.filter((p: any) => !p.nextAvailable)
-      const notAvailables = res.data.filter((p: any) => p.nextAvailable)
+      const url = `${API_URL}/availableShops?${urlParams}`
+      const res: ShopsResponse = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method: 'GET',
+        })
+      ).json()
+      const availables = res.data.filter((s) => !s.nextAvailable)
+      const notAvailables = res.data.filter((s) => s.nextAvailable)
       setAvailableList(availables)
       setUnavailableList(notAvailables)
       console.log('res', res)
@@ -53,19 +65,19 @@ const DiscoverPage = ({}) => {
 
   const getAvailableProducts = async (urlParams: string = '') => {
     setLoading(true)
-    let res: any
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/availableProducts?${urlParams}`
-      res = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method: 'GET',
-      })
-      res = await res.json()
-      const availables = res.data.filter((p: any) => !p.nextAvailable)
-      const notAvailables = res.data.filter((p: any) => p.nextAvailable)
+      const url = `${API_URL}/availableProducts?${urlParams}`
+      const res: ProductsResponse = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method: 'GET',
+        })
+      ).json()
+      const availables = res.data.filter((p) => !p.nextAvailable)
+      const notAvailables = res.data.filter((p) => p.nextAvailable)
       setAvailableList(availables)
       setUnavailableList(notAvailables)
       console.log('res', res)
@@ -79,13 +91,13 @@ const DiscoverPage = ({}) => {
     if (!categories.length) {
       getCategories({})
         .get()
-        .then((snapshot: any) => {
-          const data = snapshot.docs.map((doc: any) => doc.data())
-          setCategories(data.map((c: any) => c.name))
+        .then((snapshot) => {
+          const data = snapshot.docs.map((doc) => doc.data())
+          setCategories(data.map((c) => c.name))
         })
     }
 
-    if (!community) return
+    if (!community || !community.id) return
     const urlParamsArray = [`community_id=${community.id}`]
     if (searchFilter) urlParamsArray.push(`q=${searchFilter}`)
     if (category) urlParamsArray.push(`category=${category}`)
@@ -108,14 +120,14 @@ const DiscoverPage = ({}) => {
         <Dropdown
           className="ml-2"
           simpleOptions={['products', 'shops']}
-          onSelect={(option: any) => setDataType(option.value)}
+          onSelect={(option) => setDataType(option.value as DataType)}
           currentValue={dataType}
         />
         <Dropdown
           name="Category"
           className="ml-2"
           simpleOptions={categories}
-          onSelect={(option: any) => setCategory(option.value)}
+          onSelect={(option) => setCategory(option.value as string)}
           currentValue={category}
         />
         <div ref={calendarRef} className="ml-2 relative">
@@ -123,7 +135,7 @@ const DiscoverPage = ({}) => {
           {showCalendar && (
             <ReactCalendar
               className="absolute"
-              onChange={(date: any) => setDateFilter(dayjs(date).format('YYYY-MM-DD'))}
+              onChange={(date) => setDateFilter(dayjs(date as Date).format('YYYY-MM-DD'))}
               value={new Date(dateFilter)}
             />
           )}
@@ -139,7 +151,7 @@ const DiscoverPage = ({}) => {
         </div>
       ) : (
         <>
-          {!community ? (
+          {!community || !community.id ? (
             <h2 className="text-xl ml-5">Select a community first</h2>
           ) : (
             <>
@@ -148,10 +160,14 @@ const DiscoverPage = ({}) => {
                 <div className="flex flex-wrap">
                   {availableList.length > 0 &&
                     dataType === 'shops' &&
-                    availableList.map((item) => <DiscoverShop key={item.id} shop={item} />)}
+                    availableList.map((item) => (
+                      <DiscoverShop key={item.id} shop={item as ShopData} />
+                    ))}
                   {availableList.length > 0 &&
                     dataType === 'products' &&
-                    availableList.map((item) => <DiscoverProduct key={item.id} product={item} />)}
+                    availableList.map((item) => (
+                      <DiscoverProduct key={item.id} product={item as ProductData} />
+                    ))}
                   {availableList.length === 0 && <p>None</p>}
                 </div>
               </div>
@@ -161,12 +177,12 @@ const DiscoverPage = ({}) => {
                   {unavailableList.length > 0 &&
                     dataType === 'shops' &&
                     unavailableList.map((item) => (
-                      <DiscoverShop key={item.id} shop={item} unavailable />
+                      <DiscoverShop key={item.id} shop={item as ShopData} unavailable />
                     ))}
                   {unavailableList.length > 0 &&
                     dataType === 'products' &&
                     unavailableList.map((item) => (
-                      <DiscoverProduct key={item.id} product={item} unavailable />
+                      <DiscoverProduct key={item.id} product={item as ProductData} unavailable />
                     ))}
                   {availableList.length === 0 && <p>None</p>}
                 </div>

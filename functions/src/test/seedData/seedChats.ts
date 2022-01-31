@@ -18,7 +18,7 @@ const seedProductChatsByUser = async ({
   products: (Product & { id: string })[]
   shops: (Shop & { id: string })[]
   users: (User & { id: string })[]
-  user: User
+  user: User & { id: string }
   admin: AdminType
 }) => {
   const randomProducts = chance.pickset(products, chance.integer({ min: 1, max: 5 }))
@@ -115,7 +115,7 @@ const seedShopChatsByUser = async ({
 }: {
   shops: (Shop & { id: string })[]
   users: (User & { id: string })[]
-  user: User
+  user: User & { id: string }
   admin: AdminType
 }) => {
   const randomShops = chance.pickset(shops, chance.integer({ min: 1, max: 3 }))
@@ -208,7 +208,7 @@ const seedUserChatsByUser = async ({
   admin,
 }: {
   users: (User & { id: string })[]
-  user: User
+  user: User & { id: string }
   admin: AdminType
 }) => {
   const randomUsers = chance.pickset(users, chance.integer({ min: 1, max: 3 }))
@@ -304,7 +304,7 @@ const seedGroupChatsByUser = async ({
   admin,
 }: {
   users: (User & { id: string })[]
-  user: User
+  user: User & { id: string }
   admin: AdminType
 }) => {
   const randomUsersArray = [

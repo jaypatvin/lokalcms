@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 
-export const formatFirestoreDatesAgo = (date: any) => {
+export const formatFirestoreDatesAgo = (date: firebase.default.firestore.Timestamp) => {
   let date_at_ago = '-'
   if (date) {
     const date_at = dayjs(date.toDate()).format()

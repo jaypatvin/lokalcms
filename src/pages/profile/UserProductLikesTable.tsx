@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import SortButton from '../../components/buttons/SortButton'
+import { Product } from '../../models'
 
 type Props = {
-  data: any
+  data: (Product & { id: string; shop_name: string; liked_at: firebase.default.firestore.Timestamp })[]
 }
 
 const UserProductLikesTable = ({ data }: Props) => {
@@ -51,12 +52,12 @@ const UserProductLikesTable = ({ data }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((d: any) => {
+            {data.map((d) => {
               const liked_at = d.liked_at ? dayjs(d.liked_at.toDate()).fromNow() : '-'
               return (
                 <tr key={d.id}>
                   <td>
-                    <img src={d.gallery[0].url} alt={d.name} className="max-w-16 max-h-16" />
+                    <img src={d.gallery?.[0].url} alt={d.name} className="max-w-16 max-h-16" />
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.name}</p>

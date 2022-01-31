@@ -1,9 +1,7 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useMediaQuery } from 'react-responsive'
 
-import Transition from '../components/Transition'
-
-const TestPage = (props: any) => {
+const TestPage = () => {
   const [isClosed, setClosed] = useState(false)
   const rootEl = document.getElementById('root')
 

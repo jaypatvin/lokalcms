@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin'
-import { ShopCreateData, ShopUpdateData } from '../models/Shop'
+import Shop, { ShopCreateData, ShopUpdateData } from '../models/Shop'
 import db from '../utils/db'
 
 const firestoreDb = admin.firestore()
@@ -124,7 +124,7 @@ export const unarchiveUserShops = async (user_id: string) => {
 }
 
 export const searchShops = async ({ search, community_id }) => {
-  let ref: admin.firestore.Query<admin.firestore.DocumentData> = db.shops
+  let ref: admin.firestore.Query<Shop> = db.shops
   if (search) ref = ref.where('keywords', 'array-contains', search)
   if (community_id) ref = ref.where('community_id', '==', community_id)
   return await ref.get()

@@ -4,7 +4,7 @@ import {
   HistoryLogFilterType,
   HistoryLogSourceType,
 } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetActivitiesParamTypes = {
   search?: string
@@ -25,7 +25,7 @@ export const getHistoryLogs = ({
   limit = 10,
   community,
 }: GetActivitiesParamTypes) => {
-  let ref = db.collection('history_logs').where('keywords', 'array-contains', search.toLowerCase())
+  let ref = db.historyLogs.where('keywords', 'array-contains', search.toLowerCase())
 
   if (community) {
     ref = ref.where('community_id', '==', community)

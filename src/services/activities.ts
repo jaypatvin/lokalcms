@@ -1,5 +1,5 @@
 import { SortOrderType, ActivitySortByType, ActivityFilterType } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetActivitiesParamTypes = {
   search?: string
@@ -11,12 +11,11 @@ type GetActivitiesParamTypes = {
 }
 
 export const fetchActivityByID = async (id: string) => {
-  return db.collection('activities').doc(id).get()
+  return db.activities.doc(id).get()
 }
 
 export const getActivitiesByUser = (user_id: string, limit = 10) => {
-  return db
-    .collection('activities')
+  return db.activities
     .where('user_id', '==', user_id)
     .where('archived', '==', false)
     .orderBy('created_at', 'desc')
@@ -24,8 +23,7 @@ export const getActivitiesByUser = (user_id: string, limit = 10) => {
 }
 
 export const getActivitiesByCommunity = (community_id: string, limit = 10) => {
-  return db
-    .collection('activities')
+  return db.activities
     .where('community_id', '==', community_id)
     .where('archived', '==', false)
     .orderBy('created_at', 'desc')
@@ -39,7 +37,7 @@ export const getActivities = ({
   limit = 10,
   community,
 }: GetActivitiesParamTypes) => {
-  let ref: any = db.collection('activities')
+  let ref = db.activities.where('archived', '==', filter === 'archived')
 
   if (community) {
     ref = ref.where('community_id', '==', community)
@@ -48,10 +46,7 @@ export const getActivities = ({
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
   }
-  ref = ref
-    .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
-    .limit(limit)
+  ref = ref.orderBy(sortBy, sortOrder).limit(limit)
 
   return ref
 }

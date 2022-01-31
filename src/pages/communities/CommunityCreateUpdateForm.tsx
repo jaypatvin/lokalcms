@@ -8,8 +8,43 @@ import useOuterClick from '../../customHooks/useOuterClick'
 import { API_URL } from '../../config/variables'
 import { useAuth } from '../../contexts/AuthContext'
 import { CreateUpdateFormProps } from '../../utils/types'
+import { Community, User } from '../../models'
 
-const initialData = {}
+type Response = {
+  status?: string
+  data?: Community | Community[]
+  message?: string
+  error_fields?: Field[]
+}
+
+type CommunityFormType = {
+  id?: string
+  name?: string
+  cover_photo?: string
+  profile_photo?: string
+  subdivision?: string
+  city?: string
+  barangay?: string
+  state?: string
+  country?: string
+  zip_code?: string
+  admin?: string[]
+}
+
+type Field =
+  | 'name'
+  | 'cover_photo'
+  | 'profile_photo'
+  | 'subdivision'
+  | 'city'
+  | 'barangay'
+  | 'state'
+  | 'country'
+  | 'zip_code'
+
+type UserData = User & { id: string }
+
+const initialData: CommunityFormType = {}
 
 const CommunityCreateUpdateForm = ({
   isOpen = false,
@@ -20,13 +55,13 @@ const CommunityCreateUpdateForm = ({
 }: CreateUpdateFormProps) => {
   const history = useHistory()
   const { firebaseToken } = useAuth()
-  const [data, setData] = useState<any>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<any>({})
+  const [data, setData] = useState<CommunityFormType>(dataToUpdate || initialData)
+  const [responseData, setResponseData] = useState<Response>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
   const [userSearchText, setUserSearchText] = useState('')
-  const [userSearchResult, setUserSearchResult] = useState<any>([])
+  const [userSearchResult, setUserSearchResult] = useState<UserData[]>([])
   const [showUserSearchResult, setShowUserSearchResult] = useState(false)
-  const [admins, setAdmins] = useState<any[]>([])
+  const [admins, setAdmins] = useState<UserData[]>([])
   const userSearchResultRef = useOuterClick(() => setShowUserSearchResult(false))
 
   useEffect(() => {
@@ -52,18 +87,13 @@ const CommunityCreateUpdateForm = ({
   }, [dataToUpdate])
 
   useEffect(() => {
-    if (
-      !isModal &&
-      dataToUpdate &&
-      dataToUpdate.admin &&
-      dataToUpdate.admin.length
-    ) {
+    if (!isModal && dataToUpdate && dataToUpdate.admin && dataToUpdate.admin.length) {
       const getAdminUsers = async () => {
-        const fetchedAdmins = []
+        const fetchedAdmins: UserData[] = []
         for (let i = 0; i < dataToUpdate.admin.length; i++) {
           const userId = dataToUpdate.admin[i]
-          const user = await fetchUserByID(userId)
-          if (user) fetchedAdmins.push({ id: user.id, ...user.data() })
+          const user = (await fetchUserByID(userId)).data()
+          if (user) fetchedAdmins.push({ id: userId, ...user })
         }
         return fetchedAdmins
       }
@@ -74,7 +104,7 @@ const CommunityCreateUpdateForm = ({
     }
   }, [])
 
-  const changeHandler = (field: string, value: string | number | boolean | null) => {
+  const changeHandler = (field: Field, value: string) => {
     const newData = { ...data }
     newData[field] = value
     setData(newData)
@@ -88,7 +118,7 @@ const CommunityCreateUpdateForm = ({
         const data = doc.data()
         return { ...data, id: doc.id }
       })
-      users = users.filter((user) => !admins.some((admin: any) => admin.id === user.id))
+      users = users.filter((user) => !admins.some((admin: User) => admin.id === user.id))
       setUserSearchResult(users)
       setShowUserSearchResult(users.length > 0)
     } else {
@@ -98,7 +128,7 @@ const CommunityCreateUpdateForm = ({
     setUserSearchText(e.target.value)
   }
 
-  const userSelectHandler = (user: any) => {
+  const userSelectHandler = (user: UserData) => {
     let newAdmins = [...admins]
     if (admins.some((admin) => admin.id === user.id)) {
       newAdmins = admins.filter((admin) => admin.id !== user.id)
@@ -119,15 +149,16 @@ const CommunityCreateUpdateForm = ({
         url = `${url}/${data.id}`
         method = 'PUT'
       }
-      let res: any = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${firebaseToken}`,
-        },
-        method,
-        body: JSON.stringify({...data, source: 'cms'}),
-      })
-      res = await res.json()
+      let res = await (
+        await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseToken}`,
+          },
+          method,
+          body: JSON.stringify({ ...data, source: 'cms' }),
+        })
+      ).json()
       setResponseData(res)
       if (res.status !== 'error') {
         setResponseData({})
@@ -143,7 +174,7 @@ const CommunityCreateUpdateForm = ({
     }
   }
 
-  const fieldIsError = (field: string) => {
+  const fieldIsError = (field: Field) => {
     const { status, error_fields } = responseData
     if (status === 'error' && error_fields && error_fields.length) {
       return error_fields.includes(field)
@@ -257,8 +288,8 @@ const CommunityCreateUpdateForm = ({
             {showUserSearchResult && userSearchResult.length > 0 && (
               <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
                 {userSearchResult
-                  .filter((user: any) => !admins.some((admin: any) => admin.id === user.id))
-                  .map((user: any) => (
+                  .filter((user) => !admins.some((admin) => admin.id === user.id))
+                  .map((user) => (
                     <button
                       className="w-full p-1 hover:bg-gray-200 block text-left"
                       key={user.id}
@@ -277,7 +308,7 @@ const CommunityCreateUpdateForm = ({
             )}
           </div>
           <div className="shadow-inner bg-gray-50 rounded">
-            {admins.map((user: any) => (
+            {admins.map((user) => (
               <p className="p-1 text-right relative" key={user.id}>
                 {user.display_name}
                 {user.display_name !== `${user.first_name} ${user.last_name}` ? (

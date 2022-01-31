@@ -5,6 +5,7 @@ import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
+import { Product, ProductSubscriptionPlan, Shop } from '../../models'
 import { getProducts } from '../../services/products'
 import { getProductSubscriptionPlans } from '../../services/productSubscriptionPlans'
 import { getShops } from '../../services/shops'
@@ -13,35 +14,49 @@ import { LimitType } from '../../utils/types'
 import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
 import ProductSubscriptions from './ProductSubscriptions'
 
+type ShopData = Shop & { id: string }
+type ProductData = Product & { id: string }
+type ProductSubscriptionPlanData = ProductSubscriptionPlan & {
+  id: string
+  buyer_email?: string
+  seller_email?: string
+}
+
 const ProductSubscriptionPlansPage = () => {
   const community = useCommunity()
 
-  const [shop, setShop] = useState<any>({})
+  const [shop, setShop] = useState<ShopData>()
   const [showShopSearchResult, setShowShopSearchResult] = useState(false)
   const shopSearchResultRef = useOuterClick(() => setShowShopSearchResult(false))
   const [shopSearchText, setShopSearchText] = useState('')
-  const [shopSearchResult, setShopSearchResult] = useState<any>([])
+  const [shopSearchResult, setShopSearchResult] = useState<ShopData[]>([])
 
-  const [product, setProduct] = useState<any>({})
+  const [product, setProduct] = useState<ProductData>()
   const [showProductSearchResult, setShowProductSearchResult] = useState(false)
   const productSearchResultRef = useOuterClick(() => setShowProductSearchResult(false))
   const [productSearchText, setProductSearchText] = useState('')
-  const [productSearchResult, setProductSearchResult] = useState<any>([])
+  const [productSearchResult, setProductSearchResult] = useState<ProductData[]>([])
 
-  const [productSubscriptionPlans, setProductSubscriptionPlans] = useState<any[]>([])
+  const [productSubscriptionPlans, setProductSubscriptionPlans] = useState<
+    ProductSubscriptionPlanData[]
+  >([])
   const [productSubscriptionPlansSnapshot, setProductSubscriptionPlansSnapshot] =
     useState<{ unsubscribe: () => void }>()
   const [loading, setLoading] = useState(false)
 
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
-  const [dataRef, setDataRef] = useState<any>()
-  const [firstDataOnList, setFirstDataOnList] = useState<any>()
-  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [dataRef, setDataRef] =
+    useState<firebase.default.firestore.Query<ProductSubscriptionPlan>>()
+  const [firstDataOnList, setFirstDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<ProductSubscriptionPlan>>()
+  const [lastDataOnList, setLastDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<ProductSubscriptionPlan>>()
   const [isLastPage, setIsLastPage] = useState(false)
 
   const [showSubscriptions, setShowSubscriptions] = useState(false)
-  const [activeSubscriptionPlan, setActiveSubscriptionPlan] = useState<any>()
+  const [activeSubscriptionPlan, setActiveSubscriptionPlan] =
+    useState<ProductSubscriptionPlanData>()
 
   useEffect(() => {
     if (community && community.id) {
@@ -66,12 +81,12 @@ const ProductSubscriptionPlansPage = () => {
     }
   }
 
-  const shopSelectHandler = (shop: any) => {
+  const shopSelectHandler = (shop: ShopData) => {
     setShowShopSearchResult(false)
     setShopSearchResult([])
     setShop(shop)
     setShopSearchText(shop.name)
-    getCommunityProductSubscriptionPlans(community.id, shop.id, product.id)
+    getCommunityProductSubscriptionPlans(community.id, shop.id, product?.id)
   }
 
   const productSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
@@ -91,25 +106,25 @@ const ProductSubscriptionPlansPage = () => {
     }
   }
 
-  const productSelectHandler = (product: any) => {
+  const productSelectHandler = (product: ProductData) => {
     setShowProductSearchResult(false)
     setProductSearchResult([])
     setProduct(product)
     setProductSearchText(product.name)
-    getCommunityProductSubscriptionPlans(community.id, shop.id, product.id)
+    getCommunityProductSubscriptionPlans(community.id, shop?.id, product.id)
   }
 
-  const setupDataList = async (docs: any) => {
-    const newProductSubscriptionPlans = docs.map((doc: any): any => ({
+  const setupDataList = async (
+    docs: firebase.default.firestore.QueryDocumentSnapshot<ProductSubscriptionPlan>[]
+  ) => {
+    const newProductSubscriptionPlans: ProductSubscriptionPlanData[] = docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }))
     for (let productSubscription of newProductSubscriptionPlans) {
       const buyer = (await fetchUserByID(productSubscription.buyer_id)).data()
-      productSubscription.buyer_email = buyer?.email
-    }
-    for (let productSubscription of newProductSubscriptionPlans) {
       const seller = (await fetchUserByID(productSubscription.seller_id)).data()
+      productSubscription.buyer_email = buyer?.email
       productSubscription.seller_email = seller?.email
     }
     setProductSubscriptionPlans(newProductSubscriptionPlans)
@@ -125,7 +140,12 @@ const ProductSubscriptionPlansPage = () => {
   ) => {
     if (!communityId) return
     setLoading(true)
-    const filter: any = { community_id: communityId, limit }
+    const filter: {
+      community_id: string
+      limit: LimitType
+      shop_id?: string
+      product_id?: string
+    } = { community_id: communityId, limit }
     if (shopId) filter.shop_id = shopId
     if (productId) filter.product_id = productId
     const dataRef = getProductSubscriptionPlans(filter)
@@ -144,7 +164,7 @@ const ProductSubscriptionPlansPage = () => {
     if (dataRef && lastDataOnList && !isLastPage) {
       setLoading(true)
       const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         if (snapshot.docs.length) {
           setupDataList(snapshot.docs)
           setPageNum(pageNum + 1)
@@ -161,7 +181,7 @@ const ProductSubscriptionPlansPage = () => {
     if (dataRef && firstDataOnList && newPageNum > 0) {
       setLoading(true)
       const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         setupDataList(snapshot.docs)
       })
     }
@@ -169,7 +189,7 @@ const ProductSubscriptionPlansPage = () => {
     setPageNum(Math.max(1, newPageNum))
   }
 
-  const onViewSubscriptions = (subscriptionPlan: any) => {
+  const onViewSubscriptions = (subscriptionPlan: ProductSubscriptionPlanData) => {
     setShowSubscriptions(true)
     setActiveSubscriptionPlan(subscriptionPlan)
   }
@@ -203,7 +223,7 @@ const ProductSubscriptionPlansPage = () => {
               />
               {showShopSearchResult && shopSearchResult.length > 0 && (
                 <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                  {shopSearchResult.map((shop: any) => (
+                  {shopSearchResult.map((shop) => (
                     <button
                       className="w-full p-1 hover:bg-gray-200 block text-left"
                       key={shop.id}
@@ -228,7 +248,7 @@ const ProductSubscriptionPlansPage = () => {
               />
               {showProductSearchResult && productSearchResult.length > 0 && (
                 <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                  {productSearchResult.map((product: any) => (
+                  {productSearchResult.map((product) => (
                     <button
                       className="w-full p-1 hover:bg-gray-200 block text-left"
                       key={product.id}
@@ -251,7 +271,7 @@ const ProductSubscriptionPlansPage = () => {
               className="ml-1 z-10"
               simpleOptions={[10, 25, 50, 100]}
               size="small"
-              onSelect={(option: any) => setLimit(option.value)}
+              onSelect={(option) => setLimit(option.value as LimitType)}
               currentValue={limit}
             />
           </div>
@@ -280,12 +300,13 @@ const ProductSubscriptionPlansPage = () => {
               color="gray"
             />
           </div>
-        ) : !community ? (
+        ) : !community || !community.id ? (
           <h2 className="text-xl ml-5">Select a community first</h2>
         ) : (
           <div className="h-full w-full overflow-y-auto mb-10">
             {productSubscriptionPlans.map((subscriptionPlan) => (
               <ProductSubscriptionPlanDetails
+                key={subscriptionPlan.id}
                 subscriptionPlan={subscriptionPlan}
                 onViewSubscriptions={() => onViewSubscriptions(subscriptionPlan)}
               />

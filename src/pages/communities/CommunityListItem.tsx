@@ -4,6 +4,14 @@ import Avatar from '../../components/Avatar'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { Link } from 'react-router-dom'
 import { ListItemProps } from '../../utils/types'
+import { Community, User } from '../../models'
+
+type Props = Omit<ListItemProps, 'data'> & {
+  data: Community & {
+    id: string
+    admins: (User & { id: string })[]
+  }
+}
 
 const CommunityListItem = ({
   data,
@@ -14,22 +22,22 @@ const CommunityListItem = ({
   hideDelete,
   disableDelete = false,
   isArchived = false,
-}: ListItemProps) => {
+}: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
-  let created_at = '-'
-  let created_at_ago = '-'
+  let createdAt = '-'
+  let createdAtAgo = '-'
   if (data.created_at) {
-    created_at = dayjs(data.created_at.toDate()).format()
-    created_at_ago = dayjs(created_at).fromNow()
+    createdAt = dayjs(data.created_at.toDate()).format()
+    createdAtAgo = dayjs(createdAt).fromNow()
   }
 
-  let updated_at = '-'
-  let updated_at_ago = '-'
+  let updatedAt = '-'
+  let updatedAtAgo = '-'
   if (data.updated_at) {
-    updated_at = dayjs(data.updated_at.toDate()).format()
-    updated_at_ago = dayjs(updated_at).fromNow()
+    updatedAt = dayjs(data.updated_at.toDate()).format()
+    updatedAtAgo = dayjs(updatedAt).fromNow()
   }
 
   const OptionsComponent = isArchived ? (
@@ -136,22 +144,26 @@ const CommunityListItem = ({
       <td>
         {data.admins.length === 0
           ? '--'
-          : data.admins.map((admin: any) => <p className="text-gray-900" key={admin.id}>{admin.email}</p>)}
+          : data.admins.map((admin) => (
+              <p className="text-gray-900" key={admin.id}>
+                {admin.email}
+              </p>
+            ))}
       </td>
       <td>
-        <p className="text-gray-900">{data.meta.users_count || '--'}</p>
+        <p className="text-gray-900">{data._meta?.users_count || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900">{data.meta.shops_count || '--'}</p>
+        <p className="text-gray-900">{data._meta?.shops_count || '--'}</p>
       </td>
       <td>
-        <p className="text-gray-900">{data.meta.products_count || '--'}</p>
+        <p className="text-gray-900">{data._meta?.products_count || '--'}</p>
       </td>
-      <td title={created_at}>
-        <p className="text-gray-900 whitespace-no-wrap">{created_at_ago}</p>
+      <td title={createdAt}>
+        <p className="text-gray-900 whitespace-no-wrap">{createdAtAgo}</p>
       </td>
-      <td title={updated_at}>
-        <p className="text-gray-900 whitespace-no-wrap">{updated_at_ago}</p>
+      <td title={updatedAt}>
+        <p className="text-gray-900 whitespace-no-wrap">{updatedAtAgo}</p>
       </td>
 
       <td className="action-col">

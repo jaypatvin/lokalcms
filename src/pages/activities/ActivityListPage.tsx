@@ -11,8 +11,11 @@ import {
   SortOrderType,
 } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
+import { Activity, DocumentType } from '../../models'
 
-const ActivityListPage = (props: any) => {
+type ActivityData = Activity & { id: string; user_email?: string; community_name?: string }
+
+const ActivityListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<ActivityFilterType>('all')
   const [sortBy, setSortBy] = useState<ActivitySortByType>('created_at')
@@ -67,10 +70,8 @@ const ActivityListPage = (props: any) => {
       sortable: true,
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
-    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Activity>[]) => {
+    const newList: ActivityData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const activity = newList[i]
       const user = await fetchUserByID(activity.user_id)
@@ -86,7 +87,7 @@ const ActivityListPage = (props: any) => {
     }
     return newList
   }
-  const normalizeData = (activity: firebase.default.firestore.DocumentData) => {
+  const normalizeData = (activity: Activity & { id: string }) => {
     const data = {
       id: activity.id,
       message: activity.message,
@@ -96,8 +97,8 @@ const ActivityListPage = (props: any) => {
     return data
   }
 
-  const onArchive = async (activity: any) => {
-    let res: any
+  const onArchive = async (activity: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       const { id } = activity
       let url = `${API_URL}/activities/${id}`
@@ -115,8 +116,8 @@ const ActivityListPage = (props: any) => {
     return res
   }
 
-  const onUnarchive = async (activity: any) => {
-    let res: any
+  const onUnarchive = async (activity: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/activities/${activity.id}/unarchive`
       res = await fetch(url, {

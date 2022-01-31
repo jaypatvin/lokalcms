@@ -22,12 +22,14 @@ import { IoIosArrowDown } from 'react-icons/io'
 import useOuterClick from '../customHooks/useOuterClick'
 import { getCommunities } from '../services/community'
 import { TextField } from './inputs'
+import { Community } from '../models'
 
 type Props = {
   children: ReactNode
 }
+type CommunityData = Community & { id: string }
 
-const CommunityContext = createContext<any>({})
+const CommunityContext = createContext<CommunityData>({} as CommunityData)
 
 export function useCommunity() {
   return useContext(CommunityContext)
@@ -43,11 +45,11 @@ const BasePage = (props: Props) => {
 
   const { currentUserInfo, logout } = useAuth()
 
-  const [community, setCommunity] = useState<any>()
+  const [community, setCommunity] = useState<CommunityData>({} as CommunityData)
   const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
   const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
   const [communitySearchText, setCommunitySearchText] = useState('')
-  const [communitySearchResult, setCommunitySearchResult] = useState<any>([])
+  const [communitySearchResult, setCommunitySearchResult] = useState<CommunityData[]>([])
 
   const isStatic = useMediaQuery({
     query: '(min-width: 1199px)',
@@ -107,11 +109,11 @@ const BasePage = (props: Props) => {
     }
   }
 
-  const communitySelectHandler = (community: any) => {
+  const communitySelectHandler = (community: CommunityData) => {
     setShowCommunitySearchResult(false)
     setCommunitySearchResult([])
     setCommunity(community)
-    setCommunitySearchText(community.name)
+    setCommunitySearchText(community.name!)
   }
 
   return (
@@ -176,7 +178,7 @@ const BasePage = (props: Props) => {
                 />
                 {showCommunitySearchResult && communitySearchResult.length > 0 && (
                   <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                    {communitySearchResult.map((community: any) => (
+                    {communitySearchResult.map((community) => (
                       <button
                         className="w-full p-1 hover:bg-gray-200 block text-left"
                         key={community.id}
@@ -194,8 +196,8 @@ const BasePage = (props: Props) => {
                   className="flex flex-row rounded-full overflow-hidden focus:outline-none align-middle "
                 >
                   <Avatar
-                    url={currentUserInfo.profile_photo}
-                    name={currentUserInfo.display_name}
+                    url={currentUserInfo?.profile_photo}
+                    name={currentUserInfo?.display_name}
                     size={8}
                     statusColor="green"
                   />
@@ -210,10 +212,10 @@ const BasePage = (props: Props) => {
                       onClick={(e) => {
                         setIsAvatarOpen(!isAvatarOpen)
                       }}
-                      to={`/users/${currentUserInfo.id}`}
+                      to={`/users/${currentUserInfo?.id}`}
                       className="transition-colors duration-200 block px-4 py-2 text-normal text-gray-900 rounded hover:bg-teal-400 hover:text-white"
                     >
-                      {currentUserInfo.display_name}
+                      {currentUserInfo?.display_name}
                     </Link>
                     <div className="py-2">
                       <hr></hr>

@@ -3,12 +3,13 @@ import React, { useState } from 'react'
 import ReactCalendar from 'react-calendar'
 import { OutlineButton } from '../../components/buttons'
 import useOuterClick from '../../customHooks/useOuterClick'
+import { ProductSubscriptionPlan } from '../../models'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
 import { formatToPeso } from '../../utils/helper'
 
 type Props = {
-  data: any
+  data: ProductSubscriptionPlan & { id: string; buyer_email: string; seller_email: string }
   userType: 'seller' | 'buyer'
 }
 
@@ -39,7 +40,9 @@ const UserSubscriptionPlanTableItem = ({ data, userType }: Props) => {
         <p>Total Price: {formatToPeso(data.product.price * data.quantity)}</p>
       </td>
       <td>
-        <p className="text-gray-900 whitespace-no-wrap">{data[`${otherUserType}_email`]}</p>
+        <p className="text-gray-900 whitespace-no-wrap">
+          {otherUserType === 'buyer' ? data.buyer_email : data.seller_email}
+        </p>
         {otherUserType === 'buyer' && (
           <p className="text-gray-900 whitespace-no-wrap">Shop: {data.shop.name}</p>
         )}

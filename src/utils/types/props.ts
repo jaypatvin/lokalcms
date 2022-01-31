@@ -14,5 +14,5 @@ export type ListItemProps = {
   onUnarchive: () => void
   hideDelete?: boolean
   disableDelete?: boolean
-  isArchived: boolean
+  isArchived?: boolean
 }

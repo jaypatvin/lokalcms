@@ -2,11 +2,8 @@ import * as admin from 'firebase-admin'
 import { ReviewCreateData } from '../models/Review'
 import db from '../utils/db'
 
-const firebaseDb = admin.firestore()
-
 export const getReviewsByUser = async (user_id: string) => {
-  return firebaseDb
-    .collectionGroup('reviews')
+  return db.reviews
     .where('user_id', '==', user_id)
     .get()
     .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))

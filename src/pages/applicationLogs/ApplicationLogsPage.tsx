@@ -5,34 +5,41 @@ import SortButton from '../../components/buttons/SortButton'
 import Dropdown from '../../components/Dropdown'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
+import { ActionType, ApplicationLog, User } from '../../models'
 import { getActionTypes } from '../../services/actionTypes'
 import { getApplicationLogs } from '../../services/applicationLogs'
 import { fetchUserByID, getUsers } from '../../services/users'
 import { formatFirestoreDatesAgo } from '../../utils/dates/formatDate'
 import { LimitType } from '../../utils/types'
 
-const ApplicationLogsPage = () => {
-  const [applicationLogs, setApplicationLogs] = useState<any>([])
+type UserData = User & { id: string }
+type ActionTypeData = ActionType & { id: string }
+type ApplicationLogData = ApplicationLog & { id: string; user_email: string }
 
-  const [user, setUser] = useState<any>()
+const ApplicationLogsPage = () => {
+  const [applicationLogs, setApplicationLogs] = useState<ApplicationLogData[]>([])
+
+  const [user, setUser] = useState<UserData>()
   const [showUserSearchResult, setShowUserSearchResult] = useState(false)
   const userSearchResultRef = useOuterClick(() => setShowUserSearchResult(false))
   const [userSearchText, setUserSearchText] = useState('')
-  const [userSearchResult, setUserSearchResult] = useState<any>([])
+  const [userSearchResult, setUserSearchResult] = useState<UserData[]>([])
 
-  const [actionTypes, setActionTypes] = useState<any>()
-  const [actionType, setActionType] = useState<any>()
+  const [actionTypes, setActionTypes] = useState<ActionTypeData[]>()
+  const [actionType, setActionType] = useState<ActionTypeData>()
   const [showActionTypeSearchResult, setShowActionTypeSearchResult] = useState(false)
   const actionTypeSearchResultRef = useOuterClick(() => setShowActionTypeSearchResult(false))
   const [actionTypeSearchText, setActionTypeSearchText] = useState('')
-  const [actionTypeSearchResult, setActionTypeSearchResult] = useState<any>([])
+  const [actionTypeSearchResult, setActionTypeSearchResult] = useState<ActionTypeData[]>([])
 
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
 
-  const [dataRef, setDataRef] = useState<any>()
-  const [firstDataOnList, setFirstDataOnList] = useState<any>()
-  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<ApplicationLog>>()
+  const [firstDataOnList, setFirstDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<ApplicationLog>>()
+  const [lastDataOnList, setLastDataOnList] =
+    useState<firebase.default.firestore.QueryDocumentSnapshot<ApplicationLog>>()
   const [isLastPage, setIsLastPage] = useState(false)
 
   const community = useCommunity()
@@ -69,7 +76,7 @@ const ApplicationLogsPage = () => {
     }
   }
 
-  const userSelectHandler = (user: any) => {
+  const userSelectHandler = (user: UserData) => {
     setShowUserSearchResult(false)
     setUserSearchResult([])
     setUser(user)
@@ -78,22 +85,24 @@ const ApplicationLogsPage = () => {
 
   const actionTypeSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setActionTypeSearchText(e.target.value)
-    const filteredActionTypes = actionTypes.filter((action: any) =>
-      action.name.toLowerCase().includes(e.target.value)
-    )
-    setActionTypeSearchResult(filteredActionTypes)
-    setShowActionTypeSearchResult(filteredActionTypes.length > 0)
+    if (actionTypes) {
+      const filteredActionTypes = actionTypes.filter((action) =>
+        action.name.toLowerCase().includes(e.target.value)
+      )
+      setActionTypeSearchResult(filteredActionTypes)
+      setShowActionTypeSearchResult(filteredActionTypes.length > 0)
+    }
   }
 
-  const actionTypeSelectHandler = (actionType: any) => {
+  const actionTypeSelectHandler = (actionType: ActionTypeData) => {
     setShowActionTypeSearchResult(false)
     setActionTypeSearchResult([])
     setActionType(actionType)
     setActionTypeSearchText(actionType.name)
   }
 
-  const setupDataList = async (docs: any) => {
-    const data = []
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<ApplicationLog>[]) => {
+    const data: ApplicationLogData[] = []
     for (let log of docs) {
       const logData = log.data()
       let user
@@ -103,7 +112,7 @@ const ApplicationLogsPage = () => {
       data.push({
         ...log.data(),
         id: log.id,
-        user_email: user ? user.data()?.email : '--',
+        user_email: user?.data()?.email ?? '--',
       })
     }
     setApplicationLogs(data)
@@ -112,12 +121,12 @@ const ApplicationLogsPage = () => {
   }
 
   const getCommunityApplicationLogs = async () => {
-    if (!community) return
+    if (!community || !community.id) return
     const dataRef = getApplicationLogs({
       community_id: community.id,
       limit,
-      action_type: actionType ? actionType.id : null,
-      user_id: user ? user.id : null,
+      action_type: actionType?.id,
+      user_id: user?.id,
     })
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
@@ -132,7 +141,7 @@ const ApplicationLogsPage = () => {
   const onNextPage = () => {
     if (dataRef && lastDataOnList && !isLastPage) {
       const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         if (snapshot.docs.length) {
           setupDataList(snapshot.docs)
           setPageNum(pageNum + 1)
@@ -147,7 +156,7 @@ const ApplicationLogsPage = () => {
     const newPageNum = pageNum - 1
     if (dataRef && firstDataOnList && newPageNum > 0) {
       const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         setupDataList(snapshot.docs)
       })
     }
@@ -172,7 +181,7 @@ const ApplicationLogsPage = () => {
             />
             {showUserSearchResult && userSearchResult.length > 0 && (
               <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                {userSearchResult.map((user: any) => (
+                {userSearchResult.map((user) => (
                   <button
                     className="w-full p-1 hover:bg-gray-200 block text-left"
                     key={user.id}
@@ -197,7 +206,7 @@ const ApplicationLogsPage = () => {
             />
             {showActionTypeSearchResult && actionTypeSearchResult.length > 0 && (
               <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                {actionTypeSearchResult.map((action: any) => (
+                {actionTypeSearchResult.map((action) => (
                   <button
                     className="w-full p-1 hover:bg-gray-200 block text-left"
                     key={action.id}
@@ -216,7 +225,7 @@ const ApplicationLogsPage = () => {
             className="ml-1 z-10"
             simpleOptions={[10, 25, 50, 100]}
             size="small"
-            onSelect={(option: any) => setLimit(option.value)}
+            onSelect={(option) => setLimit(option.value as LimitType)}
             currentValue={limit}
           />
           <Button
@@ -235,7 +244,7 @@ const ApplicationLogsPage = () => {
           />
         </div>
       </div>
-      {!community ? (
+      {!community || !community.id ? (
         <h2 className="text-xl ml-5">Select a community first</h2>
       ) : (
         <div className="table-wrapper w-full">
@@ -281,7 +290,7 @@ const ApplicationLogsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {applicationLogs.map((data: any) => (
+                {applicationLogs.map((data) => (
                   <tr key={data.id}>
                     <td>
                       <p className="text-gray-900 whitespace-no-wrap">{data.action_type}</p>

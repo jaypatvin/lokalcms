@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
 import dayjs from 'dayjs'
-import { isEmpty } from 'lodash'
 import { fetchUserByID } from '../../services/users'
 import MenuList from '../../components/MenuList'
 import { LimitType, MenuItemType } from '../../utils/types'
@@ -22,10 +21,37 @@ import CommunityShopsTable from './CommunityShopsTable'
 import CommunitySubscriptionPlansTable from './CommunitySubscriptionPlansTable'
 import { getOrdersByCommunity } from '../../services/orders'
 import CommunityInvitesTable from './CommunityInvitesTable'
+import {
+  Community,
+  Product,
+  Activity,
+  Order,
+  Shop,
+  ApplicationLog,
+  ProductSubscriptionPlan,
+  Invite,
+} from '../../models'
 
 type Props = {
   [x: string]: any
 }
+
+type CommunityData = Community & {
+  id: string
+  admins?: string[]
+}
+export type ProductData = Product & { id: string; shop_name?: string; user_email?: string }
+export type ActivityData = Activity & { id: string; user_email?: string }
+export type ShopData = Shop & { id: string; user_email?: string }
+export type ApplicationLogData = ApplicationLog & { id: string; user_email?: string }
+export type OrderData = Order & { id: string; buyer_email?: string; seller_email?: string }
+export type InviteData = Invite & { id: string; inviter_email?: string }
+type DataRefType = firebase.default.firestore.Query<
+  Activity | ApplicationLog | Product | Shop | Order | Invite | ProductSubscriptionPlan
+>
+type DataDocType = firebase.default.firestore.QueryDocumentSnapshot<
+  Activity | ApplicationLog | Product | Shop | Order | Invite | ProductSubscriptionPlan
+>
 
 type DataType =
   | 'activities'
@@ -37,16 +63,16 @@ type DataType =
   | 'product_subscription_plans'
 
 const CommunityPage = ({ match }: Props) => {
-  const [community, setCommunity] = useState<any>({})
+  const [community, setCommunity] = useState<CommunityData>()
   const [dataToShow, setDataToShow] = useState<DataType>('products')
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
 
-  const [dataRef, setDataRef] = useState<any>()
-  const [firstDataOnList, setFirstDataOnList] = useState<any>()
-  const [lastDataOnList, setLastDataOnList] = useState<any>()
+  const [dataRef, setDataRef] = useState<DataRefType>()
+  const [firstDataOnList, setFirstDataOnList] = useState<DataDocType>()
+  const [lastDataOnList, setLastDataOnList] = useState<DataDocType>()
   const [isLastPage, setIsLastPage] = useState(false)
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
 
@@ -88,41 +114,29 @@ const CommunityPage = ({ match }: Props) => {
     },
   ]
 
-  const normalizeData = async (data: any) => {
-    const createdAt = dayjs(data.created_at.toDate()).format()
-    const createdAtAgo = dayjs(createdAt).fromNow()
-    for (const userId of data.admin) {
-      const admin = await fetchUserByID(userId)
-      const adminData = admin.data()
-      if (adminData) {
-        if (!data.admins) data.admins = []
-        data.admins.push(adminData.email)
-      }
-    }
-    return {
-      id: data.id,
-      address: data.address,
-      admins: data.admins,
-      coverPhoto: data.cover_photo,
-      profilePhoto: data.profile_photo,
-      name: data.name,
-      createdAtAgo,
-    }
-  }
-
   const fetchCommunity = async (id: string) => {
     const communityRef = await fetchCommunityByID(id)
-    let communityData = { ...communityRef.data(), id: communityRef.id }
-    if (communityData) {
-      const normalizedData = await normalizeData(communityData)
-      setCommunity(normalizedData)
+    const communityRefData = communityRef.data()
+    if (communityRefData) {
+      const communityData: CommunityData = { ...communityRefData, id: communityRef.id }
+      if (communityData.admin) {
+        for (const userId of communityData.admin) {
+          const admin = await fetchUserByID(userId)
+          const adminData = admin.data()
+          if (adminData) {
+            if (!communityData.admins) communityData.admins = []
+            communityData.admins.push(adminData.email)
+          }
+        }
+      }
+      setCommunity(communityData)
     }
   }
 
   const fetchData = async (dataName: DataType) => {
     setLoading(true)
-    const communityId = community.id || match.params.id
-    let newDataRef: any
+    const communityId = community?.id || match.params.id
+    let newDataRef: DataRefType | undefined
     if (dataName === 'products') {
       newDataRef = getProductsByCommunity(communityId, limit)
     } else if (dataName === 'shops') {
@@ -139,13 +153,15 @@ const CommunityPage = ({ match }: Props) => {
       newDataRef = getInvitesByCommunity(communityId, limit)
     }
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = newDataRef.onSnapshot(async (snapshot: any) => {
-      setupDataList(snapshot.docs)
-    })
-    setSnapshot({ unsubscribe: newUnsubscribe })
-    setDataRef(newDataRef)
-    setPageNum(1)
-    setIsLastPage(false)
+    if (newDataRef) {
+      const newUnsubscribe = newDataRef.onSnapshot(async (snapshot) => {
+        setupDataList(snapshot.docs)
+      })
+      setSnapshot({ unsubscribe: newUnsubscribe })
+      setDataRef(newDataRef)
+      setPageNum(1)
+      setIsLastPage(false)
+    }
   }
 
   const setupData = async () => {
@@ -166,16 +182,16 @@ const CommunityPage = ({ match }: Props) => {
   }, [match.params])
 
   useEffect(() => {
-    if (community.id) {
+    if (community?.id) {
       fetchData(dataToShow)
     }
   }, [dataToShow, limit])
 
-  const setupDataList = async (docs: any) => {
-    let newData = docs.map((doc: any) => ({ ...doc.data(), id: doc.id }))
+  const setupDataList = async (docs: DataDocType[]) => {
+    let newData = docs.map((doc) => ({ ...doc.data(), id: doc.id }))
     if (dataToShow === 'products') {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as ProductData
         const shop = await fetchShopByID(data.shop_id)
         const shopData = shop.data()
         if (shopData) {
@@ -189,7 +205,7 @@ const CommunityPage = ({ match }: Props) => {
       }
     } else if (dataToShow === 'orders' || dataToShow === 'product_subscription_plans') {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as OrderData
         const buyer = await fetchUserByID(data.buyer_id)
         const buyerData = buyer.data()
         if (buyerData) {
@@ -200,6 +216,13 @@ const CommunityPage = ({ match }: Props) => {
         if (sellerData) {
           data.seller_email = sellerData.email
         }
+        if (dataToShow === 'product_subscription_plans') {
+          const shop = await fetchShopByID(data.shop_id)
+          const shopData = shop.data()
+          if (shopData) {
+            data.shop_name = shopData.name
+          }
+        }
       }
     } else if (
       dataToShow === 'activities' ||
@@ -207,7 +230,7 @@ const CommunityPage = ({ match }: Props) => {
       dataToShow === 'shops'
     ) {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as ActivityData
         const user = await fetchUserByID(data.user_id)
         const userData = user.data()
         if (userData) {
@@ -216,7 +239,7 @@ const CommunityPage = ({ match }: Props) => {
       }
     } else if (dataToShow === 'invites') {
       for (let i = 0; i < newData.length; i++) {
-        const data = newData[i]
+        const data = newData[i] as InviteData
         const user = await fetchUserByID(data.inviter)
         const userData = user.data()
         if (userData) {
@@ -233,7 +256,7 @@ const CommunityPage = ({ match }: Props) => {
   const onNextPage = () => {
     if (dataRef && lastDataOnList && !isLastPage) {
       const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         if (snapshot.docs.length) {
           setupDataList(snapshot.docs)
           setPageNum(pageNum + 1)
@@ -248,7 +271,7 @@ const CommunityPage = ({ match }: Props) => {
     const newPageNum = pageNum - 1
     if (dataRef && firstDataOnList && newPageNum > 0) {
       const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
+      newDataRef.onSnapshot(async (snapshot) => {
         setupDataList(snapshot.docs)
       })
     }
@@ -256,17 +279,17 @@ const CommunityPage = ({ match }: Props) => {
     setPageNum(Math.max(1, newPageNum))
   }
 
-  if (isEmpty(community)) return null
+  if (!community) return null
 
   return (
     <div className="">
       <h2 className="text-2xl font-semibold leading-tight">{community.name}</h2>
       <div className="flex">
         <div className="p-2 w-80">
-          <img src={community.profilePhoto} alt={community.name} className="max-w-32 max-h-32" />
+          <img src={community.profile_photo} alt={community.name} className="max-w-32 max-h-32" />
           <p className="text-gray-900">{`${community.address.subdivision}, ${community.address.barangay}, ${community.address.city}, ${community.address.state}, ${community.address.country}, ${community.address.zip_code}`}</p>
-          <p>Created {community.createdAtAgo}</p>
-          <p>Admins: {community.admins.join(', ')}</p>
+          <p>Created {dayjs(community.created_at.toDate()).fromNow()}</p>
+          <p>Admins: {community.admins ? community.admins.join(', ') : 'None'}</p>
           <div className="py-2">
             <h4 className="text-xl font-semibold">Related Data</h4>
             <MenuList items={items} selected={dataToShow} />
@@ -283,7 +306,7 @@ const CommunityPage = ({ match }: Props) => {
                 className="ml-1 z-10"
                 simpleOptions={[10, 25, 50, 100]}
                 size="small"
-                onSelect={(option: any) => setLimit(option.value)}
+                onSelect={(option) => setLimit(option.value as LimitType)}
                 currentValue={limit}
               />
             </div>

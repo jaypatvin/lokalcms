@@ -9,8 +9,9 @@ import {
 } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
 import { getCategories } from '../../services/categories'
+import { Category, DocumentType } from '../../models'
 
-const CategoryListPage = (props: any) => {
+const CategoryListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<CategoryFilterType>('all')
   const [sortBy, setSortBy] = useState<CategorySortByType>('name')
@@ -60,12 +61,10 @@ const CategoryListPage = (props: any) => {
       sortable: true,
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
-    return docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Category>[]) => {
+    return docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   }
-  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+  const normalizeData = (data: Category & { id: string }) => {
     return {
       id: data.id,
       name: data.name,
@@ -76,8 +75,8 @@ const CategoryListPage = (props: any) => {
     }
   }
 
-  const onArchive = async (data: any) => {
-    let res: any
+  const onArchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       const { id } = data
       let url = `${API_URL}/categories/${id}`
@@ -95,8 +94,8 @@ const CategoryListPage = (props: any) => {
     return res
   }
 
-  const onUnarchive = async (data: any) => {
-    let res: any
+  const onUnarchive = async (data: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/categories/${data.id}/unarchive`
       res = await fetch(url, {

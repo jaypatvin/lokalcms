@@ -13,7 +13,7 @@ export const getChatMessageById = async (chat_id: string, id: string) => {
   const message = await db.getChatConversations(`chats/${chat_id}/conversation`).doc(id).get()
 
   const data = message.data()
-  if (data) return { id: message.id, ...data } as any
+  if (data) return { id: message.id, ...data }
   return null
 }
 

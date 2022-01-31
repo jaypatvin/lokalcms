@@ -3,11 +3,17 @@ import { useState } from 'react'
 import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
 import { OutlineButton } from '../../components/buttons'
 import { buttonIcons } from '../../components/buttons/theme'
+import { ProductSubscriptionPlan } from '../../models'
 import { formatToPeso } from '../../utils/helper'
 import { DayKeyVal } from '../../utils/types'
 
+type ProductSubscriptionPlanData = ProductSubscriptionPlan & {
+  id: string
+  buyer_email?: string
+  seller_email?: string
+}
 type Props = {
-  subscriptionPlan: any
+  subscriptionPlan: ProductSubscriptionPlanData
   onViewSubscriptions: () => void
 }
 

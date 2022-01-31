@@ -16,6 +16,7 @@ import Dropdown from '../Dropdown'
 import CreateUpdateForm from './CreateUpdateForm'
 import ListItems from './ListItems'
 import { useCommunity } from '../../components/BasePage'
+import { DocumentType } from '../../models'
 
 // Init
 dayjs.extend(relativeTime)
@@ -49,16 +50,12 @@ type Props = {
     search?: string
     limit?: number
     community?: any
-  }) => firebase.default.firestore.Query<firebase.default.firestore.DocumentData>
-  setupDataList: (
-    arg: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => Promise<firebase.default.firestore.DocumentData[]>
-  normalizeDataToUpdate?: (
-    arg: firebase.default.firestore.DocumentData
-  ) => firebase.default.firestore.DocumentData
-  onDelete?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  onArchive?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
-  onUnarchive?: (arg: firebase.default.firestore.DocumentData) => Promise<any>
+  }) => firebase.default.firestore.Query<DocumentType>
+  setupDataList: (arg: any[]) => Promise<any[]>
+  normalizeDataToUpdate?: (arg: any) => any
+  onDelete?: (arg: DocumentType) => Promise<any>
+  onArchive?: (arg: DocumentType) => Promise<any>
+  onUnarchive?: (arg: DocumentType) => Promise<any>
   noActions?: boolean
 }
 
@@ -84,30 +81,23 @@ const ListPage = ({
   noActions,
 }: Props) => {
   const community = useCommunity()
-  const [dataList, setDataList] = useState<firebase.default.firestore.DocumentData[]>([])
+  const [dataList, setDataList] = useState<DocumentType[]>([])
   const [search, setSearch] = useState('')
   const [limit, setLimit] = useState<LimitType>(10)
   const [pageNum, setPageNum] = useState(1)
-  const [dataRef, setDataRef] =
-    useState<firebase.default.firestore.Query<firebase.default.firestore.DocumentData>>()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<DocumentType>>()
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
   const [firstDataOnList, setFirstDataOnList] =
-    useState<
-      firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>
-    >()
+    useState<firebase.default.firestore.QueryDocumentSnapshot<DocumentType>>()
   const [lastDataOnList, setLastDataOnList] =
-    useState<
-      firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>
-    >()
+    useState<firebase.default.firestore.QueryDocumentSnapshot<DocumentType>>()
   const [isLastPage, setIsLastPage] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'update'>('create')
-  const [dataToUpdate, setDataToUpdate] = useState<firebase.default.firestore.DocumentData>()
+  const [dataToUpdate, setDataToUpdate] = useState<DocumentType>()
   const [loading, setLoading] = useState(false)
 
-  const getDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
+  const getDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<DocumentType>[]) => {
     const newDataList = await setupDataList(docs)
     setDataList(newDataList)
     setLastDataOnList(docs[docs.length - 1])
@@ -172,7 +162,7 @@ const ListPage = ({
     setDataToUpdate(undefined)
   }
 
-  const openUpdate = (currentData: firebase.default.firestore.DocumentData) => {
+  const openUpdate = (currentData: DocumentType) => {
     setIsCreateOpen(true)
     setModalMode('update')
     let data = currentData

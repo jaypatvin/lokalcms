@@ -4,8 +4,14 @@ import { API_URL } from '../../config/variables'
 import { getUsers } from '../../services/users'
 import { GenericGetArgType, SortOrderType, UserFilterType, UserSortByType } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
+import { DocumentType, User } from '../../models'
 
-const UserListPage = (props: any) => {
+type UserData = User & {
+  id: string
+  community_name?: string
+}
+
+const UserListPage = () => {
   const { firebaseToken } = useAuth()
   const [filter, setFilter] = useState<UserFilterType>('all')
   const [sortBy, setSortBy] = useState<UserSortByType>('display_name')
@@ -55,10 +61,8 @@ const UserListPage = (props: any) => {
       sortable: true,
     },
   ]
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<firebase.default.firestore.DocumentData>[]
-  ) => {
-    const newList = docs.map((doc): any => ({ id: doc.id, ...doc.data() }))
+  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<User>[]) => {
+    const newList: UserData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     for (let i = 0; i < newList.length; i++) {
       const user = newList[i]
       const community = await user.community.get()
@@ -69,7 +73,7 @@ const UserListPage = (props: any) => {
     }
     return newList
   }
-  const normalizeData = (data: firebase.default.firestore.DocumentData) => {
+  const normalizeData = (data: User & { id: string }) => {
     return {
       id: data.id,
       status: data.status,
@@ -84,8 +88,8 @@ const UserListPage = (props: any) => {
     }
   }
 
-  const onArchive = async (user: any) => {
-    let res: any
+  const onArchive = async (user: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       const { id } = user
       let url = `${API_URL}/users/${id}`
@@ -103,8 +107,8 @@ const UserListPage = (props: any) => {
     return res
   }
 
-  const onUnarchive = async (user: any) => {
-    let res: any
+  const onUnarchive = async (user: DocumentType) => {
+    let res
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/users/${user.id}/unarchive`
       res = await fetch(url, {

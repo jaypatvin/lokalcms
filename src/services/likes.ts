@@ -1,4 +1,4 @@
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetLikesByUserParamTypes = {
   userId: string
@@ -12,12 +12,7 @@ type GetLikesByShopParamTypes = {
 }
 
 export const getLikesByShop = ({ shopId, limit = 10 }: GetLikesByShopParamTypes) => {
-  return db
-    .collectionGroup('likes')
-    .where('shop_id', '==', shopId)
-    .where('parent_collection_name', '==', 'shops')
-    .orderBy('created_at', 'desc')
-    .limit(limit)
+  return db.getLikes(`shops/${shopId}/likes`).orderBy('created_at', 'desc').limit(limit)
 }
 
 export const getLikesByUser = ({
@@ -25,8 +20,7 @@ export const getLikesByUser = ({
   entityName = 'products',
   limit = 10,
 }: GetLikesByUserParamTypes) => {
-  return db
-    .collectionGroup('likes')
+  return db.likes
     .where('user_id', '==', userId)
     .where('parent_collection_name', '==', entityName)
     .orderBy('created_at', 'desc')

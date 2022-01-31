@@ -235,7 +235,7 @@ const createOrder = async (req: Request, res: Response) => {
   }
 
   const order = await OrdersService.createOrder(newOrder)
-  const result = await order.get().then((doc): any => ({ id: order.id, ...doc.data() }))
+  const result = await order.get().then((doc) => ({ id: order.id, ...doc.data() }))
 
   // 100 - Waiting for Confirmation - this is the first status of the order
   const initialStatusHistory = {

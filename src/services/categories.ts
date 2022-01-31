@@ -1,5 +1,5 @@
 import { SortOrderType, CategorySortByType, CategoryFilterType } from '../utils/types'
-import { db } from './firebase'
+import { db } from '../utils'
 
 type GetCategoriesParamTypes = {
   search?: string
@@ -10,7 +10,7 @@ type GetCategoriesParamTypes = {
 }
 
 export const fetchCategoryByID = async (id: string) => {
-  return db.collection('categories').doc(id).get()
+  return db.categories.doc(id).get()
 }
 
 export const getCategories = ({
@@ -20,9 +20,7 @@ export const getCategories = ({
   sortOrder = 'asc',
   limit = 10,
 }: GetCategoriesParamTypes) => {
-  let ref: any = db
-    .collection('categories')
-    .where('keywords', 'array-contains', search.toLowerCase())
+  let ref = db.categories.where('keywords', 'array-contains', search.toLowerCase())
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
   }
