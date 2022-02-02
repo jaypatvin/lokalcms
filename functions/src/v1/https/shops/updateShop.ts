@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isBoolean } from 'lodash'
 import { BankCodesService, ShopsService } from '../../../service'
 import { validateValue, isValidPaymentOptions } from '../../../utils/validations'
 import { generateShopKeywords } from '../../../utils/generators'
@@ -59,6 +60,15 @@ import { ShopUpdateData } from '../../../models/Shop'
  *                 type: boolean
  *               status:
  *                 type: string
+ *               delivery_options:
+ *                 type: object
+ *                 properties:
+ *                   delivery:
+ *                     type: boolean
+ *                     required: true
+ *                   pickup:
+ *                     type: boolean
+ *                     required: true
  *               payment_options:
  *                 type: array
  *                 items:
@@ -86,7 +96,16 @@ import { ShopUpdateData } from '../../../models/Shop'
 const updateShop = async (req: Request, res: Response) => {
   const { shopId } = req.params
   const data = req.body
-  const { name, description, is_close, source, profile_photo, cover_photo, payment_options } = data
+  const {
+    name,
+    description,
+    is_close,
+    source,
+    profile_photo,
+    cover_photo,
+    payment_options,
+    delivery_options,
+  } = data
 
   if (!shopId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
@@ -126,6 +145,15 @@ const updateShop = async (req: Request, res: Response) => {
       paymentOption.type = bankCode.type
     }
     updateData.payment_options = payment_options
+  }
+  if (delivery_options) {
+    if (!isBoolean(data.delivery_options.pickup) || !isBoolean(data.delivery_options.delivery)) {
+      return res.status(400).json({
+        status: 'error',
+        message: "delivery_options must contain 'pickup' and 'delivery' boolean field",
+      })
+    }
+    updateData.delivery_options = delivery_options
   }
 
   if (!Object.keys(updateData).length)

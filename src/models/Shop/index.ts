@@ -96,6 +96,10 @@ type Shop = {
     account_number: string
     account_name: string
   }[]
+  delivery_options: {
+    delivery: boolean
+    pickup: boolean
+  }
   profile_photo?: string
   status: 'enabled' | 'disabled'
   updated_at?: firebase.default.firestore.Timestamp
@@ -120,6 +124,7 @@ export type ShopCreateData = Pick<
   | 'profile_photo'
   | 'cover_photo'
   | 'payment_options'
+  | 'delivery_options'
 >
 
 export type ShopUpdateData = Partial<
@@ -135,6 +140,7 @@ export type ShopUpdateData = Partial<
     | 'updated_by'
     | 'updated_from'
     | 'operating_hours'
+    | 'delivery_options'
   >
 >
 

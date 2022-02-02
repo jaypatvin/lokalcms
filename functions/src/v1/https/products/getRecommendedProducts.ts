@@ -70,7 +70,7 @@ const getRecommendedProducts = async (req: Request, res: Response) => {
   // get product categories from all the orders
   const ordersCategories = allUserOrders.reduce((acc, order) => {
     for (const orderProduct of order.products) {
-      const category = orderProduct.product_category
+      const category = orderProduct.category
       if (category) {
         if (!acc[category]) acc[category] = 0
         acc[category]++

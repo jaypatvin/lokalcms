@@ -102,7 +102,7 @@ const declineOrder = async (req: Request, res: Response) => {
   }
 
   for (const orderProduct of order.products) {
-    await ProductsService.incrementProductQuantity(orderProduct.product_id, orderProduct.quantity)
+    await ProductsService.incrementProductQuantity(orderProduct.id, orderProduct.quantity)
   }
   const result = await OrdersService.updateOrder(orderId, updateData)
 

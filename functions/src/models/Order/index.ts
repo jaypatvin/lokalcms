@@ -20,20 +20,22 @@ type Order = {
   product_ids: string[]
   products: {
     instruction: string
-    product_category?: string
-    product_description: string
-    product_id: string
-    product_image: string
-    product_name: string
-    product_price: number
+    category?: string
+    description: string
+    id: string
+    image: string
+    name: string
+    price: number
     quantity: number
   }[]
   proof_of_payment?: string
   seller_id: string
-  shop_description: string
   shop_id: string
-  shop_image: string
-  shop_name: string
+  shop: {
+    description: string
+    image?: string
+    name: string
+  }
   status_code: number | string
   updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
@@ -57,9 +59,7 @@ export type OrderCreateData = Pick<
   | 'instruction'
   | 'is_paid'
   | 'status_code'
-  | 'shop_name'
-  | 'shop_description'
-  | 'shop_image'
+  | 'shop'
   | 'delivery_address'
   | 'product_subscription_id'
   | 'product_subscription_date'

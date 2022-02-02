@@ -69,3 +69,9 @@ export const comments = [
   'https://images.unsplash.com/photo-1454486837617-ce8e1ba5ebfe?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2073&q=80',
   'https://images.unsplash.com/photo-1466193341027-56e68017ee2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80',
 ]
+
+export const proofOfPayments = [
+  'https://upload.wikimedia.org/wikipedia/commons/3/3f/CTBC_Bank_ATM_receipt_20190506.jpg',
+  'https://cdn.jotfor.ms/form-templates/screenshots/pdf/425x575_20200611510317034/deposit-receipt.png',
+  'https://docs.oracle.com/cd/E92727_01/webhelp/Content/obdx/introduction/ereceipt/e_reciept.png',
+]

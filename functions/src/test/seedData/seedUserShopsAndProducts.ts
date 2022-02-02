@@ -132,6 +132,7 @@ export const seedShopsAndProductsOfUser = async ({
       const keywords = generateShopKeywords({ name })
       const randomSchedule = chance.pickone(sampleSchedules)
       const { start_time, end_time, start_dates, repeat_unit, repeat_type } = randomSchedule
+      const isDelivery = chance.bool()
       const operatingHours = {
         start_time,
         end_time,
@@ -174,6 +175,10 @@ export const seedShopsAndProductsOfUser = async ({
         created_at: admin.firestore.Timestamp.now(),
         // @ts-ignore
         operating_hours: operatingHours,
+        delivery_options: {
+          delivery: isDelivery,
+          pickup: isDelivery ? chance.bool() : true,
+        },
       })
 
       const productCount = chance.integer({ min: 2, max: 5 })
