@@ -102,7 +102,7 @@ const declineOrder = async (req: Request, res: Response) => {
   }
 
   for (const orderProduct of order.products) {
-    await ProductsService.incrementProductQuantity(orderProduct.product_id, orderProduct.quantity)
+    await ProductsService.incrementProductQuantity(orderProduct.id, orderProduct.quantity)
   }
   const result = await OrdersService.updateOrder(orderId, updateData)
 
@@ -111,7 +111,7 @@ const declineOrder = async (req: Request, res: Response) => {
   const notificationData = {
     type: 'order_status',
     title: 'Your order has been declined',
-    message: `Your order (${order.products.length} products) from ${order.shop_name} has been declined.`,
+    message: `Your order (${order.products.length} products) from ${order.shop.name} has been declined.`,
     associated_collection: 'orders',
     associated_document: orderId,
   }

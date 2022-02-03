@@ -103,7 +103,7 @@ const shipOut = async (req: Request, res: Response) => {
   const notificationData = {
     type: 'order_status',
     title: 'Your order has been shipped out!',
-    message: `Your order (${order.products.length} products) from ${order.shop_name} has been shipped out.`,
+    message: `Your order (${order.products.length} products) from ${order.shop.name} has been shipped out.`,
     associated_collection: 'orders',
     associated_document: orderId,
   }

@@ -61,16 +61,16 @@ const ShopOrdersTable = ({ data }: Props) => {
                 <tr key={d.id}>
                   <td>
                     {d.products.slice(0, 2).map((product) => {
-                      const subTotalPrice = product.quantity * product.product_price
+                      const subTotalPrice = product.quantity * product.price
                       totalPrice += subTotalPrice
                       totalItems += product.quantity
                       return (
                         <div className="border-b-1 mb-2 py-2 flex items-center" key={d.id}>
                           <div className="w-12 mr-2">
-                            {product.product_image ? (
+                            {product.image ? (
                               <img
-                                src={product.product_image}
-                                alt={product.product_name}
+                                src={product.image}
+                                alt={product.name}
                                 className="max-w-12 max-h-12"
                               />
                             ) : (
@@ -78,7 +78,7 @@ const ShopOrdersTable = ({ data }: Props) => {
                             )}
                           </div>
                           <p>
-                            {`${product.product_name} (${product.quantity}) = ${formatToPeso(
+                            {`${product.name} (${product.quantity}) = ${formatToPeso(
                               subTotalPrice
                             )}`}{' '}
                             {product.instruction ? (

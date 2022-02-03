@@ -262,15 +262,15 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
           <p>Created: {dayjs(order.created_at.toDate()).format('YYYY-MM-DD h:mm a')}</p>
           <p>Buyer: {order.buyer_email}</p>
           <p>
-            <strong>Shop: {order.shop_name}</strong>
+            <strong>Shop: {order.shop.name}</strong>
           </p>
           {showMore && (
             <>
-              <p className="italic">{order.shop_description}</p>
-              {order.shop_image ? (
+              <p className="italic">{order.shop.description}</p>
+              {order.shop.image ? (
                 <img
-                  src={order.shop_image}
-                  alt={order.shop_name}
+                  src={order.shop.image}
+                  alt={order.shop.name}
                   className="max-w-full max-h-40 m-2"
                 />
               ) : (
@@ -281,27 +281,21 @@ const OrderDetails = ({ order, orderStatusMap }: Props) => {
         </div>
         <div className="w-1/4">
           {order.products.map((product) => {
-            const subTotalPrice = product.quantity * product.product_price
+            const subTotalPrice = product.quantity * product.price
             totalPrice += subTotalPrice
             totalItems += product.quantity
             return (
               showMore && (
                 <div className="border-b-1 mb-2 py-2 flex items-center">
                   <div className="w-24 mr-2">
-                    {product.product_image ? (
-                      <img
-                        src={product.product_image}
-                        alt={product.product_name}
-                        className="max-w-24 max-h-24"
-                      />
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} className="max-w-24 max-h-24" />
                     ) : (
                       ''
                     )}
                   </div>
                   <p>
-                    {`${product.product_name} (${product.quantity}) = ${formatToPeso(
-                      subTotalPrice
-                    )}`}{' '}
+                    {`${product.name} (${product.quantity}) = ${formatToPeso(subTotalPrice)}`}{' '}
                     {product.instruction ? (
                       <span className="block">
                         <i>Instruction: {product.instruction}</i>

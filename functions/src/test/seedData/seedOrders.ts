@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import db from '../../utils/db'
 import sleep from '../../utils/sleep'
 import { AdminType } from '../dbseed'
+import { proofOfPayments } from '../sampleImages'
 
 const chance = new Chance()
 
@@ -12,7 +13,9 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
   const products = (await db.products.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   const shops = (await db.shops.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   for (const buyer of randomUsers) {
-    const communityShops = shops.filter((shop) => shop.community_id === buyer.community_id && shop.user_id !== buyer.id)
+    const communityShops = shops.filter(
+      (shop) => shop.community_id === buyer.community_id && shop.user_id !== buyer.id
+    )
     const randomShops = chance.pickset(
       communityShops,
       Math.min(communityShops.length, chance.integer({ min: 1, max: 5 }))
@@ -35,14 +38,16 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
           const isDeliveryDatePast = deliveryDateInDayJs.isAfter(dayjs(new Date()))
           const statusCode = isDeliveryDatePast ? 600 : chance.pickone([100, 200, 300, 400, 500])
           const isPaid = isDeliveryDatePast || statusCode === 400
-          const proofOfPayment =
-            'https://upload.wikimedia.org/wikipedia/commons/3/3f/CTBC_Bank_ATM_receipt_20190506.jpg'
+          const deliveryOptions = []
+          if (shop.delivery_options.delivery) deliveryOptions.push('delivery')
+          if (shop.delivery_options.pickup) deliveryOptions.push('pickup')
+          const proofOfPayment = chance.pickone(proofOfPayments)
           const newOrder: any = {
             buyer_id: buyer.id,
             community_id: buyer.community_id,
             delivery_address: buyer.address,
             delivery_date: deliveryDate,
-            delivery_option: chance.pickone(['delivery', 'pickup']),
+            delivery_option: chance.pickone(deliveryOptions),
             instruction: chance.bool()
               ? chance.sentence({ words: chance.integer({ min: 3, max: 10 }) })
               : '',
@@ -54,19 +59,21 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
               instruction: chance.bool()
                 ? chance.sentence({ words: chance.integer({ min: 3, max: 10 }) })
                 : '',
-              product_category: product.product_category,
-              product_description: product.description,
-              product_id: product.id,
-              product_image: product.gallery[0].url,
-              product_name: product.name,
-              product_price: product.base_price,
+              category: product.product_category,
+              description: product.description,
+              id: product.id,
+              image: product.gallery[0].url,
+              name: product.name,
+              price: product.base_price,
               quantity: chance.integer({ min: 1, max: 5 }),
             })),
             seller_id: shop.user_id,
-            shop_description: shop.description,
             shop_id: shop.id,
-            shop_image: shop.profile_photo,
-            shop_name: shop.name,
+            shop: {
+              description: shop.description,
+              image: shop.profile_photo,
+              name: shop.name,
+            },
             status_code: statusCode,
             created_at: admin.firestore.Timestamp.now(),
           }

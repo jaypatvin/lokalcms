@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isBoolean } from 'lodash'
 import { BankCodesService, ShopsService } from '../../../service'
 import {
   validateFields,
@@ -67,6 +68,15 @@ import { ShopCreateData } from '../../../models/Shop'
  *                 type: boolean
  *               status:
  *                 type: string
+ *               delivery_options:
+ *                 type: object
+ *                 properties:
+ *                   delivery:
+ *                     type: boolean
+ *                     required: true
+ *                   pickup:
+ *                     type: boolean
+ *                     required: true
  *               payment_options:
  *                 type: array
  *                 items:
@@ -137,6 +147,7 @@ const createShop = async (req: Request, res: Response) => {
     profile_photo,
     cover_photo,
     payment_options,
+    delivery_options,
   } = data
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
@@ -157,6 +168,13 @@ const createShop = async (req: Request, res: Response) => {
 
   if (payment_options && !(await isValidPaymentOptions(payment_options))) {
     return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
+  }
+
+  if (!isBoolean(data.delivery_options.pickup) || !isBoolean(data.delivery_options.delivery)) {
+    return res.status(400).json({
+      status: 'error',
+      message: "delivery_options must contain 'pickup' and 'delivery' boolean field",
+    })
   }
 
   const keywords = generateShopKeywords({ name })
@@ -208,6 +226,7 @@ const createShop = async (req: Request, res: Response) => {
     updated_by: requestorDocId || '',
     updated_from: source || '',
     operating_hours,
+    delivery_options,
   }
 
   if (profile_photo) shopData.profile_photo = profile_photo

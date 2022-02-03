@@ -192,12 +192,12 @@ const createOrder = async (req: Request, res: Response) => {
       })
     }
     const orderProduct: any = {
-      product_id: id,
+      id,
       quantity,
-      product_name: product.name,
-      product_description: product.description,
-      product_price: product.base_price,
-      product_category: product.product_category,
+      name: product.name,
+      description: product.description,
+      price: product.base_price,
+      category: product.product_category,
       instruction,
     }
     if (product.gallery && product.gallery.length) {
@@ -223,12 +223,14 @@ const createOrder = async (req: Request, res: Response) => {
     instruction,
     is_paid: false,
     status_code: 100,
-    shop_name: shop.name,
-    shop_description: shop.description,
+    shop: {
+      name: shop.name,
+      description: shop.description,
+    },
   }
 
   if (shop.profile_photo) {
-    newOrder.shop_image = shop.profile_photo
+    newOrder.shop.image = shop.profile_photo
   }
   if (buyer.address) {
     newOrder.delivery_address = buyer.address

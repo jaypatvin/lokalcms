@@ -19,6 +19,15 @@
  *           type: boolean
  *         status:
  *           type: string
+ *         delivery_options:
+ *           type: object
+ *           properties:
+ *             delivery:
+ *               type: boolean
+ *               required: true
+ *             pickup:
+ *               type: boolean
+ *               required: true
  *         operating_hours:
  *           type: object
  *           properties:
@@ -98,7 +107,7 @@
  *                       type: string
  */
 
-export const required_fields = ['name', 'description', 'user_id', 'operating_hours']
+export const required_fields = ['name', 'description', 'user_id', 'operating_hours', 'delivery_options']
 
 export { default as createShop } from './createShop'
 export { default as updateShop } from './updateShop'

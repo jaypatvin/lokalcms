@@ -107,7 +107,7 @@ const confirmOrder = async (req: Request, res: Response) => {
   const notificationData = {
     type: 'order_status',
     title: 'Your order has been confirmed',
-    message: `Your order (${order.products.length} products) from ${order.shop_name} has been confirmed. Please proceed to payment.`,
+    message: `Your order (${order.products.length} products) from ${order.shop.name} has been confirmed. Please proceed to payment.`,
     associated_collection: 'orders',
     associated_document: orderId,
   }

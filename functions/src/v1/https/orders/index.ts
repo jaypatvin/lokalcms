@@ -17,13 +17,13 @@
  *                 type: string
  *               quantity:
  *                 type: number
- *               product_name:
+ *               name:
  *                 type: string
- *               product_description:
+ *               description:
  *                 type: string
- *               product_price:
+ *               price:
  *                 type: string
- *               product_image:
+ *               image:
  *                 type: string
  *               instruction:
  *                 type: string
@@ -72,12 +72,15 @@
  *               updated_at:
  *                 type: string
  *                 format: date-time
- *         shop_name:
- *           type: string
- *         shop_description:
- *           type: string
- *         shop_image:
- *           type: string
+ *         shop:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             description:
+ *               type: string
+ *             image:
+ *               type: string
  *         instruction:
  *           type: string
  */

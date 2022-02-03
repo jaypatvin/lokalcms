@@ -220,7 +220,7 @@ const CommunityPage = ({ match }: Props) => {
           const shop = await fetchShopByID(data.shop_id)
           const shopData = shop.data()
           if (shopData) {
-            data.shop_name = shopData.name
+            data.shop.name = shopData.name
           }
         }
       }
