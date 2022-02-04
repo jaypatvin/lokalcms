@@ -102,6 +102,7 @@ module.exports = (api: Express) => {
   api.route('/v1/users/:userId/comments').get(wrapAsync(CommentsAPI.getUserComments))
   api.route('/v1/users/:userId/toggleNotificationSetting').put(wrapAsync(UsersAPI.toggleNotificationSetting))
   api.route('/v1/users/:userId/wishlist').get(wrapAsync(ProductsAPI.getUserWishlist))
+  api.route('/v1/users/:userId/register').put(wrapAsync(UsersAPI.registerUser))
 
   // -- Shops routes
   api.route('/v1/availableShops').get(wrapAsync(ShopsAPI.getAvailableShops))
