@@ -55,6 +55,9 @@ const registerUser = async (req: Request, res: Response) => {
   const requestorDocId = res.locals.userDoc.id
 
   if (!userId) return res.status(400).json({ status: 'error', message: 'id is required!' })
+  if (requestorDocId !== userId) {
+    return res.status(400).json({ status: 'error', message: 'userId does not match from the requestor' })
+  }
   if (!id_type || !id_photo) {
     return res.status(400).json({ status: 'error', message: 'id_type and id_photo is required!' })
   }
