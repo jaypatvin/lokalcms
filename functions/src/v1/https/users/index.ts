@@ -84,3 +84,5 @@ export { default as toggleNotificationSetting } from './toggleNotificationSettin
 export { default as getProductWishlistUsers } from './getProductWishlistUsers'
 export { default as getShopWishlistUsers } from './getShopWishlistUsers'
 export { default as registerUser } from './registerUser'
+export { default as verifyUser } from './verifyUser'
+export { default as unverifyUser } from './unverifyUser'
