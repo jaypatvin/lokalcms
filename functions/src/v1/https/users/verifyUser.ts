@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { User } from '../../../models'
 import { UsersService } from '../../../service'
 
 /**
@@ -66,13 +67,10 @@ const verifyUser = async (req: Request, res: Response) => {
   const _existing_user = await UsersService.getUserByID(userId)
   if (!_existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
-  if (_existing_user.registration.step !== 1) {
-    return res.status(400).json({ status: 'error', message: 'Cannot verify user' })
-  }
-
   const updateData = {
     updated_by: requestorDocId,
     updated_from: source || '',
+    status: 'active' as User['status'],
     'registration.notes': notes,
     'registration.step': 2,
     'registration.verified': true,

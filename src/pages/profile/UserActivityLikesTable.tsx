@@ -38,14 +38,7 @@ const UserActivityLikesTable = ({ data }: Props) => {
               <th key="created_at">
                 <SortButton
                   className="text-xs uppercase font-bold"
-                  label="Created At"
-                  showSortIcons={false}
-                />
-              </th>
-              <th key="updated_at">
-                <SortButton
-                  className="text-xs uppercase font-bold"
-                  label="Updated At"
+                  label="Liked At"
                   showSortIcons={false}
                 />
               </th>
@@ -57,13 +50,11 @@ const UserActivityLikesTable = ({ data }: Props) => {
               return (
                 <tr key={d.id}>
                   <td>
-                    <img src={d.images?.[0].url} alt={d.message} className="max-w-16 max-h-16" />
-                  </td>
-                  <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.owner_email}</p>
                   </td>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{d.message}</p>
+                  <td className="flex">
+                    <img src={d.images?.[0].url} alt={d.message} className="max-w-16 max-h-16" />
+                    <p className="text-gray-900 whitespace-no-wrap ml-1">{d.message}</p>
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.status}</p>

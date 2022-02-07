@@ -1,5 +1,5 @@
 // --- User Types --- //
-export type UserFilterType = 'all' | 'admin' | 'member' | 'archived'
+export type UserFilterType = 'all' | 'admin' | 'member' | 'archived' | 'unregistered'
 export type UserSortByType = 'display_name' | 'community_name' | 'status' | 'created_at'
 export const statusColorMap: any = {
   active: 'bg-green-400',

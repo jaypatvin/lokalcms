@@ -37,41 +37,36 @@ const UserListItem = ({
     updatedAtAgo = dayjs(updatedAt).fromNow()
   }
 
-  const display_name =
-    String(data.display_name).trim().length > 0 && typeof data.display_name !== 'undefined'
-      ? data.display_name
-      : data.first_name + ' ' + data.last_name
-  let statusColor = 'gray'
-  let statusText = 'Active'
-  const _status =
-    String(data.status).trim().length > 0 && typeof data.status !== 'undefined'
-      ? data.status
-      : 'undefined'
+  let statusColor = 'black'
+  let statusText = 'Archived'
 
-  switch (String(_status).toLowerCase()) {
-    case 'active':
-      statusColor = 'green'
-      statusText = 'Active'
-      break
-    case 'suspended':
-      statusColor = 'red'
-      statusText = 'Suspended'
-      break
-    case 'pending':
-      statusColor = 'yellow'
-      statusText = 'Pending'
-      break
-    case 'locked':
-      statusColor = 'gray'
-      statusText = 'Locked'
-      break
-    case 'archived':
-      statusColor = 'black'
-      statusText = 'Archived'
-      break
-    default:
-      statusColor = 'gray'
-      break
+  if (!data.registration.verified) {
+    statusColor = 'yellow'
+    statusText = 'Pending'
+  }
+
+  if (!data.archived && data.registration.verified) {
+    switch (data.status) {
+      case 'active':
+        statusColor = 'green'
+        statusText = 'Active'
+        break
+      case 'suspended':
+        statusColor = 'red'
+        statusText = 'Suspended'
+        break
+      case 'pending':
+        statusColor = 'yellow'
+        statusText = 'Pending'
+        break
+      case 'locked':
+        statusColor = 'gray'
+        statusText = 'Locked'
+        break
+      default:
+        statusColor = 'gray'
+        break
+    }
   }
 
   const OptionsComponent = isArchived ? (
@@ -127,14 +122,14 @@ const UserListItem = ({
           <Link to={`/users/${data.id}`}>
             <Avatar
               url={data.profile_photo}
-              name={display_name}
+              name={data.display_name}
               size={10}
               statusColor={statusColor}
             />
           </Link>
           <Link to={`/users/${data.id}`}>
             <div className="text-primary-600 hover:text-primary-400 ml-2">
-              <p className="whitespace-no-wrap">{display_name}</p>
+              <p className="whitespace-no-wrap">{data.display_name}</p>
               <p className="whitespace-no-wrap opacity-60">{data.email}</p>
             </div>
           </Link>
@@ -145,19 +140,26 @@ const UserListItem = ({
         <p className="text-gray-600 whitespace-no-wrap">{''}</p>
       </td>
       <td>
-        <span
-          className={
-            'relative inline-block px-3 py-1 font-semibold text-' +
-            statusColor +
-            '-900 leading-tight'
-          }
-        >
+        <p>
           <span
-            aria-hidden
-            className={'absolute inset-0 bg-' + statusColor + '-200 opacity-50 rounded-full'}
-          ></span>
-          <span className="relative">{statusText}</span>
-        </span>
+            className={
+              'relative inline-block px-3 py-1 font-semibold text-' +
+              statusColor +
+              '-900 leading-tight'
+            }
+          >
+            <span
+              aria-hidden
+              className={'absolute inset-0 bg-' + statusColor + '-200 opacity-50 rounded-full'}
+            ></span>
+            <span className="relative">{statusText}</span>
+          </span>
+        </p>
+        {data.registration.verified ? (
+          <p className="text-primary-400 font-bold">Verified</p>
+        ) : (
+          <p className="text-secondary-500 font-bold">Unverified</p>
+        )}
       </td>
       <td title={createdAt}>
         <p className="text-gray-900 whitespace-no-wrap">{createdAtAgo}</p>

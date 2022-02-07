@@ -63,6 +63,8 @@ export const getUsers = ({
 
   if (filter === 'member') {
     ref = ref.where('roles.admin', '==', false)
+  } else if (filter === 'unregistered') {
+    ref = ref.where('registration.verified', '==', false)
   } else if (!['all', 'archived'].includes(filter)) {
     ref = ref.where(`roles.${filter}`, '==', true)
   }
