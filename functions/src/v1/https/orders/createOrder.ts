@@ -201,7 +201,7 @@ const createOrder = async (req: Request, res: Response) => {
       instruction,
     }
     if (product.gallery && product.gallery.length) {
-      orderProduct.product_image = product.gallery[0].url
+      orderProduct.image = product.gallery[0].url
     }
     orderProducts.push(orderProduct)
   }
