@@ -41,6 +41,7 @@ import {
   User,
   Wishlist,
 } from '../../models'
+import { useAuth } from '../../contexts/AuthContext'
 
 type Props = {
   [x: string]: any
@@ -96,6 +97,7 @@ type DataType =
   | 'wishlist'
 
 const ProfilePage = ({ match }: Props) => {
+  const { currentUserInfo } = useAuth()
   const [user, setUser] = useState<UserData>()
   const [dataToShow, setDataToShow] = useState<DataType>('products')
   const [data, setData] = useState<any[]>([])
@@ -436,12 +438,16 @@ const ProfilePage = ({ match }: Props) => {
             ) : (
               <span className="text-secondary-500 font-bold">Unverified</span>
             )}
-            <button
-              className="text-primary-400 underline ml-1"
-              onClick={() => setShowVerifyUser(true)}
-            >
-              Edit
-            </button>
+            {currentUserInfo?.roles.admin ? (
+              <button
+                className="text-primary-400 underline ml-1"
+                onClick={() => setShowVerifyUser(true)}
+              >
+                Edit
+              </button>
+            ) : (
+              ''
+            )}
           </p>
           <div className="py-2">
             <h4 className="text-xl font-semibold">Related Data</h4>
