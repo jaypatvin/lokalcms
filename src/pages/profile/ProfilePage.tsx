@@ -419,12 +419,16 @@ const ProfilePage = ({ match }: Props) => {
 
   return (
     <div className="">
-      <VerifyUserModal
-        user={user}
-        show={showVerifyUser}
-        onClose={() => setShowVerifyUser(false)}
-        setUser={setUser}
-      />
+      {currentUserInfo?.roles.admin ? (
+        <VerifyUserModal
+          user={user}
+          show={showVerifyUser}
+          onClose={() => setShowVerifyUser(false)}
+          setUser={setUser}
+        />
+      ) : (
+        ''
+      )}
       <h2 className="text-2xl font-semibold leading-tight">{user.display_name}</h2>
       <div className="flex">
         <div className="p-2 w-80">
