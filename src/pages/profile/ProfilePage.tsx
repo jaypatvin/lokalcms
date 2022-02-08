@@ -28,6 +28,7 @@ import UserSubscriptionPlansTable from './UserSubscriptionPlansTable'
 import { getReviewsByUser } from '../../services/reviews'
 import { getWishlistsByUser } from '../../services/wishlists'
 import UserReviewsTable from './UserReviewsTable'
+import VerifyUserModal from './VerifyUserModal'
 import {
   Activity,
   ApplicationLog,
@@ -45,7 +46,7 @@ type Props = {
   [x: string]: any
 }
 
-type UserData = User & {
+export type UserData = User & {
   id: string
   community_name?: string
 }
@@ -107,6 +108,8 @@ const ProfilePage = ({ match }: Props) => {
   const [lastDataOnList, setLastDataOnList] = useState<DataDocType>()
   const [isLastPage, setIsLastPage] = useState(false)
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
+
+  const [showVerifyUser, setShowVerifyUser] = useState(false)
 
   const items: MenuItemType[] = [
     {
@@ -414,6 +417,12 @@ const ProfilePage = ({ match }: Props) => {
 
   return (
     <div className="">
+      <VerifyUserModal
+        user={user}
+        show={showVerifyUser}
+        onClose={() => setShowVerifyUser(false)}
+        setUser={setUser}
+      />
       <h2 className="text-2xl font-semibold leading-tight">{user.display_name}</h2>
       <div className="flex">
         <div className="p-2 w-80">
@@ -421,6 +430,19 @@ const ProfilePage = ({ match }: Props) => {
           <p>{user.email}</p>
           <p>Member since {dayjs(user.created_at.toDate()).fromNow()}</p>
           <p>Community: {user.community_name}</p>
+          <p>
+            {user.registration.verified ? (
+              <span className="text-primary-400 font-bold">Verified</span>
+            ) : (
+              <span className="text-secondary-500 font-bold">Unverified</span>
+            )}
+            <button
+              className="text-primary-400 underline ml-1"
+              onClick={() => setShowVerifyUser(true)}
+            >
+              Edit
+            </button>
+          </p>
           <div className="py-2">
             <h4 className="text-xl font-semibold">Related Data</h4>
             <MenuList items={items} selected={dataToShow} />
