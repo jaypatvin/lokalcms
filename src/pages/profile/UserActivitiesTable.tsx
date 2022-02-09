@@ -50,8 +50,9 @@ const UserActivitiesTable = ({ data }: Props) => {
               const updated_at = d.updated_at ? dayjs(d.updated_at.toDate()).fromNow() : '-'
               return (
                 <tr key={d.id}>
-                  <td>
-                    <p className="text-gray-900 whitespace-no-wrap">{d.message}</p>
+                  <td className="flex">
+                    <img src={d.images?.[0].url} alt={d.message} className="max-w-16 max-h-16" />
+                    <p className="text-gray-900 whitespace-no-wrap ml-1">{d.message}</p>
                   </td>
                   <td>
                     <p className="text-gray-900 whitespace-no-wrap">{d.status}</p>

@@ -1,5 +1,4 @@
-import { TextField, FormikTextField } from './TextField'
-import { SelectField, FormikSelectField } from './SelectField'
-import { Checkbox, FormikCheckbox } from './Checkbox'
-
-export { TextField, FormikTextField, SelectField, FormikSelectField, Checkbox, FormikCheckbox }
+export { TextField, FormikTextField } from './TextField'
+export { TextAreaField, FormikTextAreaField } from './TextAreaField'
+export { SelectField, FormikSelectField } from './SelectField'
+export { Checkbox, FormikCheckbox } from './Checkbox'

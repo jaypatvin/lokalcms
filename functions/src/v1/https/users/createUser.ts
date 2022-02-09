@@ -163,7 +163,7 @@ const createUser = async (req: Request, res: Response) => {
       admin: data.is_admin || false,
       member: true,
     },
-    status: data.status || 'active',
+    status: data.status || 'pending',
     birthdate: '',
     registration: {
       id_photo: '',

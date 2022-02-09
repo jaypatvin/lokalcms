@@ -33,6 +33,10 @@ const UserListPage = () => {
       key: 'member',
       name: 'Members',
     },
+    {
+      key: 'unregistered',
+      name: 'Unregistered',
+    },
   ]
   const columns = [
     {
