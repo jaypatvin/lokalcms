@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
-import { isBoolean } from 'lodash'
+import { isBoolean, isFinite, isInteger } from 'lodash'
 import { ProductUpdateData } from '../../../models/Product'
-import { ProductsService } from '../../../service'
+import { NotificationsService, ProductsService } from '../../../service'
 import { generateProductKeywords } from '../../../utils/generators'
 import { fieldIsNum } from '../../../utils/helpers'
 
@@ -138,16 +138,10 @@ const updateProduct = async (req: Request, res: Response) => {
   if (data.name) updateData.name = data.name
   if (data.description) updateData.description = data.description
   // there might be a better way to write these nested ifs
-  if (data.base_price) {
-    if (!fieldIsNum(data.base_price))
-      return res
-        .status(400)
-        .json({ status: 'error', message: 'Base Price is not a type of number' })
+  if (isFinite(data.base_price) && data.base_price >= 0) {
     updateData.base_price = data.base_price
   }
-  if (data.quantity) {
-    if (!fieldIsNum(data.quantity))
-      return res.status(400).json({ status: 'error', message: 'Quantity is not a type of number' })
+  if (isInteger(data.quantity) && data.quantity >= 0) {
     updateData.quantity = data.quantity
   }
   if (data.gallery) {
@@ -175,6 +169,23 @@ const updateProduct = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'no field for shop is provided' })
 
   const result = await ProductsService.updateProduct(productId, updateData)
+
+  if (!product.quantity && updateData.quantity) {
+    // notify users who wishlisted the product if theres new stock
+    const notificationData = {
+      type: 'wishlist',
+      title: `${product.name} is now available`,
+      message: `There are new stock for ${product.name}`,
+      associated_collection: 'products',
+      associated_document: product.id,
+    }
+
+    const wishlistUsers = (await product.wishlists.get()).docs.map((doc) => doc.data().user_id)
+
+    for (const userId of wishlistUsers) {
+      await NotificationsService.createUserNotification(userId, notificationData)
+    }
+  }
 
   return res.json({ status: 'ok', data: result })
 }
