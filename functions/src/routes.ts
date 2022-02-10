@@ -3,6 +3,7 @@ import swaggerUI from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
 import wrapAsync from './utils/wrapAsync'
 import { postStreamFeedCredentials } from './v1/https/streamFeedCredentials'
+import { validation } from './middlewares/validation'
 
 import {
   UsersAPI,
@@ -90,9 +91,9 @@ module.exports = (api: Express) => {
 
   // -- Users routes
   api.route('/v1/users').get(wrapAsync(UsersAPI.getUsers))
-  api.route('/v1/users').post(wrapAsync(UsersAPI.createUser))
+  api.route('/v1/users').post(validation.user.create, wrapAsync(UsersAPI.createUser))
   api.route('/v1/users/:userId').get(wrapAsync(UsersAPI.getUser))
-  api.route('/v1/users/:userId').put(wrapAsync(UsersAPI.updateUser))
+  api.route('/v1/users/:userId').put(validation.user.update, wrapAsync(UsersAPI.updateUser))
   api.route('/v1/users/:userId').delete(wrapAsync(UsersAPI.archiveUser))
   api.route('/v1/users/:userId/unarchive').put(wrapAsync(UsersAPI.unarchiveUser))
   api.route('/v1/users/:userId/chatSettings').put(wrapAsync(UsersAPI.updateUserChatSettings))
@@ -102,7 +103,7 @@ module.exports = (api: Express) => {
   api.route('/v1/users/:userId/comments').get(wrapAsync(CommentsAPI.getUserComments))
   api.route('/v1/users/:userId/toggleNotificationSetting').put(wrapAsync(UsersAPI.toggleNotificationSetting))
   api.route('/v1/users/:userId/wishlist').get(wrapAsync(ProductsAPI.getUserWishlist))
-  api.route('/v1/users/:userId/register').put(wrapAsync(UsersAPI.registerUser))
+  api.route('/v1/users/:userId/register').put(validation.user.register, wrapAsync(UsersAPI.registerUser))
   api.route('/v1/users/:userId/verify').put(wrapAsync(UsersAPI.verifyUser))
   api.route('/v1/users/:userId/unverify').put(wrapAsync(UsersAPI.unverifyUser))
 
