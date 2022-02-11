@@ -3,10 +3,6 @@ import { AllowedSchema } from 'express-json-validator-middleware'
 const schema: AllowedSchema = {
   type: 'object',
   properties: {
-    email: {
-      type: 'string',
-      maxLength: 100,
-    },
     first_name: {
       type: 'string',
       maxLength: 100,
@@ -36,8 +32,20 @@ const schema: AllowedSchema = {
     },
     profile_photo: {
       type: 'string',
+      format: 'uri',
     },
   },
+  anyOf: [
+    { required: ['first_name'] },
+    { required: ['last_name'] },
+    { required: ['street'] },
+    { required: ['community_id'] },
+    { required: ['display_name'] },
+    { required: ['is_admin'] },
+    { required: ['status'] },
+    { required: ['profile_photo'] },
+  ],
+  additionalProperties: false,
 }
 
 export default schema

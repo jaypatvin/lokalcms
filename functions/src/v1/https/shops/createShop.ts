@@ -43,7 +43,11 @@ import { ShopCreateData } from '../../../models/Shop'
  *               "date": "2021-05-19",
  *               "end_time": "01:00 PM"
  *             }
- *           ]
+ *           ],
+ *           "delivery_options": {
+ *               "delivery": true,
+ *               "pickup": false
+ *           }
  *         }
  *       }
  *       ```
@@ -88,7 +92,7 @@ import { ShopCreateData } from '../../../models/Shop'
  *                     account_name:
  *                       type: string
  *                     account_number:
- *                       type: number
+ *                       type: string
  *               operating_hours:
  *                 type: object
  *                 properties:

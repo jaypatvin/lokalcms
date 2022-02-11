@@ -2,17 +2,12 @@ import { AllowedSchema } from 'express-json-validator-middleware'
 
 const schema: AllowedSchema = {
   type: 'object',
-  required: ['id_type', 'id_photo'],
   properties: {
-    id_type: {
-      type: 'string',
-      maxLength: 100,
-    },
-    id_photo: {
-      type: 'string',
-      format: 'uri',
+    show_read_receipts: {
+      type: 'boolean',
     },
   },
+  anyOf: [{ required: ['show_read_receipts'] }],
   additionalProperties: false,
 }
 

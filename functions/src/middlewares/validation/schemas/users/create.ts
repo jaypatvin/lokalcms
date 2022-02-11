@@ -6,6 +6,7 @@ const schema: AllowedSchema = {
   properties: {
     email: {
       type: 'string',
+      format: 'email',
       maxLength: 100,
     },
     first_name: {
@@ -33,8 +34,10 @@ const schema: AllowedSchema = {
     },
     profile_photo: {
       type: 'string',
+      format: 'uri',
     },
   },
+  additionalProperties: false,
 }
 
 export default schema
