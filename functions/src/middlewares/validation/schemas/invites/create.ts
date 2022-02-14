@@ -2,11 +2,12 @@ import { AllowedSchema } from 'express-json-validator-middleware'
 
 const schema: AllowedSchema = {
   type: 'object',
-  required: ['notes'],
+  required: ['email'],
   properties: {
-    notes: {
+    email: {
       type: 'string',
-      maxLength: 255,
+      format: 'email',
+      maxLength: 100,
     },
     source: {
       type: 'string',

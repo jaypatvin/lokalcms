@@ -49,59 +49,55 @@ import { UsersService, CommunityService, ActivitiesService } from '../../../serv
  */
 const updateActivity = async (req: Request, res: Response) => {
   const { activityId } = req.params
-  const data = req.body
+  const { user_id, message, source = '' } = req.body
   const requestorDocId = res.locals.userDoc.id
 
-  if (!activityId)
-    return res.status(400).json({ status: 'error', message: 'activity id is required!' })
-
-  const _activity = await ActivitiesService.getActivityById(activityId)
-
-  if (!_activity) return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
-
-  if (_activity.archived)
+  const activity = await ActivitiesService.getActivityById(activityId)
+  if (!activity) {
+    return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+  }
+  if (activity.archived) {
     return res.status(400).json({
       status: 'error',
       message: `Activity with id ${activityId} is currently archived!`,
     })
+  }
 
-  if (!data.message)
-    return res.status(400).json({ status: 'error', message: 'Missing field: message' })
-
-  // get user and validate
-  const _user = await UsersService.getUserByID(requestorDocId)
-
-  if (!_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-  // this should not happen, activity should also be archived
-  if (_user.archived)
-    return res.status(406).json({
+  const user = await UsersService.getUserByID(requestorDocId)
+  if (!user) {
+    return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  }
+  if (user.archived)
+    return res.status(400).json({
       status: 'error',
-      message: `User with id ${data.user_id} is currently archived!`,
+      message: `User with id ${user_id} is currently archived!`,
     })
 
-  const _community = await CommunityService.getCommunityByID(_user.community_id)
-  if (!_community)
+  const community = await CommunityService.getCommunityByID(user.community_id)
+  if (!community) {
     return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
-  if (_community.archived)
-    return res.status(406).json({
+  }
+  if (community.archived) {
+    return res.status(400).json({
       status: 'error',
-      message: `Community ${_community.name} is currently archived`,
-    })
-
-  if (requestorDocId !== _activity.user_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to edit the comment.',
+      message: `Community ${community.name} is currently archived`,
     })
   }
 
-  const _result = await ActivitiesService.updateActivity(activityId, {
-    message: data.message,
+  if (requestorDocId !== activity.user_id) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'You do not have a permission to edit the activity.',
+    })
+  }
+
+  const result = await ActivitiesService.updateActivity(activityId, {
+    message,
     updated_by: requestorDocId,
-    updated_from: data.source || '',
+    updated_from: source || '',
   })
 
-  return res.status(200).json({ status: 'ok', data: _result })
+  return res.status(200).json({ status: 'ok', data: result })
 }
 
 export default updateActivity

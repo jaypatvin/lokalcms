@@ -116,6 +116,10 @@ const schema: AllowedSchema = {
         },
       },
     },
+    source: {
+      type: 'string',
+      enum: ['cms', 'api', 'app', ''],
+    },
   },
   additionalProperties: false,
 }

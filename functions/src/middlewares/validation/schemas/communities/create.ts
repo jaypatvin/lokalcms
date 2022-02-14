@@ -2,35 +2,41 @@ import { AllowedSchema } from 'express-json-validator-middleware'
 
 const schema: AllowedSchema = {
   type: 'object',
+  required: ['name', 'barangay', 'city', 'state', 'subdivision', 'zip_code', 'country'],
   properties: {
-    first_name: {
+    name: {
       type: 'string',
       maxLength: 100,
     },
-    last_name: {
+    barangay: {
       type: 'string',
       maxLength: 100,
     },
-    street: {
+    city: {
       type: 'string',
       maxLength: 100,
     },
-    community_id: {
+    state: {
       type: 'string',
       maxLength: 100,
     },
-    display_name: {
+    subdivision: {
       type: 'string',
       maxLength: 100,
     },
-    is_admin: {
-      type: 'boolean',
-    },
-    status: {
+    zip_code: {
       type: 'string',
-      enum: ['active', 'suspended', 'pending', 'locked'],
+      maxLength: 100,
+    },
+    country: {
+      type: 'string',
+      maxLength: 100,
     },
     profile_photo: {
+      type: 'string',
+      format: 'uri',
+    },
+    cover_photo: {
       type: 'string',
       format: 'uri',
     },
@@ -39,16 +45,6 @@ const schema: AllowedSchema = {
       enum: ['cms', 'api', 'app', ''],
     },
   },
-  anyOf: [
-    { required: ['first_name'] },
-    { required: ['last_name'] },
-    { required: ['street'] },
-    { required: ['community_id'] },
-    { required: ['display_name'] },
-    { required: ['is_admin'] },
-    { required: ['status'] },
-    { required: ['profile_photo'] },
-  ],
   additionalProperties: false,
 }
 

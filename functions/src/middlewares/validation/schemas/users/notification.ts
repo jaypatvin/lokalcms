@@ -27,6 +27,10 @@ const schema: AllowedSchema = {
     products: {
       type: 'boolean',
     },
+    source: {
+      type: 'string',
+      enum: ['cms', 'api', 'app', ''],
+    },
   },
   anyOf: [
     { required: ['likes'] },

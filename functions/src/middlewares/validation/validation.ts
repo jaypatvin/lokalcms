@@ -1,5 +1,10 @@
 import { Validator } from 'express-json-validator-middleware'
 import {
+  ActivitiesSchema,
+  CategoriesSchema,
+  CommentsSchema,
+  CommunitiesSchema,
+  InvitesSchema,
   ProductsSchema,
   ShopsSchema,
   UsersSchema,
@@ -28,4 +33,30 @@ export const product = {
   update: validate({ body: ProductsSchema.update }),
   availability: validate({ body: ProductsSchema.availability }),
   review: validate({ body: ProductsSchema.review }),
+}
+
+export const community = {
+  create: validate({ body: CommunitiesSchema.create }),
+  update: validate({ body: CommunitiesSchema.update }),
+}
+
+export const invite = {
+  create: validate({ body: InvitesSchema.create }),
+  update: validate({ body: InvitesSchema.update }),
+  claim: validate({ body: InvitesSchema.claim }),
+}
+
+export const category = {
+  create: validate({ body: CategoriesSchema.create }),
+  update: validate({ body: CategoriesSchema.update }),
+}
+
+export const activity = {
+  create: validate({ body: ActivitiesSchema.create }),
+  update: validate({ body: ActivitiesSchema.update }),
+}
+
+export const comment = {
+  create: validate({ body: CommentsSchema.create }),
+  update: validate({ body: CommentsSchema.update }),
 }

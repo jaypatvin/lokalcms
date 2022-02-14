@@ -2,17 +2,25 @@ import { AllowedSchema } from 'express-json-validator-middleware'
 
 const schema: AllowedSchema = {
   type: 'object',
-  required: ['notes'],
   properties: {
-    notes: {
+    email: {
       type: 'string',
-      maxLength: 255,
+      format: 'email',
+      maxLength: 100,
+    },
+    claimed: {
+      type: 'boolean',
+    },
+    status: {
+      type: 'string',
+      enum: ['enabled', 'disabled'],
     },
     source: {
       type: 'string',
       enum: ['cms', 'api', 'app', ''],
     },
   },
+  anyOf: [{ required: ['email'] }, { required: ['claimed'] }, { required: ['status'] }],
   additionalProperties: false,
 }
 

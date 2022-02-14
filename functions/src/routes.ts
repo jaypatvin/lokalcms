@@ -122,17 +122,17 @@ module.exports = (api: Express) => {
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
-  api.route('/v1/invite').post(wrapAsync(InvitesAPI.createInvite))
-  api.route('/v1/invite/:inviteId').put(wrapAsync(InvitesAPI.updateInvite))
+  api.route('/v1/invite').post(validation.invite.create, wrapAsync(InvitesAPI.createInvite))
+  api.route('/v1/invite/:inviteId').put(validation.invite.update, wrapAsync(InvitesAPI.updateInvite))
   api.route('/v1/invite/:inviteId').delete(wrapAsync(InvitesAPI.archiveInvite))
   api.route('/v1/invite/:inviteId/unarchive').put(wrapAsync(InvitesAPI.unarchiveInvite))
-  api.route('/v1/invite/claim').post(wrapAsync(InvitesAPI.claimInvite))
+  api.route('/v1/invite/claim').post(validation.invite.claim, wrapAsync(InvitesAPI.claimInvite))
 
   // -- Community routes
   api.route('/v1/community').get(wrapAsync(CommunityAPI.getCommunities))
-  api.route('/v1/community').post(wrapAsync(CommunityAPI.createCommunity))
+  api.route('/v1/community').post(validation.community.create, wrapAsync(CommunityAPI.createCommunity))
   api.route('/v1/community/:communityId').get(wrapAsync(CommunityAPI.getCommunity))
-  api.route('/v1/community/:communityId').put(wrapAsync(CommunityAPI.updateCommunity))
+  api.route('/v1/community/:communityId').put(validation.community.update, wrapAsync(CommunityAPI.updateCommunity))
   api.route('/v1/community/:communityId').delete(wrapAsync(CommunityAPI.deleteCommunity))
   api.route('/v1/community/:communityId/unarchive').put(wrapAsync(CommunityAPI.unarchiveCommunity))
   api.route('/v1/community/:communityId/users').get(wrapAsync(UsersAPI.getUsersByCommunityId))
@@ -159,25 +159,25 @@ module.exports = (api: Express) => {
 
   // -- Categories routes
   api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))
-  api.route('/v1/categories').post(wrapAsync(CategoriesAPI.createCategory))
+  api.route('/v1/categories').post(validation.category.create, wrapAsync(CategoriesAPI.createCategory))
   api.route('/v1/categories/:categoryId').get(wrapAsync(CategoriesAPI.getCategory))
-  api.route('/v1/categories/:categoryId').put(wrapAsync(CategoriesAPI.updateCategory))
+  api.route('/v1/categories/:categoryId').put(validation.category.update, wrapAsync(CategoriesAPI.updateCategory))
   api.route('/v1/categories/:categoryId').delete(wrapAsync(CategoriesAPI.archiveCategory))
   api.route('/v1/categories/:categoryId/unarchive').put(wrapAsync(CategoriesAPI.unarchiveCategory))
 
   // -- Activities routes
   api.route('/v1/activities').get(wrapAsync(ActivitiesAPI.getActivities))
-  api.route('/v1/activities').post(wrapAsync(ActivitiesAPI.createActivity))
+  api.route('/v1/activities').post(validation.activity.create, wrapAsync(ActivitiesAPI.createActivity))
   api.route('/v1/activities/:activityId').get(wrapAsync(ActivitiesAPI.getActivity))
-  api.route('/v1/activities/:activityId').put(wrapAsync(ActivitiesAPI.updateActivity))
+  api.route('/v1/activities/:activityId').put(validation.activity.update, wrapAsync(ActivitiesAPI.updateActivity))
   api.route('/v1/activities/:activityId').delete(wrapAsync(ActivitiesAPI.archiveActivity))
   api.route('/v1/activities/:activityId/unarchive').put(wrapAsync(ActivitiesAPI.unarchiveActivity))
   api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
 
   // -- Comments routes
-  api.route('/v1/activities/:activityId/comments').post(wrapAsync(CommentsAPI.createComment))
+  api.route('/v1/activities/:activityId/comments').post(validation.comment.create, wrapAsync(CommentsAPI.createComment))
   api.route('/v1/activities/:activityId/comments/:commentId').get(wrapAsync(CommentsAPI.getComment))
-  api.route('/v1/activities/:activityId/comments/:commentId').put(wrapAsync(CommentsAPI.updateComment))
+  api.route('/v1/activities/:activityId/comments/:commentId').put(validation.comment.update, wrapAsync(CommentsAPI.updateComment))
   api.route('/v1/activities/:activityId/comments/:commentId').delete(wrapAsync(CommentsAPI.archiveComment))
   api.route('/v1/activities/:activityId/comments/:commentId/unarchive').put(wrapAsync(CommentsAPI.unarchiveComment))
 

@@ -1,3 +1,8 @@
 export * as UsersSchema from './users'
 export * as ShopsSchema from './shops'
 export * as ProductsSchema from './products'
+export * as CommunitiesSchema from './communities'
+export * as InvitesSchema from './invites'
+export * as CategoriesSchema from './categories'
+export * as ActivitiesSchema from './activities'
+export * as CommentsSchema from './comments'

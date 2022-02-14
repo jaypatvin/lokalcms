@@ -7,6 +7,10 @@ const schema: AllowedSchema = {
       type: 'string',
       maxLength: 255,
     },
+    source: {
+      type: 'string',
+      enum: ['cms', 'api', 'app', ''],
+    },
   },
   additionalProperties: false,
 }

@@ -52,6 +52,10 @@ const schema: AllowedSchema = {
         },
       },
     },
+    source: {
+      type: 'string',
+      enum: ['cms', 'api', 'app', ''],
+    },
   },
   anyOf: [
     { required: ['name'] },

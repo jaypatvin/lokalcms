@@ -6,6 +6,10 @@ const schema: AllowedSchema = {
     show_read_receipts: {
       type: 'boolean',
     },
+    source: {
+      type: 'string',
+      enum: ['cms', 'api', 'app', ''],
+    },
   },
   anyOf: [{ required: ['show_read_receipts'] }],
   additionalProperties: false,

@@ -12,6 +12,10 @@ const schema: AllowedSchema = {
       type: 'string',
       format: 'uri',
     },
+    source: {
+      type: 'string',
+      enum: ['cms', 'api', 'app', ''],
+    },
   },
   additionalProperties: false,
 }
