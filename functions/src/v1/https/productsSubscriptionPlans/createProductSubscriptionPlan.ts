@@ -156,20 +156,6 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     }
   }
 
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
-  if (!includes(payment_methods, payment_method)) {
-    return res.status(403).json({
-      status: 'error',
-      message: `${payment_method} is not a valid payment_method. "cod" | "bank" | "e-wallet"`,
-    })
-  }
-
   const product = await ProductsService.getProductByID(product_id)
   if (!product) return res.status(400).json({ status: 'error', message: 'Invalid Product ID!' })
   if (!product.can_subscribe) {
@@ -232,12 +218,6 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
 
   if (override_dates && override_dates.length) {
     override_dates.forEach(({ original_date, new_date }) => {
-      if (!validateDateFormat(original_date) || !validateDateFormat(new_date)) {
-        throw res.status(400).json({
-          status: 'error',
-          message: `Invalid date format. Please follow "2021-12-31"`,
-        })
-      }
       if (!newPlan.plan.override_dates) newPlan.plan.override_dates = {}
       newPlan.plan.override_dates[original_date] = new_date
     })

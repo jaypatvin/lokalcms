@@ -35,7 +35,7 @@ export const getInviteByCode = async (code: string) => {
         const res = querySnapshot.docs[0]
         return { ...res.data(), id: res.id }
       }
-      return !querySnapshot.empty
+      return null
     })
 }
 

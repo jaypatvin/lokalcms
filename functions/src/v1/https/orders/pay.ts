@@ -90,29 +90,17 @@ const pay = async (req: Request, res: Response) => {
 
   if (!payment_method) {
     return res
-      .status(403)
+      .status(400)
       .json({ status: 'error', message: 'payment_method is required. "cod" | "bank" | "e-wallet"' })
-  }
-  if (!includes(payment_methods, payment_method)) {
-    return res.status(403).json({
-      status: 'error',
-      message: `${payment_method} is not a valid payment_method. "cod" | "bank" | "e-wallet"`,
-    })
-  }
-  if (payment_method !== 'cod' && !proof_of_payment) {
-    return res.status(403).json({
-      status: 'error',
-      message:
-        'proof_of_payment is required. This should be the image url of the uploaded proof of payment',
-    })
   }
 
   const order = await OrdersService.getOrderByID(orderId)
 
-  if (!order)
+  if (!order) {
     return res
-      .status(403)
+      .status(400)
       .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
+  }
 
   const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
 
@@ -120,7 +108,7 @@ const pay = async (req: Request, res: Response) => {
     statusCode >= ORDER_STATUS.PENDING_CONFIRM_PAYMENT ||
     statusCode < ORDER_STATUS.PENDING_PAYMENT
   ) {
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: 'Cannot proceed with payment due to the current order status',
     })
@@ -130,11 +118,12 @@ const pay = async (req: Request, res: Response) => {
     requestorDocId = buyer_id
   }
 
-  if (!roles.admin && order.buyer_id !== requestorDocId)
-    return res.status(403).json({
+  if (!roles.admin && order.buyer_id !== requestorDocId) {
+    return res.status(400).json({
       status: 'error',
       message: `User with id ${requestorDocId} is not the buyer from the order with id ${orderId}`,
     })
+  }
 
   const updateData: OrderUpdateData = {
     updated_by: requestorDocId,

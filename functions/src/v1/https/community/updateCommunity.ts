@@ -60,6 +60,10 @@ import { CommunityUpdateData } from '../../../models/Community'
  *                 type: string
  *               cover_photo:
  *                 type: string
+ *               admin:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
  *       200:
  *         description: Updated community
@@ -77,27 +81,25 @@ export const updateCommunity = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor)
-    return res.status(403).json({
+  if (!roles.editor) {
+    return res.status(400).json({
       status: 'error',
       message: 'You do not have a permission to update a community',
     })
+  }
 
-  if (!communityId) return res.status(400).json({ status: 'error', message: 'id is required!' })
-
-  const _existing_community = await CommunityService.getCommunityByID(communityId)
-  if (!_existing_community)
+  const existing_community = await CommunityService.getCommunityByID(communityId)
+  if (!existing_community) {
     return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
-
-  let existing_communities
+  }
 
   if (data.name || data.subdivision || data.barangay || data.city || data.zip_code) {
-    existing_communities = await CommunityService.getCommunitiesByNameAndAddress({
-      name: data.name || _existing_community.name,
-      subdivision: data.subdivision || _existing_community.address.subdivision,
-      barangay: data.barangay || _existing_community.address.barangay,
-      city: data.city || _existing_community.address.city,
-      zip_code: data.zip_code || _existing_community.address.zip_code,
+    const existing_communities = await CommunityService.getCommunitiesByNameAndAddress({
+      name: data.name || existing_community.name,
+      subdivision: data.subdivision || existing_community.address.subdivision,
+      barangay: data.barangay || existing_community.address.barangay,
+      city: data.city || existing_community.address.city,
+      zip_code: data.zip_code || existing_community.address.zip_code,
     })
 
     if (existing_communities.find((community) => community.id !== communityId)) {
@@ -123,24 +125,20 @@ export const updateCommunity = async (req: Request, res: Response) => {
   }
 
   if (data.admin) {
-    if (!Array.isArray(data.admin))
-      return res
-        .status(400)
-        .json({ status: 'error', message: 'admin field must be an array of user ids' })
-    const not_existing_users = []
-    const different_community_users = []
+    const notExistingUsers = []
+    const differentCommunityUsers = []
     for (let i = 0; i < data.admin.length; i++) {
       const user_id = data.admin[i]
       const user = await UsersService.getUserByID(user_id)
-      if (!user) not_existing_users.push(user_id)
-      if (user && user.community_id !== communityId) different_community_users.push(user_id)
+      if (!user) notExistingUsers.push(user_id)
+      if (user && user.community_id !== communityId) differentCommunityUsers.push(user_id)
     }
-    if (not_existing_users.length || different_community_users.length)
+    if (notExistingUsers.length || differentCommunityUsers.length)
       return res.status(400).json({
         status: 'error',
         message: 'invalid user ids on admin',
-        not_existing_users,
-        different_community_users,
+        not_existing_users: notExistingUsers,
+        different_community_users: differentCommunityUsers,
       })
   }
 
@@ -159,13 +157,13 @@ export const updateCommunity = async (req: Request, res: Response) => {
     data.zip_code
   ) {
     const keywords = generateCommunityKeywords({
-      name: data.name || _existing_community.name,
-      subdivision: data.subdivision || _existing_community.address.subdivision,
-      city: data.city || _existing_community.address.city,
-      barangay: data.barangay || _existing_community.address.barangay,
-      state: data.state || _existing_community.address.state,
-      country: data.country || _existing_community.address.country,
-      zip_code: data.zip_code || _existing_community.address.zip_code,
+      name: data.name || existing_community.name,
+      subdivision: data.subdivision || existing_community.address.subdivision,
+      city: data.city || existing_community.address.city,
+      barangay: data.barangay || existing_community.address.barangay,
+      state: data.state || existing_community.address.state,
+      country: data.country || existing_community.address.country,
+      zip_code: data.zip_code || existing_community.address.zip_code,
     })
     updateData.keywords = keywords
   }

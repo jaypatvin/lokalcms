@@ -49,35 +49,30 @@ const updateUserChatSettings = async (req: Request, res: Response) => {
   const { show_read_receipts, source } = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== userId)
+  if (!roles.editor && requestorDocId !== userId) {
     return res.status(403).json({
       status: 'error',
       message: 'You do not have a permission to update another user',
     })
-
-  if (!userId) return res.status(400).json({ status: 'error', message: 'user id is required!' })
-
-  if (!isBoolean(show_read_receipts)) {
-    return res.status(400).json({ status: 'error', message: 'Nothing to update.' })
   }
 
-  const _existing_user = await UsersService.getUserByID(userId)
-  if (!_existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  const existingUser = await UsersService.getUserByID(userId)
+  if (!existingUser) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
   const updateData: any = {
     updated_by: requestorDocId || '',
     updated_from: source || '',
   }
 
-  const newChatSettings = _existing_user.chat_settings || {}
+  const newChatSettings = existingUser.chat_settings || {}
 
   if (isBoolean(show_read_receipts)) newChatSettings.show_read_receipts = show_read_receipts
 
   updateData.chat_settings = newChatSettings
 
-  const _result = await UsersService.updateUser(userId, updateData)
+  const result = await UsersService.updateUser(userId, updateData)
 
-  return res.json({ status: 'ok', data: _result })
+  return res.json({ status: 'ok', data: result })
 }
 
 export default updateUserChatSettings

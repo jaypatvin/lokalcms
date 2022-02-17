@@ -92,11 +92,9 @@ const createComment = async (req: Request, res: Response) => {
   const { activityId } = req.params
   const data = req.body
 
-  if (!activityId)
-    return res.status(400).json({ status: 'error', message: 'activity id is required!' })
   try {
-    const _activity = await ActivitiesService.getActivityById(activityId)
-    if (_activity.archived)
+    const activity = await ActivitiesService.getActivityById(activityId)
+    if (activity.archived)
       return res.status(400).json({
         status: 'error',
         message: `Activity with id ${activityId} is currently archived!`,
@@ -105,23 +103,10 @@ const createComment = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
   }
 
-  const error_fields = validateFields(data, ['user_id'])
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
-  if (!data.message && !data.images) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'no message or image is provided for comment' })
-  }
-
   // get user and validate
   try {
-    const _user = await UsersService.getUserByID(data.user_id)
-    if (_user.archived)
+    const user = await UsersService.getUserByID(data.user_id)
+    if (user.archived)
       return res.status(400).json({
         status: 'error',
         message: `User with id ${data.user_id} is currently archived!`,
@@ -136,32 +121,10 @@ const createComment = async (req: Request, res: Response) => {
     status: data.status || 'enabled',
     archived: false,
   }
-
-  if (data.images) {
-    if (!Array.isArray(data.images))
-      return res.status(400).json({
-        status: 'error',
-        message: 'Images is not an array of type object: {url: string, order: number}',
-      })
-
-    if (data.images.length) {
-      for (let [i, g] of data.images.entries()) {
-        if (!g.url)
-          return res
-            .status(400)
-            .json({ status: 'error', message: 'Missing image url for item ' + i })
-
-        if (!fieldIsNum(g.order))
-          return res
-            .status(400)
-            .json({ status: 'error', message: 'order is not a type of number for item ' + i })
-      }
-    }
-    commentData.images = data.images
-  }
+  if (data.images) commentData.images = data.images
 
   const newComment = await CommentsService.addActivityComment(activityId, commentData)
-  let result = await newComment.get().then((doc) => ({ ...doc.data(), id: doc.id }))
+  const result = await newComment.get().then((doc) => ({ ...doc.data(), id: doc.id }))
   await ActivitiesService.incrementActivityCommentCount(activityId)
   return res.status(200).json({ status: 'ok', data: result })
 }

@@ -49,8 +49,6 @@
  *           type: string
  */
 
-export const required_fields = ['user_id']
-
 export { default as createActivity } from './createActivity'
 export { default as updateActivity } from './updateActivity'
 export { default as archiveActivity } from './archiveActivity'

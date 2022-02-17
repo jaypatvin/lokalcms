@@ -196,34 +196,34 @@ module.exports = (api: Express) => {
   api.route('/v1/applicationLogs').post(wrapAsync(ApplicationLogsApi.createApplicationLog))
 
   // -- Chats routes
-  api.route('/v1/chats').post(wrapAsync(ChatsAPI.createChat))
-  api.route('/v1/chats/:chatId/conversation').post(wrapAsync(ChatsAPI.createConversation))
-  api.route('/v1/chats/:chatId/invite').put(wrapAsync(ChatsAPI.chatInvite))
-  api.route('/v1/chats/:chatId/removeUser').put(wrapAsync(ChatsAPI.chatRemoveUser))
-  api.route('/v1/chats/:chatId/updateTitle').put(wrapAsync(ChatsAPI.updateChatTitle))
+  api.route('/v1/chats').post(validation.chat.create, wrapAsync(ChatsAPI.createChat))
+  api.route('/v1/chats/:chatId/conversation').post(validation.chat.conversation, wrapAsync(ChatsAPI.createConversation))
+  api.route('/v1/chats/:chatId/invite').put(validation.chat.invite, wrapAsync(ChatsAPI.chatInvite))
+  api.route('/v1/chats/:chatId/removeUser').put(validation.chat.removeUser, wrapAsync(ChatsAPI.chatRemoveUser))
+  api.route('/v1/chats/:chatId/updateTitle').put(validation.chat.title, wrapAsync(ChatsAPI.updateChatTitle))
   api.route('/v1/chats/:chatId/conversation/:messageId').delete(wrapAsync(ChatsAPI.archiveChatMessage))
   api.route('/v1/getChatByMemberIds').get(wrapAsync(ChatsAPI.getChatByMemberIds))
 
   // -- Orders routes
-  api.route('/v1/orders').post(wrapAsync(OrdersAPI.createOrder))
+  api.route('/v1/orders').post(validation.order.create, wrapAsync(OrdersAPI.createOrder))
   api.route('/v1/orders/:orderId/confirm').put(wrapAsync(OrdersAPI.confirmOrder))
-  api.route('/v1/orders/:orderId/pay').put(wrapAsync(OrdersAPI.pay))
+  api.route('/v1/orders/:orderId/pay').put(validation.order.pay, wrapAsync(OrdersAPI.pay))
   api.route('/v1/orders/:orderId/confirmPayment').put(wrapAsync(OrdersAPI.confirmPayment))
   api.route('/v1/orders/:orderId/shipOut').put(wrapAsync(OrdersAPI.shipOut))
   api.route('/v1/orders/:orderId/receive').put(wrapAsync(OrdersAPI.receive))
-  api.route('/v1/orders/:orderId/decline').put(wrapAsync(OrdersAPI.decline))
-  api.route('/v1/orders/:orderId/cancel').put(wrapAsync(OrdersAPI.cancel))
+  api.route('/v1/orders/:orderId/decline').put(validation.order.decline, wrapAsync(OrdersAPI.decline))
+  api.route('/v1/orders/:orderId/cancel').put(validation.order.cancel, wrapAsync(OrdersAPI.cancel))
 
   // -- Product Subscription Plans routes
-  api.route('/v1/productSubscriptionPlans').post(wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
+  api.route('/v1/productSubscriptionPlans').post(validation.productSubscriptionPlan.create, wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
   api.route('/v1/productSubscriptionPlans/:planId/autoRescheduleConflicts').post(wrapAsync(ProductSubscriptionPlansAPI.autoRescheduleConflicts))
   api.route('/v1/productSubscriptionPlans/:planId/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))
   api.route('/v1/productSubscriptionPlans/:planId/disable').put(wrapAsync(ProductSubscriptionPlansAPI.disableProductSubscriptionPlan))
-  api.route('/v1/productSubscriptionPlans/:planId/overrideDates').put(wrapAsync(ProductSubscriptionPlansAPI.overrideDates))
+  api.route('/v1/productSubscriptionPlans/:planId/overrideDates').put(validation.productSubscriptionPlan.overrideDates, wrapAsync(ProductSubscriptionPlansAPI.overrideDates))
   api.route('/v1/productSubscriptionPlans/:planId/getDates').get(wrapAsync(ProductSubscriptionPlansAPI.getDates))
 
   // -- Product Subscriptions routes
-  api.route('/v1/productSubscriptions/:id/createOrder').post(wrapAsync(ProductSubscriptionsAPI.createOrderFromSubscription))
+  api.route('/v1/productSubscriptions/:id/createOrder').post(validation.productSubscription.order, wrapAsync(ProductSubscriptionsAPI.createOrderFromSubscription))
 
   // -- Reviews routes
   api.route('/v1/products/:productId/reviews').get(wrapAsync(ReviewsApi.getProductReviews))

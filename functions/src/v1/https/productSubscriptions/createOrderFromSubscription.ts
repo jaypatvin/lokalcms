@@ -85,25 +85,6 @@ const createOrderFromSubscription = async (req: Request, res: Response) => {
     })
   }
 
-  if (!payment_method) {
-    return res
-      .status(403)
-      .json({ status: 'error', message: 'payment_method is required. "cod" | "bank" | "e-wallet"' })
-  }
-  if (!includes(payment_methods, payment_method)) {
-    return res.status(403).json({
-      status: 'error',
-      message: `${payment_method} is not a valid payment_method. "cod" | "bank" | "e-wallet"`,
-    })
-  }
-  if (payment_method !== 'cod' && !proof_of_payment) {
-    return res.status(403).json({
-      status: 'error',
-      message:
-        'proof_of_payment is required. This should be the image url of the uploaded proof of payment',
-    })
-  }
-
   const subscriptionOrder = await ProductSubscriptionsService.getProductSubscriptionById(id)
   if (!subscriptionOrder) {
     return res

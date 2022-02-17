@@ -164,12 +164,12 @@ const addProductAvailability = async (req: Request, res: Response) => {
 
   // check if product exists
   const product = await ProductsService.getProductByID(productId)
-  if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
+  if (!product) return res.status(400).json({ status: 'error', message: 'Invalid Product Id!' })
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== product.user_id) {
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: 'You do not have a permission to update a product of another user.',
     })
@@ -180,40 +180,31 @@ const addProductAvailability = async (req: Request, res: Response) => {
     updated_from: data.source || '',
   }
 
-  if (!_.isEmpty(data)) {
-    const validation = validateOperatingHours(data)
-    if (!validation.valid)
-      return res.status(400).json({
-        status: 'error',
-        ...validation,
-      })
+  const {
+    start_time,
+    end_time,
+    start_dates,
+    repeat_unit,
+    repeat_type,
+    unavailable_dates,
+    custom_dates,
+  } = data
 
-    const {
+  updateData.availability = {
+    start_time,
+    end_time,
+    start_dates,
+    repeat_type,
+    repeat_unit,
+    schedule: generateSchedule({
       start_time,
       end_time,
       start_dates,
-      repeat_unit,
       repeat_type,
+      repeat_unit,
       unavailable_dates,
       custom_dates,
-    } = data
-
-    updateData.availability = {
-      start_time,
-      end_time,
-      start_dates,
-      repeat_type,
-      repeat_unit,
-      schedule: generateSchedule({
-        start_time,
-        end_time,
-        start_dates,
-        repeat_type,
-        repeat_unit,
-        unavailable_dates,
-        custom_dates,
-      }),
-    }
+    }),
   }
 
   // check if product availability is derived correctly from the shop's operating hours
@@ -221,7 +212,7 @@ const addProductAvailability = async (req: Request, res: Response) => {
   const productAvailability = updateData.availability
   const shopOperatingHours = shop.operating_hours
   if (!isScheduleDerived(productAvailability, shopOperatingHours)) {
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: 'The product availability must be derived from the shop schedule.',
     })

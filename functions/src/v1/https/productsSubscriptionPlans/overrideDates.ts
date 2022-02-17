@@ -75,35 +75,16 @@ const overrideDates = async (req: Request, res: Response) => {
   const { override_dates } = data
   let { id: requestorDocId } = res.locals.userDoc
 
-  if (!override_dates || !override_dates.length) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'override_dates is required.',
-    })
-  }
-
   const overrideDatesUpdates = {}
   for (const override of override_dates) {
     const { original_date, new_date } = override
 
-    if (!isString(original_date) || !dateFormat.test(original_date)) {
-      return res.status(400).json({
-        status: 'error',
-        message: `Original date ${original_date} is not a valid format. Please follow format "2021-12-31"`,
-      })
-    }
     if (!dayjs(original_date).isValid()) {
       return res
         .status(400)
         .json({ status: 'error', message: `Original date ${original_date} is not a valid date.` })
     }
 
-    if (!isString(new_date) || !dateFormat.test(new_date)) {
-      return res.status(400).json({
-        status: 'error',
-        message: `Original date ${new_date} is not a valid format. Please follow format "2021-12-31"`,
-      })
-    }
     if (!dayjs(new_date).isValid()) {
       return res
         .status(400)
@@ -125,7 +106,7 @@ const overrideDates = async (req: Request, res: Response) => {
       })
   }
   if (subscriptionPlan.buyer_id !== requestorDocId) {
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: `User with id ${requestorDocId} is not the buyer`,
     })

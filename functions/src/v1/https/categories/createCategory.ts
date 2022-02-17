@@ -70,18 +70,11 @@ const createCategory = async (req: Request, res: Response) => {
       message: 'You do not have a permission to create a category',
     })
 
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
   const keywords = generateCategoryKeywords({
     name: data.name,
   })
 
-  const _categoryData = {
+  const categoryData = {
     name: data.name,
     description: data.description || '',
     icon_url: data.icon_url || '',
@@ -93,9 +86,9 @@ const createCategory = async (req: Request, res: Response) => {
     updated_from: data.source || '',
   }
 
-  const _result = await CategoriesService.createCategory(_categoryData)
+  const result = await CategoriesService.createCategory(categoryData)
 
-  return res.status(200).json({ status: 'ok', data: _result })
+  return res.status(200).json({ status: 'ok', data: result })
 }
 
 export default createCategory

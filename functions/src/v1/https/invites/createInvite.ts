@@ -57,13 +57,6 @@ const createInvite = async (req: Request, res: Response) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
   const requestorCommunityId = res.locals.userDoc.community_id
-  const error_fields = validateFields(data, required_fields)
-
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
 
   const { email, code: invite_code } = data
 

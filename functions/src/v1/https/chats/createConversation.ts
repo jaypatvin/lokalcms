@@ -128,6 +128,11 @@ const createConversation = async (req: Request, res: Response) => {
   if (!requestorDocId || !requestorCommunityId) {
     if (user_id) {
       const user = await UsersService.getUserByID(user_id)
+      if (!user) {
+        return res
+          .status(400)
+          .json({ status: 'error', message: `User with user_id ${user_id} does not exist` })
+      }
       requestorDocId = user.id
       requestorName = user.display_name
       requestorCommunityId = user.community_id
@@ -160,30 +165,7 @@ const createConversation = async (req: Request, res: Response) => {
       .json({ status: 'error', message: 'The requestor is not a member of the chat' })
   }
 
-  let messageMedia
-  if (media) {
-    if (!Array.isArray(media))
-      return res.status(400).json({
-        status: 'error',
-        message: 'Media is not an array of type object: {url: string, order: number, type: string}',
-      })
-
-    for (let [i, g] of media.entries()) {
-      if (!g.url)
-        return res.status(400).json({ status: 'error', message: 'Missing media url for item ' + i })
-      if (!g.type)
-        return res.status(400).json({ status: 'error', message: 'Missing type for item ' + i })
-
-      if (!fieldIsNum(g.order))
-        return res
-          .status(400)
-          .json({ status: 'error', message: 'order is not a type of number for item ' + i })
-    }
-
-    messageMedia = media
-  }
-
-  if (!message && !messageMedia)
+  if (!message && !media)
     return res.status(400).json({ status: 'error', message: 'Message or media is missing.' })
 
   const chatMessage: ConversationCreateData = {
@@ -193,9 +175,10 @@ const createConversation = async (req: Request, res: Response) => {
   }
 
   if (message) chatMessage.message = message
-  if (messageMedia) chatMessage.media = media
-  if (reply_to)
+  if (media) chatMessage.media = media
+  if (reply_to) {
     chatMessage.reply_to = db.getChatConversations(`chats/${chatId}/conversation`).doc(reply_to)
+  }
 
   const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
 

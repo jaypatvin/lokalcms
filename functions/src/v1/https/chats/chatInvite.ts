@@ -70,30 +70,24 @@ const chatInvite = async (req: Request, res: Response) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  if (!user_id && (!new_members || !new_members.length)) {
+  const chat = await ChatsService.getChatById(chatId)
+
+  if (!chat) return res.status(400).json({ status: 'error', message: 'Chat does not exist!' })
+
+  if (chat.shop_id) {
     return res
-      .status(403)
-      .json({ status: 'error', message: 'user_id or new_members field is required.' })
-  }
-
-  const _chat = await ChatsService.getChatById(chatId)
-
-  if (!_chat) return res.status(403).json({ status: 'error', message: 'Chat does not exist!' })
-
-  if (_chat.shop_id) {
-    return res
-      .status(403)
+      .status(400)
       .json({ status: 'error', message: "Can't update members of chat with shop" })
   }
 
-  if (_chat.members.length === 2 || !_chat.group_hash) {
+  if (chat.members.length === 2 || !chat.group_hash) {
     return res
-      .status(403)
+      .status(400)
       .json({ status: 'error', message: `Chat with id ${chatId} is not a group chat` })
   }
 
-  if (!roles.admin && !_chat.members.includes(requestorDocId))
-    return res.status(403).json({
+  if (!roles.admin && !chat.members.includes(requestorDocId))
+    return res.status(400).json({
       status: 'error',
       message: 'You do not have a permission to invite another user',
     })
@@ -101,28 +95,26 @@ const chatInvite = async (req: Request, res: Response) => {
   let members
 
   if (user_id) {
-    if (_chat.members.includes(user_id)) {
+    if (chat.members.includes(user_id)) {
       return res
         .status(400)
         .json({ status: 'error', message: `User with id ${user_id} is already a member` })
     }
-    members = [..._chat.members, user_id]
+    members = [...chat.members, user_id]
   } else if (new_members) {
-    for (let i = 0; i < new_members.length; i++) {
-      const member = new_members[i]
-      if (_chat.members.includes(member)) {
+    for (const member of new_members) {
+      if (chat.members.includes(member)) {
         return res
           .status(400)
           .json({ status: 'error', message: `User with id ${member} is already a member` })
       }
     }
-    members = [..._chat.members, ...new_members]
+    members = [...chat.members, ...new_members]
   }
   const group_hash = hashArrayOfStrings(members)
-  let title = _chat.title
+  let title = chat.title
   const member_names = []
-  for (let i = 0; i < members.length; i++) {
-    const member = members[i]
+  for (const member of members) {
     const user = await UsersService.getUserByID(member)
     if (!user) {
       return res
@@ -141,7 +133,7 @@ const chatInvite = async (req: Request, res: Response) => {
     title,
   }
 
-  const result = await ChatsService.updateChat(_chat.id, { ...requestData })
+  const result = await ChatsService.updateChat(chat.id, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

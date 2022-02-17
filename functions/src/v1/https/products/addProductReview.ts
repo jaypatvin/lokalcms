@@ -65,16 +65,6 @@ const addProductReview = async (req: Request, res: Response) => {
   const { message = '', order_id, rating } = req.body
   const requestorDocId = res.locals.userDoc.id
 
-  if (!order_id) {
-    return res.status(400).json({ status: 'error', message: 'order_id is required.' })
-  }
-
-  if (!isFinite(rating) || rating < 1 || rating > 5) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'the rating is required and must be between 1 and 5' })
-  }
-
   const order = await OrdersService.getOrderByID(order_id)
 
   if (!order.product_ids.includes(productId)) {

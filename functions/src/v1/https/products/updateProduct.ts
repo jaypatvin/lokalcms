@@ -88,38 +88,17 @@ const updateProduct = async (req: Request, res: Response) => {
   const { productId } = req.params
   const data = req.body
 
-  if (!productId) return res.status(400).json({ status: 'error', message: 'id is required!' })
-
   // check if product exists
   const product = await ProductsService.getProductByID(productId)
   if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== product.user_id)
-    return res.status(403).json({
+  if (!roles.editor && requestorDocId !== product.user_id) {
+    return res.status(400).json({
       status: 'error',
       message: 'You do not have a permission to update a product of another user.',
     })
-
-  if (data.gallery) {
-    if (!Array.isArray(data.gallery))
-      return res.status(400).json({
-        status: 'error',
-        message: 'Gallery is not an array of type object: {url: string, order: number}',
-      })
-
-    for (let [i, g] of data.gallery.entries()) {
-      if (!g.hasOwnProperty('url'))
-        return res
-          .status(400)
-          .json({ status: 'error', message: 'Missing gallery url for item ' + i })
-
-      if (!fieldIsNum(g.order))
-        return res
-          .status(400)
-          .json({ status: 'error', message: 'order is not a type of number for item ' + i })
-    }
   }
 
   const updateData: ProductUpdateData = {
@@ -138,10 +117,10 @@ const updateProduct = async (req: Request, res: Response) => {
   if (data.name) updateData.name = data.name
   if (data.description) updateData.description = data.description
   // there might be a better way to write these nested ifs
-  if (isFinite(data.base_price) && data.base_price >= 0) {
+  if (data.base_price >= 0) {
     updateData.base_price = data.base_price
   }
-  if (isInteger(data.quantity) && data.quantity >= 0) {
+  if (data.quantity >= 0) {
     updateData.quantity = data.quantity
   }
   if (data.gallery) {

@@ -81,8 +81,6 @@ const toggleNotificationSetting = async (req: Request, res: Response) => {
     })
   }
 
-  if (!userId) return res.status(400).json({ status: 'error', message: 'id is required!' })
-
   const {
     likes,
     comments,
@@ -93,21 +91,6 @@ const toggleNotificationSetting = async (req: Request, res: Response) => {
     subscriptions,
     products,
   } = data
-
-  if (
-    !isBoolean(likes) &&
-    !isBoolean(comments) &&
-    !isBoolean(tags) &&
-    !isBoolean(messages) &&
-    !isBoolean(order_status) &&
-    !isBoolean(community_alerts) &&
-    !isBoolean(subscriptions)
-  ) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Notification setting property must have a Boolean value.',
-    })
-  }
 
   const user = await UsersService.getUserByID(userId)
   if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })

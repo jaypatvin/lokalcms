@@ -39,6 +39,12 @@ const schema: AllowedSchema = {
       type: 'string',
       format: 'uri',
     },
+    admin: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+    },
     source: {
       type: 'string',
       enum: ['cms', 'api', 'app', ''],

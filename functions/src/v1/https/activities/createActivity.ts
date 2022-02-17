@@ -1,8 +1,6 @@
 import { Request, Response } from 'express'
 import { ActivityCreateData } from '../../../models/Activity'
 import { UsersService, ActivitiesService } from '../../../service'
-import { validateFields, validateImages } from '../../../utils/validations'
-import { required_fields } from './index'
 /**
  * @openapi
  * /v1/activities:
@@ -83,7 +81,7 @@ import { required_fields } from './index'
  *                   $ref: '#/components/schemas/activity'
  */
 const createActivity = async (req: Request, res: Response) => {
-  const { user_id, images, message, status = 'enabled', source = '' } = req.body
+  const { user_id, images, message = '', status = 'enabled', source = '' } = req.body
   const requestorDocId = res.locals.userDoc.id || ''
 
   const user = await UsersService.getUserByID(user_id)
@@ -96,7 +94,7 @@ const createActivity = async (req: Request, res: Response) => {
   }
 
   const _activityData: ActivityCreateData = {
-    message: message || '',
+    message,
     user_id,
     community_id: user.community_id,
     status,

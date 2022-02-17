@@ -1,11 +1,16 @@
 import { Validator } from 'express-json-validator-middleware'
 import {
   ActivitiesSchema,
+  ApplicationLogsSchema,
   CategoriesSchema,
+  ChatsSchema,
   CommentsSchema,
   CommunitiesSchema,
   InvitesSchema,
+  OrdersSchema,
   ProductsSchema,
+  ProductSubscriptionPlansSchema,
+  ProductSubscriptionsSchema,
   ShopsSchema,
   UsersSchema,
 } from './schemas'
@@ -59,4 +64,32 @@ export const activity = {
 export const comment = {
   create: validate({ body: CommentsSchema.create }),
   update: validate({ body: CommentsSchema.update }),
+}
+
+export const applicationLog = {
+  create: validate({ body: ApplicationLogsSchema.create }),
+}
+
+export const chat = {
+  create: validate({ body: ChatsSchema.create }),
+  conversation: validate({ body: ChatsSchema.conversation }),
+  invite: validate({ body: ChatsSchema.invite }),
+  removeUser: validate({ body: ChatsSchema.removeUser }),
+  title: validate({ body: ChatsSchema.title }),
+}
+
+export const order = {
+  create: validate({ body: OrdersSchema.create }),
+  cancel: validate({ body: OrdersSchema.cancel }),
+  decline: validate({ body: OrdersSchema.decline }),
+  pay: validate({ body: OrdersSchema.pay }),
+}
+
+export const productSubscriptionPlan = {
+  create: validate({ body: ProductSubscriptionPlansSchema.create }),
+  overrideDates: validate({ body: ProductSubscriptionPlansSchema.overrideDates }),
+}
+
+export const productSubscription = {
+  order: validate({ body: ProductSubscriptionsSchema.order }),
 }

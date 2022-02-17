@@ -46,19 +46,17 @@ const updateChatTitle = async (req: Request, res: Response) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  if (!title) return res.status(403).json({ status: 'error', message: 'title is missing' })
-
   const _chat = await ChatsService.getChatById(chatId)
 
-  if (!_chat) return res.status(403).json({ status: 'error', message: 'Chat does not exist!' })
+  if (!_chat) return res.status(400).json({ status: 'error', message: 'Chat does not exist!' })
 
   if (_chat.shop_id)
     return res
-      .status(403)
+      .status(400)
       .json({ status: 'error', message: "Can't update chat title for shop or product." })
 
   if (!roles.admin && !_chat.members.includes(requestorDocId))
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: 'You do not have a permission to update the chat title',
     })

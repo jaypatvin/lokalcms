@@ -178,13 +178,6 @@ const createProduct = async (req: Request, res: Response) => {
   const requestorDocId = res.locals.userDoc.id
   const userArchived = res.locals.userDoc.archived
 
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
   const category = await CategoriesService.getCategoryById(data.product_category)
   if (!category) {
     return res
@@ -233,27 +226,6 @@ const createProduct = async (req: Request, res: Response) => {
     })
   }
 
-  // check for correct number format
-  if (!fieldIsNum(data.base_price)) {
-    return res.status(400).json({ status: 'error', message: 'Base Price is not a type of number' })
-  }
-  if (!fieldIsNum(data.quantity)) {
-    return res.status(400).json({ status: 'error', message: 'Quantity is not a type of number' })
-  }
-
-  let gallery
-  if (data.gallery) {
-    const validation = validateImages(data.gallery)
-    if (!validation.valid) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Images are not valid.',
-        errors: validation.errorMessages,
-      })
-    }
-    gallery = data.gallery
-  }
-
   const keywords = generateProductKeywords({
     name: data.name,
     product_category: data.product_category,
@@ -262,14 +234,6 @@ const createProduct = async (req: Request, res: Response) => {
   let availability = shop.operating_hours
 
   if (data.availability) {
-    const validation = validateOperatingHours(data.availability)
-    if (!validation.valid) {
-      return res.status(400).json({
-        status: 'error',
-        ...validation,
-      })
-    }
-
     const {
       start_time,
       end_time,
@@ -322,7 +286,7 @@ const createProduct = async (req: Request, res: Response) => {
     availability,
   }
 
-  if (gallery) productData.gallery = gallery
+  if (data.gallery) productData.gallery = data.gallery
 
   const result = await ProductsService.createProduct(productData)
 

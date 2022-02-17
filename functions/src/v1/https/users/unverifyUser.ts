@@ -65,8 +65,8 @@ const unverifyUser = async (req: Request, res: Response) => {
   }
 
   // check if user id is valid
-  const _existing_user = await UsersService.getUserByID(userId)
-  if (!_existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  const existing_user = await UsersService.getUserByID(userId)
+  if (!existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
   const updateData = {
     updated_by: requestorDocId,
@@ -76,9 +76,9 @@ const unverifyUser = async (req: Request, res: Response) => {
     'registration.verified': false,
   }
 
-  const _result = await UsersService.updateUser(userId, updateData)
+  const result = await UsersService.updateUser(userId, updateData)
 
-  return res.json({ status: 'ok', data: _result })
+  return res.json({ status: 'ok', data: result })
 }
 
 export default unverifyUser

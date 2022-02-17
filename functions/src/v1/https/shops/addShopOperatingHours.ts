@@ -174,15 +174,23 @@ const addShopOperatingHours = async (req: Request, res: Response) => {
     updated_from: data.source || '',
   }
 
-  if (!_.isEmpty(data)) {
-    const validation = validateOperatingHours(data)
-    if (!validation.valid)
-      return res.status(400).json({
-        status: 'error',
-        ...validation,
-      })
+  const {
+    start_time,
+    end_time,
+    start_dates,
+    repeat_unit,
+    repeat_type,
+    unavailable_dates,
+    custom_dates,
+  } = data
 
-    const {
+  updateData.operating_hours = {
+    start_time,
+    end_time,
+    start_dates,
+    repeat_unit,
+    repeat_type,
+    schedule: generateSchedule({
       start_time,
       end_time,
       start_dates,
@@ -190,24 +198,7 @@ const addShopOperatingHours = async (req: Request, res: Response) => {
       repeat_type,
       unavailable_dates,
       custom_dates,
-    } = data
-
-    updateData.operating_hours = {
-      start_time,
-      end_time,
-      start_dates,
-      repeat_unit,
-      repeat_type,
-      schedule: generateSchedule({
-        start_time,
-        end_time,
-        start_dates,
-        repeat_unit,
-        repeat_type,
-        unavailable_dates,
-        custom_dates,
-      }),
-    }
+    }),
   }
 
   const result = await ShopsService.updateShop(shopId, updateData)

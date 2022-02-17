@@ -62,10 +62,11 @@ const confirmOrder = async (req: Request, res: Response) => {
 
   const order = await OrdersService.getOrderByID(orderId)
 
-  if (!order)
+  if (!order) {
     return res
-      .status(403)
+      .status(400)
       .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
+  }
 
   const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
 
@@ -73,7 +74,7 @@ const confirmOrder = async (req: Request, res: Response) => {
     statusCode >= ORDER_STATUS.PENDING_PAYMENT ||
     statusCode < ORDER_STATUS.PENDING_CONFIRMATION
   ) {
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: 'Cannot confirm the order due to the current order status',
     })
@@ -84,7 +85,7 @@ const confirmOrder = async (req: Request, res: Response) => {
   }
 
   if (!roles.admin && order.seller_id !== requestorDocId)
-    return res.status(403).json({
+    return res.status(400).json({
       status: 'error',
       message: `User with id ${requestorDocId} is not the seller from the order with id ${orderId}`,
     })
