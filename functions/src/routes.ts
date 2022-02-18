@@ -218,6 +218,8 @@ module.exports = (api: Express) => {
   api.route('/v1/productSubscriptionPlans/:planId/autoRescheduleConflicts').post(wrapAsync(ProductSubscriptionPlansAPI.autoRescheduleConflicts))
   api.route('/v1/productSubscriptionPlans/:planId/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))
   api.route('/v1/productSubscriptionPlans/:planId/disable').put(wrapAsync(ProductSubscriptionPlansAPI.disableProductSubscriptionPlan))
+  api.route('/v1/productSubscriptionPlans/:planId/cancel').put(wrapAsync(ProductSubscriptionPlansAPI.cancel))
+  api.route('/v1/productSubscriptionPlans/:planId/unsubsribe').put(wrapAsync(ProductSubscriptionPlansAPI.unsubscribe))
   api.route('/v1/productSubscriptionPlans/:planId/overrideDates').put(wrapAsync(ProductSubscriptionPlansAPI.overrideDates))
   api.route('/v1/productSubscriptionPlans/:planId/getDates').get(wrapAsync(ProductSubscriptionPlansAPI.getDates))
 

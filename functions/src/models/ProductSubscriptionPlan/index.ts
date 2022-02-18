@@ -91,7 +91,7 @@ type ProductSubscriptionPlan = {
     name: string
   }
   shop_id: string
-  status: 'enabled' | 'disabled'
+  status: 'enabled' | 'disabled' | 'cancelled' | 'unsubscribed'
   updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
