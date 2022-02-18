@@ -7,6 +7,7 @@ const schema: AllowedSchema = {
     buyer_id: {
       type: 'string',
       maxLength: 100,
+      isNotEmpty: true,
     },
     payment_method: {
       type: 'string',
@@ -14,6 +15,7 @@ const schema: AllowedSchema = {
     },
     proof_of_payment: {
       type: 'string',
+      isNotEmpty: true,
       format: 'uri',
     },
     source: {

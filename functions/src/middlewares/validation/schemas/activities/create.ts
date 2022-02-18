@@ -7,6 +7,7 @@ const schema: AllowedSchema = {
     user_id: {
       type: 'string',
       maxLength: 100,
+      isNotEmpty: true,
     },
     message: {
       type: 'string',

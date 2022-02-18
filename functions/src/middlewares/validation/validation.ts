@@ -15,7 +15,15 @@ import {
   UsersSchema,
 } from './schemas'
 
-const { validate } = new Validator({ allErrors: true })
+const { validate, ajv } = new Validator({ allErrors: true })
+
+ajv.addKeyword('isNotEmpty', {
+  type: 'string',
+  validate: (schema, data) => {
+    return typeof data === 'string' && data.trim() !== ''
+  },
+  errors: false,
+})
 
 export const user = {
   chatSettings: validate({ body: UsersSchema.chatSettings }),

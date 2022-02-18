@@ -12,11 +12,12 @@ const schema: AllowedSchema = {
         properties: {
           id: {
             type: 'string',
+            isNotEmpty: true,
             maxLength: 100,
           },
           quantity: {
             type: 'integer',
-            minimum: 0,
+            minimum: 1,
           },
           instruction: {
             type: 'string',
@@ -29,10 +30,12 @@ const schema: AllowedSchema = {
     },
     buyer_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     shop_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     delivery_option: {
@@ -41,6 +44,7 @@ const schema: AllowedSchema = {
     },
     delivery_date: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     instruction: {

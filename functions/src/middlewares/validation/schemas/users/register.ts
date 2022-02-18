@@ -6,10 +6,12 @@ const schema: AllowedSchema = {
   properties: {
     id_type: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     id_photo: {
       type: 'string',
+      isNotEmpty: true,
       format: 'uri',
     },
     source: {

@@ -6,6 +6,7 @@ const schema: AllowedSchema = {
   properties: {
     user_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     source: {

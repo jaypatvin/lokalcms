@@ -6,10 +6,12 @@ const schema: AllowedSchema = {
   properties: {
     buyer_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     proof_of_payment: {
       type: 'string',
+      isNotEmpty: true,
       format: 'uri',
     },
     payment_method: {

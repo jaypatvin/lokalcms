@@ -5,12 +5,14 @@ const schema: AllowedSchema = {
   properties: {
     user_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     new_members: {
       type: 'array',
       items: {
         type: 'string',
+        isNotEmpty: true,
         maxLength: 100,
       },
       minItems: 1,

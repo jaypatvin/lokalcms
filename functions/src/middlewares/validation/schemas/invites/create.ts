@@ -6,6 +6,7 @@ const schema: AllowedSchema = {
   properties: {
     email: {
       type: 'string',
+      isNotEmpty: true,
       format: 'email',
       maxLength: 100,
     },

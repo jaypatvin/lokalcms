@@ -6,10 +6,12 @@ const schema: AllowedSchema = {
   properties: {
     user_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     reply_to: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     message: {
@@ -22,6 +24,7 @@ const schema: AllowedSchema = {
         properties: {
           url: {
             type: 'string',
+            isNotEmpty: true,
             format: 'uri',
           },
           type: {

@@ -91,18 +91,21 @@ const createUser = async (req: Request, res: Response) => {
   const requestorDocId = res.locals.userDoc.id
   const tokenUser = req.user
 
-  const user = await auth.getUserByEmail(data.email)
-  if (!user) {
-    return res.status(400).json({ status: 'error', message: 'Invalid user email' })
+  let authUser
+
+  try {
+    authUser = await auth.getUserByEmail(data.email)
+  } catch (e) {
+    return res.status(400).json({ status: 'error', message: 'Email not found' })
   }
 
-  if (user.uid !== tokenUser.uid) {
+  if (authUser.uid !== tokenUser.uid) {
     if (!roles.editor)
       return res
-        .status(403)
+        .status(400)
         .json({ status: 'error', message: 'You do not have a permission to create a user' })
     if (!roles.admin && data.is_admin) {
-      return res.status(403).json({
+      return res.status(400).json({
         status: 'error',
         message: 'You do not have a permission to create an admin user',
       })
@@ -114,28 +117,28 @@ const createUser = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
   }
 
-  const existingUsers = await UsersService.getUserByUID(user.uid)
+  const existingUsers = await UsersService.getUserByUID(authUser.uid)
 
   if (existingUsers.length > 0) {
     return res
       .status(400)
-      .json({ status: 'error', message: 'User "' + user.email + '" already exist!' })
+      .json({ status: 'error', message: 'User "' + authUser.email + '" already exist!' })
   }
 
   const keywords = generateUserKeywords({
     first_name: data.first_name,
     last_name: data.last_name,
-    email: user.email,
+    email: authUser.email,
     display_name: data.display_name || `${data.first_name} ${data.last_name}`,
   })
 
   // create a user
   const newData: UserCreateData = {
-    user_uids: [user.uid],
+    user_uids: [authUser.uid],
     first_name: data.first_name,
     last_name: data.last_name,
     display_name: data.display_name || `${data.first_name} ${data.last_name}`,
-    email: user.email,
+    email: authUser.email,
     roles: {
       admin: data.is_admin || false,
       member: true,

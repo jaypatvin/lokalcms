@@ -7,14 +7,17 @@ const schema: AllowedSchema = {
   properties: {
     name: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     description: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 255,
     },
     shop_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     base_price: {
@@ -27,6 +30,7 @@ const schema: AllowedSchema = {
     },
     product_category: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     status: {
@@ -43,6 +47,7 @@ const schema: AllowedSchema = {
         properties: {
           url: {
             type: 'string',
+            isNotEmpty: true,
             format: 'uri',
           },
           order: {
@@ -50,6 +55,7 @@ const schema: AllowedSchema = {
             minimum: 0,
           },
         },
+        additionalProperties: false,
       },
       minItems: 1,
     },

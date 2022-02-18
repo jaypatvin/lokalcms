@@ -34,8 +34,6 @@ import { generateInviteKeywords } from '../../../utils/generators'
  *           schema:
  *             type: object
  *             properties:
- *               email:
- *                 type: string
  *               claimed:
  *                 type: boolean
  *               status:

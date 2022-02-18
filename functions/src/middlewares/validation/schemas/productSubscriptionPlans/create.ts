@@ -19,7 +19,7 @@ const schema: AllowedSchema = {
     },
     quantity: {
       type: 'integer',
-      minimum: 0,
+      minimum: 1,
     },
     instruction: {
       type: 'string',

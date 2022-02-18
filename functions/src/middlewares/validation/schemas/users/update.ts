@@ -6,22 +6,27 @@ const schema: AllowedSchema = {
     first_name: {
       type: 'string',
       maxLength: 100,
+      isNotEmpty: true,
     },
     last_name: {
       type: 'string',
       maxLength: 100,
+      isNotEmpty: true,
     },
     street: {
       type: 'string',
       maxLength: 100,
+      isNotEmpty: true,
     },
     community_id: {
       type: 'string',
       maxLength: 100,
+      isNotEmpty: true,
     },
     display_name: {
       type: 'string',
       maxLength: 100,
+      isNotEmpty: true,
     },
     is_admin: {
       type: 'boolean',
@@ -32,6 +37,7 @@ const schema: AllowedSchema = {
     },
     profile_photo: {
       type: 'string',
+      isNotEmpty: true,
       format: 'uri',
     },
     source: {

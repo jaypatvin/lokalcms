@@ -6,6 +6,7 @@ const schema: AllowedSchema = {
   properties: {
     message: {
       type: 'string',
+      isNotEmpty: true,
     },
     source: {
       type: 'string',

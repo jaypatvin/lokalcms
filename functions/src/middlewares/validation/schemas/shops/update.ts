@@ -5,10 +5,12 @@ const schema: AllowedSchema = {
   properties: {
     name: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     description: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 255,
     },
     is_close: {
@@ -39,14 +41,17 @@ const schema: AllowedSchema = {
         properties: {
           bank_code: {
             type: 'string',
+            isNotEmpty: true,
             maxLength: 100,
           },
           account_name: {
             type: 'string',
+            isNotEmpty: true,
             maxLength: 100,
           },
           account_number: {
             type: 'string',
+            isNotEmpty: true,
             maxLength: 100,
           },
         },

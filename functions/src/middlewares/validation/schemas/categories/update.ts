@@ -5,14 +5,17 @@ const schema: AllowedSchema = {
   properties: {
     description: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 255,
     },
     icon_url: {
       type: 'string',
+      isNotEmpty: true,
       format: 'uri',
     },
     cover_url: {
       type: 'string',
+      isNotEmpty: true,
       format: 'uri',
     },
     source: {

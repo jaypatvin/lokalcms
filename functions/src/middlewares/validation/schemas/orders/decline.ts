@@ -5,6 +5,7 @@ const schema: AllowedSchema = {
   properties: {
     seller_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     reason: {

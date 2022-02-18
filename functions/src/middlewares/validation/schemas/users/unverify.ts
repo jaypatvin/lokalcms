@@ -6,6 +6,7 @@ const schema: AllowedSchema = {
   properties: {
     notes: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 255,
     },
     source: {

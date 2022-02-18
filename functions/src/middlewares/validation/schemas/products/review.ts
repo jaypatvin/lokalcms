@@ -10,6 +10,7 @@ const schema: AllowedSchema = {
     },
     order_id: {
       type: 'string',
+      isNotEmpty: true,
       maxLength: 100,
     },
     rating: {
