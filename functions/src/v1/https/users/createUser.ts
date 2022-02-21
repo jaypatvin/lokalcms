@@ -1,8 +1,6 @@
 import { Request, Response } from 'express'
 import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 import { auth } from '../index'
 import { UserCreateData } from '../../../models/User'
 import db from '../../../utils/db'

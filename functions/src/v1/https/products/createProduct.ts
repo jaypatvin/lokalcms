@@ -5,15 +5,8 @@ import {
   ProductsService,
   CategoriesService,
 } from '../../../service'
-import {
-  validateFields,
-  isScheduleDerived,
-  validateImages,
-  validateOperatingHours,
-} from '../../../utils/validations'
+import { isScheduleDerived } from '../../../utils/validations'
 import { generateProductKeywords, generateSchedule } from '../../../utils/generators'
-import { required_fields } from './index'
-import { fieldIsNum } from '../../../utils/helpers'
 import { ProductCreateData } from '../../../models/Product'
 
 /**

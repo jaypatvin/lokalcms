@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { isBoolean } from 'lodash'
 import { BankCodesService, ShopsService } from '../../../service'
+import { isValidPaymentOptions } from '../../../utils/validations'
 import { generateShopKeywords } from '../../../utils/generators'
 import { ShopUpdateData } from '../../../models/Shop'
 
@@ -120,6 +121,10 @@ const updateShop = async (req: Request, res: Response) => {
       status: 'error',
       message: 'You do not have a permission to update a shop of another user.',
     })
+  }
+
+  if (payment_options && !(await isValidPaymentOptions(payment_options))) {
+    return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
   }
 
   const updateData: ShopUpdateData = {

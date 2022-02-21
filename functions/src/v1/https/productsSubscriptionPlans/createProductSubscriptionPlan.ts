@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { get, includes } from 'lodash'
+import { get } from 'lodash'
 import { ProductSubscriptionPlanCreateData } from '../../../models/ProductSubscriptionPlan'
 import {
   UsersService,
@@ -8,12 +8,6 @@ import {
   ProductSubscriptionPlansService,
 } from '../../../service'
 import { generateSubscriptionPlanSchedule } from '../../../utils/generators'
-import {
-  validateDateFormat,
-  validateFields,
-  validateSubscriptionPlan,
-} from '../../../utils/validations'
-import { payment_methods, required_fields } from './index'
 
 /**
  * @openapi
@@ -166,14 +160,6 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
 
   const shop = await ShopsService.getShopByID(shop_id)
   if (!shop) return res.status(400).json({ status: 'error', message: 'Invalid Shop ID!' })
-
-  const validation = validateSubscriptionPlan(data.plan)
-  if (!validation.valid) {
-    return res.status(400).json({
-      status: 'error',
-      ...validation,
-    })
-  }
 
   const {
     start_dates,

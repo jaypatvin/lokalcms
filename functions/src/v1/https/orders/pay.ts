@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import { includes, isNumber } from 'lodash'
-import { ORDER_STATUS, payment_methods } from '.'
+import { isNumber } from 'lodash'
+import { ORDER_STATUS } from '.'
 import { OrderUpdateData } from '../../../models/Order'
 import { NotificationsService, OrdersService } from '../../../service'
 

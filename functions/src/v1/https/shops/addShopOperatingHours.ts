@@ -1,9 +1,7 @@
 import { Request, Response } from 'express'
-import _ from 'lodash'
 import { ShopUpdateData } from '../../../models/Shop'
 import { ProductsService, ShopsService } from '../../../service'
 import { generateSchedule } from '../../../utils/generators'
-import { validateOperatingHours } from '../../../utils/validations'
 
 /**
  * @openapi

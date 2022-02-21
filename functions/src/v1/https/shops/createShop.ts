@@ -1,14 +1,8 @@
 import { Request, Response } from 'express'
-import { isBoolean } from 'lodash'
 import { BankCodesService, ShopsService } from '../../../service'
-import {
-  validateFields,
-  validateOperatingHours,
-  isValidPaymentOptions,
-} from '../../../utils/validations'
 import { generateShopKeywords, generateSchedule } from '../../../utils/generators'
-import { required_fields } from './index'
 import { ShopCreateData } from '../../../models/Shop'
+import { isValidPaymentOptions } from '../../../utils/validations'
 
 /**
  * @openapi
@@ -161,6 +155,10 @@ const createShop = async (req: Request, res: Response) => {
       status: 'error',
       message: 'You do not have a permission to create a shop for another user.',
     })
+  }
+
+  if (payment_options && !(await isValidPaymentOptions(payment_options))) {
+    return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
   }
 
   const keywords = generateShopKeywords({ name })

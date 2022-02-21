@@ -5,8 +5,6 @@ import sgMail from '@sendgrid/mail'
 import { InvitesService } from '../../../service'
 import { generateInviteKeywords } from '../../../utils/generators'
 import { disableInvitesByEmail } from '../../../service/invites'
-import { required_fields } from './index'
-import { validateFields } from '../../../utils/validations'
 import { InviteCreateData } from '../../../models/Invite'
 
 sgMail.setApiKey(functions.config().mail_service.key)

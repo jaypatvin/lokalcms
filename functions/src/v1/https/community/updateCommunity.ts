@@ -1,8 +1,6 @@
 import { Request, Response } from 'express'
 import { generateCommunityKeywords } from '../../../utils/generators'
 import { UsersService, CommunityService } from '../../../service'
-import { validateValue } from '../../../utils/validations'
-import { required_fields } from './index'
 import { CommunityUpdateData } from '../../../models/Community'
 
 /**
@@ -109,19 +107,6 @@ export const updateCommunity = async (req: Request, res: Response) => {
         data: existing_communities,
       })
     }
-  }
-
-  const error_fields = []
-  required_fields.forEach((field) => {
-    if (data.hasOwnProperty(field) && !validateValue(data[field])) {
-      error_fields.push(field)
-    }
-  })
-
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
   if (data.admin) {

@@ -3,7 +3,7 @@ import _ from 'lodash'
 import { ProductUpdateData } from '../../../models/Product'
 import { ProductsService, ShopsService } from '../../../service'
 import { generateSchedule } from '../../../utils/generators'
-import { isScheduleDerived, validateOperatingHours } from '../../../utils/validations'
+import { isScheduleDerived } from '../../../utils/validations'
 
 /**
  * @openapi

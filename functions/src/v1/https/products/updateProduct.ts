@@ -1,9 +1,8 @@
 import { Request, Response } from 'express'
-import { isBoolean, isFinite, isInteger } from 'lodash'
+import { isBoolean } from 'lodash'
 import { ProductUpdateData } from '../../../models/Product'
 import { NotificationsService, ProductsService } from '../../../service'
 import { generateProductKeywords } from '../../../utils/generators'
-import { fieldIsNum } from '../../../utils/helpers'
 
 /**
  * @openapi

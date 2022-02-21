@@ -1,5 +1,4 @@
 import { Request, Response } from 'express'
-import { includes } from 'lodash'
 import { OrderCreateData } from '../../../models/Order'
 import {
   UsersService,
@@ -7,7 +6,7 @@ import {
   ProductSubscriptionsService,
   OrdersService,
 } from '../../../service'
-import { ORDER_STATUS, payment_methods } from '../orders'
+import { ORDER_STATUS } from '../orders'
 
 /**
  * @openapi

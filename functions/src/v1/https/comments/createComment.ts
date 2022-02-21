@@ -1,7 +1,5 @@
 import { Request, Response } from 'express'
 import { UsersService, ActivitiesService, CommentsService } from '../../../service'
-import { validateFields } from '../../../utils/validations'
-import { fieldIsNum } from '../../../utils/helpers'
 import { CommentCreateData } from '../../../models/Comment'
 
 /**

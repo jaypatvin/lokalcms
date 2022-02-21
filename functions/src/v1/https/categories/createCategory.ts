@@ -1,8 +1,6 @@
 import { Request, Response } from 'express'
 import { CategoriesService } from '../../../service'
 import { generateCategoryKeywords } from '../../../utils/generators'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 
 /**
  * @openapi

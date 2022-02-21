@@ -1,8 +1,6 @@
 import { Request, Response } from 'express'
 import { generateCommunityKeywords } from '../../../utils/generators'
 import { CommunityService } from '../../../service'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 import { CommunityCreateData } from '../../../models/Community'
 
 /**

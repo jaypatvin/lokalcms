@@ -47,6 +47,7 @@ const schema: AllowedSchema = {
         },
         repeat_unit: {
           type: 'integer',
+          minimum: 1,
         },
         repeat_type: {
           type: 'string',

@@ -92,16 +92,6 @@
  *               type: string
  */
 
-export const payment_methods = ['cod', 'bank', 'e-wallet']
-
-export const required_fields = [
-  'product_id',
-  'shop_id',
-  'quantity',
-  'plan',
-  'payment_method',
-]
-
 export { default as createProductSubscriptionPlan } from './createProductSubscriptionPlan'
 export { default as confirm } from './confirm'
 export { default as overrideDates } from './overrideDates'

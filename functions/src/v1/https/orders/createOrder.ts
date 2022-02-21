@@ -1,5 +1,4 @@
 import { Request, Response } from 'express'
-import { includes, isDate } from 'lodash'
 import { OrderCreateData } from '../../../models/Order'
 import {
   NotificationsService,
@@ -8,8 +7,6 @@ import {
   ShopsService,
   UsersService,
 } from '../../../service'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 
 /**
  * @openapi

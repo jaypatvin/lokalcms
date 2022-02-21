@@ -9,7 +9,6 @@ import {
   ChatMessageService,
 } from '../../../service'
 import db from '../../../utils/db'
-import { fieldIsNum } from '../../../utils/helpers'
 
 /**
  * @openapi

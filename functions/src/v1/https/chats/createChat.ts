@@ -7,10 +7,7 @@ import {
   ProductsService,
   ChatMessageService,
 } from '../../../service'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
-import { fieldIsNum } from '../../../utils/helpers'
 import { ChatCreateData } from '../../../models/Chat'
 import { ConversationCreateData } from '../../../models/Conversation'
 
