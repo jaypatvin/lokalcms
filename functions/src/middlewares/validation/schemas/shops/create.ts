@@ -87,6 +87,7 @@ const schema: AllowedSchema = {
         },
         repeat_unit: {
           type: 'integer',
+          minimum: 0,
         },
         repeat_type: {
           type: 'string',
