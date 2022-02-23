@@ -39,7 +39,6 @@ const errorHandler = async (err: any, request: Request, response: Response, next
       status: 'error',
       error_fields: errorFields,
     })
-    response.status(400).json(err.validationErrors)
     next()
   } else {
     next(err)
