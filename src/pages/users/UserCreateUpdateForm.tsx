@@ -1,5 +1,6 @@
 import React, { ChangeEventHandler, useEffect, useState } from 'react'
 import { Link, useHistory } from 'react-router-dom'
+import { isEmpty } from 'lodash'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
 import { Checkbox, TextField } from '../../components/inputs'
@@ -10,12 +11,15 @@ import { useAuth } from '../../contexts/AuthContext'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { fetchCommunityByID, getCommunities } from '../../services/community'
 import { Community, User } from '../../models'
+import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
 
 type Response = {
   status?: string
   data?: User
   message?: string
-  error_fields?: Field[]
+  error_fields?: {
+    [x: string]: string
+  }
 }
 
 type UserFormType = {
@@ -39,8 +43,48 @@ type Field =
   | 'display_name'
   | 'profile_photo'
   | 'street'
+  | 'community_id'
 
 const initialData: UserFormType = { status: 'active' }
+
+const fields: DynamicField[] = [
+  {
+    type: 'email',
+    key: 'email',
+    label: 'Email',
+    required: true,
+  },
+  {
+    type: 'text',
+    key: 'first_name',
+    label: 'First Name',
+    required: true,
+  },
+  {
+    type: 'text',
+    key: 'last_name',
+    label: 'Last Name',
+    required: true,
+  },
+  {
+    type: 'text',
+    key: 'display_name',
+    label: 'Display Name',
+    required: false,
+  },
+  {
+    type: 'text',
+    key: 'profile_photo',
+    label: 'Profile Photo',
+    required: false,
+  },
+  {
+    type: 'text',
+    key: 'street',
+    label: 'Street',
+    required: true,
+  },
+]
 
 const UserCreateUpdateForm = ({
   isOpen = false,
@@ -150,6 +194,7 @@ const UserCreateUpdateForm = ({
       if (mode === 'update' && dataToUpdate.id) {
         url = `${url}/${dataToUpdate.id}`
         method = 'PUT'
+        delete data.email
       }
       let res = await (
         await fetch(url, {
@@ -178,10 +223,7 @@ const UserCreateUpdateForm = ({
 
   const fieldIsError = (field: Field) => {
     const { status, error_fields } = responseData
-    if (status === 'error' && error_fields && error_fields.length) {
-      return error_fields.includes(field)
-    }
-    return false
+    return status === 'error' && !isEmpty(error_fields) && !!error_fields![field]
   }
 
   if (!WrapperComponent) return null
@@ -204,94 +246,7 @@ const UserCreateUpdateForm = ({
           value={data.is_admin || false}
         />
       </div>
-      <div className="grid grid-cols-2 gap-x-2">
-        <TextField
-          required
-          label="email"
-          type="email"
-          size="small"
-          onChange={(e) => changeHandler('email', e.target.value)}
-          isError={fieldIsError('email')}
-          defaultValue={data.email}
-          readOnly={mode === 'update'}
-        />
-        <TextField
-          required
-          label="first name"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('first_name', e.target.value)}
-          isError={fieldIsError('first_name')}
-          defaultValue={data.first_name}
-        />
-        <TextField
-          required
-          label="last name"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('last_name', e.target.value)}
-          isError={fieldIsError('last_name')}
-          defaultValue={data.last_name}
-        />
-        <TextField
-          label="display name"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('display_name', e.target.value)}
-          isError={fieldIsError('display_name')}
-          defaultValue={data.display_name}
-        />
-        <TextField
-          label="profile photo"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('profile_photo', e.target.value)}
-          isError={fieldIsError('profile_photo')}
-          defaultValue={data.profile_photo}
-        />
-        <div className="w-64">
-          <div ref={communitySearchResultRef} className="relative">
-            <TextField
-              label="community"
-              type="text"
-              size="small"
-              placeholder="Search"
-              onChange={communitySearchHandler}
-              defaultValue={communitySearchText}
-              onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
-            />
-            {showCommunitySearchResult && communitySearchResult.length > 0 && (
-              <div className="absolute bottom-full left-0 w-64 bg-white shadow z-10">
-                {communitySearchResult.map((community) => (
-                  <button
-                    className="w-full p-1 hover:bg-gray-200 block text-left"
-                    key={community.id}
-                    onClick={() => communitySelectHandler(community)}
-                  >
-                    {community.name}
-                    <span className="block text-xs text-gray-500">
-                      {community.address.subdivision}, {community.address.barangay},{' '}
-                      {community.address.city}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <TextField
-          required
-          label="street"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('street', e.target.value)}
-          isError={fieldIsError('street')}
-          defaultValue={data.street}
-        />
-      </div>
-      {responseData.status === 'error' && (
-        <p className="text-red-600 text-center">{responseData.message}</p>
-      )}
+      <DynamicForm fields={fields} formClassName="grid grid-cols-2 gap-x-2" cancelLabel="Close" />
       {!isModal && (
         <div className="flex justify-end">
           <Link to="/users">
