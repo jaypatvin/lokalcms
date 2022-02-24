@@ -6,7 +6,6 @@ import React, {
   MouseEventHandler,
   createContext,
   useContext,
-  ChangeEventHandler,
 } from 'react'
 import { useMediaQuery } from 'react-responsive'
 import { Redirect, Link } from 'react-router-dom'
@@ -30,9 +29,14 @@ type Props = {
 type CommunityData = Community & { id: string }
 
 const CommunityContext = createContext<CommunityData>({} as CommunityData)
+const CommunitiesContext = createContext<CommunityData[]>([])
 
 export function useCommunity() {
   return useContext(CommunityContext)
+}
+
+export function useCommunities() {
+  return useContext(CommunitiesContext)
 }
 
 const BasePage = (props: Props) => {
@@ -46,6 +50,7 @@ const BasePage = (props: Props) => {
   const { currentUserInfo, logout } = useAuth()
 
   const [community, setCommunity] = useState<CommunityData>({} as CommunityData)
+  const [communities, setCommunities] = useState<CommunityData[]>([])
   const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
   const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
   const [communitySearchText, setCommunitySearchText] = useState('')
@@ -86,27 +91,26 @@ const BasePage = (props: Props) => {
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClick)
+    getCommunities({})
+      .get()
+      .then((res) => {
+        const allCommunities = res.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        setCommunities(allCommunities)
+        setCommunitySearchResult(allCommunities)
+      })
 
     return () => {
       document.removeEventListener('mousedown', handleClick)
     }
   }, [])
 
-  const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    setCommunitySearchText(e.target.value)
-    if (e.target.value.length > 2) {
-      const communitiesRef = getCommunities({ search: e.target.value })
-      const result = await communitiesRef.get()
-      const communities = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
-      setCommunitySearchResult(communities)
-      setShowCommunitySearchResult(communities.length > 0)
-    } else {
-      setShowCommunitySearchResult(false)
-      setCommunitySearchResult([])
-    }
+  const communitySearchHandler = (value: string) => {
+    setCommunitySearchText(value)
+    const filteredCommunities = communities.filter(({ name }) =>
+      name.toLowerCase().includes(value.toLowerCase())
+    )
+    setCommunitySearchResult(filteredCommunities)
+    setShowCommunitySearchResult(filteredCommunities.length > 0)
   }
 
   const communitySelectHandler = (community: CommunityData) => {
@@ -171,9 +175,9 @@ const BasePage = (props: Props) => {
                   type="text"
                   size="small"
                   placeholder="Community"
-                  onChange={communitySearchHandler}
+                  onChange={(e) => communitySearchHandler(e.target.value)}
                   value={communitySearchText}
-                  onFocus={() => setShowCommunitySearchResult(communitySearchResult.length > 0)}
+                  onFocus={() => communitySearchHandler(communitySearchText)}
                   noMargin
                 />
                 {showCommunitySearchResult && communitySearchResult.length > 0 && (
@@ -238,7 +242,11 @@ const BasePage = (props: Props) => {
           </div>
         </header>
         <div className="p-4 w-full min-h-full relative">
-          <CommunityContext.Provider value={community}>{props.children}</CommunityContext.Provider>
+          <CommunitiesContext.Provider value={communities}>
+            <CommunityContext.Provider value={community}>
+              {props.children}
+            </CommunityContext.Provider>
+          </CommunitiesContext.Provider>
         </div>
       </main>
     </>

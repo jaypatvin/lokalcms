@@ -1,17 +1,15 @@
-import React, { ChangeEventHandler, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useHistory } from 'react-router-dom'
-import { isEmpty } from 'lodash'
 import { Button } from '../../components/buttons'
 import Dropdown from '../../components/Dropdown'
-import { Checkbox, TextField } from '../../components/inputs'
-import Modal from '../../components/modals'
+import { Checkbox } from '../../components/inputs'
 import { API_URL } from '../../config/variables'
 import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 import { useAuth } from '../../contexts/AuthContext'
-import useOuterClick from '../../customHooks/useOuterClick'
-import { fetchCommunityByID, getCommunities } from '../../services/community'
+import { fetchCommunityByID } from '../../services/community'
 import { Community, User } from '../../models'
 import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
+import Modal from '../../components/modals'
 
 type Response = {
   status?: string
@@ -48,6 +46,12 @@ type Field =
 const initialData: UserFormType = { status: 'active' }
 
 const fields: DynamicField[] = [
+  {
+    type: 'community',
+    key: 'community_id',
+    label: 'Community',
+    required: true,
+  },
   {
     type: 'email',
     key: 'email',
@@ -99,17 +103,11 @@ const UserCreateUpdateForm = ({
   const [responseData, setResponseData] = useState<Response>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
   const [community, setCommunity] = useState<Community>()
-  const [communitySearchText, setCommunitySearchText] = useState('')
-  const [communitySearchResult, setCommunitySearchResult] = useState<
-    (Community & { id: string })[]
-  >([])
-  const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
-  const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
 
   useEffect(() => {
     if (isModal && setIsOpen) {
-      const Component = ({ children, isOpen, setIsOpen, onSave }: any) => (
-        <Modal title={`${mode} user`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
+      const Component = ({ children, isOpen }: any) => (
+        <Modal title={`${mode} user`} isOpen={isOpen}>
           {children}
         </Modal>
       )
@@ -125,9 +123,6 @@ const UserCreateUpdateForm = ({
     const communityRef = await fetchCommunityByID(community_id)
     const communityData = communityRef.data()
     setCommunity(communityData)
-    if (communityData) {
-      setCommunitySearchText(communityData.name)
-    }
     setData(dataToUpdate)
   }
 
@@ -160,31 +155,6 @@ const UserCreateUpdateForm = ({
       newData.is_admin = value
     }
     setData(newData)
-  }
-
-  const communitySearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (e.target.value.length > 2) {
-      const communitiesRef = getCommunities({ search: e.target.value })
-      const result = await communitiesRef.get()
-      let communities = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
-      setCommunitySearchResult(communities)
-      setShowCommunitySearchResult(communities.length > 0)
-    } else {
-      setShowCommunitySearchResult(false)
-      setCommunitySearchResult([])
-    }
-    setCommunitySearchText(e.target.value)
-  }
-
-  const communitySelectHandler = (community: Community & { id: string }) => {
-    const newData = { ...data, community_id: community.id }
-    setShowCommunitySearchResult(false)
-    setData(newData)
-    setCommunity(community)
-    setCommunitySearchText(community.name)
   }
 
   const onSave = async () => {
@@ -221,15 +191,10 @@ const UserCreateUpdateForm = ({
     }
   }
 
-  const fieldIsError = (field: Field) => {
-    const { status, error_fields } = responseData
-    return status === 'error' && !isEmpty(error_fields) && !!error_fields![field]
-  }
-
   if (!WrapperComponent) return null
 
   return (
-    <WrapperComponent title={`${mode} user`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
+    <WrapperComponent isOpen={isOpen}>
       <div className="flex justify-between mb-3">
         <Dropdown
           name="status"
@@ -246,7 +211,12 @@ const UserCreateUpdateForm = ({
           value={data.is_admin || false}
         />
       </div>
-      <DynamicForm fields={fields} formClassName="grid grid-cols-2 gap-x-2" cancelLabel="Close" />
+      <DynamicForm
+        fields={fields}
+        formClassName="grid grid-cols-2 gap-5"
+        className="gap-y-5"
+        cancelLabel="Close"
+      />
       {!isModal && (
         <div className="flex justify-end">
           <Link to="/users">

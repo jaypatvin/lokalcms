@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, ChangeEventHandler } from 'react'
 import { isEmpty, cloneDeep } from 'lodash'
 import { TextField } from './inputs'
 import { Button } from './buttons'
+import { Community } from '../models'
+import useOuterClick from '../customHooks/useOuterClick'
+import { useCommunities } from './BasePage'
 
 export type Field = {
   type:
@@ -16,6 +19,7 @@ export type Field = {
     | 'schedule'
     | 'image'
     | 'gallery'
+    | 'community'
   key: string
   label: string
   defaultValue?: unknown
@@ -63,6 +67,15 @@ const DynamicForm = ({
 }: Props) => {
   const [formData, setFormData] = useState<FormData>({})
 
+  const [communitySearchText, setCommunitySearchText] = useState('')
+  const [communitySearchResult, setCommunitySearchResult] = useState<
+    (Community & { id: string })[]
+  >([])
+  const [showCommunitySearchResult, setShowCommunitySearchResult] = useState(false)
+  const communitySearchResultRef = useOuterClick(() => setShowCommunitySearchResult(false))
+
+  const communities = useCommunities()
+
   useEffect(() => {
     const initialFormData = fields.reduce<FormData>((acc, field) => {
       if (field.defaultValue) {
@@ -72,7 +85,24 @@ const DynamicForm = ({
     }, {})
 
     setFormData(initialFormData)
+    setCommunitySearchResult(communities)
   }, [])
+
+  const communitySelectHandler = (community: Community & { id: string }) => {
+    const newData = { ...formData, community_id: community.id }
+    setShowCommunitySearchResult(false)
+    setFormData(newData)
+    setCommunitySearchText(community.name)
+  }
+
+  const communitySearchHandler = (value: string) => {
+    setCommunitySearchText(value)
+    const filteredCommunities = communities.filter(({ name }) =>
+      name.toLowerCase().includes(value.toLowerCase())
+    )
+    setCommunitySearchResult(filteredCommunities)
+    setShowCommunitySearchResult(filteredCommunities.length > 0)
+  }
 
   const changeHandler = (field: Field, value: unknown) => {
     const newFormData = cloneDeep(formData)
@@ -96,7 +126,41 @@ const DynamicForm = ({
             isError={isError}
             errorMessage={message}
             defaultValue={field.defaultValue as string}
+            noMargin
           />
+        )
+      case 'community':
+        return (
+          <div ref={communitySearchResultRef} className="relative">
+            <TextField
+              required={field.required}
+              label={field.label}
+              type="text"
+              size="small"
+              placeholder="Search"
+              onChange={(e) => communitySearchHandler(e.target.value)}
+              value={communitySearchText}
+              onFocus={() => communitySearchHandler(communitySearchText)}
+              noMargin
+            />
+            {showCommunitySearchResult && communitySearchResult.length > 0 && (
+              <div className="absolute top-full left-0 w-64 bg-white shadow z-10">
+                {communitySearchResult.map((community) => (
+                  <button
+                    className="w-full p-1 hover:bg-gray-200 block text-left"
+                    key={community.id}
+                    onClick={() => communitySelectHandler(community)}
+                  >
+                    {community.name}
+                    <span className="block text-xs text-gray-500">
+                      {community.address.subdivision}, {community.address.barangay},{' '}
+                      {community.address.city}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )
       default:
         return null
