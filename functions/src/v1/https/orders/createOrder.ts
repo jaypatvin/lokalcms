@@ -1,5 +1,4 @@
 import { Request, Response } from 'express'
-import { includes, isDate } from 'lodash'
 import { OrderCreateData } from '../../../models/Order'
 import {
   NotificationsService,
@@ -8,8 +7,6 @@ import {
   ShopsService,
   UsersService,
 } from '../../../service'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 
 /**
  * @openapi
@@ -129,15 +126,10 @@ import { required_fields } from './index'
 const createOrder = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
   const { products, buyer_id, shop_id, delivery_option, delivery_date, instruction = '' } = data
   let requestorDocId = res.locals.userDoc.id
   let buyer = res.locals.userDoc
+
   if (roles.admin && buyer_id) {
     buyer = await UsersService.getUserByID(buyer_id)
     if (!buyer) {
@@ -148,18 +140,7 @@ const createOrder = async (req: Request, res: Response) => {
     requestorDocId = buyer_id
   }
 
-  if (!isDate(new Date(delivery_date))) {
-    return res.status(400).json({ status: 'error', message: 'delivery_date is not a valid date.' })
-  }
-
-  if (!includes(['pickup', 'delivery'], delivery_option)) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'delivery_option can only be "pickup" or "delivery"' })
-  }
-
   const shop = await ShopsService.getShopByID(shop_id)
-
   if (!shop) {
     return res
       .status(400)

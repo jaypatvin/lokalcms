@@ -14,6 +14,7 @@ import helloRouter from './v1/https/hello.function'
 import { runCounter, logActivity, updateRatings } from './utils/triggers'
 import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
 import notifyUsersOnproductSubscriptions from './scheduled/notifyUsersOnProductSubscriptions'
+import { errorHandler } from './middlewares/validation'
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -28,6 +29,8 @@ app.use(authMiddleware)
 app.use(roleMiddleware)
 
 require('./routes')(app)
+
+app.use(errorHandler)
 
 exports.api = functions.https.onRequest(app)
 

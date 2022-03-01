@@ -85,7 +85,6 @@
  *           type: string
  */
 
-export const required_fields = ['products', 'shop_id', 'delivery_date']
 export const ORDER_STATUS = {
   CANCELLED: 10,
   DECLINED: 20,
@@ -96,7 +95,6 @@ export const ORDER_STATUS = {
   PENDING_RECEIPT: 500,
   FINISHED: 600,
 }
-export const payment_methods = ['cod', 'bank', 'e-wallet']
 
 export { default as createOrder } from './createOrder'
 export { default as confirmOrder } from './confirmOrder'

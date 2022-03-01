@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { get, includes } from 'lodash'
+import { get } from 'lodash'
 import { ProductSubscriptionPlanCreateData } from '../../../models/ProductSubscriptionPlan'
 import {
   UsersService,
@@ -8,12 +8,6 @@ import {
   ProductSubscriptionPlansService,
 } from '../../../service'
 import { generateSubscriptionPlanSchedule } from '../../../utils/generators'
-import {
-  validateDateFormat,
-  validateFields,
-  validateSubscriptionPlan,
-} from '../../../utils/validations'
-import { payment_methods, required_fields } from './index'
 
 /**
  * @openapi
@@ -156,20 +150,6 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
     }
   }
 
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
-  if (!includes(payment_methods, payment_method)) {
-    return res.status(403).json({
-      status: 'error',
-      message: `${payment_method} is not a valid payment_method. "cod" | "bank" | "e-wallet"`,
-    })
-  }
-
   const product = await ProductsService.getProductByID(product_id)
   if (!product) return res.status(400).json({ status: 'error', message: 'Invalid Product ID!' })
   if (!product.can_subscribe) {
@@ -180,14 +160,6 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
 
   const shop = await ShopsService.getShopByID(shop_id)
   if (!shop) return res.status(400).json({ status: 'error', message: 'Invalid Shop ID!' })
-
-  const validation = validateSubscriptionPlan(data.plan)
-  if (!validation.valid) {
-    return res.status(400).json({
-      status: 'error',
-      ...validation,
-    })
-  }
 
   const {
     start_dates,
@@ -232,12 +204,6 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
 
   if (override_dates && override_dates.length) {
     override_dates.forEach(({ original_date, new_date }) => {
-      if (!validateDateFormat(original_date) || !validateDateFormat(new_date)) {
-        throw res.status(400).json({
-          status: 'error',
-          message: `Invalid date format. Please follow "2021-12-31"`,
-        })
-      }
       if (!newPlan.plan.override_dates) newPlan.plan.override_dates = {}
       newPlan.plan.override_dates[original_date] = new_date
     })

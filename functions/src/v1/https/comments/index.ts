@@ -22,8 +22,6 @@
  *                 type: number
  */
 
- export const required_fields = ['user_id']
-
 export { default as createComment } from './createComment'
 export { default as updateComment } from './updateComment'
 export { default as archiveComment } from './archiveComment'

@@ -52,8 +52,6 @@
  *           type: string
  */
 
-export const required_fields = ['members']
-
 export { default as createChat } from './createChat'
 export { default as getChatByMemberIds } from './getChatByMemberIds'
 export { default as createConversation } from './createConversation'

@@ -1,8 +1,6 @@
 import { Request, Response } from 'express'
 import { generateCommunityKeywords } from '../../../utils/generators'
 import { CommunityService } from '../../../service'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 import { CommunityCreateData } from '../../../models/Community'
 
 /**
@@ -80,18 +78,11 @@ const createCommunity = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor)
-    return res.status(403).json({
+  if (!roles.editor) {
+    return res.status(400).json({
       status: 'error',
       message: 'You do not have a permission to create a community',
     })
-
-  const error_fields = validateFields(data, required_fields)
-
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
   }
 
   // check if community name already exist
@@ -122,7 +113,7 @@ const createCommunity = async (req: Request, res: Response) => {
   })
 
   // create new community
-  const _newData: CommunityCreateData = {
+  const newData: CommunityCreateData = {
     name: data.name,
     address: {
       barangay: data.barangay,
@@ -138,13 +129,13 @@ const createCommunity = async (req: Request, res: Response) => {
     updated_from: data.source || '',
   }
   if (data.profile_photo) {
-    _newData.profile_photo = data.profile_photo
+    newData.profile_photo = data.profile_photo
   }
   if (data.cover_photo) {
-    _newData.cover_photo = data.cover_photo
+    newData.cover_photo = data.cover_photo
   }
 
-  const new_community = await CommunityService.createCommunity(_newData)
+  const new_community = await CommunityService.createCommunity(newData)
   const result = await new_community.get().then((doc) => ({ ...doc.data(), id: doc.id }))
 
   return res.json({ status: 'ok', data: result })

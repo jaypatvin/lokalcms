@@ -1,14 +1,8 @@
 import { Request, Response } from 'express'
-import { isBoolean } from 'lodash'
 import { BankCodesService, ShopsService } from '../../../service'
-import {
-  validateFields,
-  validateOperatingHours,
-  isValidPaymentOptions,
-} from '../../../utils/validations'
 import { generateShopKeywords, generateSchedule } from '../../../utils/generators'
-import { required_fields } from './index'
 import { ShopCreateData } from '../../../models/Shop'
+import { isValidPaymentOptions } from '../../../utils/validations'
 
 /**
  * @openapi
@@ -43,7 +37,11 @@ import { ShopCreateData } from '../../../models/Shop'
  *               "date": "2021-05-19",
  *               "end_time": "01:00 PM"
  *             }
- *           ]
+ *           ],
+ *           "delivery_options": {
+ *               "delivery": true,
+ *               "pickup": false
+ *           }
  *         }
  *       }
  *       ```
@@ -88,7 +86,7 @@ import { ShopCreateData } from '../../../models/Shop'
  *                     account_name:
  *                       type: string
  *                     account_number:
- *                       type: number
+ *                       type: string
  *               operating_hours:
  *                 type: object
  *                 properties:
@@ -159,33 +157,11 @@ const createShop = async (req: Request, res: Response) => {
     })
   }
 
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
   if (payment_options && !(await isValidPaymentOptions(payment_options))) {
     return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
   }
 
-  if (!isBoolean(data.delivery_options.pickup) || !isBoolean(data.delivery_options.delivery)) {
-    return res.status(400).json({
-      status: 'error',
-      message: "delivery_options must contain 'pickup' and 'delivery' boolean field",
-    })
-  }
-
   const keywords = generateShopKeywords({ name })
-
-  const operatingHoursValidation = validateOperatingHours(data.operating_hours)
-  if (!operatingHoursValidation.valid) {
-    return res.status(400).json({
-      status: 'error',
-      ...operatingHoursValidation,
-    })
-  }
 
   const {
     start_time,
@@ -234,7 +210,9 @@ const createShop = async (req: Request, res: Response) => {
   if (payment_options) {
     for (const paymentOption of payment_options) {
       const bankCode = await BankCodesService.getBankCodeById(paymentOption.bank_code)
-      paymentOption.type = bankCode.type
+      if (bankCode) {
+        paymentOption.type = bankCode.type
+      }
     }
     shopData.payment_options = payment_options
   }

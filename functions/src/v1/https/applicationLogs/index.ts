@@ -26,6 +26,4 @@
  *           type: boolean
  */
 
-export const required_fields = ['action_type', 'device_id', 'community_id', ]
-
 export { default as createApplicationLog } from './createApplicationLog'

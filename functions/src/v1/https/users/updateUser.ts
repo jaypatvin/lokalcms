@@ -1,8 +1,6 @@
 import { Request, Response } from 'express'
 import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
-import { validateValue } from '../../../utils/validations'
-import { required_fields } from './index'
 import { UserUpdateData } from '../../../models/User'
 import db from '../../../utils/db'
 
@@ -106,49 +104,32 @@ const updateUser = async (req: Request, res: Response) => {
     })
   }
 
-  let _community
+  let newCommunity
 
   if (!userId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
   // check if user id is valid
-  const _existing_user = await UsersService.getUserByID(userId)
-  if (!_existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-
-  const error_fields: string[] = []
-  required_fields.forEach((field) => {
-    if (data.hasOwnProperty(field) && !validateValue(data[field])) {
-      error_fields.push(field)
-    }
-  })
+  const existingUser = await UsersService.getUserByID(userId)
+  if (!existingUser) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
   // check if community id is valid
   if (data.community_id) {
-    try {
-      _community = await CommunityService.getCommunityByID(data.community_id)
-    } catch (e) {
-      error_fields.push('community_id')
-      return res
-        .status(400)
-        .json({ status: 'error', message: 'Invalid Community ID!', error_fields })
+    newCommunity = await CommunityService.getCommunityByID(data.community_id)
+    if (!newCommunity) {
+      return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
     }
-  }
-
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing!', error_fields })
   }
 
   let keywords
 
   if (data.first_name || data.last_name || data.display_name) {
-    const first_name = data.first_name || _existing_user.first_name
-    const last_name = data.last_name || _existing_user.last_name
-    const display_name = data.display_name || _existing_user.display_name
+    const first_name = data.first_name || existingUser.first_name
+    const last_name = data.last_name || existingUser.last_name
+    const display_name = data.display_name || existingUser.display_name
     keywords = generateUserKeywords({
       first_name,
       last_name,
-      email: _existing_user.email,
+      email: existingUser.email,
       display_name,
     })
   }
@@ -166,26 +147,23 @@ const updateUser = async (req: Request, res: Response) => {
   if (keywords) updateData.keywords = keywords
   if (data.profile_photo) updateData.profile_photo = data.profile_photo
 
-  if (data.community_id && _community) {
+  if (data.community_id && newCommunity) {
     // TODO: if user is admin of previous community, remove the user from admin array of community
     updateData.community_id = data.community_id
     updateData.community = db.community.doc(data.community_id)
-    updateData['address.barangay'] = _community.address.barangay
-    updateData['address.city'] = _community.address.city
-    updateData['address.state'] = _community.address.state
-    updateData['address.subdivision'] = _community.address.subdivision
-    updateData['address.zip_code'] = _community.address.zip_code
-    updateData['address.country'] = _community.address.country
+    updateData['address.barangay'] = newCommunity.address.barangay
+    updateData['address.city'] = newCommunity.address.city
+    updateData['address.state'] = newCommunity.address.state
+    updateData['address.subdivision'] = newCommunity.address.subdivision
+    updateData['address.zip_code'] = newCommunity.address.zip_code
+    updateData['address.country'] = newCommunity.address.country
   }
 
   if (data.street) updateData['address.street'] = data.street
 
-  if (!Object.keys(updateData).length)
-    return res.status(400).json({ status: 'error', message: 'no field for user is provided' })
+  const result = await UsersService.updateUser(userId, updateData)
 
-  const _result = await UsersService.updateUser(userId, updateData)
-
-  return res.json({ status: 'ok', data: _result })
+  return res.json({ status: 'ok', data: result })
 }
 
 export default updateUser

@@ -57,54 +57,50 @@ const chatRemoveUser = async (req: Request, res: Response) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  if (!user_id) {
-    return res.status(403).json({ status: 'error', message: 'user_id field is required.' })
-  }
+  const chat = await ChatsService.getChatById(chatId)
 
-  const _chat = await ChatsService.getChatById(chatId)
+  if (!chat) return res.status(403).json({ status: 'error', message: 'Chat does not exist!' })
 
-  if (!_chat) return res.status(403).json({ status: 'error', message: 'Chat does not exist!' })
-
-  if (_chat.shop_id) {
+  if (chat.shop_id) {
     return res
       .status(403)
       .json({ status: 'error', message: "Can't update members of chat with shop" })
   }
 
-  if (_chat.members.length === 2 || !_chat.group_hash) {
+  if (chat.members.length === 2 || !chat.group_hash) {
     return res
       .status(403)
       .json({ status: 'error', message: `Chat with id ${chatId} is not a group chat` })
   }
 
-  if (_chat.members.length === 3) {
+  if (chat.members.length === 3) {
     return res
       .status(403)
       .json({ status: 'error', message: 'The minimum number of members on a group chat is 3' })
   }
 
-  if (!_chat.members.includes(user_id)) {
+  if (!chat.members.includes(user_id)) {
     return res
       .status(403)
       .json({ status: 'error', message: `Chat members does not contain ${user_id}` })
   }
 
-  if (!roles.admin && !_chat.members.includes(requestorDocId))
+  if (!roles.admin && !chat.members.includes(requestorDocId))
     return res.status(403).json({
       status: 'error',
       message: 'You do not have a permission to invite another user',
     })
 
-  const members = _chat.members.filter((m) => m !== user_id)
+  const members = chat.members.filter((m) => m !== user_id)
   const group_hash = hashArrayOfStrings(members)
-  let title = _chat.title
+  let title = chat.title
   const member_names = []
-  for (let i = 0; i < members.length; i++) {
-    const user = await UsersService.getUserByID(members[i])
+  for (const member of members) {
+    const user = await UsersService.getUserByID(member)
     if (!user) {
       return res
         .status(400)
-        .json({ status: 'error', message: `User with id ${members[i]} is not found` })
+        .json({ status: 'error', message: `User with id ${member} is not found` })
     }
     member_names.push(user.display_name)
   }
@@ -118,7 +114,7 @@ const chatRemoveUser = async (req: Request, res: Response) => {
     title,
   }
 
-  const result = await ChatsService.updateChat(_chat.id, { ...requestData })
+  const result = await ChatsService.updateChat(chat.id, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

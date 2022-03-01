@@ -13,7 +13,7 @@ import { UserUpdateData } from '../../../models/User'
  *       - bearerAuth: []
  *     description: |
  *       ## Update the notification_settings field of the user document
- *       ### notification types are likes, comments, tags, messages, order_status, community_alerts, and subscriptions
+ *       ### notification types are likes, comments, tags, messages, order_status, community_alerts, subscriptions and products
  *       # Examples
  *       ## set likes, comments, community_alerts, and subscriptions to true
  *       ```
@@ -53,6 +53,8 @@ import { UserUpdateData } from '../../../models/User'
  *                 type: boolean
  *               subscriptions:
  *                 type: boolean
+ *               products:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Updated user
@@ -79,24 +81,16 @@ const toggleNotificationSetting = async (req: Request, res: Response) => {
     })
   }
 
-  if (!userId) return res.status(400).json({ status: 'error', message: 'id is required!' })
-
-  const { likes, comments, tags, messages, order_status, community_alerts, subscriptions } = data
-
-  if (
-    !isBoolean(likes) &&
-    !isBoolean(comments) &&
-    !isBoolean(tags) &&
-    !isBoolean(messages) &&
-    !isBoolean(order_status) &&
-    !isBoolean(community_alerts) &&
-    !isBoolean(subscriptions)
-  ) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Notification setting property must have a Boolean value.',
-    })
-  }
+  const {
+    likes,
+    comments,
+    tags,
+    messages,
+    order_status,
+    community_alerts,
+    subscriptions,
+    products,
+  } = data
 
   const user = await UsersService.getUserByID(userId)
   if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
@@ -114,6 +108,7 @@ const toggleNotificationSetting = async (req: Request, res: Response) => {
   if (isBoolean(community_alerts))
     updateData['notification_settings.community_alerts'] = community_alerts
   if (isBoolean(subscriptions)) updateData['notification_settings.subscriptions'] = subscriptions
+  if (isBoolean(products)) updateData['notification_settings.products'] = products
 
   const result = await UsersService.updateUser(userId, updateData)
 

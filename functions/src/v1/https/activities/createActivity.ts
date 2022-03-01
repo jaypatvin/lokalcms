@@ -1,8 +1,6 @@
 import { Request, Response } from 'express'
 import { ActivityCreateData } from '../../../models/Activity'
 import { UsersService, ActivitiesService } from '../../../service'
-import { validateFields, validateImages } from '../../../utils/validations'
-import { required_fields } from './index'
 /**
  * @openapi
  * /v1/activities:
@@ -83,52 +81,26 @@ import { required_fields } from './index'
  *                   $ref: '#/components/schemas/activity'
  */
 const createActivity = async (req: Request, res: Response) => {
-  const data = req.body
+  const { user_id, images, message = '', status = 'enabled', source = '' } = req.body
   const requestorDocId = res.locals.userDoc.id || ''
-  let _user
 
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
-  if (!data.message && !data.images)
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'no message or image is provided for post' })
-
-  // get user and validate
-  _user = await UsersService.getUserByID(data.user_id)
-  if (!_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-  if (_user.status === 'archived')
+  const user = await UsersService.getUserByID(user_id)
+  if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  if (user.archived) {
     return res.status(406).json({
       status: 'error',
-      message: `User with id ${data.user_id} is currently archived!`,
+      message: `User with id ${user_id} is currently archived!`,
     })
-
-  let images
-  if (data.images) {
-    const validation = validateImages(data.images)
-    if (!validation.valid) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Images are not valid.',
-        errors: validation.errorMessages,
-      })
-    }
-    images = data.images
   }
 
   const _activityData: ActivityCreateData = {
-    message: data.message || '',
-    user_id: data.user_id,
-    community_id: _user.community_id,
-    status: data.status || 'enabled',
+    message,
+    user_id,
+    community_id: user.community_id,
+    status,
     archived: false,
     updated_by: requestorDocId,
-    updated_from: data.source || '',
+    updated_from: source,
   }
 
   if (images) _activityData.images = images

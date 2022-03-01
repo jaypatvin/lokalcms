@@ -23,8 +23,6 @@
  *           type: string
  */
 
-export const required_fields = ['email']
-
 export { default as createInvite } from './createInvite'
 export { default as updateInvite } from './updateInvite'
 export { default as archiveInvite } from './archiveInvite'

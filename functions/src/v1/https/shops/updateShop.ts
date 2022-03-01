@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { isBoolean } from 'lodash'
 import { BankCodesService, ShopsService } from '../../../service'
-import { validateValue, isValidPaymentOptions } from '../../../utils/validations'
+import { isValidPaymentOptions } from '../../../utils/validations'
 import { generateShopKeywords } from '../../../utils/generators'
 import { ShopUpdateData } from '../../../models/Shop'
 
@@ -136,28 +136,21 @@ const updateShop = async (req: Request, res: Response) => {
     updateData.keywords = generateShopKeywords({ name })
   }
   if (description) updateData.description = description
-  if (validateValue(is_close)) updateData.is_close = is_close
+  if (isBoolean(is_close)) updateData.is_close = is_close
   if (profile_photo) updateData.profile_photo = profile_photo
   if (cover_photo) updateData.cover_photo = cover_photo
   if (payment_options) {
     for (const paymentOption of payment_options) {
       const bankCode = await BankCodesService.getBankCodeById(paymentOption.bank_code)
-      paymentOption.type = bankCode.type
+      if (bankCode) {
+        paymentOption.type = bankCode.type
+      }
     }
     updateData.payment_options = payment_options
   }
   if (delivery_options) {
-    if (!isBoolean(data.delivery_options.pickup) || !isBoolean(data.delivery_options.delivery)) {
-      return res.status(400).json({
-        status: 'error',
-        message: "delivery_options must contain 'pickup' and 'delivery' boolean field",
-      })
-    }
     updateData.delivery_options = delivery_options
   }
-
-  if (!Object.keys(updateData).length)
-    return res.status(400).json({ status: 'error', message: 'no field for shop is provided' })
 
   const result = await ShopsService.updateShop(shopId, updateData)
 

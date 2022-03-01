@@ -1,5 +1,4 @@
 import { Request, Response } from 'express'
-import { includes } from 'lodash'
 import { OrderCreateData } from '../../../models/Order'
 import {
   UsersService,
@@ -7,7 +6,7 @@ import {
   ProductSubscriptionsService,
   OrdersService,
 } from '../../../service'
-import { ORDER_STATUS, payment_methods } from '../orders'
+import { ORDER_STATUS } from '../orders'
 
 /**
  * @openapi
@@ -82,25 +81,6 @@ const createOrderFromSubscription = async (req: Request, res: Response) => {
       status: 'error',
       message:
         'You do not have a permission to create an order of a product subscription of another user.',
-    })
-  }
-
-  if (!payment_method) {
-    return res
-      .status(403)
-      .json({ status: 'error', message: 'payment_method is required. "cod" | "bank" | "e-wallet"' })
-  }
-  if (!includes(payment_methods, payment_method)) {
-    return res.status(403).json({
-      status: 'error',
-      message: `${payment_method} is not a valid payment_method. "cod" | "bank" | "e-wallet"`,
-    })
-  }
-  if (payment_method !== 'cod' && !proof_of_payment) {
-    return res.status(403).json({
-      status: 'error',
-      message:
-        'proof_of_payment is required. This should be the image url of the uploaded proof of payment',
     })
   }
 

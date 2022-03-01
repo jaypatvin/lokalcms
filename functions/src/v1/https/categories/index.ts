@@ -19,10 +19,6 @@
  *           type: string
  */
 
-// used only in create, could move it there
-// if there are no other fields
-export const required_fields = ['name']
-
 export { default as createCategory } from './createCategory'
 export { default as updateCategory } from './updateCategory'
 export { default as archiveCategory } from './archiveCategory'

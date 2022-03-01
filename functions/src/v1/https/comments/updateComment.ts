@@ -59,45 +59,42 @@ const updateComment = async (req: Request, res: Response) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
 
-  const _activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.getActivityById(activityId)
 
-  if (!_activity) return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+  if (!activity) return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
 
-  if (_activity.archived)
+  if (activity.archived)
     return res.status(400).json({
       status: 'error',
       message: `Activity with id ${activityId} is currently archived!`,
     })
 
-  const _comment = await CommentsService.getCommentById(activityId, commentId)
+  const comment = await CommentsService.getCommentById(activityId, commentId)
 
-  if (!_comment) return res.status(400).json({ status: 'error', message: 'Invalid Comment ID!' })
-
-  if (!data.message)
-    return res.status(400).json({ status: 'error', message: 'Missing field: message' })
+  if (!comment) return res.status(400).json({ status: 'error', message: 'Invalid Comment ID!' })
 
   // get user and validate
-  const _user = await UsersService.getUserByID(requestorDocId)
-  if (!_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  const user = await UsersService.getUserByID(requestorDocId)
+  if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
   // this should not happen, comment should also be archived
-  if (_user.archived)
+  if (user.archived)
     return res.status(406).json({
       status: 'error',
-      message: `User with id ${_user.id} is currently archived!`,
+      message: `User with id ${user.id} is currently archived!`,
     })
 
-  if (requestorDocId !== _comment.user_id) {
+  if (requestorDocId !== comment.user_id) {
     return res.status(400).json({
       status: 'error',
       message: 'You do not have a permission to edit the comment.',
     })
   }
 
-  const _result = await CommentsService.updateActivityComment(activityId, commentId, {
+  const result = await CommentsService.updateActivityComment(activityId, commentId, {
     message: data.message,
   })
 
-  return res.status(200).json({ status: 'ok', data: _result })
+  return res.status(200).json({ status: 'ok', data: result })
 }
 
 export default updateComment

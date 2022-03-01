@@ -7,10 +7,7 @@ import {
   ProductsService,
   ChatMessageService,
 } from '../../../service'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
-import { fieldIsNum } from '../../../utils/helpers'
 import { ChatCreateData } from '../../../models/Chat'
 import { ConversationCreateData } from '../../../models/Conversation'
 
@@ -124,6 +121,22 @@ import { ConversationCreateData } from '../../../models/Conversation'
  *               product_id:
  *                 type: string
  *                 description: Document id of the product if talking about the specific product with the shop owner
+ *               message:
+ *                 type: string
+ *                 description: The message wants to send. Can be blank if the media field have data
+ *               media:
+ *                 type: array
+ *                 description: Array of objects containing the media. Similar to the gallery field of the product documents.
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     url:
+ *                       type: string
+ *                     type:
+ *                       type: string
+ *                       enum: [image, audio, video]
+ *                     order:
+ *                       type: number
  *     responses:
  *       200:
  *         description: The new chat document
@@ -150,16 +163,14 @@ const createChat = async (req: Request, res: Response) => {
   let product
   let chatId
 
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
   if (!requestorDocId || !requestorCommunityId) {
     if (user_id) {
       const user = await UsersService.getUserByID(user_id)
+      if (!user) {
+        return res
+          .status(400)
+          .json({ status: 'error', message: `User with user_id ${user_id} does not exist` })
+      }
       requestorDocId = user.id
       requestorName = user.display_name
       requestorCommunityId = user.community_id
@@ -190,33 +201,6 @@ const createChat = async (req: Request, res: Response) => {
     return res
       .status(400)
       .json({ status: 'error', message: 'The requestor is not a member of the chat' })
-  }
-
-  let messageMedia
-  if (media) {
-    if (!Array.isArray(media))
-      return res.status(400).json({
-        status: 'error',
-        message: 'Media is not an array of type object: {url: string, order: number, type: string}',
-      })
-
-    for (let [i, g] of media.entries()) {
-      if (!g.url)
-        return res.status(400).json({ status: 'error', message: 'Missing media url for item ' + i })
-      if (!g.type)
-        return res.status(400).json({ status: 'error', message: 'Missing type for item ' + i })
-
-      if (!fieldIsNum(g.order))
-        return res
-          .status(400)
-          .json({ status: 'error', message: 'order is not a type of number for item ' + i })
-    }
-
-    messageMedia = media
-  }
-
-  if (!message && !messageMedia) {
-    return res.status(400).json({ status: 'error', message: 'message or media is missing.' })
   }
 
   const last_message: any = {}
@@ -303,7 +287,7 @@ const createChat = async (req: Request, res: Response) => {
   }
 
   if (message) chatMessage.message = message
-  if (messageMedia) chatMessage.media = messageMedia
+  if (media) chatMessage.media = media
 
   await ChatMessageService.createChatMessage(chatId, chatMessage)
 

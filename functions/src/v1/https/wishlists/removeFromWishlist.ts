@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { WishlistsService, ProductsService, UsersService } from '../../../service'
+import { WishlistsService, ProductsService } from '../../../service'
 
 /**
  * @openapi

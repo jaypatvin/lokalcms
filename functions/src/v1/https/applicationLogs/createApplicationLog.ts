@@ -1,7 +1,5 @@
 import { Request, Response } from 'express'
 import { ActionTypesService, ApplicationLogService, CommunityService } from '../../../service'
-import { validateFields } from '../../../utils/validations'
-import { required_fields } from './index'
 
 /**
  * @openapi
@@ -70,13 +68,6 @@ const createApplicationLog = async (req: Request, res: Response) => {
   const requestorDocId = res.locals.userDoc.id
 
   const { community_id, action_type, device_id, associated_document = '', metadata = {} } = data
-
-  const error_fields = validateFields(data, required_fields)
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
 
   const community = await CommunityService.getCommunityByID(community_id)
 

@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
-import { UsersService, ActivitiesService, LikesService, CommentsService } from '../../../service'
-import { validateFields } from '../../../utils/validations'
+import { ActivitiesService, LikesService, CommentsService } from '../../../service'
 
 /**
  * @openapi
@@ -24,16 +23,6 @@ import { validateFields } from '../../../utils/validations'
  *         description: document id of the comment
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: string
-
  *     responses:
  *       200:
  *         description: Unlike status
@@ -50,7 +39,7 @@ import { validateFields } from '../../../utils/validations'
 // this has too many GET queries just for checking validity; maybe for refactoring
 const unlikeComment = async (req: Request, res: Response) => {
   const { activityId, commentId } = req.params
-  const data = req.body
+  const requestorDocId = res.locals.userDoc.id
 
   if (!activityId)
     return res.status(400).json({ status: 'error', message: 'activity id is required!' })
@@ -79,26 +68,7 @@ const unlikeComment = async (req: Request, res: Response) => {
     return res.status(400).json({ status: 'error', message: 'Invalid comment ID!' })
   }
 
-  const error_fields = validateFields(data, ['user_id'])
-  if (error_fields.length) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Required fields missing', error_fields })
-  }
-
-  // get user and validate
-  try {
-    const _user = await UsersService.getUserByID(data.user_id)
-    if (_user.archived)
-      return res.status(400).json({
-        status: 'error',
-        message: `User with id ${data.user_id} is currently archived!`,
-      })
-  } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-  }
-
-  const result = await LikesService.removeCommentLike(activityId, commentId, data.user_id)
+  const result = await LikesService.removeCommentLike(activityId, commentId, requestorDocId)
   return res.status(200).json({ status: 'ok', data: result })
 }
 

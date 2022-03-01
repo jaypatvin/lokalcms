@@ -63,13 +63,12 @@ const updateCategory = async (req: Request, res: Response) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.admin)
+  if (!roles.admin) {
     return res.status(403).json({
       status: 'error',
       message: 'You do not have a permission to update a category',
     })
-
-  if (!categoryId) return res.status(400).json({ status: 'error', message: 'id is required!' })
+  }
 
   // check if category exists
   const product = await CategoriesService.getCategoryById(categoryId)
@@ -82,14 +81,11 @@ const updateCategory = async (req: Request, res: Response) => {
   if (data.description) updateData.description = data.description
   if (data.icon_url) updateData.icon_url = data.icon_url
   if (data.cover_url) updateData.cover_url = data.cover_url
-  if (data.hasOwnProperty('status')) updateData.status = data.status
+  if (data.status) updateData.status = data.status
 
-  if (!Object.keys(updateData).length)
-    return res.status(400).json({ status: 'error', message: 'no field for category is provided' })
+  const result = await CategoriesService.updateCategory(categoryId, updateData)
 
-  const _result = await CategoriesService.updateCategory(categoryId, updateData)
-
-  return res.status(200).json({ status: 'ok', data: _result })
+  return res.status(200).json({ status: 'ok', data: result })
 }
 
 export default updateCategory
