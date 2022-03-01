@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import useOuterClick from '../customHooks/useOuterClick'
 import { Color, ItemType, Size } from '../utils/types'
-import { Button, OutlineButton } from './buttons'
+import { OutlineButton } from './buttons'
 
 type OptionType = {
   key: string | number

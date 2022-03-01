@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 import posed from 'react-pose'
-import { Button, OutlineButton, IconButton } from './buttons'
+import { Button, OutlineButton } from './buttons'
 import { IoIosClose } from 'react-icons/io'
 import { colors } from '../theme'
 import { Size, Color } from '../utils/types'

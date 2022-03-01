@@ -1,51 +1,22 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useHistory } from 'react-router-dom'
-import { Button } from '../../components/buttons'
-import Dropdown from '../../components/Dropdown'
-import { Checkbox } from '../../components/inputs'
-import { API_URL } from '../../config/variables'
-import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
-import { useAuth } from '../../contexts/AuthContext'
-import { fetchCommunityByID } from '../../services/community'
-import { Community, User } from '../../models'
+import { CreateUpdateFormProps } from '../../utils/types'
 import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
 import Modal from '../../components/modals'
 
-type Response = {
-  status?: string
-  data?: User
-  message?: string
-  error_fields?: {
-    [x: string]: string
-  }
-}
-
-type UserFormType = {
-  id?: string
-  status?: 'active' | 'suspended' | 'pending' | 'locked'
-  is_admin?: boolean
-  email?: string
-  first_name?: string
-  last_name?: string
-  display_name?: string
-  profile_photo?: string
-  street?: string
-}
-
-type Field =
-  | 'status'
-  | 'is_admin'
-  | 'email'
-  | 'first_name'
-  | 'last_name'
-  | 'display_name'
-  | 'profile_photo'
-  | 'street'
-  | 'community_id'
-
-const initialData: UserFormType = { status: 'active' }
-
 const fields: DynamicField[] = [
+  {
+    type: 'dropdown',
+    key: 'status',
+    label: 'Status',
+    required: false,
+    enum: ['active', 'suspended', 'pending', 'locked'],
+  },
+  {
+    type: 'checkbox',
+    key: 'is_admin',
+    label: 'Admin',
+    required: false,
+  },
   {
     type: 'community',
     key: 'community_id',
@@ -57,27 +28,35 @@ const fields: DynamicField[] = [
     key: 'email',
     label: 'Email',
     required: true,
+    maxLength: 100,
+    minLength: 1,
   },
   {
     type: 'text',
     key: 'first_name',
     label: 'First Name',
     required: true,
+    maxLength: 100,
+    minLength: 1,
   },
   {
     type: 'text',
     key: 'last_name',
     label: 'Last Name',
     required: true,
+    maxLength: 100,
+    minLength: 1,
   },
   {
     type: 'text',
     key: 'display_name',
     label: 'Display Name',
     required: false,
+    maxLength: 100,
+    minLength: 1,
   },
   {
-    type: 'text',
+    type: 'image',
     key: 'profile_photo',
     label: 'Profile Photo',
     required: false,
@@ -87,6 +66,8 @@ const fields: DynamicField[] = [
     key: 'street',
     label: 'Street',
     required: true,
+    maxLength: 100,
+    minLength: 1,
   },
 ]
 
@@ -97,12 +78,7 @@ const UserCreateUpdateForm = ({
   dataToUpdate,
   isModal = true,
 }: CreateUpdateFormProps) => {
-  const history = useHistory()
-  const { firebaseToken } = useAuth()
-  const [data, setData] = useState<UserFormType>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<Response>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
-  const [community, setCommunity] = useState<Community>()
 
   useEffect(() => {
     if (isModal && setIsOpen) {
@@ -116,86 +92,36 @@ const UserCreateUpdateForm = ({
       const Component = ({ children }: any) => <>{children}</>
       setWrapperComponent(() => Component)
     }
-  }, [isModal, dataToUpdate, setIsOpen, isOpen, mode, community])
+  }, [isModal, dataToUpdate, setIsOpen, isOpen, mode])
 
-  const setCurrentData = async () => {
-    const { community_id } = dataToUpdate
-    const communityRef = await fetchCommunityByID(community_id)
-    const communityData = communityRef.data()
-    setCommunity(communityData)
-    setData(dataToUpdate)
-  }
-
-  useEffect(() => {
-    if (dataToUpdate) {
-      setCurrentData()
-    } else {
-      setData(initialData)
-    }
-  }, [dataToUpdate])
-
-  const changeHandler = (field: Field, value: string | boolean) => {
-    const newData = { ...data }
-    if (
-      field === 'status' &&
-      (value === 'active' || value === 'suspended' || value === 'pending' || value === 'locked')
-    ) {
-      newData.status = value
-    } else if (
-      (field === 'email' ||
-        field === 'first_name' ||
-        field === 'last_name' ||
-        field === 'display_name' ||
-        field === 'profile_photo' ||
-        field === 'street') &&
-      typeof value === 'string'
-    ) {
-      newData[field] = value
-    } else if (field === 'is_admin' && typeof value === 'boolean') {
-      newData.is_admin = value
-    }
-    setData(newData)
-  }
-
-  const onSave = async () => {
-    if (API_URL && firebaseToken) {
-      let url = `${API_URL}/users`
-      let method = 'POST'
-      if (mode === 'update' && dataToUpdate.id) {
-        url = `${url}/${dataToUpdate.id}`
-        method = 'PUT'
-        delete data.email
-      }
-      let res = await (
-        await fetch(url, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${firebaseToken}`,
-          },
-          method,
-          body: JSON.stringify({ ...data, source: 'cms' }),
-        })
-      ).json()
-      setResponseData(res)
-      if (res.status !== 'error') {
-        setResponseData({})
-        setData(initialData)
-        if (setIsOpen) {
-          setIsOpen(false)
-        } else if (!isModal) {
-          history.push('/users')
-        }
-      }
-    } else {
-      console.error('environment variable for the api does not exist.')
-    }
-  }
+  // const changeHandler = (field: Field, value: string | boolean) => {
+  //   const newData = { ...data }
+  //   if (
+  //     field === 'status' &&
+  //     (value === 'active' || value === 'suspended' || value === 'pending' || value === 'locked')
+  //   ) {
+  //     newData.status = value
+  //   } else if (
+  //     (field === 'email' ||
+  //       field === 'first_name' ||
+  //       field === 'last_name' ||
+  //       field === 'display_name' ||
+  //       field === 'profile_photo' ||
+  //       field === 'street') &&
+  //     typeof value === 'string'
+  //   ) {
+  //     newData[field] = value
+  //   } else if (field === 'is_admin' && typeof value === 'boolean') {
+  //     newData.is_admin = value
+  //   }
+  //   setData(newData)
+  // }
 
   if (!WrapperComponent) return null
 
   return (
     <WrapperComponent isOpen={isOpen}>
-      <div className="flex justify-between mb-3">
+      {/* <div className="flex justify-between mb-3">
         <Dropdown
           name="status"
           simpleOptions={['active', 'suspended', 'pending', 'locked']}
@@ -210,23 +136,15 @@ const UserCreateUpdateForm = ({
           noMargin
           value={data.is_admin || false}
         />
-      </div>
+      </div> */}
       <DynamicForm
         fields={fields}
         formClassName="grid grid-cols-2 gap-5"
         className="gap-y-5"
         cancelLabel="Close"
+        method="POST"
+        url="/users"
       />
-      {!isModal && (
-        <div className="flex justify-end">
-          <Link to="/users">
-            <Button color="secondary">Cancel</Button>
-          </Link>
-          <Button color="primary" className="ml-3" onClick={onSave}>
-            Save
-          </Button>
-        </div>
-      )}
     </WrapperComponent>
   )
 }
