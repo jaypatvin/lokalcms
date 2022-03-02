@@ -36,6 +36,8 @@ const Checkbox = React.forwardRef<HTMLInputElement, Props>((props, ref) => {
         'placeholder-gray-500',
         'text-gray-600',
         'mr-2',
+        'w-5',
+        'h-5',
         size ? sizes[size].input : sizes['medium'].input,
         isError && errorMessage ? 'border-red-300' : 'border-gray-300',
       ],

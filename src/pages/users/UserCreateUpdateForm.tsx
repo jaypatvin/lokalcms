@@ -5,17 +5,40 @@ import Modal from '../../components/modals'
 
 const fields: DynamicField[] = [
   {
-    type: 'dropdown',
-    key: 'status',
-    label: 'Status',
-    required: false,
-    enum: ['active', 'suspended', 'pending', 'locked'],
-  },
-  {
     type: 'checkbox',
     key: 'is_admin',
     label: 'Admin',
     required: false,
+    defaultValue: false,
+  },
+  {
+    type: 'blank',
+    key: '',
+    label: '',
+  },
+  {
+    type: 'dropdown',
+    key: 'status',
+    label: 'Status',
+    required: false,
+    options: [
+      {
+        id: 'active',
+        name: 'Active',
+      },
+      {
+        id: 'suspended',
+        name: 'Suspended',
+      },
+      {
+        id: 'pending',
+        name: 'Pending',
+      },
+      {
+        id: 'locked',
+        name: 'Locked',
+      },
+    ],
   },
   {
     type: 'community',
@@ -94,56 +117,18 @@ const UserCreateUpdateForm = ({
     }
   }, [isModal, dataToUpdate, setIsOpen, isOpen, mode])
 
-  // const changeHandler = (field: Field, value: string | boolean) => {
-  //   const newData = { ...data }
-  //   if (
-  //     field === 'status' &&
-  //     (value === 'active' || value === 'suspended' || value === 'pending' || value === 'locked')
-  //   ) {
-  //     newData.status = value
-  //   } else if (
-  //     (field === 'email' ||
-  //       field === 'first_name' ||
-  //       field === 'last_name' ||
-  //       field === 'display_name' ||
-  //       field === 'profile_photo' ||
-  //       field === 'street') &&
-  //     typeof value === 'string'
-  //   ) {
-  //     newData[field] = value
-  //   } else if (field === 'is_admin' && typeof value === 'boolean') {
-  //     newData.is_admin = value
-  //   }
-  //   setData(newData)
-  // }
-
   if (!WrapperComponent) return null
 
   return (
     <WrapperComponent isOpen={isOpen}>
-      {/* <div className="flex justify-between mb-3">
-        <Dropdown
-          name="status"
-          simpleOptions={['active', 'suspended', 'pending', 'locked']}
-          currentValue={data.status}
-          size="small"
-          onSelect={(option) => changeHandler('status', option.value as string)}
-          buttonColor={statusColorMap[data.status || 'enabled']}
-        />
-        <Checkbox
-          label="Admin"
-          onChange={(e) => changeHandler('is_admin', e.target.checked)}
-          noMargin
-          value={data.is_admin || false}
-        />
-      </div> */}
       <DynamicForm
         fields={fields}
-        formClassName="grid grid-cols-2 gap-5"
+        formClassName="grid grid-cols-2 gap-5 p-3"
         className="gap-y-5"
         cancelLabel="Close"
         method="POST"
         url="/users"
+        onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
       />
     </WrapperComponent>
   )

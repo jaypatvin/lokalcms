@@ -16,7 +16,9 @@ const SelectField = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
   const {
     label,
     options,
-    error,
+    isError,
+    errorMessage,
+    required,
     touched,
     initialValue,
     initialTouched,
@@ -45,8 +47,9 @@ const SelectField = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
         'placeholder-gray-500',
         'text-gray-600',
         'w-full',
+        'bg-white',
         size ? sizes[size].input : sizes['medium'].input,
-        touched && error ? 'border-red-300' : 'border-gray-300',
+        isError ? 'border-red-300' : 'border-gray-300',
       ],
       focus: ['border-blue-300'],
     },
@@ -62,6 +65,7 @@ const SelectField = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
         <option value="" hidden>
           {options.length === 0 ? 'Load options...' : placeholder}
         </option>
+        {!required && <option key="" value=""></option>}
         {options.map((option) => (
           <option
             key={option[optionKeyRef] || option.id}
@@ -71,7 +75,7 @@ const SelectField = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
           </option>
         ))}
       </select>
-      {touched && error && <span className={cn(styles.errorMessage)}>{error}</span>}
+      {isError && <span className={cn(styles.errorMessage)}>{errorMessage}</span>}
     </div>
   )
 })

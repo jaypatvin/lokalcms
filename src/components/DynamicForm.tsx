@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { isEmpty, cloneDeep } from 'lodash'
 import { Formik, FormikProps } from 'formik'
 import { object, string } from 'yup'
-import { FormikTextField } from './inputs'
+import { FormikCheckbox, FormikSelectField, FormikTextField } from './inputs'
 import { Button } from './buttons'
 import { Community } from '../models'
 import useOuterClick from '../customHooks/useOuterClick'
@@ -21,11 +21,13 @@ type Response = {
 
 export type Field = {
   type:
+    | 'blank'
     | 'text'
     | 'email'
     | 'textarea'
     | 'dropdown'
     | 'checkbox'
+    | 'integer'
     | 'number'
     | 'date'
     | 'time'
@@ -41,7 +43,10 @@ export type Field = {
   maxLength?: number
   minimum?: number
   maximum?: number
-  enum?: string[]
+  options?: {
+    id: string
+    name: string
+  }[]
   pattern?: RegExp
   format?: ''
   customizable?: boolean
@@ -93,14 +98,27 @@ const DynamicForm = ({
   const generateValidationSchema = (fields: Field[]) => {
     return object().shape(
       fields.reduce((acc, field) => {
-        if (['text', 'textarea', 'email', 'community'].includes(field.type)) {
-          let schema = string()
-          if (field.type === 'email') schema = schema.email('Invalid Email')
-          if (field.minLength) schema = schema.min(field.minLength)
-          if (field.maxLength) schema = schema.max(field.maxLength)
-          if (field.pattern) schema = schema.matches(field.pattern)
-          if (field.required) schema = schema.required(`${field.label} is required`)
-          acc[field.key] = schema
+        let schema
+        switch (field.type) {
+          case 'text':
+          case 'textarea':
+          case 'email':
+          case 'community':
+            schema = string()
+            if (field.type === 'email') schema = schema.email('Invalid Email')
+            if (field.minLength) schema = schema.min(field.minLength)
+            if (field.maxLength) schema = schema.max(field.maxLength)
+            if (field.pattern) schema = schema.matches(field.pattern)
+            if (field.required) schema = schema.required(`${field.label} is required`)
+            acc[field.key] = schema
+            break
+          case 'dropdown':
+            schema = string()
+            if (field.required) schema = schema.required(`${field.label} is required`)
+            acc[field.key] = schema
+            break
+          default:
+            break
         }
         return acc
       }, {} as any)
@@ -186,7 +204,41 @@ const DynamicForm = ({
             }}
             isError={isError}
             errorMessage={message}
-            defaultValue={field.defaultValue as string}
+            defaultValue={field.defaultValue}
+            noMargin
+          />
+        )
+      case 'dropdown':
+        return (
+          <FormikSelectField
+            required={field.required}
+            label={field.label}
+            name={field.key}
+            size="small"
+            onChange={(e: any) => {
+              changeHandler(field, e.target.value)
+              props.handleChange(e)
+            }}
+            isError={isError}
+            errorMessage={message}
+            defaultValue={field.defaultValue}
+            options={field.options}
+            noMargin
+          />
+        )
+      case 'checkbox':
+        return (
+          <FormikCheckbox
+            label={field.label}
+            name={field.key}
+            size="small"
+            onChange={(e: any) => {
+              changeHandler(field, e.target.checked)
+              props.handleChange(e)
+            }}
+            isError={isError}
+            errorMessage={message}
+            value={formData[field.key] ?? field.defaultValue}
             noMargin
           />
         )
@@ -202,22 +254,21 @@ const DynamicForm = ({
               placeholder="Search"
               isError={isError}
               errorMessage={message}
-              onChange={(e: any) => {
-                changeHandler(field, e.target.value)
-                communitySearchHandler(e.target.value)
-                props.handleChange(e)
-              }}
+              onChange={(e: any) => communitySearchHandler(e.target.value)}
               value={communitySearchText}
               onFocus={() => communitySearchHandler(communitySearchText)}
               noMargin
             />
             {showCommunitySearchResult && communitySearchResult.length > 0 && (
-              <div className="absolute top-full left-0 w-64 bg-white shadow z-10">
+              <div className="absolute top-full left-0 w-full bg-white shadow z-10 border-secondary-600 border-1">
                 {communitySearchResult.map((community) => (
                   <button
                     className="w-full p-1 hover:bg-gray-200 block text-left"
                     key={community.id}
-                    onClick={() => communitySelectHandler(community)}
+                    onClick={() => {
+                      communitySelectHandler(community)
+                      props.setFieldValue('community_id', community.id)
+                    }}
                   >
                     {community.name}
                     <span className="block text-xs text-gray-500">
@@ -230,6 +281,8 @@ const DynamicForm = ({
             )}
           </div>
         )
+      case 'blank':
+        return <div />
       default:
         return null
     }
@@ -240,7 +293,6 @@ const DynamicForm = ({
       <Formik
         initialValues={formData}
         onSubmit={async (values, actions) => {
-          console.log('fucking valies', values)
           await onSubmit()
           actions.setSubmitting(false)
         }}
@@ -249,7 +301,6 @@ const DynamicForm = ({
         validateOnChange={false}
       >
         {(props) => {
-          console.log('props', props)
           return (
             <form onSubmit={props.handleSubmit}>
               <div className={formClassName}>
