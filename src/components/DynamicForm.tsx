@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { isEmpty, cloneDeep } from 'lodash'
 import { Formik, FormikProps } from 'formik'
 import { object, string } from 'yup'
-import { FormikCheckbox, FormikSelectField, FormikTextField } from './inputs'
+import { FormikCheckbox, FormikSelectField, FormikTextField, ScheduleField } from './inputs'
 import { Button } from './buttons'
 import { Community } from '../models'
 import useOuterClick from '../customHooks/useOuterClick'
@@ -67,6 +67,7 @@ type Props = {
   cancelLabel?: string
   method: 'POST' | 'PUT' | 'DELETE'
   url: string
+  data?: FormData
 }
 
 const DynamicForm = ({
@@ -80,9 +81,10 @@ const DynamicForm = ({
   cancelLabel = 'Cancel',
   method,
   url,
+  data = {},
 }: Props) => {
   const { firebaseToken } = useAuth()
-  const [formData, setFormData] = useState<FormData>({})
+  const [formData, setFormData] = useState<FormData>(data)
   const [response, setResponse] = useState<Response>()
   const [validationSchema, setValidationSchema] = useState<any>()
 
@@ -258,6 +260,7 @@ const DynamicForm = ({
               value={communitySearchText}
               onFocus={() => communitySearchHandler(communitySearchText)}
               noMargin
+              autoComplete="off"
             />
             {showCommunitySearchResult && communitySearchResult.length > 0 && (
               <div className="absolute top-full left-0 w-full bg-white shadow z-10 border-secondary-600 border-1">
@@ -281,6 +284,8 @@ const DynamicForm = ({
             )}
           </div>
         )
+      case 'schedule':
+        return <ScheduleField />
       case 'blank':
         return <div />
       default:

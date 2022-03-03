@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { pick } from 'lodash'
 import { CreateUpdateFormProps } from '../../utils/types'
 import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
 import Modal from '../../components/modals'
@@ -117,17 +118,24 @@ const UserCreateUpdateForm = ({
     }
   }, [isModal, dataToUpdate, setIsOpen, isOpen, mode])
 
+  const isUpdate = mode === 'update' && dataToUpdate
+  const method = isUpdate ? 'PUT' : 'POST'
+  const url = isUpdate ? `/users/${dataToUpdate!.id}` : '/users'
+  const formFields = isUpdate ? fields.filter((field) => field.key !== 'community_id') : fields
+  const keys = formFields.map((field) => field.key).filter((key) => key)
+
   if (!WrapperComponent) return null
 
   return (
     <WrapperComponent isOpen={isOpen}>
       <DynamicForm
-        fields={fields}
+        fields={formFields}
         formClassName="grid grid-cols-2 gap-5 p-3"
         className="gap-y-5"
         cancelLabel="Close"
-        method="POST"
-        url="/users"
+        method={method}
+        url={url}
+        data={isUpdate ? pick(dataToUpdate, keys) : undefined}
         onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
       />
     </WrapperComponent>
