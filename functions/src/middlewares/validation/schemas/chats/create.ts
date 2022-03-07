@@ -32,11 +32,37 @@ const schema: AllowedSchema = {
       isNotEmpty: true,
       maxLength: 100,
     },
+    message: {
+      type: 'string',
+    },
+    media: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            isNotEmpty: true,
+            format: 'uri',
+          },
+          type: {
+            type: 'string',
+            enum: ['image', 'audio', 'video'],
+          },
+          order: {
+            type: 'integer',
+            minimum: 0,
+          },
+        },
+      },
+      minItems: 1,
+    },
     source: {
       type: 'string',
       enum: ['cms', 'api', 'app', ''],
     },
   },
+  anyOf: [{ required: ['message'] }, { required: ['media'] }],
   additionalProperties: false,
 }
 

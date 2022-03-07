@@ -124,6 +124,16 @@ const schema: AllowedSchema = {
         },
       },
     },
+    profile_photo: {
+      type: 'string',
+      isNotEmpty: true,
+      format: 'uri',
+    },
+    cover_photo: {
+      type: 'string',
+      isNotEmpty: true,
+      format: 'uri',
+    },
     source: {
       type: 'string',
       enum: ['cms', 'api', 'app', ''],
