@@ -1,32 +1,76 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactCalendar, { CalendarTileProperties } from 'react-calendar'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { DayKeyVal, DaysType, RepeatType } from '../../utils/types'
 import { Checkbox, SelectField, TextField } from './index'
 
+type ScheduleBody = {
+  start_time: string
+  end_time: string
+  start_dates: string[]
+  repeat_unit: number
+  repeat_type: RepeatType
+  unavailable_dates: string[]
+  custom_dates: {
+    date: string
+  }[]
+}
+
+type DefaultValue = {
+  repeat_unit: number
+  repeat_type: RepeatType
+  repeat_month_type: 'sameDay' | 'sameDate'
+  days_open: DaysType[]
+  start_dates: Date[]
+  unavailable_dates?: string[]
+  custom_dates?: string[]
+  start_time: string
+  end_time: string
+}
+
+type Props = {
+  onChange: (schedule: ScheduleBody) => void
+  value?: DefaultValue
+}
+
 const days: DaysType[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
-const ScheduleField = ({}) => {
+const ScheduleField = ({ onChange, value }: Props) => {
+  const {
+    repeat_unit,
+    repeat_type,
+    repeat_month_type,
+    days_open,
+    start_dates,
+    unavailable_dates,
+    custom_dates,
+    start_time,
+    end_time,
+  } = value ?? {}
   const defaultStartDate = new Date()
   defaultStartDate.setHours(0, 0, 0, 0)
 
   const [showStartCalendar, setShowStartCalendar] = useState(false)
   const [showCustomizeCalendar, setShowCustomizeCalendar] = useState(false)
-  const [repeatUnit, setRepeatUnit] = useState(1)
-  const [repeatType, setRepeatType] = useState<RepeatType>('day')
-  const [repeatMonthType, setRepeatMonthType] = useState<'sameDate' | 'sameDay'>('sameDate')
-  const [daysOpen, setDaysOpen] = useState<DaysType[]>(['mon', 'tue', 'wed', 'thu', 'fri'])
-  const [startDates, setStartDates] = useState<Date[]>([defaultStartDate])
-  const [customAvailableDates, setCustomAvailableDates] = useState<string[]>([])
-  const [unavailableDates, setUnavailableDates] = useState<string[]>([])
-  const [startTime, setStartTime] = useState('09:00 AM')
-  const [endTime, setEndTime] = useState('05:00 PM')
+  const [repeatUnit, setRepeatUnit] = useState(repeat_unit ?? 1)
+  const [repeatType, setRepeatType] = useState<RepeatType>(repeat_type ?? 'day')
+  const [repeatMonthType, setRepeatMonthType] = useState<'sameDate' | 'sameDay'>(
+    repeat_month_type ?? 'sameDate'
+  )
+  const [daysOpen, setDaysOpen] = useState<DaysType[]>(
+    days_open ?? ['mon', 'tue', 'wed', 'thu', 'fri']
+  )
+  const [startDates, setStartDates] = useState<Date[]>(start_dates ?? [defaultStartDate])
+  const [customAvailableDates, setCustomAvailableDates] = useState<string[]>(custom_dates ?? [])
+  const [unavailableDates, setUnavailableDates] = useState<string[]>(unavailable_dates ?? [])
+  const [startTime, setStartTime] = useState(start_time ?? '09:00 AM')
+  const [endTime, setEndTime] = useState(end_time ?? '05:00 PM')
 
   const startCalendarRef = useOuterClick(() => setShowStartCalendar(false))
   const customizeCalendarRef = useOuterClick(() => setShowCustomizeCalendar(false))
 
-  const constructOperatingHours = () => {
+  const constructOperatingHours = (): ScheduleBody => {
     let repeat_type = repeatType
     if (repeatMonthType === 'sameDay') {
       const firstDate = startDates[0]
@@ -46,6 +90,20 @@ const ScheduleField = ({}) => {
       custom_dates: customAvailableDates.map((d) => ({ date: d })),
     }
   }
+
+  useEffect(() => {
+    onChange(constructOperatingHours())
+  }, [
+    startTime,
+    endTime,
+    startDates,
+    repeatUnit,
+    repeatType,
+    repeatMonthType,
+    daysOpen,
+    customAvailableDates,
+    unavailableDates,
+  ])
 
   const resetDates = () => {
     setStartDates([defaultStartDate])

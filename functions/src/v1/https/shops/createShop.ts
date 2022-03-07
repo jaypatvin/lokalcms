@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { BankCodesService, ShopsService } from '../../../service'
+import { BankCodesService, ShopsService, UsersService } from '../../../service'
 import { generateShopKeywords, generateSchedule } from '../../../utils/generators'
 import { ShopCreateData } from '../../../models/Shop'
 import { isValidPaymentOptions } from '../../../utils/validations'
@@ -149,7 +149,6 @@ const createShop = async (req: Request, res: Response) => {
   } = data
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  const requestorCommunityId = res.locals.userDoc.community_id
   if (!roles.editor && requestorDocId !== user_id) {
     return res.status(400).json({
       status: 'error',
@@ -159,6 +158,15 @@ const createShop = async (req: Request, res: Response) => {
 
   if (payment_options && !(await isValidPaymentOptions(payment_options))) {
     return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
+  }
+
+  const user = await UsersService.getUserByID(user_id ?? requestorDocId)
+  if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  if (user.archived) {
+    return res.status(400).json({
+      status: 'error',
+      message: `User with id ${user_id} is currently archived!`,
+    })
   }
 
   const keywords = generateShopKeywords({ name })
@@ -193,8 +201,8 @@ const createShop = async (req: Request, res: Response) => {
   const shopData: ShopCreateData = {
     name,
     description,
-    user_id,
-    community_id: requestorCommunityId,
+    user_id: user.id,
+    community_id: user.community_id,
     is_close: is_close || false,
     status: status || 'enabled',
     keywords,

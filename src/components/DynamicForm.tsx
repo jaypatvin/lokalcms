@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { isEmpty, cloneDeep } from 'lodash'
 import { Formik, FormikProps } from 'formik'
 import { object, string } from 'yup'
-import { FormikCheckbox, FormikSelectField, FormikTextField, ScheduleField } from './inputs'
+import {
+  FormikCheckbox,
+  FormikSelectField,
+  FormikTextAreaField,
+  FormikTextField,
+  ScheduleField,
+} from './inputs'
 import { Button } from './buttons'
 import { Community } from '../models'
 import useOuterClick from '../customHooks/useOuterClick'
@@ -27,6 +33,7 @@ export type Field = {
     | 'textarea'
     | 'dropdown'
     | 'checkbox'
+    | 'multi-checkbox'
     | 'integer'
     | 'number'
     | 'date'
@@ -195,6 +202,7 @@ const DynamicForm = ({
       case 'email':
         return (
           <FormikTextField
+            key={field.key}
             required={field.required}
             label={field.label}
             name={field.key}
@@ -210,9 +218,28 @@ const DynamicForm = ({
             noMargin
           />
         )
+      case 'textarea':
+        return (
+          <FormikTextAreaField
+            key={field.key}
+            required={field.required}
+            label={field.label}
+            name={field.key}
+            size="small"
+            onChange={(e: any) => {
+              changeHandler(field, e.target.value)
+              props.handleChange(e)
+            }}
+            defaultValue={field.defaultValue}
+            isError={isError}
+            errorMessage={message}
+            noMargin
+          />
+        )
       case 'dropdown':
         return (
           <FormikSelectField
+            key={field.key}
             required={field.required}
             label={field.label}
             name={field.key}
@@ -231,6 +258,7 @@ const DynamicForm = ({
       case 'checkbox':
         return (
           <FormikCheckbox
+            key={field.key}
             label={field.label}
             name={field.key}
             size="small"
@@ -244,9 +272,41 @@ const DynamicForm = ({
             noMargin
           />
         )
+      case 'multi-checkbox':
+        return (
+          <div key={field.key}>
+            <p className="text-gray-600 text-lg">{field.label}</p>
+            <div className="px-2">
+              {field.options?.map((option) => (
+                <FormikCheckbox
+                  label={option.name}
+                  name={option.id}
+                  size="small"
+                  onChange={(e: any) => {
+                    const newObject = (formData[field.key] ??
+                      field.options?.reduce((acc, o) => {
+                        acc[o.id] = false
+                        return acc
+                      }, {} as any)) as { [x: string]: boolean }
+                    newObject[option.id] = e.target.checked
+                    changeHandler(field, newObject)
+                    props.handleChange(e)
+                  }}
+                  isError={isError}
+                  errorMessage={message}
+                  value={
+                    (formData[field.key] as any)?.[option.id] ??
+                    (field.defaultValue as any)?.[option.id]
+                  }
+                  noMargin
+                />
+              ))}
+            </div>
+          </div>
+        )
       case 'community':
         return (
-          <div ref={communitySearchResultRef} className="relative">
+          <div key={field.key} ref={communitySearchResultRef} className="relative">
             <FormikTextField
               required={field.required}
               label={field.label}
@@ -285,7 +345,17 @@ const DynamicForm = ({
           </div>
         )
       case 'schedule':
-        return <ScheduleField />
+        return (
+          <div key={field.key}>
+            <p className="text-gray-600 text-lg">{field.label}</p>
+            <div className="px-2">
+              <ScheduleField
+                onChange={(schedule) => changeHandler(field, schedule)}
+                value={(formData[field.key] ?? field.defaultValue) as any}
+              />
+            </div>
+          </div>
+        )
       case 'blank':
         return <div />
       default:
@@ -311,8 +381,10 @@ const DynamicForm = ({
               <div className={formClassName}>
                 {fields.map((field) => renderField(field, props))}
               </div>
-              {response?.message ? (
-                <p className="text-red-600 text-center">{response?.message}</p>
+              {response?.message || response?.error_fields ? (
+                <p className="text-red-600 text-center">
+                  {response?.message || 'Something went wrong. Please try again.'}
+                </p>
               ) : null}
               <div className="flex justify-end mt-5">
                 <Button color="secondary" onClick={onCancel}>

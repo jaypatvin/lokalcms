@@ -11,6 +11,7 @@ const customStyles: ReactModal.Styles = {
     bottom: 'auto',
     marginRight: '-50%',
     transform: 'translate(-50%, -50%)',
+    minWidth: '600px',
   },
 }
 

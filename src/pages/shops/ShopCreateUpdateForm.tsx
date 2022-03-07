@@ -6,16 +6,24 @@ import Modal from '../../components/modals'
 
 const fields: DynamicField[] = [
   {
-    type: 'checkbox',
-    key: 'is_close',
-    label: 'Is Close',
-    required: false,
-    defaultValue: false,
-  },
-  {
-    type: 'blank',
-    key: '',
-    label: '',
+    type: 'multi-checkbox',
+    key: 'delivery_options',
+    label: 'Delivery Options',
+    required: true,
+    options: [
+      {
+        id: 'delivery',
+        name: 'Delivery',
+      },
+      {
+        id: 'pickup',
+        name: 'Pick Up',
+      },
+    ],
+    defaultValue: {
+      delivery: true,
+      pickup: false,
+    },
   },
   {
     type: 'dropdown',
