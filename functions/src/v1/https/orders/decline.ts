@@ -34,7 +34,6 @@ import { NotificationsService, OrdersService, ProductsService } from '../../../s
  *         schema:
  *           type: string
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
