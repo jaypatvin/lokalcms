@@ -163,7 +163,7 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
 
   const {
     start_dates,
-    last_date,
+    last_date = '',
     repeat_unit,
     repeat_type,
     auto_reschedule = false,
