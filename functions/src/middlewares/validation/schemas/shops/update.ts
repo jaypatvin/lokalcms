@@ -61,6 +61,16 @@ const schema: AllowedSchema = {
       type: 'string',
       enum: ['cms', 'api', 'app', ''],
     },
+    profile_photo: {
+      type: 'string',
+      isNotEmpty: true,
+      format: 'uri',
+    },
+    cover_photo: {
+      type: 'string',
+      isNotEmpty: true,
+      format: 'uri',
+    },
   },
   anyOf: [
     { required: ['name'] },
@@ -69,6 +79,8 @@ const schema: AllowedSchema = {
     { required: ['status'] },
     { required: ['delivery_options'] },
     { required: ['payment_options'] },
+    { required: ['profile_photo'] },
+    { required: ['cover_photo'] },
   ],
   additionalProperties: false,
 }
