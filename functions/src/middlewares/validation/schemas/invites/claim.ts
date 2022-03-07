@@ -4,6 +4,11 @@ const schema: AllowedSchema = {
   type: 'object',
   required: ['code'],
   properties: {
+    user_id: {
+      type: 'string',
+      isNotEmpty: true,
+      maxLength: 100,
+    },
     code: {
       type: 'string',
       isNotEmpty: true,
