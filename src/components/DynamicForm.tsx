@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { isEmpty, cloneDeep } from 'lodash'
 import { Formik, FormikProps } from 'formik'
-import { object, string } from 'yup'
+import { object, string, number } from 'yup'
 import {
   FormikCheckbox,
   FormikSelectField,
@@ -10,11 +10,13 @@ import {
   ScheduleField,
 } from './inputs'
 import { Button } from './buttons'
-import { Community } from '../models'
+import { Community, Shop } from '../models'
 import useOuterClick from '../customHooks/useOuterClick'
 import { useCommunities } from './BasePage'
 import { useAuth } from '../contexts/AuthContext'
 import { API_URL } from '../config/variables'
+import { getCategories } from '../services/categories'
+import { decimalFormat, integerFormat } from '../utils/types'
 
 type Response = {
   status: 'ok' | 'error'
@@ -23,6 +25,11 @@ type Response = {
   error_fields?: {
     [x: string]: string
   }
+}
+
+type Option = {
+  id: string
+  name: string
 }
 
 export type Field = {
@@ -39,9 +46,11 @@ export type Field = {
     | 'date'
     | 'time'
     | 'schedule'
+    | 'derived-schedule'
     | 'image'
     | 'gallery'
     | 'community'
+    | 'categories'
   key: string
   label: string
   defaultValue?: unknown
@@ -50,13 +59,11 @@ export type Field = {
   maxLength?: number
   minimum?: number
   maximum?: number
-  options?: {
-    id: string
-    name: string
-  }[]
+  options?: Option[]
   pattern?: RegExp
   format?: ''
   customizable?: boolean
+  shop?: Shop
 }
 
 type FormData = {
@@ -95,6 +102,8 @@ const DynamicForm = ({
   const [response, setResponse] = useState<Response>()
   const [validationSchema, setValidationSchema] = useState<any>()
 
+  const [categories, setCategories] = useState<Option[]>([])
+
   const [communitySearchText, setCommunitySearchText] = useState('')
   const [communitySearchResult, setCommunitySearchResult] = useState<
     (Community & { id: string })[]
@@ -122,9 +131,15 @@ const DynamicForm = ({
             acc[field.key] = schema
             break
           case 'dropdown':
+          case 'categories':
             schema = string()
             if (field.required) schema = schema.required(`${field.label} is required`)
             acc[field.key] = schema
+            break
+          case 'number':
+          case 'integer':
+            schema = number()
+            if (field.type === 'integer') schema = schema.integer('Must be integer')
             break
           default:
             break
@@ -134,7 +149,17 @@ const DynamicForm = ({
     )
   }
 
+  const setupCategories = async () => {
+    const allCategories = await (
+      await getCategories({}).get()
+    ).docs.map((doc) => ({ id: doc.id, name: doc.data().name }))
+    setCategories(allCategories)
+  }
+
   useEffect(() => {
+    if (fields.some((field) => field.type === 'categories')) {
+      setupCategories()
+    }
     const initialFormData = fields.reduce<FormData>((acc, field) => {
       if (field.defaultValue) {
         acc[field.key] = field.defaultValue
@@ -218,6 +243,54 @@ const DynamicForm = ({
             noMargin
           />
         )
+      case 'number':
+        return (
+          <FormikTextField
+            key={field.key}
+            required={field.required}
+            label={field.label}
+            name={field.key}
+            type="text"
+            size="small"
+            onKeyPress={(e: any) => {
+              if (!decimalFormat.test(e.key) && e.key !== '.') {
+                e.preventDefault()
+              }
+            }}
+            onChange={(e: any) => {
+              changeHandler(field, parseFloat(e.target.value))
+              props.handleChange(e)
+            }}
+            isError={isError}
+            errorMessage={message}
+            defaultValue={field.defaultValue}
+            noMargin
+          />
+        )
+      case 'integer':
+        return (
+          <FormikTextField
+            key={field.key}
+            required={field.required}
+            label={field.label}
+            name={field.key}
+            type="text"
+            size="small"
+            onKeyPress={(e: any) => {
+              if (!integerFormat.test(e.key)) {
+                e.preventDefault()
+              }
+            }}
+            onChange={(e: any) => {
+              changeHandler(field, parseInt(e.target.value))
+              props.handleChange(e)
+            }}
+            isError={isError}
+            errorMessage={message}
+            defaultValue={field.defaultValue}
+            noMargin
+          />
+        )
       case 'textarea':
         return (
           <FormikTextAreaField
@@ -252,6 +325,26 @@ const DynamicForm = ({
             errorMessage={message}
             defaultValue={field.defaultValue}
             options={field.options}
+            noMargin
+          />
+        )
+      case 'categories':
+        return (
+          <FormikSelectField
+            key={field.key}
+            required={field.required}
+            label={field.label}
+            name={field.key}
+            size="small"
+            onChange={(e: any) => {
+              changeHandler(field, e.target.value)
+              props.handleChange(e)
+            }}
+            isError={isError}
+            errorMessage={message}
+            defaultValue={field.defaultValue}
+            options={categories}
+            placeholder="Select category"
             noMargin
           />
         )

@@ -73,7 +73,7 @@ const fields: DynamicField[] = [
   },
 ]
 
-const UserCreateUpdateForm = ({
+const ShopCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
@@ -100,4 +100,4 @@ const UserCreateUpdateForm = ({
   )
 }
 
-export default UserCreateUpdateForm
+export default ShopCreateUpdateForm

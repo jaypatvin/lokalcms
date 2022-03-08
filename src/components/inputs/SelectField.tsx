@@ -60,7 +60,11 @@ const SelectField = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
 
   return (
     <div className={cn(styles.wrapper)}>
-      {label && <label className={cn(styles.label)}>{label}</label>}
+      {label && (
+        <label className={cn(styles.label)}>
+          {label} {required ? <span className="text-red-600">*</span> : ''}
+        </label>
+      )}
       <select ref={ref} className={cn(styles.input)} {...rest}>
         <option value="" hidden>
           {options.length === 0 ? 'Load options...' : placeholder}
