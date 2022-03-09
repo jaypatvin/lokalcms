@@ -95,6 +95,7 @@ const ShopCreateUpdateForm = ({
         url={url}
         data={isUpdate ? pick(dataToUpdate, keys) : undefined}
         onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
+        onSuccess={setIsOpen ? () => setIsOpen(false) : undefined}
       />
     </Modal>
   )

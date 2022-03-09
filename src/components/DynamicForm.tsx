@@ -17,6 +17,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { API_URL } from '../config/variables'
 import { getCategories } from '../services/categories'
 import { decimalFormat, integerFormat } from '../utils/types'
+import GalleryField from './inputs/GalleryField'
+import ImageField from './inputs/ImageField'
 
 type Response = {
   status: 'ok' | 'error'
@@ -75,6 +77,7 @@ type Props = {
   onSuccess?: (res?: Response) => void
   onError?: (res?: Response) => void
   onCancel?: () => void
+  transformFormData?: (formData: FormData) => Promise<FormData>
   className?: string
   formClassName?: string
   saveLabel?: string
@@ -96,6 +99,7 @@ const DynamicForm = ({
   method,
   url,
   data = {},
+  transformFormData,
 }: Props) => {
   const { firebaseToken } = useAuth()
   const [formData, setFormData] = useState<FormData>(data)
@@ -167,7 +171,7 @@ const DynamicForm = ({
       return acc
     }, {})
 
-    setFormData(initialFormData)
+    setFormData({ ...initialFormData, ...formData })
     setCommunitySearchResult(communities)
     setValidationSchema(generateValidationSchema(fields))
   }, [])
@@ -190,12 +194,20 @@ const DynamicForm = ({
 
   const changeHandler = (field: Field, value: unknown) => {
     const newFormData = cloneDeep(formData)
-    newFormData[field.key] = value
+    if (typeof value === 'object' && isEmpty(value) && !(value instanceof File)) {
+      delete newFormData[field.key]
+    } else {
+      newFormData[field.key] = value
+    }
     setFormData(newFormData)
   }
 
   const onSubmit = async () => {
     if (API_URL && firebaseToken) {
+      let requestBody = formData
+      if (transformFormData) {
+        requestBody = await transformFormData(formData)
+      }
       const res: Response = await (
         await fetch(`${API_URL}${url}`, {
           headers: {
@@ -203,7 +215,7 @@ const DynamicForm = ({
             Authorization: `Bearer ${firebaseToken}`,
           },
           method,
-          body: JSON.stringify({ ...formData, source: 'cms' }),
+          body: JSON.stringify({ ...requestBody, source: 'cms' }),
         })
       ).json()
       setResponse(res)
@@ -445,6 +457,31 @@ const DynamicForm = ({
               <ScheduleField
                 onChange={(schedule) => changeHandler(field, schedule)}
                 value={(formData[field.key] ?? field.defaultValue) as any}
+              />
+            </div>
+          </div>
+        )
+      case 'gallery':
+        return (
+          <div key={field.key}>
+            <p className="text-gray-600 text-lg">{field.label}</p>
+            <div className="px-2">
+              <GalleryField
+                onChange={(gallery) => changeHandler(field, gallery)}
+                value={(formData[field.key] ?? field.defaultValue) as any}
+              />
+            </div>
+          </div>
+        )
+      case 'image':
+        return (
+          <div key={field.key}>
+            <p className="text-gray-600 text-lg">{field.label}</p>
+            <div className="px-2">
+              <ImageField
+                onChange={(file) => changeHandler(field, file)}
+                value={(formData[field.key] ?? field.defaultValue) as any}
+                name={field.key}
               />
             </div>
           </div>

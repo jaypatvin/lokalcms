@@ -1,5 +1,7 @@
 import React from 'react'
 import { pick } from 'lodash'
+import { v4 as uuidv4 } from 'uuid'
+import { storage } from '../../services/firebase'
 import { CreateUpdateFormProps } from '../../utils/types'
 import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
 import Modal from '../../components/modals'
@@ -65,6 +67,12 @@ const fields: DynamicField[] = [
     required: true,
     defaultValue: 1,
   },
+  {
+    type: 'gallery',
+    key: 'gallery',
+    label: 'Gallery',
+    required: true,
+  },
 ]
 
 const ProductCreateUpdateForm = ({
@@ -79,6 +87,24 @@ const ProductCreateUpdateForm = ({
   const formFields = isUpdate ? fields.filter((field) => field.key !== 'shop_id') : fields
   const keys = formFields.map((field) => field.key).filter((key) => key)
 
+  const transform = async (data: { [x: string]: unknown }) => {
+    const gallery = data.gallery as any
+    if (gallery && gallery.length) {
+      for (const photo of gallery) {
+        if (photo.file) {
+          const uuid = uuidv4()
+          const upload = await storage
+            .ref(`/images/products/${data.id || data.shop_id}_${uuid}`)
+            .put(photo.file)
+          photo.url = await upload.ref.getDownloadURL()
+          delete photo.file
+          delete photo.preview
+        }
+      }
+    }
+    return data
+  }
+
   return (
     <Modal title={`${mode} Product`} isOpen={isOpen}>
       <DynamicForm
@@ -89,6 +115,8 @@ const ProductCreateUpdateForm = ({
         url={url}
         data={isUpdate ? pick(dataToUpdate, keys) : undefined}
         onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
+        onSuccess={setIsOpen ? () => setIsOpen(false) : undefined}
+        transformFormData={transform}
       />
     </Modal>
   )

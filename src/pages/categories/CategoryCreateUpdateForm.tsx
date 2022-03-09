@@ -1,287 +1,84 @@
-import React, { ChangeEvent, useEffect, useState } from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import React from 'react'
+import { pick } from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
-import { Button } from '../../components/buttons'
-import Dropdown from '../../components/Dropdown'
-import { TextField } from '../../components/inputs'
-import Modal from '../../components/modals'
-import { API_URL } from '../../config/variables'
-import { useAuth } from '../../contexts/AuthContext'
-import { Category } from '../../models'
 import { storage } from '../../services/firebase'
-import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
+import { CreateUpdateFormProps } from '../../utils/types'
+import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
+import Modal from '../../components/modals'
 
-type Response = {
-  status?: string
-  data?: Category
-  message?: string
-  error_fields?: Field[]
-}
+const fields: DynamicField[] = [
+  {
+    type: 'text',
+    key: 'name',
+    label: 'Name',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+  {
+    type: 'textarea',
+    key: 'description',
+    label: 'Description',
+  },
+  {
+    type: 'image',
+    key: 'icon_url',
+    label: 'Icon',
+  },
+  {
+    type: 'image',
+    key: 'cover_url',
+    label: 'Cover',
+  },
+]
 
-type CategoryFormType = {
-  id?: string
-  status?: 'enabled' | 'disabled'
-  name?: string
-  description?: string
-  icon_url?: string
-  icon_url_file?: File
-  icon_url_preview?: string
-  cover_url?: string
-  cover_url_file?: File
-  cover_url_preview?: string
-}
-
-type Field = 'status' | 'name' | 'description'
-
-const initialData: CategoryFormType = {}
-
-const CategoryCreateUpdateForm = ({
+const ActivityCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
   dataToUpdate,
-  isModal = true,
 }: CreateUpdateFormProps) => {
-  const history = useHistory()
-  const [data, setData] = useState<CategoryFormType>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<Response>({})
-  const { firebaseToken } = useAuth()
+  const isUpdate = mode === 'update' && dataToUpdate
+  const method = isUpdate ? 'PUT' : 'POST'
+  const url = isUpdate ? `/categories/${dataToUpdate!.id}` : '/categories'
+  const formFields = isUpdate ? fields.filter((field) => !['name'].includes(field.key)) : fields
+  const keys = formFields.map((field) => field.key).filter((key) => key)
 
-  useEffect(() => {
-    if (dataToUpdate) {
-      setData(dataToUpdate)
-    } else {
-      setData(initialData)
+  const transform = async (data: { [x: string]: unknown }) => {
+    if (data.icon_url) {
+      // const uuid = uuidv4()
+      // const upload = await storage
+      //   .ref(`/images/categories/icon-${data.name}_${uuid}`)
+      //   .put(data.icon_url as File)
+      // data.icon_url = await upload.ref.getDownloadURL()
+      data.icon_url = 'https://ggsc.s3.amazonaws.com/images/uploads/The_Science-Backed_Benefits_of_Being_a_Dog_Owner.jpg'
     }
-  }, [dataToUpdate])
-
-  const changeHandler = (field: Field, value: string) => {
-    const newData = { ...data }
-    if (field === 'status' && (value === 'enabled' || value === 'disabled')) {
-      newData.status = value
-    } else if (field === 'name' || field === 'description') {
-      newData[field] = value
+    if (data.cover_url) {
+      // const uuid = uuidv4()
+      // const upload = await storage
+      //   .ref(`/images/categories/cover-${data.name}_${uuid}`)
+      //   .put(data.cover_url as File)
+      // data.cover_url = await upload.ref.getDownloadURL()
+      data.cover_url = 'https://i.natgeofe.com/n/3861de2a-04e6-45fd-aec8-02e7809f9d4e/02-cat-training-NationalGeographic_1484324_3x4.jpg'
     }
-    setData(newData)
-  }
-
-  const fileChangeHandler = (e: ChangeEvent<HTMLInputElement>, field: 'icon_url' | 'cover_url') => {
-    const newData = { ...data }
-    if (!e.target.files) {
-      if (newData[field]) {
-        newData[field] = ''
-        setData(newData)
-      }
-      return
-    }
-    if (field === 'icon_url') {
-      newData.icon_url_file = e.target.files[0]
-      newData.icon_url_preview = URL.createObjectURL(e.target.files[0])
-    } else if (field === 'cover_url') {
-      newData.cover_url_file = e.target.files[0]
-      newData.cover_url_preview = URL.createObjectURL(e.target.files[0])
-    }
-    setData(newData)
-  }
-
-  const removePhotoHandler = (field: 'icon_url' | 'cover_url') => {
-    const newData = { ...data }
-    if (newData[field]) {
-      newData[field] = ''
-    }
-    if (field === 'icon_url') {
-      delete newData.icon_url_file
-      delete newData.icon_url_preview
-    } else if (field === 'cover_url') {
-      delete newData.cover_url_file
-      delete newData.cover_url_preview
-    }
-    setData(newData)
-  }
-
-  const onSave = async () => {
-    if (API_URL && firebaseToken) {
-      let url = `${API_URL}/categories`
-      let method = 'POST'
-      if (mode === 'update' && data.id) {
-        url = `${url}/${data.id}`
-        method = 'PUT'
-      }
-      if (data.icon_url_file) {
-        const uuid = uuidv4()
-        const upload = await storage
-          .ref(`/images/categories/icon-${data.id || data.name}_${uuid}`)
-          .put(data.icon_url_file)
-        data.icon_url = await upload.ref.getDownloadURL()
-        delete data.icon_url_file
-        delete data.icon_url_preview
-      }
-      if (data.cover_url_file) {
-        const uuid = uuidv4()
-        const upload = await storage
-          .ref(`/images/categories/cover-${data.id || data.name}_${uuid}`)
-          .put(data.cover_url_file)
-        data.cover_url = await upload.ref.getDownloadURL()
-        delete data.cover_url_file
-        delete data.cover_url_preview
-      }
-      console.log('data', data)
-      const res = await (
-        await fetch(url, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${firebaseToken}`,
-          },
-          method,
-          body: JSON.stringify({ ...data, source: 'cms' }),
-        })
-      ).json()
-      setResponseData(res)
-      if (res.status !== 'error') {
-        setResponseData({})
-        setData(initialData)
-        if (setIsOpen) {
-          setIsOpen(false)
-        } else if (!isModal) {
-          history.push('/categories')
-        }
-      }
-    } else {
-      console.error('environment variable for the api does not exist.')
-    }
-  }
-
-  const fieldIsError = (field: Field) => {
-    const { status, error_fields } = responseData
-    if (status === 'error' && error_fields && error_fields.length) {
-      return error_fields.includes(field)
-    }
-    return false
+    return data
   }
 
   return (
-    <Modal title={`${mode} Category`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
-      <div className="flex justify-between mb-3">
-        <Dropdown
-          name="Status"
-          simpleOptions={['enabled', 'disabled']}
-          currentValue={data.status}
-          size="small"
-          onSelect={(option) => changeHandler('status', option.value as string)}
-          buttonColor={statusColorMap[data.status || 'enabled']}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-x-2">
-        <TextField
-          required
-          label="name"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('name', e.target.value)}
-          isError={fieldIsError('name')}
-          value={data.name}
-          readOnly={mode === 'update'}
-        />
-        <TextField
-          label="description"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('description', e.target.value)}
-          isError={fieldIsError('description')}
-          value={data.description}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="w-40 h-40 relative">
-          {(data.icon_url || data.icon_url_preview) && (
-            <button
-              className="text-white absolute top-1 right-1 text-xs z-30 bg-danger-600 p-1"
-              onClick={() => removePhotoHandler('icon_url')}
-            >
-              X
-            </button>
-          )}
-          <label
-            htmlFor="icon"
-            className="bg-black bg-opacity-25 text-white cursor-pointer h-full w-full flex items-center justify-center absolute top-0 left-0 text-4xl z-20 hover:bg-opacity-0 transition-all"
-          >
-            Icon
-          </label>
-          <input
-            id="icon"
-            type="file"
-            name={'icon'}
-            onChange={(e) => fileChangeHandler(e, 'icon_url')}
-            className="hidden"
-          />
-          {(data.icon_url || data.icon_url_preview) && (
-            <img
-              className="w-full h-full absolute top-0 left-0 z-10"
-              src={
-                data.icon_url_preview ||
-                data.icon_url ||
-                'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
-              }
-              alt="icon"
-            />
-          )}
-          <span className=" bg-black bg-opacity-10 text-white h-full w-full flex items-center justify-center absolute top-0 left-0 text-4xl z-0">
-            Icon
-          </span>
-        </div>
-        <div className="w-40 h-40 relative">
-          {(data.cover_url || data.cover_url_preview) && (
-            <button
-              className="text-white absolute top-1 right-1 text-xs z-30 bg-danger-600 p-1"
-              onClick={() => removePhotoHandler('cover_url')}
-            >
-              X
-            </button>
-          )}
-          <label
-            htmlFor="cover"
-            className="bg-black bg-opacity-25 text-white cursor-pointer h-full w-full flex items-center justify-center absolute top-0 left-0 text-4xl z-20 hover:bg-opacity-0 transition-all"
-          >
-            Cover
-          </label>
-          <input
-            id="cover"
-            type="file"
-            name={'cover'}
-            onChange={(e) => fileChangeHandler(e, 'cover_url')}
-            className="hidden"
-          />
-          {(data.cover_url || data.cover_url_preview) && (
-            <img
-              className="w-full h-full absolute top-0 left-0 z-10"
-              src={
-                data.cover_url_preview ||
-                data.cover_url ||
-                'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
-              }
-              alt="cover"
-            />
-          )}
-          <span className=" bg-black bg-opacity-10 text-white h-full w-full flex items-center justify-center absolute top-0 left-0 text-4xl z-0">
-            Cover
-          </span>
-        </div>
-      </div>
-      {responseData.status === 'error' && (
-        <p className="text-red-600 text-center">{responseData.message}</p>
-      )}
-      {!isModal && (
-        <div className="flex justify-end">
-          <Link to="/users">
-            <Button color="secondary">Cancel</Button>
-          </Link>
-          <Button color="primary" className="ml-3" onClick={onSave}>
-            Save
-          </Button>
-        </div>
-      )}
+    <Modal title={`${mode} Category`} isOpen={isOpen}>
+      <DynamicForm
+        fields={formFields}
+        formClassName="grid gap-2 p-3"
+        cancelLabel="Close"
+        method={method}
+        url={url}
+        data={isUpdate ? pick(dataToUpdate, keys) : undefined}
+        onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
+        onSuccess={setIsOpen ? () => setIsOpen(false) : undefined}
+        transformFormData={transform}
+      />
     </Modal>
   )
 }
 
-export default CategoryCreateUpdateForm
+export default ActivityCreateUpdateForm

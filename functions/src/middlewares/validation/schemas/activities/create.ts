@@ -9,6 +9,10 @@ const schema: AllowedSchema = {
       maxLength: 100,
       isNotEmpty: true,
     },
+    status: {
+      type: 'string',
+      enum: ['enabled', 'disabled'],
+    },
     message: {
       type: 'string',
     },

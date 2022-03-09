@@ -13,11 +13,6 @@ const fields: DynamicField[] = [
     defaultValue: false,
   },
   {
-    type: 'blank',
-    key: '',
-    label: '',
-  },
-  {
     type: 'dropdown',
     key: 'status',
     label: 'Status',
@@ -130,13 +125,14 @@ const UserCreateUpdateForm = ({
     <WrapperComponent isOpen={isOpen}>
       <DynamicForm
         fields={formFields}
-        formClassName="grid grid-cols-2 gap-5 p-3"
+        formClassName="grid gap-2 p-3"
         className="gap-y-5"
         cancelLabel="Close"
         method={method}
         url={url}
         data={isUpdate ? pick(dataToUpdate, keys) : undefined}
         onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
+        onSuccess={setIsOpen ? () => setIsOpen(false) : undefined}
       />
     </WrapperComponent>
   )
