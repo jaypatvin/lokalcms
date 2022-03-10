@@ -329,6 +329,7 @@ const ScheduleField = ({ onChange, value }: Props) => {
           <p>Start Date</p>
           <div ref={startCalendarRef} className="relative">
             <button
+              type="button"
               className="rounded bg-primary-500 text-white ml-2 p-2"
               onClick={() => setShowStartCalendar(!showStartCalendar)}
             >
@@ -350,6 +351,7 @@ const ScheduleField = ({ onChange, value }: Props) => {
         <div className="mb-5">
           <span ref={startCalendarRef} className="relative">
             <button
+              type="button"
               className="rounded bg-primary-500 text-white p-2"
               onClick={() => setShowStartCalendar(!showStartCalendar)}
             >
@@ -393,6 +395,7 @@ const ScheduleField = ({ onChange, value }: Props) => {
       )}
       <span ref={customizeCalendarRef} className="relative mb-5">
         <button
+          type="button"
           className="rounded bg-primary-500 text-white p-2"
           onClick={() => setShowCustomizeCalendar(!showCustomizeCalendar)}
         >

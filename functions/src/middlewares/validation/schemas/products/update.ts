@@ -39,9 +39,15 @@ const schema: AllowedSchema = {
         type: 'object',
         properties: {
           url: {
-            type: 'string',
-            isNotEmpty: true,
-            format: 'uri',
+            anyOf: [
+              {
+                type: 'string',
+                format: 'uri',
+              },
+              {
+                const: '',
+              },
+            ],
           },
           order: {
             type: 'integer',

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { isBoolean } from 'lodash'
+import { isBoolean, isNil } from 'lodash'
 import { BankCodesService, ShopsService } from '../../../service'
 import { isValidPaymentOptions } from '../../../utils/validations'
 import { generateShopKeywords } from '../../../utils/generators'
@@ -137,8 +137,8 @@ const updateShop = async (req: Request, res: Response) => {
   }
   if (description) updateData.description = description
   if (isBoolean(is_close)) updateData.is_close = is_close
-  if (profile_photo) updateData.profile_photo = profile_photo
-  if (cover_photo) updateData.cover_photo = cover_photo
+  if (!isNil(profile_photo)) updateData.profile_photo = profile_photo
+  if (!isNil(cover_photo)) updateData.cover_photo = cover_photo
   if (payment_options) {
     for (const paymentOption of payment_options) {
       const bankCode = await BankCodesService.getBankCodeById(paymentOption.bank_code)

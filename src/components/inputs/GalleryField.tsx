@@ -57,6 +57,7 @@ const GalleryField = ({ maximum = 5, onChange, value }: Props) => {
           <div key={i} className="w-40 h-40 relative">
             {havePhoto && (
               <button
+                type="button"
                 className="text-white absolute top-1 right-1 text-xs z-30 bg-danger-600 p-1"
                 onClick={() => removePhotoHandler(i)}
               >

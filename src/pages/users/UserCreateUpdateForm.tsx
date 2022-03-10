@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { pick } from 'lodash'
+import { v4 as uuidv4 } from 'uuid'
+import { storage } from '../../services/firebase'
 import { CreateUpdateFormProps } from '../../utils/types'
 import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
 import Modal from '../../components/modals'
@@ -35,6 +37,12 @@ const fields: DynamicField[] = [
         name: 'Locked',
       },
     ],
+  },
+  {
+    type: 'image',
+    key: 'profile_photo',
+    label: 'Profile Photo',
+    required: false,
   },
   {
     type: 'community',
@@ -75,12 +83,6 @@ const fields: DynamicField[] = [
     minLength: 1,
   },
   {
-    type: 'image',
-    key: 'profile_photo',
-    label: 'Profile Photo',
-    required: false,
-  },
-  {
     type: 'text',
     key: 'street',
     label: 'Street',
@@ -102,7 +104,7 @@ const UserCreateUpdateForm = ({
   useEffect(() => {
     if (isModal && setIsOpen) {
       const Component = ({ children, isOpen }: any) => (
-        <Modal title={`${mode} user`} isOpen={isOpen}>
+        <Modal title={`${mode} User`} isOpen={isOpen}>
           {children}
         </Modal>
       )
@@ -119,6 +121,15 @@ const UserCreateUpdateForm = ({
   const formFields = isUpdate ? fields.filter((field) => field.key !== 'community_id') : fields
   const keys = formFields.map((field) => field.key).filter((key) => key)
 
+  const transform = async (data: { [x: string]: unknown }) => {
+    if (data.profile_photo) {
+      const uuid = uuidv4()
+      const upload = await storage.ref(`/images/users/${uuid}`).put(data.icon_url as File)
+      data.profile_photo = await upload.ref.getDownloadURL()
+    }
+    return data
+  }
+
   if (!WrapperComponent) return null
 
   return (
@@ -133,6 +144,7 @@ const UserCreateUpdateForm = ({
         data={isUpdate ? pick(dataToUpdate, keys) : undefined}
         onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
         onSuccess={setIsOpen ? () => setIsOpen(false) : undefined}
+        transformFormData={transform}
       />
     </WrapperComponent>
   )

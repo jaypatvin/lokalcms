@@ -1,50 +1,79 @@
-import React, { ChangeEventHandler, useEffect, useState } from 'react'
-import { Link, useHistory } from 'react-router-dom'
-import { Button } from '../../components/buttons'
-import { TextField } from '../../components/inputs'
-import Modal from '../../components/modals'
-import { fetchUserByID, getUsers } from '../../services/users'
-import useOuterClick from '../../customHooks/useOuterClick'
-import { API_URL } from '../../config/variables'
-import { useAuth } from '../../contexts/AuthContext'
+import React, { useEffect, useState } from 'react'
+import { pick } from 'lodash'
+import { v4 as uuidv4 } from 'uuid'
+import { storage } from '../../services/firebase'
 import { CreateUpdateFormProps } from '../../utils/types'
-import { Community, User } from '../../models'
+import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
+import Modal from '../../components/modals'
 
-type Response = {
-  status?: string
-  data?: Community | Community[]
-  message?: string
-  error_fields?: Field[]
-}
-
-type CommunityFormType = {
-  id?: string
-  name?: string
-  cover_photo?: string
-  profile_photo?: string
-  subdivision?: string
-  city?: string
-  barangay?: string
-  state?: string
-  country?: string
-  zip_code?: string
-  admin?: string[]
-}
-
-type Field =
-  | 'name'
-  | 'cover_photo'
-  | 'profile_photo'
-  | 'subdivision'
-  | 'city'
-  | 'barangay'
-  | 'state'
-  | 'country'
-  | 'zip_code'
-
-type UserData = User & { id: string }
-
-const initialData: CommunityFormType = {}
+const fields: DynamicField[] = [
+  {
+    type: 'text',
+    key: 'name',
+    label: 'Name',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+  {
+    type: 'image',
+    key: 'profile_photo',
+    label: 'Profile Photo',
+  },
+  {
+    type: 'image',
+    key: 'cover_photo',
+    label: 'Cover Photo',
+  },
+  {
+    type: 'text',
+    key: 'subdivision',
+    label: 'Subdivision',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+  {
+    type: 'text',
+    key: 'city',
+    label: 'City',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+  {
+    type: 'text',
+    key: 'barangay',
+    label: 'Barangay',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+  {
+    type: 'text',
+    key: 'state',
+    label: 'State',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+  {
+    type: 'text',
+    key: 'country',
+    label: 'Country',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+  {
+    type: 'text',
+    key: 'zip_code',
+    label: 'Zip Code',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+]
 
 const CommunityCreateUpdateForm = ({
   isOpen = false,
@@ -53,21 +82,16 @@ const CommunityCreateUpdateForm = ({
   dataToUpdate,
   isModal = true,
 }: CreateUpdateFormProps) => {
-  const history = useHistory()
-  const { firebaseToken } = useAuth()
-  const [data, setData] = useState<CommunityFormType>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<Response>({})
   const [WrapperComponent, setWrapperComponent] = useState<any>()
-  const [userSearchText, setUserSearchText] = useState('')
-  const [userSearchResult, setUserSearchResult] = useState<UserData[]>([])
-  const [showUserSearchResult, setShowUserSearchResult] = useState(false)
-  const [admins, setAdmins] = useState<UserData[]>([])
-  const userSearchResultRef = useOuterClick(() => setShowUserSearchResult(false))
+  const isUpdate = mode === 'update' && dataToUpdate
+  const method = isUpdate ? 'PUT' : 'POST'
+  const url = isUpdate ? `/community/${dataToUpdate!.id}` : '/community'
+  const keys = fields.map((field) => field.key)
 
   useEffect(() => {
     if (isModal && setIsOpen) {
-      const Component = ({ children, isOpen, setIsOpen, onSave }: any) => (
-        <Modal title={`${mode} Community`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
+      const Component = ({ children, isOpen }: any) => (
+        <Modal title={`${mode} Community`} isOpen={isOpen}>
           {children}
         </Modal>
       )
@@ -78,269 +102,41 @@ const CommunityCreateUpdateForm = ({
     }
   }, [isModal, dataToUpdate, setIsOpen, isOpen, mode])
 
-  useEffect(() => {
-    if (dataToUpdate) {
-      setData(dataToUpdate)
-    } else {
-      setData(initialData)
+  const transform = async (data: { [x: string]: unknown }) => {
+    if (data.profile_photo) {
+      const uuid = uuidv4()
+      const upload = await storage
+        .ref(`/images/communities/profile-${data.name}_${uuid}`)
+        .put(data.profile_photo as File)
+      data.profile_photo = await upload.ref.getDownloadURL()
+      // data.profile_photo = 'https://ggsc.s3.amazonaws.com/images/uploads/The_Science-Backed_Benefits_of_Being_a_Dog_Owner.jpg'
     }
-  }, [dataToUpdate])
-
-  useEffect(() => {
-    if (!isModal && dataToUpdate && dataToUpdate.admin && dataToUpdate.admin.length) {
-      const getAdminUsers = async () => {
-        const fetchedAdmins: UserData[] = []
-        for (let i = 0; i < dataToUpdate.admin.length; i++) {
-          const userId = dataToUpdate.admin[i]
-          const user = (await fetchUserByID(userId)).data()
-          if (user) fetchedAdmins.push({ id: userId, ...user })
-        }
-        return fetchedAdmins
-      }
-
-      getAdminUsers().then((data) => {
-        setAdmins(data)
-      })
+    if (data.cover_photo) {
+      const uuid = uuidv4()
+      const upload = await storage
+        .ref(`/images/communities/cover-${data.name}_${uuid}`)
+        .put(data.cover_photo as File)
+      data.cover_photo = await upload.ref.getDownloadURL()
+      // data.cover_photo = 'https://i.natgeofe.com/n/3861de2a-04e6-45fd-aec8-02e7809f9d4e/02-cat-training-NationalGeographic_1484324_3x4.jpg'
     }
-  }, [])
-
-  const changeHandler = (field: Field, value: string) => {
-    const newData = { ...data }
-    newData[field] = value
-    setData(newData)
-  }
-
-  const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (e.target.value.length > 2) {
-      const usersRef = getUsers({ search: e.target.value, community: dataToUpdate.id })
-      const result = await usersRef.get()
-      let users = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
-      users = users.filter((user) => !admins.some((admin: User) => admin.id === user.id))
-      setUserSearchResult(users)
-      setShowUserSearchResult(users.length > 0)
-    } else {
-      setShowUserSearchResult(false)
-      setUserSearchResult([])
-    }
-    setUserSearchText(e.target.value)
-  }
-
-  const userSelectHandler = (user: UserData) => {
-    let newAdmins = [...admins]
-    if (admins.some((admin) => admin.id === user.id)) {
-      newAdmins = admins.filter((admin) => admin.id !== user.id)
-    } else {
-      newAdmins.push(user)
-    }
-    newAdmins.sort((a, b) => (a.display_name.toLowerCase() < b.display_name.toLowerCase() ? -1 : 1))
-    setAdmins(newAdmins)
-    const newData = { ...data, admin: newAdmins.map((admin) => admin.id) }
-    setData(newData)
-  }
-
-  const onSave = async () => {
-    if (API_URL && firebaseToken) {
-      let url = `${API_URL}/community`
-      let method = 'POST'
-      if (mode === 'update' && data.id) {
-        url = `${url}/${data.id}`
-        method = 'PUT'
-      }
-      let res = await (
-        await fetch(url, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${firebaseToken}`,
-          },
-          method,
-          body: JSON.stringify({ ...data, source: 'cms' }),
-        })
-      ).json()
-      setResponseData(res)
-      if (res.status !== 'error') {
-        setResponseData({})
-        setData(initialData)
-        if (setIsOpen) {
-          setIsOpen(false)
-        } else if (!isModal) {
-          history.push('/communities')
-        }
-      }
-    } else {
-      console.error('environment variable for the api does not exist.')
-    }
-  }
-
-  const fieldIsError = (field: Field) => {
-    const { status, error_fields } = responseData
-    if (status === 'error' && error_fields && error_fields.length) {
-      return error_fields.includes(field)
-    }
-    return false
+    return data
   }
 
   if (!WrapperComponent) return null
 
   return (
-    <WrapperComponent
-      title={`${mode} community`}
-      isOpen={isOpen}
-      setIsOpen={setIsOpen}
-      onSave={onSave}
-    >
-      <div className="grid grid-cols-2 gap-x-2">
-        <TextField
-          required
-          label="name"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('name', e.target.value)}
-          isError={fieldIsError('name')}
-          defaultValue={data.name}
-        />
-        <TextField
-          label="cover_photo"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('cover_photo', e.target.value)}
-          isError={fieldIsError('cover_photo')}
-          defaultValue={data.cover_photo}
-        />
-        <TextField
-          label="profile_photo"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('profile_photo', e.target.value)}
-          isError={fieldIsError('profile_photo')}
-          defaultValue={data.profile_photo}
-        />
-        <TextField
-          required
-          label="subdivision"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('subdivision', e.target.value)}
-          isError={fieldIsError('subdivision')}
-          defaultValue={data.subdivision}
-        />
-        <TextField
-          required
-          label="city"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('city', e.target.value)}
-          isError={fieldIsError('city')}
-          defaultValue={data.city}
-        />
-        <TextField
-          required
-          label="barangay"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('barangay', e.target.value)}
-          isError={fieldIsError('barangay')}
-          defaultValue={data.barangay}
-        />
-        <TextField
-          required
-          label="state"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('state', e.target.value)}
-          isError={fieldIsError('state')}
-          defaultValue={data.state}
-        />
-        <TextField
-          required
-          label="country"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('country', e.target.value)}
-          isError={fieldIsError('country')}
-          defaultValue={data.country}
-        />
-        <TextField
-          required
-          label="zip_code"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('zip_code', e.target.value)}
-          isError={fieldIsError('zip_code')}
-          defaultValue={data.zip_code}
-        />
-      </div>
-      {!isModal && (
-        // TODO: make this generic / reusable
-        <div className="w-64">
-          <div ref={userSearchResultRef} className="relative">
-            <TextField
-              label="admins"
-              type="text"
-              size="small"
-              placeholder="Search"
-              onChange={userSearchHandler}
-              defaultValue={userSearchText}
-              onFocus={() => setShowUserSearchResult(userSearchResult.length > 0)}
-            />
-            {showUserSearchResult && userSearchResult.length > 0 && (
-              <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                {userSearchResult
-                  .filter((user) => !admins.some((admin) => admin.id === user.id))
-                  .map((user) => (
-                    <button
-                      className="w-full p-1 hover:bg-gray-200 block text-left"
-                      key={user.id}
-                      onClick={() => userSelectHandler(user)}
-                    >
-                      {user.display_name}
-                      {user.display_name !== `${user.first_name} ${user.last_name}` ? (
-                        <span className="block text-xs text-gray-500">{`${user.first_name} ${user.last_name}`}</span>
-                      ) : (
-                        ''
-                      )}
-                      <span className="block text-xs text-gray-500">{user.email}</span>
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-          <div className="shadow-inner bg-gray-50 rounded">
-            {admins.map((user) => (
-              <p className="p-1 text-right relative" key={user.id}>
-                {user.display_name}
-                {user.display_name !== `${user.first_name} ${user.last_name}` ? (
-                  <span className="block text-xs text-gray-500">{`${user.first_name} ${user.last_name}`}</span>
-                ) : (
-                  ''
-                )}
-                <span className="block text-xs text-gray-500">{user.email}</span>
-                <button
-                  className="text-red-600 absolute left-full top-1/3 ml-1"
-                  onClick={() => userSelectHandler(user)}
-                >
-                  remove
-                </button>
-              </p>
-            ))}
-          </div>
-        </div>
-      )}
-      {responseData.status === 'error' && (
-        <p className="text-red-600 text-center">{responseData.message}</p>
-      )}
-      {!isModal && (
-        <div className="flex justify-end">
-          <Link to="/users">
-            <Button color="secondary">Cancel</Button>
-          </Link>
-          <Button color="primary" className="ml-3" onClick={onSave}>
-            Save
-          </Button>
-        </div>
-      )}
+    <WrapperComponent isOpen={isOpen}>
+      <DynamicForm
+        fields={fields}
+        formClassName="grid gap-2 p-3"
+        cancelLabel="Close"
+        method={method}
+        url={url}
+        data={isUpdate ? pick(dataToUpdate, keys) : undefined}
+        onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
+        onSuccess={setIsOpen ? () => setIsOpen(false) : undefined}
+        transformFormData={transform}
+      />
     </WrapperComponent>
   )
 }

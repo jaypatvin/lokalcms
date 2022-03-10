@@ -9,14 +9,26 @@ const schema: AllowedSchema = {
       maxLength: 255,
     },
     icon_url: {
-      type: 'string',
-      isNotEmpty: true,
-      format: 'uri',
+      anyOf: [
+        {
+          type: 'string',
+          format: 'uri',
+        },
+        {
+          const: '',
+        },
+      ],
     },
     cover_url: {
-      type: 'string',
-      isNotEmpty: true,
-      format: 'uri',
+      anyOf: [
+        {
+          type: 'string',
+          format: 'uri',
+        },
+        {
+          const: '',
+        },
+      ],
     },
     source: {
       type: 'string',

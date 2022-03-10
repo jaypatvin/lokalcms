@@ -39,12 +39,26 @@ const schema: AllowedSchema = {
       maxLength: 100,
     },
     profile_photo: {
-      type: 'string',
-      format: 'uri',
+      anyOf: [
+        {
+          type: 'string',
+          format: 'uri',
+        },
+        {
+          const: '',
+        },
+      ],
     },
     cover_photo: {
-      type: 'string',
-      format: 'uri',
+      anyOf: [
+        {
+          type: 'string',
+          format: 'uri',
+        },
+        {
+          const: '',
+        },
+      ],
     },
     admin: {
       type: 'array',

@@ -32,7 +32,7 @@ const fields: DynamicField[] = [
   },
 ]
 
-const ActivityCreateUpdateForm = ({
+const CategoryCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
@@ -46,20 +46,20 @@ const ActivityCreateUpdateForm = ({
 
   const transform = async (data: { [x: string]: unknown }) => {
     if (data.icon_url) {
-      // const uuid = uuidv4()
-      // const upload = await storage
-      //   .ref(`/images/categories/icon-${data.name}_${uuid}`)
-      //   .put(data.icon_url as File)
-      // data.icon_url = await upload.ref.getDownloadURL()
-      data.icon_url = 'https://ggsc.s3.amazonaws.com/images/uploads/The_Science-Backed_Benefits_of_Being_a_Dog_Owner.jpg'
+      const uuid = uuidv4()
+      const upload = await storage
+        .ref(`/images/categories/icon-${data.name}_${uuid}`)
+        .put(data.icon_url as File)
+      data.icon_url = await upload.ref.getDownloadURL()
+      // data.icon_url = 'https://ggsc.s3.amazonaws.com/images/uploads/The_Science-Backed_Benefits_of_Being_a_Dog_Owner.jpg'
     }
     if (data.cover_url) {
-      // const uuid = uuidv4()
-      // const upload = await storage
-      //   .ref(`/images/categories/cover-${data.name}_${uuid}`)
-      //   .put(data.cover_url as File)
-      // data.cover_url = await upload.ref.getDownloadURL()
-      data.cover_url = 'https://i.natgeofe.com/n/3861de2a-04e6-45fd-aec8-02e7809f9d4e/02-cat-training-NationalGeographic_1484324_3x4.jpg'
+      const uuid = uuidv4()
+      const upload = await storage
+        .ref(`/images/categories/cover-${data.name}_${uuid}`)
+        .put(data.cover_url as File)
+      data.cover_url = await upload.ref.getDownloadURL()
+      // data.cover_url = 'https://i.natgeofe.com/n/3861de2a-04e6-45fd-aec8-02e7809f9d4e/02-cat-training-NationalGeographic_1484324_3x4.jpg'
     }
     return data
   }
@@ -81,4 +81,4 @@ const ActivityCreateUpdateForm = ({
   )
 }
 
-export default ActivityCreateUpdateForm
+export default CategoryCreateUpdateForm

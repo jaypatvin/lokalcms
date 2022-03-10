@@ -1,13 +1,13 @@
 import { ChangeEvent, useEffect, useState } from 'react'
 
 type Props = {
-  onChange: (file?: File) => void
+  onChange: (file?: File | string) => void
   value?: string
   name?: string
 }
 
 const ImageField = ({ onChange, value, name = 'image' }: Props) => {
-  const [file, setFile] = useState<File>()
+  const [file, setFile] = useState<File | string>()
   const [preview, setPreview] = useState<string>()
 
   useEffect(() => {
@@ -21,7 +21,7 @@ const ImageField = ({ onChange, value, name = 'image' }: Props) => {
   }
 
   const removePhotoHandler = () => {
-    setFile(undefined)
+    setFile('')
     setPreview(undefined)
   }
 
@@ -29,6 +29,7 @@ const ImageField = ({ onChange, value, name = 'image' }: Props) => {
     <div className="w-40 h-40 relative">
       {(value || preview) && (
         <button
+          type="button"
           className="text-white absolute top-1 right-1 text-xs z-30 bg-danger-600 p-1"
           onClick={() => removePhotoHandler()}
         >
