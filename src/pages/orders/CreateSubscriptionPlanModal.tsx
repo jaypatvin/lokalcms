@@ -175,7 +175,7 @@ const CreateSubscriptionPlanModal = ({ shop, product, isOpen, setIsOpen, user }:
       setIsOpen={setIsOpen}
       onSave={() => onSaveSubscribe()}
     >
-      <div className="w-96">
+      <div className="w-full">
         <span className="text-secondary-600">Shop</span>
         <p className="text-2xl">{subscriptionData.shop.name}</p>
         <div className="ml-2 border-b-1 mb-2 py-2 flex items-center">
