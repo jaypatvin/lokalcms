@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Modal from '../../components/modals'
+import { TextAreaField } from '../inputs'
 
 type Props = {
   title: string
@@ -18,21 +19,12 @@ const TextModal = ({ title, isOpen = false, setIsOpen, value = '', onSave }: Pro
   }
 
   return (
-    <Modal
-      title={title}
-      isOpen={isOpen}
-      setIsOpen={setIsOpen}
-      onSave={() => handleSave(text)}
-    >
-      <textarea
-        name=""
-        id=""
-        cols={50}
-        rows={10}
-        className="border-1 p-2"
+    <Modal title={title} isOpen={isOpen} setIsOpen={setIsOpen} onSave={() => handleSave(text)}>
+      <TextAreaField
+        className="border-1 p-2 w-full"
         value={text}
         onChange={(e) => setText(e.target.value)}
-      ></textarea>
+      ></TextAreaField>
     </Modal>
   )
 }

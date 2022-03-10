@@ -52,8 +52,6 @@ import { generateProductKeywords } from '../../../utils/generators'
  *                 type: string
  *               description:
  *                 type: string
- *               shop_id:
- *                 type: string
  *               base_price:
  *                 type: number
  *               quantity:

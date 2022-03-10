@@ -52,6 +52,8 @@ export const DayKeyVal: { [x: number]: Days } = {
   6: 'sat',
 }
 export const nthDayOfMonthFormat = /^(1|2|3|4|5)-(mon|tue|wed|thu|fri|sat|sun)$/
+export const decimalFormat = /^\d*(\.{1}\d+)?$/
+export const integerFormat = /^[0-9]*$/
 
 export type RepeatType =
   | 'day'

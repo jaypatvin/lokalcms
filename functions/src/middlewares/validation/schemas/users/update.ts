@@ -36,9 +36,15 @@ const schema: AllowedSchema = {
       enum: ['active', 'suspended', 'pending', 'locked'],
     },
     profile_photo: {
-      type: 'string',
-      isNotEmpty: true,
-      format: 'uri',
+      anyOf: [
+        {
+          type: 'string',
+          format: 'uri',
+        },
+        {
+          const: '',
+        },
+      ],
     },
     source: {
       type: 'string',

@@ -10,6 +10,11 @@ const schema: AllowedSchema = {
       format: 'email',
       maxLength: 100,
     },
+    code: {
+      type: 'string',
+      isNotEmpty: true,
+      maxLength: 100,
+    },
     source: {
       type: 'string',
       enum: ['cms', 'api', 'app', ''],

@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react'
+import { ReactNode, useState } from 'react'
 import ReactModal from 'react-modal'
 import { Button } from '../buttons'
 
@@ -12,6 +12,7 @@ const customStyles: ReactModal.Styles = {
     bottom: 'auto',
     marginRight: '-50%',
     transform: 'translate(-50%, -50%)',
+    minWidth: '600px',
   },
 }
 
@@ -23,7 +24,7 @@ type Props = {
   onSave?: () => Promise<void>
 }
 
-const Modal = ({ title, isOpen, setIsOpen, children, onSave }: Props) => {
+const Modal = ({ title, isOpen, children, setIsOpen, onSave }: Props) => {
   const [isSaving, setIsSaving] = useState(false)
   const handleSave = async () => {
     setIsSaving(true)
@@ -33,26 +34,31 @@ const Modal = ({ title, isOpen, setIsOpen, children, onSave }: Props) => {
   const handleClose = () => {
     if (setIsOpen) setIsOpen(false)
   }
+
   return (
     <ReactModal isOpen={isOpen} style={customStyles}>
       <h2 className="text-2xl capitalize mb-5">{title}</h2>
       <div className="max-h-96 overflow-auto">{children}</div>
-      <div className="flex justify-end mt-2">
-        <Button color="secondary" onClick={handleClose}>
-          close
-        </Button>
-        {onSave && (
-          <Button
-            color="primary"
-            className="ml-3"
-            onClick={handleSave}
-            disabled={isSaving}
-            loading={isSaving}
-          >
-            Save
+      {setIsOpen && onSave ? (
+        <div className="flex justify-end mt-2">
+          <Button color="secondary" onClick={handleClose}>
+            close
           </Button>
-        )}
-      </div>
+          {onSave && (
+            <Button
+              color="primary"
+              className="ml-3"
+              onClick={handleSave}
+              disabled={isSaving}
+              loading={isSaving}
+            >
+              Save
+            </Button>
+          )}
+        </div>
+      ) : (
+        ''
+      )}
     </ReactModal>
   )
 }

@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { cn } from '../utils/format'
 import { useLocation, useRouteMatch, NavLink } from 'react-router-dom'
 import {
-  IoMdHome,
   IoMdSettings,
   IoIosPaperPlane,
   IoIosPeople,

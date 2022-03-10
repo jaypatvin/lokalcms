@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { ActivityUpdateData } from '../../../models/Activity'
 import { UsersService, CommunityService, ActivitiesService } from '../../../service'
 
 /**
@@ -49,7 +50,7 @@ import { UsersService, CommunityService, ActivitiesService } from '../../../serv
  */
 const updateActivity = async (req: Request, res: Response) => {
   const { activityId } = req.params
-  const { user_id, message, source = '' } = req.body
+  const { user_id, message, source = '', status } = req.body
   const requestorDocId = res.locals.userDoc.id
 
   const activity = await ActivitiesService.getActivityById(activityId)
@@ -91,11 +92,15 @@ const updateActivity = async (req: Request, res: Response) => {
     })
   }
 
-  const result = await ActivitiesService.updateActivity(activityId, {
+  const updateData: ActivityUpdateData = {
     message,
     updated_by: requestorDocId,
     updated_from: source || '',
-  })
+  }
+
+  if (status) updateData.status = status
+
+  const result = await ActivitiesService.updateActivity(activityId, updateData)
 
   return res.status(200).json({ status: 'ok', data: result })
 }

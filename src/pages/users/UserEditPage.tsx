@@ -53,7 +53,7 @@ const UserEditPage = ({ match }: Props) => {
     <div className="container">
       {user && (
         <>
-          <h3>User Edit: {user.display_name || `${user.first_name} ${user.last_name}`}</h3>
+          <h3>Edit User: {user.display_name || `${user.first_name} ${user.last_name}`}</h3>
           <UserCreateUpdateForm dataToUpdate={user} isModal={false} mode="update" />
         </>
       )}

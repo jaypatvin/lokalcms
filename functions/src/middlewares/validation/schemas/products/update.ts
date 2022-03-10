@@ -2,7 +2,6 @@ import { AllowedSchema } from 'express-json-validator-middleware'
 
 const schema: AllowedSchema = {
   type: 'object',
-  required: ['shop_id'],
   properties: {
     name: {
       type: 'string',
@@ -13,11 +12,6 @@ const schema: AllowedSchema = {
       type: 'string',
       isNotEmpty: true,
       maxLength: 255,
-    },
-    shop_id: {
-      type: 'string',
-      isNotEmpty: true,
-      maxLength: 100,
     },
     base_price: {
       type: 'number',
@@ -45,9 +39,15 @@ const schema: AllowedSchema = {
         type: 'object',
         properties: {
           url: {
-            type: 'string',
-            isNotEmpty: true,
-            format: 'uri',
+            anyOf: [
+              {
+                type: 'string',
+                format: 'uri',
+              },
+              {
+                const: '',
+              },
+            ],
           },
           order: {
             type: 'integer',

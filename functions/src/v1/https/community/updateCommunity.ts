@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isNil } from 'lodash'
 import { generateCommunityKeywords } from '../../../utils/generators'
 import { UsersService, CommunityService } from '../../../service'
 import { CommunityUpdateData } from '../../../models/Community'
@@ -154,8 +155,8 @@ export const updateCommunity = async (req: Request, res: Response) => {
   }
 
   if (data.name) updateData.name = data.name
-  if (data.profile_photo) updateData.profile_photo = data.profile_photo
-  if (data.cover_photo) updateData.cover_photo = data.cover_photo
+  if (!isNil(data.profile_photo)) updateData.profile_photo = data.profile_photo
+  if (!isNil(data.cover_photo)) updateData.cover_photo = data.cover_photo
 
   if (data.subdivision) updateData['address.subdivision'] = data.subdivision
   if (data.barangay) updateData['address.barangay'] = data.barangay

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isNil } from 'lodash'
 import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
 import { UserUpdateData } from '../../../models/User'
@@ -145,7 +146,7 @@ const updateUser = async (req: Request, res: Response) => {
   if (data.hasOwnProperty('is_admin')) updateData['roles.admin'] = data.is_admin
   if (data.status) updateData.status = data.status
   if (keywords) updateData.keywords = keywords
-  if (data.profile_photo) updateData.profile_photo = data.profile_photo
+  if (!isNil(data.profile_photo)) updateData.profile_photo = data.profile_photo
 
   if (data.community_id && newCommunity) {
     // TODO: if user is admin of previous community, remove the user from admin array of community

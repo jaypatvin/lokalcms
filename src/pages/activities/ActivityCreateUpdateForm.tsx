@@ -1,150 +1,93 @@
-import React, { useEffect, useState } from 'react'
-import { Link, useHistory } from 'react-router-dom'
-import { Button } from '../../components/buttons'
-import Dropdown from '../../components/Dropdown'
-import { TextField } from '../../components/inputs'
+import React from 'react'
+import { pick } from 'lodash'
+import { v4 as uuidv4 } from 'uuid'
+import { storage } from '../../services/firebase'
+import { CreateUpdateFormProps } from '../../utils/types'
+import DynamicForm, { Field as DynamicField } from '../../components/DynamicForm'
 import Modal from '../../components/modals'
-import { API_URL } from '../../config/variables'
-import { useAuth } from '../../contexts/AuthContext'
-import { Activity } from '../../models'
-import { CreateUpdateFormProps, statusColorMap } from '../../utils/types'
 
-type Response = {
-  status?: string
-  data?: Activity
-  message?: string
-  errors?: string[]
-  error_fields?: Field[]
-}
-
-type ActivityFormType = {
-  id?: string
-  user_id?: string
-  message?: string
-  status?: 'enabled' | 'disabled'
-}
-
-type Field = 'user_id' | 'message' | 'status'
-
-const initialData: ActivityFormType = {}
+const fields: DynamicField[] = [
+  {
+    type: 'dropdown',
+    key: 'status',
+    label: 'Status',
+    required: false,
+    options: [
+      {
+        id: 'enabled',
+        name: 'Enabled',
+      },
+      {
+        id: 'disabled',
+        name: 'Disabled',
+      },
+    ],
+  },
+  {
+    type: 'text',
+    key: 'user_id',
+    label: 'User ID',
+    required: true,
+    maxLength: 100,
+    minLength: 1,
+  },
+  {
+    type: 'textarea',
+    key: 'message',
+    label: 'Message',
+  },
+  {
+    type: 'gallery',
+    key: 'images',
+    label: 'Images',
+  },
+]
 
 const ActivityCreateUpdateForm = ({
   isOpen = false,
   setIsOpen,
   mode = 'create',
   dataToUpdate,
-  isModal = true,
 }: CreateUpdateFormProps) => {
-  const history = useHistory()
-  const [data, setData] = useState<ActivityFormType>(dataToUpdate || initialData)
-  const [responseData, setResponseData] = useState<Response>({})
-  const { firebaseToken } = useAuth()
+  const isUpdate = mode === 'update' && dataToUpdate
+  const method = isUpdate ? 'PUT' : 'POST'
+  const url = isUpdate ? `/activities/${dataToUpdate!.id}` : '/activities'
+  const formFields = isUpdate
+    ? fields.filter((field) => !['user_id', 'images'].includes(field.key))
+    : fields
+  const keys = formFields.map((field) => field.key).filter((key) => key)
 
-  useEffect(() => {
-    if (dataToUpdate) {
-      setData(dataToUpdate)
-    } else {
-      setData(initialData)
-    }
-  }, [dataToUpdate])
-
-  const changeHandler = (field: Field, value: string) => {
-    const newData = { ...data }
-    if (field === 'user_id' || field === 'message') {
-      newData[field] = value
-    } else if (field === 'status' && (value === 'enabled' || value === 'disabled')) {
-      newData.status = value
-    }
-    setData(newData)
-  }
-
-  const onSave = async () => {
-    if (API_URL && firebaseToken) {
-      let url = `${API_URL}/activities`
-      let method = 'POST'
-      if (mode === 'update' && data.id) {
-        url = `${url}/${data.id}`
-        method = 'PUT'
-      }
-      console.log('data', data)
-      const res = await (
-        await fetch(url, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${firebaseToken}`,
-          },
-          method,
-          body: JSON.stringify({ ...data, source: 'cms' }),
-        })
-      ).json()
-      setResponseData(res)
-      if (res.status !== 'error') {
-        setResponseData({})
-        setData(initialData)
-        if (setIsOpen) {
-          setIsOpen(false)
-        } else if (!isModal) {
-          history.push('/activities')
+  const transform = async (data: { [x: string]: unknown }) => {
+    const gallery = data.images as any
+    if (gallery && gallery.length) {
+      for (const photo of gallery) {
+        if (photo.file) {
+          const uuid = uuidv4()
+          const upload = await storage
+            .ref(`/images/activities/${data.user_id ?? ''}_${uuid}`)
+            .put(photo.file)
+          photo.url = await upload.ref.getDownloadURL()
+          delete photo.file
+          delete photo.preview
         }
       }
-    } else {
-      console.error('environment variable for the api does not exist.')
     }
-  }
-
-  const fieldIsError = (field: Field) => {
-    const { status, error_fields } = responseData
-    if (status === 'error' && error_fields && error_fields.length) {
-      return error_fields.includes(field)
-    }
-    return false
+    return data
   }
 
   return (
-    <Modal title={`${mode} Activity`} isOpen={isOpen} setIsOpen={setIsOpen} onSave={onSave}>
-      <div className="flex justify-between mb-3">
-        <Dropdown
-          name="Status"
-          simpleOptions={['enabled', 'disabled']}
-          currentValue={data.status}
-          size="small"
-          onSelect={(option) => changeHandler('status', option.value as string)}
-          buttonColor={statusColorMap[data.status || 'enabled']}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-x-2">
-        <TextField
-          required
-          label="message"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('message', e.target.value)}
-          isError={fieldIsError('message')}
-          value={data.message}
-        />
-        <TextField
-          required
-          label="user"
-          type="text"
-          size="small"
-          onChange={(e) => changeHandler('user_id', e.target.value)}
-          isError={fieldIsError('user_id')}
-          value={data.user_id}
-        />
-      </div>
-      {responseData.status === 'error' && (
-        <p className="text-red-600 text-center">{responseData.message}</p>
-      )}
-      {!isModal && (
-        <div className="flex justify-end">
-          <Link to="/users">
-            <Button color="secondary">Cancel</Button>
-          </Link>
-          <Button color="primary" className="ml-3" onClick={onSave}>
-            Save
-          </Button>
-        </div>
-      )}
+    <Modal title={`${mode} Activity`} isOpen={isOpen}>
+      <DynamicForm
+        fields={formFields}
+        formClassName="grid gap-2 p-3"
+        cancelLabel="Close"
+        method={method}
+        url={url}
+        data={isUpdate ? pick(dataToUpdate, keys) : undefined}
+        onCancel={setIsOpen ? () => setIsOpen(false) : undefined}
+        onSuccess={setIsOpen ? () => setIsOpen(false) : undefined}
+        transformFormData={transform}
+      />
     </Modal>
   )
 }

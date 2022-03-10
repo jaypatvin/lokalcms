@@ -34,6 +34,8 @@ export type ActivityCreateData = Pick<
   | 'images'
 >
 
-export type ActivityUpdateData = Partial<Pick<Activity, 'message' | 'updated_by' | 'updated_from'>>
+export type ActivityUpdateData = Partial<
+  Pick<Activity, 'status' | 'message' | 'updated_by' | 'updated_from'>
+>
 
 export default Activity

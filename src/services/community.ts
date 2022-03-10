@@ -1,6 +1,5 @@
 import { SortOrderType, CommunitySortByType, CommunityFilterType } from '../utils/types'
 import { db } from '../utils'
-import { db as firestoreDb } from './firebase'
 
 export const fetchCommunityByID = async (id: string) => {
   return db.community.doc(id).get()

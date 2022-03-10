@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isNil } from 'lodash'
 import { CategoryUpdateData } from '../../../models/Category'
 import { CategoriesService } from '../../../service'
 
@@ -79,8 +80,8 @@ const updateCategory = async (req: Request, res: Response) => {
     updated_from: data.source || '',
   }
   if (data.description) updateData.description = data.description
-  if (data.icon_url) updateData.icon_url = data.icon_url
-  if (data.cover_url) updateData.cover_url = data.cover_url
+  if (!isNil(data.icon_url)) updateData.icon_url = data.icon_url
+  if (!isNil(data.cover_url)) updateData.cover_url = data.cover_url
   if (data.status) updateData.status = data.status
 
   const result = await CategoriesService.updateCategory(categoryId, updateData)

@@ -18,16 +18,14 @@ export const getCategories = ({
   filter = 'all',
   sortBy = 'name',
   sortOrder = 'asc',
-  limit = 10,
+  limit,
 }: GetCategoriesParamTypes) => {
   let ref = db.categories.where('keywords', 'array-contains', search.toLowerCase())
   if (['enabled', 'disabled'].includes(filter)) {
     ref = ref.where('status', '==', filter)
   }
-  ref = ref
-    .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
-    .limit(limit)
+  ref = ref.where('archived', '==', filter === 'archived').orderBy(sortBy, sortOrder)
+  if (limit) ref = ref.limit(limit)
 
   return ref
 }

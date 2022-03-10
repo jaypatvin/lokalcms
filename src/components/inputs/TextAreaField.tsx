@@ -24,6 +24,7 @@ const TextAreaField = React.forwardRef<HTMLTextAreaElement, Props>((props, ref) 
     required,
     readOnly = false,
     value,
+    defaultValue,
     ...rest
   } = props
 
