@@ -8,7 +8,7 @@ import cors from 'cors'
 import express from 'express'
 admin.initializeApp()
 
-import { authMiddleware, roleMiddleware } from './middlewares'
+import { authMiddleware, roleMiddleware, errorAlert, errorResponder } from './middlewares'
 
 import helloRouter from './v1/https/hello.function'
 import { runCounter, logActivity, updateRatings } from './utils/triggers'
@@ -31,6 +31,8 @@ app.use(roleMiddleware)
 require('./routes')(app)
 
 app.use(errorHandler)
+app.use(errorAlert)
+app.use(errorResponder)
 
 exports.api = functions.https.onRequest(app)
 

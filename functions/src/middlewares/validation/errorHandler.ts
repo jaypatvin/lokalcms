@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { ValidationError } from 'express-json-validator-middleware'
+import generateError, { ErrorCode } from '../../utils/generateError'
 
-const errorHandler = async (err: any, request: Request, response: Response, next: NextFunction) => {
+const errorHandler = async (err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof ValidationError) {
     const errorFields = err.validationErrors.body.reduce((acc, error) => {
       switch (error.keyword) {
@@ -35,11 +36,12 @@ const errorHandler = async (err: any, request: Request, response: Response, next
       return acc
     }, {})
 
-    response.status(400).json({
+    const errorData = {
+      err,
       status: 'error',
       error_fields: errorFields,
-    })
-    next()
+    }
+    next(generateError(ErrorCode.ValidationError, errorData))
   } else {
     next(err)
   }
