@@ -1,12 +1,15 @@
-import { NextFunction, Request, Response } from "express";
+import { RequestHandler } from 'express'
 
-const wrapAsync = (fn: (req: Request, res: Response, next?: NextFunction) => any) => {
-  return function (req: Request, res: Response, next) {
-    fn(req, res, next).catch(e => {
-      if (next) next(e);
-    });
-  };
-};
+const wrapAsync = (fn: RequestHandler): RequestHandler => {
+  const wrapper: RequestHandler = async (req, res, next) => {
+    try {
+      await fn(req, res, next)
+    } catch (err) {
+      next(err)
+    }
+  }
 
+  return wrapper
+}
 
-export default wrapAsync;
+export default wrapAsync

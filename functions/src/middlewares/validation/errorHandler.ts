@@ -38,7 +38,6 @@ const errorHandler = async (err: any, req: Request, res: Response, next: NextFun
 
     const errorData = {
       err,
-      status: 'error',
       error_fields: errorFields,
     }
     next(generateError(ErrorCode.ValidationError, errorData))

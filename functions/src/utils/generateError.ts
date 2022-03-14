@@ -1,20 +1,25 @@
 import errCode from 'err-code'
+import { get } from 'lodash'
 
 export enum ErrorCode {
   ValidationError = 'ValidationError',
+  UserCreateError = 'UserCreateError',
 }
 
 type Props = {
-  err: unknown
+  message?: string
   [x: string]: unknown
 }
 
 const generateError = (code: ErrorCode, props: Props) => {
+  const errProps = { status: 'error', ...props }
+  const message = get(errProps, 'message', code)
   switch (code) {
     case ErrorCode.ValidationError:
-      return errCode(new Error(code), code, props)
+    case ErrorCode.UserCreateError:
+      return errCode(new Error(message), code, errProps)
     default:
-      return errCode(new Error('UnknownError'), 'UnknownError', props)
+      return errCode(new Error('UnknownError'), 'UnknownError', errProps)
   }
 }
 

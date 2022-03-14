@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import * as functions from 'firebase-functions'
-import { IncomingWebhook } from '@slack/webhook'
 import { get } from 'lodash'
+import { IncomingWebhook } from '@slack/webhook'
 
 const webhook = new IncomingWebhook(
   get(
@@ -19,16 +19,54 @@ const webhook = new IncomingWebhook(
 const errorAlert = async (err: any, req: Request, res: Response, next: NextFunction) => {
   console.log('sending alert to slack')
   const errorCode = get(err, 'code', 'UnknownError')
+  const errorValue =
+    errorCode !== 'UnknownError'
+      ? JSON.stringify(err)
+      : JSON.stringify(err, Object.getOwnPropertyNames(err))
   await webhook.send({
     attachments: [
       {
-        fallback: `API error - ${errorCode}`,
-        pretext: `API error - ${errorCode}`,
+        fallback: 'API error',
+        pretext: 'API error',
+        title: errorCode,
         color: 'danger',
         fields: [
           {
             title: 'Summary',
-            value: JSON.stringify(err),
+            value: errorValue,
+          },
+        ],
+      },
+      {
+        color: 'danger',
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*Referer:* ${req.headers.referer}`,
+            },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*Path:* ${req.path}`,
+            },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*Method:* ${req.method}`,
+            },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*Body:* ${JSON.stringify(req.body)}`,
+            },
           },
         ],
       },
