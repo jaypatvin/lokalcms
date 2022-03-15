@@ -2,7 +2,7 @@ import { AllowedSchema } from 'express-json-validator-middleware'
 
 const schema: AllowedSchema = {
   type: 'object',
-  required: ['payment_method', 'proof_of_payment'],
+  required: ['payment_method'],
   properties: {
     buyer_id: {
       type: 'string',
