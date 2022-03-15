@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService, ShopsService, ProductsService } from '../../../service'
+import generateError, { ErrorCode } from '../../../utils/generateError'
 
 /**
  * @openapi
@@ -29,18 +30,18 @@ import { UsersService, ShopsService, ProductsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const archiveUser = async (req: Request, res: Response) => {
+const archiveUser: RequestHandler = async (req, res, next) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.admin) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
-    })
+    return next(
+      generateError(ErrorCode.UserApiError, {
+        message: 'User does not have a permission to delete',
+      })
+    )
   }
   const { userId } = req.params
-  if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
 
   const requestData = {
     updated_by: requestorDocId,
@@ -59,7 +60,6 @@ const archiveUser = async (req: Request, res: Response) => {
   return res.json({
     status: 'ok',
     data: result,
-    message: `User ${userId} successfully archived.`,
   })
 }
 

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
 
 /**
@@ -33,15 +33,12 @@ import { UsersService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/User'
  */
-const getUsersByCommunityId = async (req: Request, res: Response) => {
+const getUsersByCommunityId: RequestHandler = async (req, res) => {
   const { communityId } = req.params
-
-  if (!communityId)
-    return res.status(400).json({ status: 'error', message: 'communityId is required!' })
 
   const result = await UsersService.getUsersByCommunityId(communityId)
 
-  result.forEach(user => {
+  result.forEach((user) => {
     delete user.keywords
     delete user.community
   })

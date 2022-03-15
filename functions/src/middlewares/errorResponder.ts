@@ -1,12 +1,15 @@
-import { NextFunction, Request, Response } from 'express'
+import { ErrorRequestHandler } from 'express'
 import { get } from 'lodash'
 import { ErrorCode } from '../utils/generateError'
 
-const errorResponder = async (err: any, req: Request, res: Response, next: NextFunction) => {
+const errorResponder: ErrorRequestHandler = async (err, req, res, next) => {
   const errorCode = get(err, 'code')
   switch (errorCode) {
+    case ErrorCode.UnauthorizedError:
+      res.status(403).json(err)
+      break
     case ErrorCode.ValidationError:
-    case ErrorCode.UserCreateError:
+    case ErrorCode.UserApiError:
       res.status(400).json(err)
       break
     default:

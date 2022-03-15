@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
+import generateError, { ErrorCode } from '../../../utils/generateError'
 
 /**
  * @openapi
@@ -49,20 +50,18 @@ import { UsersService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const registerUser = async (req: Request, res: Response) => {
+const registerUser: RequestHandler = async (req, res, next) => {
   const { userId } = req.params
   const { id_type, id_photo, source } = req.body
   const requestorDocId = res.locals.userDoc.id
 
   if (requestorDocId !== userId) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'userId does not match from the requestor' })
+    return next(
+      generateError(ErrorCode.UserApiError, {
+        message: 'userId does not match from the requestor',
+      })
+    )
   }
-
-  // check if user id is valid
-  const existing_user = await UsersService.getUserByID(userId)
-  if (!existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
 
   const updateData = {
     updated_by: requestorDocId,

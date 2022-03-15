@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express'
+import { ErrorRequestHandler } from 'express'
 import * as functions from 'firebase-functions'
 import { get } from 'lodash'
 import { IncomingWebhook } from '@slack/webhook'
@@ -16,7 +16,8 @@ const webhook = new IncomingWebhook(
   }
 )
 
-const errorAlert = async (err: any, req: Request, res: Response, next: NextFunction) => {
+const errorAlert: ErrorRequestHandler = async (err, req, res, next) => {
+  const requestorDocEmail = get(res.locals, 'userDoc.email', '--')
   console.log('sending alert to slack')
   const errorCode = get(err, 'code', 'UnknownError')
   const errorValue =
@@ -40,6 +41,13 @@ const errorAlert = async (err: any, req: Request, res: Response, next: NextFunct
       {
         color: 'danger',
         blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*Requestor:* ${requestorDocEmail}`,
+            },
+          },
           {
             type: 'section',
             text: {

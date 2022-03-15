@@ -2,8 +2,9 @@
 # from https://github.com/firebase/functions-samples/blob/master/authorized-https-endpoint/functions/index.js
 */
 
-import { NextFunction, Request, Response } from 'express'
+import { NextFunction, Request, Response, RequestHandler } from 'express'
 import admin from 'firebase-admin'
+import generateError, { ErrorCode } from '../utils/generateError'
 
 const nonSecureAPIs = [
   {
@@ -32,7 +33,7 @@ const nonSecureAPIs = [
   },
 ]
 
-const validateFirebaseIdToken = async (req: Request, res: Response, next: NextFunction) => {
+const validateFirebaseIdToken: RequestHandler = async (req, res, next) => {
   const path = req.path
   const method = req.method.toLowerCase()
   const isNonSecure = nonSecureAPIs.some((api) => {
@@ -43,20 +44,18 @@ const validateFirebaseIdToken = async (req: Request, res: Response, next: NextFu
   })
   if (isNonSecure) return next()
 
-  console.log('Check if request is authorized with Firebase ID token')
+  const errorMessage = `No Firebase ID token was passed as a Bearer token in the Authorization header. Make sure you authorize your request by providing the HTTP header "Authorization: Bearer <Firebase ID Token>" or by passing a "__session" cookie.`
 
   if (
     (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) &&
     !(req.cookies && req.cookies.__session)
   ) {
-    console.error(
-      'No Firebase ID token was passed as a Bearer token in the Authorization header.',
-      'Make sure you authorize your request by providing the following HTTP header:',
-      'Authorization: Bearer <Firebase ID Token>',
-      'or by passing a "__session" cookie.'
+    console.error(errorMessage)
+    return next(
+      generateError(ErrorCode.UnauthorizedError, {
+        message: errorMessage,
+      })
     )
-    res.status(403).send('Unauthorized')
-    return
   }
 
   let idToken
@@ -70,20 +69,19 @@ const validateFirebaseIdToken = async (req: Request, res: Response, next: NextFu
     idToken = req.cookies.__session
   } else {
     // No cookie
-    res.status(403).send('Unauthorized')
-    return
+    console.error(errorMessage)
+    return next(generateError(ErrorCode.UnauthorizedError, { message: errorMessage }))
   }
 
   try {
     const decodedIdToken = await admin.auth().verifyIdToken(idToken)
     console.log('ID Token correctly decoded', decodedIdToken)
     req.user = decodedIdToken
-    next()
-    return
-  } catch (error) {
-    console.error('Error while verifying Firebase ID token:', error)
-    res.status(403).send('Unauthorized')
-    return
+    return next()
+  } catch (err) {
+    const message = 'Error while verifying Firebase ID token'
+    console.error(message, err)
+    return next(generateError(ErrorCode.UnauthorizedError, { message, err }))
   }
 }
 

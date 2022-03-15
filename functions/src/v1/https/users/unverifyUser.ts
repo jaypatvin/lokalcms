@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
+import generateError, { ErrorCode, generateUserNotFoundError } from '../../../utils/generateError'
 
 /**
  * @openapi
@@ -47,26 +48,25 @@ import { UsersService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const unverifyUser = async (req: Request, res: Response) => {
+const unverifyUser: RequestHandler = async (req, res, next) => {
   const { userId } = req.params
   const { notes = '', source } = req.body
   const requestorDocId = res.locals.userDoc.id
   const roles = res.locals.userRoles
 
-  if (!userId || !requestorDocId) {
-    return res.status(400).json({ status: 'error', message: 'userId is required!' })
-  }
-
   if (!roles.admin) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to verify a user.',
-    })
+    return next(
+      generateError(ErrorCode.UserApiError, {
+        message: 'User does not have a permission to verify a user',
+      })
+    )
   }
 
   // check if user id is valid
   const existing_user = await UsersService.getUserByID(userId)
-  if (!existing_user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  if (!existing_user) {
+    return next(generateUserNotFoundError(ErrorCode.UserApiError, userId))
+  }
 
   const updateData = {
     updated_by: requestorDocId,
