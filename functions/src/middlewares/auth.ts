@@ -2,7 +2,7 @@
 # from https://github.com/firebase/functions-samples/blob/master/authorized-https-endpoint/functions/index.js
 */
 
-import { NextFunction, Request, Response, RequestHandler } from 'express'
+import { RequestHandler } from 'express'
 import admin from 'firebase-admin'
 import generateError, { ErrorCode } from '../utils/generateError'
 
