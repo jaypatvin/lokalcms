@@ -1,5 +1,5 @@
-import { Request, Response } from 'express'
-import { generateCommunityKeywords } from '../../../utils/generators'
+import { RequestHandler } from 'express'
+import { ErrorCode, generateCommunityKeywords, generateError } from '../../../utils/generators'
 import { CommunityService } from '../../../service'
 import { CommunityCreateData } from '../../../models/Community'
 
@@ -74,15 +74,16 @@ import { CommunityCreateData } from '../../../models/Community'
  *                 data:
  *                   $ref: '#/components/schemas/Community'
  */
-const createCommunity = async (req: Request, res: Response) => {
+const createCommunity: RequestHandler = async (req, res, next) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to create a community',
-    })
+    return next(
+      generateError(ErrorCode.CommunityApiError, {
+        message: 'User does not have a permission to create a community',
+      })
+    )
   }
 
   // check if community name already exist
@@ -95,11 +96,11 @@ const createCommunity = async (req: Request, res: Response) => {
   })
 
   if (existing_communities.length) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Community "${data.name}" already exists with the same address.`,
-      data: existing_communities,
-    })
+    return next(
+      generateError(ErrorCode.CommunityApiError, {
+        message: `Community "${data.name}" already exists with the same address`,
+      })
+    )
   }
 
   const keywords = generateCommunityKeywords({

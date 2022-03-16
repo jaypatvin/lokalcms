@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { ValidationError } from 'express-json-validator-middleware'
-import generateError, { ErrorCode } from '../../utils/generateError'
+import { ErrorCode, generateError } from '../../utils/generators'
 
 const errorHandler = async (err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof ValidationError) {

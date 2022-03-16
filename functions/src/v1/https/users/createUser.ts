@@ -4,10 +4,7 @@ import { generateUserKeywords } from '../../../utils/generators'
 import { auth } from '../index'
 import { UserCreateData } from '../../../models/User'
 import db from '../../../utils/db'
-import generateError, {
-  ErrorCode,
-  generateCommunityNotFoundError,
-} from '../../../utils/generateError'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -124,7 +121,7 @@ const createUser: RequestHandler = async (req, res, next) => {
 
   const community = await CommunityService.getCommunityByID(data.community_id)
   if (!community) {
-    return next(generateCommunityNotFoundError(ErrorCode.UserApiError, data.community_id))
+    return next(generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id))
   }
 
   const existingUsers = await UsersService.getUserByUID(authUser.uid)

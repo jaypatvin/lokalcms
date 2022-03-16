@@ -4,11 +4,7 @@ import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
 import { UserUpdateData } from '../../../models/User'
 import db from '../../../utils/db'
-import generateError, {
-  ErrorCode,
-  generateCommunityNotFoundError,
-  generateUserNotFoundError,
-} from '../../../utils/generateError'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -120,14 +116,14 @@ const updateUser: RequestHandler = async (req, res, next) => {
   // check if user id is valid
   const existingUser = await UsersService.getUserByID(userId)
   if (!existingUser) {
-    return next(generateUserNotFoundError(ErrorCode.UserApiError, userId))
+    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
   }
 
   // check if community id is valid
   if (data.community_id) {
     newCommunity = await CommunityService.getCommunityByID(data.community_id)
     if (!newCommunity) {
-      return next(generateCommunityNotFoundError(ErrorCode.UserApiError, data.community_id))
+      return next(generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id))
     }
   }
 

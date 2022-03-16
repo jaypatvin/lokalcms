@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
-import { ErrorCode, generateUserNotFoundError } from '../../../utils/generateError'
+import { ErrorCode, generateNotFoundError } from '../../../utils/generators/generateError'
 
 /**
  * @openapi
@@ -38,7 +38,7 @@ const getUser: RequestHandler = async (req, res, next) => {
   const result = await UsersService.getUserByID(userId)
 
   if (!result) {
-    return next(generateUserNotFoundError(ErrorCode.UserApiError, userId))
+    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
   }
 
   // reduce return data

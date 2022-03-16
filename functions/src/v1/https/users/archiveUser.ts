@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express'
 import { UsersService, ShopsService, ProductsService } from '../../../service'
-import generateError, { ErrorCode } from '../../../utils/generateError'
+import { ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi

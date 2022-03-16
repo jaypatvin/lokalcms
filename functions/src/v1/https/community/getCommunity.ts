@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { CommunityService } from '../../../service'
+import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -31,13 +32,13 @@ import { CommunityService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Community'
  */
-const getCommunity = async (req: Request, res: Response) => {
+const getCommunity: RequestHandler = async (req, res, next) => {
   const { communityId } = req.params
-  if (!communityId) return res.status(400).json({ status: 'error', message: 'id is required!' })
 
   const result = await CommunityService.getCommunityByID(communityId)
-
-  if (!result) return res.status(404).json({ status: 'error', data: result, message: 'community does not exist!' })
+  if (!result) {
+    return next(generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId))
+  }
 
   // reduce return data
   delete result.keywords

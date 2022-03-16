@@ -2,6 +2,7 @@ import { ErrorRequestHandler } from 'express'
 import * as functions from 'firebase-functions'
 import { get } from 'lodash'
 import { IncomingWebhook } from '@slack/webhook'
+import { ErrorCode } from '../utils/generators'
 
 const webhook = new IncomingWebhook(
   get(
@@ -19,7 +20,7 @@ const webhook = new IncomingWebhook(
 const errorAlert: ErrorRequestHandler = async (err, req, res, next) => {
   const requestorDocEmail = get(res.locals, 'userDoc.email', '--')
   console.log('sending alert to slack')
-  const errorCode = get(err, 'code', 'UnknownError')
+  const errorCode = get<ErrorCode>(err, 'code', ErrorCode.UnknownError)
   const errorValue =
     errorCode !== 'UnknownError'
       ? JSON.stringify(err)

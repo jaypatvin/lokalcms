@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductsService, ShopsService } from '../../../service'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -29,20 +30,23 @@ import { ProductsService, ShopsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const archiveShop = async (req: Request, res: Response) => {
+const archiveShop: RequestHandler = async (req, res, next) => {
   const data = req.body
   const { shopId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  const _shop = await ShopsService.getShopByID(shopId)
 
-  if (!_shop) return res.status(403).json({ status: 'error', message: 'Shop does not exist!' })
+  const shop = await ShopsService.getShopByID(shopId)
+  if (!shop) {
+    return next(generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId))
+  }
 
-  if (!roles.admin && requestorDocId !== _shop.user_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
-    })
+  if (!roles.admin && requestorDocId !== shop.user_id) {
+    return next(
+      generateError(ErrorCode.ShopApiError, {
+        message: 'User does not have a permission to delete a shop of another user',
+      })
+    )
   }
 
   const requestData = {

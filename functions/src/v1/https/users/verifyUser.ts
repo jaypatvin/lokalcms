@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express'
 import { User } from '../../../models'
 import { UsersService } from '../../../service'
-import generateError, { ErrorCode, generateUserNotFoundError } from '../../../utils/generateError'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -64,7 +64,7 @@ const verifyUser: RequestHandler = async (req, res, next) => {
   // check if user id is valid
   const user = await UsersService.getUserByID(userId)
   if (!user) {
-    return next(generateUserNotFoundError(ErrorCode.UserApiError, userId))
+    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
   }
 
   const updateData = {

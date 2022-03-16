@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express'
 import { isBoolean } from 'lodash'
 import { UsersService } from '../../../service'
-import generateError, { ErrorCode, generateUserNotFoundError } from '../../../utils/generateError'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -60,7 +60,7 @@ const updateUserChatSettings: RequestHandler = async (req, res, next) => {
 
   const user = await UsersService.getUserByID(userId)
   if (!user) {
-    return next(generateUserNotFoundError(ErrorCode.UserApiError, userId))
+    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
   }
 
   const updateData: any = {

@@ -4,7 +4,7 @@
 
 import { RequestHandler } from 'express'
 import admin from 'firebase-admin'
-import generateError, { ErrorCode } from '../utils/generateError'
+import { ErrorCode, generateError } from '../utils/generators'
 
 const nonSecureAPIs = [
   {

@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
-import generateError, { ErrorCode, generateUserNotFoundError } from '../../../utils/generateError'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -65,7 +65,7 @@ const unverifyUser: RequestHandler = async (req, res, next) => {
   // check if user id is valid
   const existing_user = await UsersService.getUserByID(userId)
   if (!existing_user) {
-    return next(generateUserNotFoundError(ErrorCode.UserApiError, userId))
+    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
   }
 
   const updateData = {

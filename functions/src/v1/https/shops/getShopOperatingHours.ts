@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ShopsService } from '../../../service'
+import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -31,12 +32,13 @@ import { ShopsService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Shop'
  */
-const getShopOperatingHours = async (req: Request, res: Response) => {
+const getShopOperatingHours: RequestHandler = async (req, res, next) => {
   const { shopId } = req.params
 
-  // check if shop exists
   const shop = await ShopsService.getShopByID(shopId)
-  if (!shop) return res.status(404).json({ status: 'error', message: 'Product does not exist!' })
+  if (!shop) {
+    return next(generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId))
+  }
 
   let operating_hours = shop.operating_hours
 
