@@ -84,7 +84,7 @@ import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/
  *                 data:
  *                   $ref: '#/components/schemas/User'
  */
-const createUser: RequestHandler = async (req, res, next) => {
+const createUser: RequestHandler = async (req, res) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
@@ -95,43 +95,35 @@ const createUser: RequestHandler = async (req, res, next) => {
   try {
     authUser = await auth.getUserByEmail(data.email)
   } catch (e) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: `Auth user with email "${data.email}" does not exist`,
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: `Auth user with email "${data.email}" does not exist`,
+    })
   }
 
   if (authUser.uid !== tokenUser.uid) {
     if (!roles.editor) {
-      return next(
-        generateError(ErrorCode.UserApiError, {
-          message: 'User does not have a permission to create another user',
-        })
-      )
+      throw generateError(ErrorCode.UserApiError, {
+        message: 'User does not have a permission to create another user',
+      })
     }
     if (!roles.admin && data.is_admin) {
-      return next(
-        generateError(ErrorCode.UserApiError, {
-          message: 'User do not have a permission to create an admin user',
-        })
-      )
+      throw generateError(ErrorCode.UserApiError, {
+        message: 'User do not have a permission to create an admin user',
+      })
     }
   }
 
   const community = await CommunityService.getCommunityByID(data.community_id)
   if (!community) {
-    return next(generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id))
+    throw generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id)
   }
 
   const existingUsers = await UsersService.getUserByUID(authUser.uid)
 
   if (existingUsers.length > 0) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: `User with email "${authUser.email}" already exists`,
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: `User with email "${authUser.email}" already exists`,
+    })
   }
 
   const keywords = generateUserKeywords({

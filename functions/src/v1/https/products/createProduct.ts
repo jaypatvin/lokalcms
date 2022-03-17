@@ -1,12 +1,13 @@
-import { Request, Response } from 'express'
-import {
-  ShopsService,
-  CommunityService,
-  ProductsService,
-  CategoriesService,
-} from '../../../service'
+import { RequestHandler } from 'express'
+import { ShopsService, ProductsService, CategoriesService } from '../../../service'
 import { isScheduleDerived } from '../../../utils/validations'
-import { generateProductKeywords, generateSchedule } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateError,
+  generateNotFoundError,
+  generateProductKeywords,
+  generateSchedule,
+} from '../../../utils/generators'
 import { ProductCreateData } from '../../../models/Product'
 
 /**
@@ -166,56 +167,36 @@ import { ProductCreateData } from '../../../models/Product'
  *                 data:
  *                   $ref: '#/components/schemas/Product'
  */
-const createProduct = async (req: Request, res: Response) => {
+const createProduct: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
   const userArchived = res.locals.userDoc.archived
 
   const category = await CategoriesService.getCategoryById(data.product_category)
   if (!category) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Invalid category ${data.product_category}` })
+    throw generateNotFoundError(ErrorCode.ProductApiError, 'Category', data.product_category)
   }
 
-  // shop ID validation
   const shop = await ShopsService.getShopByID(data.shop_id)
-  if (!shop) return res.status(400).json({ status: 'error', message: 'Invalid Shop ID!' })
+  if (!shop) {
+    throw generateNotFoundError(ErrorCode.ProductApiError, 'Shop', data.shop_id)
+  }
   if (shop.status === 'disabled') {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Shop with id ${data.shop_id} is currently disabled!` })
+    throw generateError(ErrorCode.ProductApiError, {
+      message: `Shop with id ${data.shop_id} is currently disabled`,
+    })
   }
 
   if (userArchived) {
-    return res.status(400).json({
-      status: 'error',
-      message: `User with id ${data.user_id} is currently archived!`,
+    throw generateError(ErrorCode.ProductApiError, {
+      message: `User with id ${data.user_id} is currently disabled`,
     })
   }
 
   const roles = res.locals.userRoles
   if (!roles.editor && requestorDocId !== shop.user_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to create a product for another user.',
-    })
-  }
-
-  // get community from shop.communityID and validate
-  const community = await CommunityService.getCommunityByID(shop.community_id)
-  // this should not happen, shop should not be created with a wrong communityID or without community
-  if (!community) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Community of shop ${shop.name} does not exist!`,
-    })
-  }
-  // this should not happen, shop should also be archived
-  if (community.archived) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Community of shop ${shop.name} is currently archived!`,
+    throw generateError(ErrorCode.ProductApiError, {
+      message: 'User does not have a permission to create a product for another user',
     })
   }
 
@@ -254,9 +235,8 @@ const createProduct = async (req: Request, res: Response) => {
       }),
     }
     if (!isScheduleDerived(availability, shop.operating_hours)) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'The product availability must be derived from the shop schedule.',
+      throw generateError(ErrorCode.ProductApiError, {
+        message: 'The product availability must be derived from the shop schedule',
       })
     }
   }

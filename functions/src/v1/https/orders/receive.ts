@@ -1,9 +1,10 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { firestore } from 'firebase-admin'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { OrderUpdateData } from '../../../models/Order'
 import { NotificationsService, OrdersService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -56,7 +57,7 @@ import { NotificationsService, OrdersService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const received = async (req: Request, res: Response) => {
+const received: RequestHandler = async (req, res) => {
   const data = req.body
   const { buyer_id } = data
   const { orderId } = req.params
@@ -64,18 +65,14 @@ const received = async (req: Request, res: Response) => {
   let requestorDocId = res.locals.userDoc.id || buyer_id
 
   const order = await OrdersService.getOrderByID(orderId)
-
   if (!order) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
+    throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
   }
 
   const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
 
   if (statusCode >= ORDER_STATUS.FINISHED || statusCode < ORDER_STATUS.PENDING_RECEIPT) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.OrderApiError, {
       message: 'Cannot receive due to the current order status',
     })
   }
@@ -84,11 +81,11 @@ const received = async (req: Request, res: Response) => {
     requestorDocId = buyer_id
   }
 
-  if (!roles.admin && order.buyer_id !== requestorDocId)
-    return res.status(400).json({
-      status: 'error',
+  if (!roles.admin && order.buyer_id !== requestorDocId) {
+    throw generateError(ErrorCode.OrderApiError, {
       message: `User with id ${requestorDocId} is not the buyer from the order with id ${orderId}`,
     })
+  }
 
   const updateData: OrderUpdateData = {
     updated_by: requestorDocId,

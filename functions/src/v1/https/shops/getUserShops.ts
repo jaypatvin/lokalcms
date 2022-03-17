@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ShopsService } from '../../../service'
 
 /**
@@ -33,7 +33,7 @@ import { ShopsService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/Shop'
  */
-const getUserShops = async (req: Request, res: Response) => {
+const getUserShops: RequestHandler = async (req, res) => {
   const { userId } = req.params
 
   const shops = await ShopsService.getShopsByUserID(userId)

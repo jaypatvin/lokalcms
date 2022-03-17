@@ -32,13 +32,13 @@ import { ErrorCode, generateNotFoundError } from '../../../utils/generators/gene
  *                 data:
  *                   $ref: '#/components/schemas/User'
  */
-const getUser: RequestHandler = async (req, res, next) => {
+const getUser: RequestHandler = async (req, res) => {
   const { userId } = req.params
 
   const result = await UsersService.getUserByID(userId)
 
   if (!result) {
-    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
 
   // reduce return data

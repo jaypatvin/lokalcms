@@ -8,6 +8,8 @@ export enum ErrorCode {
   UserApiError = 'UserApiError',
   CommunityApiError = 'CommunityApiError',
   ShopApiError = 'ShopApiError',
+  ProductApiError = 'ProductApiError',
+  OrderApiError = 'OrderApiError',
 }
 
 type Props = {

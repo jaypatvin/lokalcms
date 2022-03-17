@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductsService } from '../../../service'
+import { generateError, ErrorCode } from '../../../utils/generators'
 import getScheduledAvailableItems from '../../../utils/getScheduledAvailableItems'
 import { dateFormat } from '../../../utils/helpers'
 
@@ -58,7 +59,7 @@ import { dateFormat } from '../../../utils/helpers'
  *                   items:
  *                     $ref: '#/components/schemas/Product'
  */
-const getAvailableProducts = async (req: Request, res: Response) => {
+const getAvailableProducts: RequestHandler = async (req, res) => {
   const {
     q = '',
     date = dayjs(new Date()).format('YYYY-MM-DD'),
@@ -68,13 +69,15 @@ const getAvailableProducts = async (req: Request, res: Response) => {
   }: any = req.query
 
   if (!community_id) {
-    return res.status(400).json({ status: 'error', message: 'community_id is required.' })
+    throw generateError(ErrorCode.ProductApiError, {
+      message: 'community_id is required',
+    })
   }
 
   if (!dateFormat.test(date)) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Incorrect date format. Please follow format YYYY-MM-DD.' })
+    throw generateError(ErrorCode.ProductApiError, {
+      message: 'Incorrect date format. Please follow format YYYY-MM-DD',
+    })
   }
 
   const initialWheres = []

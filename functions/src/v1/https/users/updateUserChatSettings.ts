@@ -45,22 +45,20 @@ import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/
  *               show_read_receipts:
  *                 type: boolean
  */
-const updateUserChatSettings: RequestHandler = async (req, res, next) => {
+const updateUserChatSettings: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const { show_read_receipts, source } = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== userId) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: 'User does not have a permission to update another user',
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to update another user',
+    })
   }
 
   const user = await UsersService.getUserByID(userId)
   if (!user) {
-    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
 
   const updateData: any = {

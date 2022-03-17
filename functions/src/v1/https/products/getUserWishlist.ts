@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductsService, WishlistsService } from '../../../service'
 
 /**
@@ -33,12 +33,8 @@ import { ProductsService, WishlistsService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/Product'
  */
-const getUserWishlist = async (req: Request, res: Response) => {
+const getUserWishlist: RequestHandler = async (req, res) => {
   const { userId } = req.params
-
-  if (!userId) {
-    return res.status(400).json({ status: 'error', message: 'userId is required!' })
-  }
 
   const wishlist = await WishlistsService.getWishlistsByUser(userId)
   const wishlistProducts = []

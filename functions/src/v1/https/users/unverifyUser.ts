@@ -48,24 +48,22 @@ import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/
  *                   type: string
  *                   example: ok
  */
-const unverifyUser: RequestHandler = async (req, res, next) => {
+const unverifyUser: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const { notes = '', source } = req.body
   const requestorDocId = res.locals.userDoc.id
   const roles = res.locals.userRoles
 
   if (!roles.admin) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: 'User does not have a permission to verify a user',
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to verify a user',
+    })
   }
 
   // check if user id is valid
   const existing_user = await UsersService.getUserByID(userId)
   if (!existing_user) {
-    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
 
   const updateData = {

@@ -80,22 +80,20 @@ import { CommunityUpdateData } from '../../../models/Community'
  *                   type: string
  *                   example: ok
  */
-export const updateCommunity: RequestHandler = async (req, res, next) => {
+export const updateCommunity: RequestHandler = async (req, res) => {
   const { communityId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor) {
-    return next(
-      generateError(ErrorCode.CommunityApiError, {
-        message: 'User does not have a permission to update a community',
-      })
-    )
+    throw generateError(ErrorCode.CommunityApiError, {
+      message: 'User does not have a permission to update a community',
+    })
   }
 
   const existing_community = await CommunityService.getCommunityByID(communityId)
   if (!existing_community) {
-    return next(generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId))
+    throw generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId)
   }
 
   if (data.name || data.subdivision || data.barangay || data.city || data.zip_code) {
@@ -108,11 +106,9 @@ export const updateCommunity: RequestHandler = async (req, res, next) => {
     })
 
     if (existing_communities.find((community) => community.id !== communityId)) {
-      return next(
-        generateError(ErrorCode.CommunityApiError, {
-          message: `Community "${data.name}" already exists with the same address`,
-        })
-      )
+      throw generateError(ErrorCode.CommunityApiError, {
+        message: `Community "${data.name}" already exists with the same address`,
+      })
     }
   }
 
@@ -126,13 +122,11 @@ export const updateCommunity: RequestHandler = async (req, res, next) => {
       if (user && user.community_id !== communityId) differentCommunityUsers.push(user_id)
     }
     if (notExistingUsers.length || differentCommunityUsers.length) {
-      return next(
-        generateError(ErrorCode.CommunityApiError, {
-          message: 'Invalid admin user ids',
-          not_existing_users: notExistingUsers,
-          different_community_users: differentCommunityUsers,
-        })
-      )
+      throw generateError(ErrorCode.CommunityApiError, {
+        message: 'Invalid admin user ids',
+        not_existing_users: notExistingUsers,
+        different_community_users: differentCommunityUsers,
+      })
     }
   }
 

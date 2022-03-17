@@ -1,8 +1,13 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isBoolean } from 'lodash'
 import { ProductUpdateData } from '../../../models/Product'
 import { NotificationsService, ProductsService } from '../../../service'
-import { generateProductKeywords } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateError,
+  generateNotFoundError,
+  generateProductKeywords,
+} from '../../../utils/generators'
 
 /**
  * @openapi
@@ -81,20 +86,20 @@ import { generateProductKeywords } from '../../../utils/generators'
  *                   type: string
  *                   example: ok
  */
-const updateProduct = async (req: Request, res: Response) => {
+const updateProduct: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const data = req.body
 
-  // check if product exists
   const product = await ProductsService.getProductByID(productId)
-  if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Product Id!' })
+  if (!product) {
+    throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
+  }
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== product.user_id) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to update a product of another user.',
+    throw generateError(ErrorCode.ProductApiError, {
+      message: 'User does not have a permission to update a product of another user',
     })
   }
 
@@ -113,7 +118,6 @@ const updateProduct = async (req: Request, res: Response) => {
 
   if (data.name) updateData.name = data.name
   if (data.description) updateData.description = data.description
-  // there might be a better way to write these nested ifs
   if (data.base_price >= 0) {
     updateData.base_price = data.base_price
   }
@@ -140,9 +144,6 @@ const updateProduct = async (req: Request, res: Response) => {
   if (data.product_category) updateData.product_category = data.product_category
   if (data.status) updateData.status = data.status
   if (isBoolean(data.can_subscribe)) updateData.can_subscribe = data.can_subscribe
-
-  if (!Object.keys(updateData).length)
-    return res.status(400).json({ status: 'error', message: 'no field for shop is provided' })
 
   const result = await ProductsService.updateProduct(productId, updateData)
 

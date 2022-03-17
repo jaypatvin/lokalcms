@@ -98,7 +98,7 @@ import { ShopUpdateData } from '../../../models/Shop'
  *                   type: string
  *                   example: ok
  */
-const updateShop: RequestHandler = async (req, res, next) => {
+const updateShop: RequestHandler = async (req, res) => {
   const { shopId } = req.params
   const data = req.body
   const {
@@ -114,25 +114,21 @@ const updateShop: RequestHandler = async (req, res, next) => {
 
   const currentShop = await ShopsService.getShopByID(shopId)
   if (!currentShop) {
-    return next(generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId))
+    throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== currentShop.user_id) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: 'User does not have a permission to update a shop of another user',
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'User does not have a permission to update a shop of another user',
+    })
   }
 
   if (payment_options && !(await isValidPaymentOptions(payment_options))) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: 'invalid payment_options',
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'invalid payment_options',
+    })
   }
 
   const updateData: ShopUpdateData = {

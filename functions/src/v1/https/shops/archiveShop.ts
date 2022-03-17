@@ -30,7 +30,7 @@ import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/
  *                   type: string
  *                   example: ok
  */
-const archiveShop: RequestHandler = async (req, res, next) => {
+const archiveShop: RequestHandler = async (req, res) => {
   const data = req.body
   const { shopId } = req.params
   const roles = res.locals.userRoles
@@ -38,15 +38,13 @@ const archiveShop: RequestHandler = async (req, res, next) => {
 
   const shop = await ShopsService.getShopByID(shopId)
   if (!shop) {
-    return next(generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId))
+    throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
 
   if (!roles.admin && requestorDocId !== shop.user_id) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: 'User does not have a permission to delete a shop of another user',
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'User does not have a permission to delete a shop of another user',
+    })
   }
 
   const requestData = {

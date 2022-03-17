@@ -50,17 +50,15 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *                   type: string
  *                   example: ok
  */
-const registerUser: RequestHandler = async (req, res, next) => {
+const registerUser: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const { id_type, id_photo, source } = req.body
   const requestorDocId = res.locals.userDoc.id
 
   if (requestorDocId !== userId) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: 'userId does not match from the requestor',
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'userId does not match from the requestor',
+    })
   }
 
   const updateData = {

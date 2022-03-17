@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductsService } from '../../../service'
 
 /**
@@ -33,12 +33,8 @@ import { ProductsService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/Product'
  */
-const getUserProducts = async (req: Request, res: Response) => {
-  const data = req.body
+const getUserProducts: RequestHandler = async (req, res) => {
   const { userId } = req.params
-
-  if (!userId)
-    return res.status(400).json({ status: 'error', message: 'userId is required!' })
 
   const products = await ProductsService.getProductsByUserId(userId)
 

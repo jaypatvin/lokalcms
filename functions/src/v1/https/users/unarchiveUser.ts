@@ -30,16 +30,14 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *                   type: string
  *                   example: ok
  */
-const unarchiveUser: RequestHandler = async (req, res, next) => {
+const unarchiveUser: RequestHandler = async (req, res) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.admin) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: 'User does not have a permission to unarchive',
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to unarchive',
+    })
   }
   const { userId } = req.params
 

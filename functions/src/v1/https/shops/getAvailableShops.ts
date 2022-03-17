@@ -53,23 +53,19 @@ import { dateFormat } from '../../../utils/helpers'
  *                   items:
  *                     $ref: '#/components/schemas/Shop'
  */
-const getAvailableShops: RequestHandler = async (req, res, next) => {
+const getAvailableShops: RequestHandler = async (req, res) => {
   const { q = '', date = dayjs(new Date()).format('YYYY-MM-DD'), community_id }: any = req.query
 
   if (!community_id) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: 'community_id is required',
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'community_id is required',
+    })
   }
 
   if (!dateFormat.test(date)) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: 'Incorrect date format. Please follow format YYYY-MM-DD',
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'Incorrect date format. Please follow format YYYY-MM-DD',
+    })
   }
 
   const initialWheres = []

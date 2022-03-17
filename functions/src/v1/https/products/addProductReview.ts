@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { OrdersService, ProductReviewsService } from '../../../service'
+import { generateError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -60,7 +61,7 @@ import { OrdersService, ProductReviewsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const addProductReview = async (req: Request, res: Response) => {
+const addProductReview: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const { message = '', order_id, rating } = req.body
   const requestorDocId = res.locals.userDoc.id
@@ -68,8 +69,7 @@ const addProductReview = async (req: Request, res: Response) => {
   const order = await OrdersService.getOrderByID(order_id)
 
   if (!order.product_ids.includes(productId)) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.ProductApiError, {
       message: `The product ${productId} is not included on the order ${order_id}`,
     })
   }
@@ -79,8 +79,7 @@ const addProductReview = async (req: Request, res: Response) => {
   if (existingReview.length) {
     const review = existingReview[0]
     if (review.user_id !== requestorDocId) {
-      return res.status(400).json({
-        status: 'error',
+      throw generateError(ErrorCode.ProductApiError, {
         message: 'The requestor id does not match the user id of the review.',
       })
     }

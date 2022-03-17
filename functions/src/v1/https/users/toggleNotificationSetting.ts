@@ -70,17 +70,15 @@ import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/
  *                 data:
  *                   $ref: '#/components/schemas/User'
  */
-const toggleNotificationSetting: RequestHandler = async (req, res, next) => {
+const toggleNotificationSetting: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== userId) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: 'User does not have a permission to update another user',
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to update another user',
+    })
   }
 
   const {
@@ -96,7 +94,7 @@ const toggleNotificationSetting: RequestHandler = async (req, res, next) => {
 
   const user = await UsersService.getUserByID(userId)
   if (!user) {
-    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
 
   const updateData: UserUpdateData = {

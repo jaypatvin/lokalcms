@@ -1,8 +1,9 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { OrderUpdateData } from '../../../models/Order'
 import { NotificationsService, OrdersService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -81,25 +82,16 @@ import { NotificationsService, OrdersService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const pay = async (req: Request, res: Response) => {
+const pay: RequestHandler = async (req, res) => {
   const data = req.body
   const { buyer_id, payment_method, proof_of_payment } = data
   const { orderId } = req.params
   const roles = res.locals.userRoles
   let requestorDocId = res.locals.userDoc.id || buyer_id
 
-  if (!payment_method) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'payment_method is required. "cod" | "bank" | "e-wallet"' })
-  }
-
   const order = await OrdersService.getOrderByID(orderId)
-
   if (!order) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
+    throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
   }
 
   const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
@@ -108,8 +100,7 @@ const pay = async (req: Request, res: Response) => {
     statusCode >= ORDER_STATUS.PENDING_CONFIRM_PAYMENT ||
     statusCode < ORDER_STATUS.PENDING_PAYMENT
   ) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.OrderApiError, {
       message: 'Cannot proceed with payment due to the current order status',
     })
   }
@@ -119,8 +110,7 @@ const pay = async (req: Request, res: Response) => {
   }
 
   if (!roles.admin && order.buyer_id !== requestorDocId) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.OrderApiError, {
       message: `User with id ${requestorDocId} is not the buyer from the order with id ${orderId}`,
     })
   }

@@ -12,6 +12,7 @@ const errorResponder: ErrorRequestHandler = async (err, req, res, next) => {
     case ErrorCode.UserApiError:
     case ErrorCode.CommunityApiError:
     case ErrorCode.ShopApiError:
+    case ErrorCode.ProductApiError:
       res.status(400).json(err)
       break
     default:

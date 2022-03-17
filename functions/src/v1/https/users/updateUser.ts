@@ -89,24 +89,20 @@ import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/
  *                   type: string
  *                   example: ok
  */
-const updateUser: RequestHandler = async (req, res, next) => {
+const updateUser: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== userId) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: 'User does not have a permission to updated another user',
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to updated another user',
+    })
   }
   if (!roles.admin && data.hasOwnProperty('is_admin')) {
-    return next(
-      generateError(ErrorCode.UserApiError, {
-        message: 'User does not have a permission to set the admin value of any user',
-      })
-    )
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to set the admin value of any user',
+    })
   }
 
   let newCommunity
@@ -116,14 +112,14 @@ const updateUser: RequestHandler = async (req, res, next) => {
   // check if user id is valid
   const existingUser = await UsersService.getUserByID(userId)
   if (!existingUser) {
-    return next(generateNotFoundError(ErrorCode.UserApiError, 'User', userId))
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
 
   // check if community id is valid
   if (data.community_id) {
     newCommunity = await CommunityService.getCommunityByID(data.community_id)
     if (!newCommunity) {
-      return next(generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id))
+      throw generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id)
     }
   }
 

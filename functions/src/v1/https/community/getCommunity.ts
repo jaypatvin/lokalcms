@@ -32,12 +32,12 @@ import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
  *                 data:
  *                   $ref: '#/components/schemas/Community'
  */
-const getCommunity: RequestHandler = async (req, res, next) => {
+const getCommunity: RequestHandler = async (req, res) => {
   const { communityId } = req.params
 
   const result = await CommunityService.getCommunityByID(communityId)
   if (!result) {
-    return next(generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId))
+    throw generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId)
   }
 
   // reduce return data

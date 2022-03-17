@@ -32,13 +32,13 @@ import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
  *                 data:
  *                   $ref: '#/components/schemas/Shop'
  */
-const getShop: RequestHandler = async (req, res, next) => {
+const getShop: RequestHandler = async (req, res) => {
   const { shopId } = req.params
 
   const shop = await ShopsService.getShopByID(shopId)
 
   if (!shop) {
-    return next(generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId))
+    throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
 
   const products = await ProductsService.getProductsByShopID(shopId)

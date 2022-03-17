@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductsService, ShopsService } from '../../../service'
+import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -31,12 +32,14 @@ import { ProductsService, ShopsService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Product'
  */
-const getProductAvailability = async (req: Request, res: Response) => {
+const getProductAvailability: RequestHandler = async (req, res) => {
   const { productId } = req.params
 
   // check if product exists
   const product = await ProductsService.getProductByID(productId)
-  if (!product) return res.status(404).json({ status: 'error', message: 'Product does not exist!' })
+  if (!product) {
+    throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
+  }
 
   let availability = product.availability
   if (!availability) {

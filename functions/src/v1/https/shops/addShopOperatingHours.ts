@@ -153,23 +153,21 @@ import {
  *                   type: string
  *                   example: ok
  */
-const addShopOperatingHours: RequestHandler = async (req, res, next) => {
+const addShopOperatingHours: RequestHandler = async (req, res) => {
   const { shopId } = req.params
   const data = req.body
 
   const shop = await ShopsService.getShopByID(shopId)
   if (!shop) {
-    return next(generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId))
+    throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== shop.user_id) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: 'User does not have a permission to update a shop of another user',
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'User does not have a permission to update a shop of another user',
+    })
   }
 
   const updateData: ShopUpdateData = {

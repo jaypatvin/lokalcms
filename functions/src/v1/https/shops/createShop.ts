@@ -139,7 +139,7 @@ import { isValidPaymentOptions } from '../../../utils/validations'
  *                 data:
  *                   $ref: '#/components/schemas/Shop'
  */
-const createShop: RequestHandler = async (req, res, next) => {
+const createShop: RequestHandler = async (req, res) => {
   const data = req.body
   const {
     user_id,
@@ -156,33 +156,27 @@ const createShop: RequestHandler = async (req, res, next) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== user_id) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: 'User does not have a permission to create a shop for another user',
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'User does not have a permission to create a shop for another user',
+    })
   }
 
   if (payment_options && !(await isValidPaymentOptions(payment_options))) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: 'Invalid payment_options',
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'Invalid payment_options',
+    })
   }
 
   const userId = user_id ?? requestorDocId
 
   const user = await UsersService.getUserByID(userId)
   if (!user) {
-    return next(generateNotFoundError(ErrorCode.ShopApiError, 'User', userId))
+    throw generateNotFoundError(ErrorCode.ShopApiError, 'User', userId)
   }
   if (user.archived) {
-    return next(
-      generateError(ErrorCode.ShopApiError, {
-        message: `User with id ${userId} is currently archived`,
-      })
-    )
+    throw generateError(ErrorCode.ShopApiError, {
+      message: `User with id ${userId} is currently archived`,
+    })
   }
 
   const keywords = generateShopKeywords({ name })
