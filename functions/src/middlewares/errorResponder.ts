@@ -9,10 +9,17 @@ const errorResponder: ErrorRequestHandler = async (err, req, res, next) => {
       res.status(403).json(err)
       break
     case ErrorCode.ValidationError:
+    case ErrorCode.AuthenticationApiError:
     case ErrorCode.UserApiError:
     case ErrorCode.CommunityApiError:
     case ErrorCode.ShopApiError:
     case ErrorCode.ProductApiError:
+    case ErrorCode.OrderApiError:
+    case ErrorCode.ActivityApiError:
+    case ErrorCode.ApplicationLogApiError:
+    case ErrorCode.CategoryApiError:
+    case ErrorCode.ChatApiError:
+    case ErrorCode.CommentApiError:
       res.status(400).json(err)
       break
     default:

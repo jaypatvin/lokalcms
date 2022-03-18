@@ -1,6 +1,7 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivityCreateData } from '../../../models/Activity'
 import { UsersService, ActivitiesService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 /**
  * @openapi
  * /v1/activities:
@@ -80,20 +81,21 @@ import { UsersService, ActivitiesService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/activity'
  */
-const createActivity = async (req: Request, res: Response) => {
+const createActivity: RequestHandler = async (req, res) => {
   const { user_id, images, message = '', status = 'enabled', source = '' } = req.body
   const requestorDocId = res.locals.userDoc.id || ''
 
   const user = await UsersService.getUserByID(user_id)
-  if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  if (!user) {
+    throw generateNotFoundError(ErrorCode.ActivityApiError, 'User', user_id)
+  }
   if (user.archived) {
-    return res.status(406).json({
-      status: 'error',
-      message: `User with id ${user_id} is currently archived!`,
+    throw generateError(ErrorCode.ActivityApiError, {
+      message: `User with id ${user_id} is currently archived`,
     })
   }
 
-  const _activityData: ActivityCreateData = {
+  const activityData: ActivityCreateData = {
     message,
     user_id,
     community_id: user.community_id,
@@ -103,8 +105,8 @@ const createActivity = async (req: Request, res: Response) => {
     updated_from: source,
   }
 
-  if (images) _activityData.images = images
-  const result = await ActivitiesService.createActivity(_activityData)
+  if (images) activityData.images = images
+  const result = await ActivitiesService.createActivity(activityData)
 
   return res.status(200).json({ status: 'ok', data: result })
 }

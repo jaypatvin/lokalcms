@@ -1,6 +1,7 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivityUpdateData } from '../../../models/Activity'
 import { UsersService, CommunityService, ActivitiesService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -48,47 +49,31 @@ import { UsersService, CommunityService, ActivitiesService } from '../../../serv
  *                   type: string
  *                   example: ok
  */
-const updateActivity = async (req: Request, res: Response) => {
+const updateActivity: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const { user_id, message, source = '', status } = req.body
   const requestorDocId = res.locals.userDoc.id
+  const requestorDoc = res.locals.userDoc
 
   const activity = await ActivitiesService.getActivityById(activityId)
   if (!activity) {
-    return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+    throw generateNotFoundError(ErrorCode.ActivityApiError, 'Acitivity', activityId)
   }
   if (activity.archived) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Activity with id ${activityId} is currently archived!`,
+    throw generateError(ErrorCode.ActivityApiError, {
+      message: `Activity with id ${activityId} is currently archived`,
     })
   }
 
-  const user = await UsersService.getUserByID(requestorDocId)
-  if (!user) {
-    return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-  }
-  if (user.archived)
-    return res.status(400).json({
-      status: 'error',
-      message: `User with id ${user_id} is currently archived!`,
-    })
-
-  const community = await CommunityService.getCommunityByID(user.community_id)
-  if (!community) {
-    return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
-  }
-  if (community.archived) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Community ${community.name} is currently archived`,
+  if (requestorDoc.archived) {
+    throw generateError(ErrorCode.ActivityApiError, {
+      message: `User with id ${user_id} is currently archived`,
     })
   }
 
   if (requestorDocId !== activity.user_id) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to edit the activity.',
+    throw generateError(ErrorCode.ActivityApiError, {
+      message: 'User does not have a permission to update an activity of another user',
     })
   }
 

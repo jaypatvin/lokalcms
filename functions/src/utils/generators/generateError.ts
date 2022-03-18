@@ -5,11 +5,17 @@ export enum ErrorCode {
   UnknownError = 'UnknownError',
   UnauthorizedError = 'UnauthorizedError',
   ValidationError = 'ValidationError',
+  AuthenticationApiError = 'AuthenticationApiError',
   UserApiError = 'UserApiError',
   CommunityApiError = 'CommunityApiError',
   ShopApiError = 'ShopApiError',
   ProductApiError = 'ProductApiError',
   OrderApiError = 'OrderApiError',
+  ActivityApiError = 'ActivityApiError',
+  ApplicationLogApiError = 'ApplicationLogApiError',
+  CategoryApiError = 'CategoryApiError',
+  ChatApiError = 'ChatApiError',
+  CommentApiError = 'CommentApiError',
 }
 
 type Props = {

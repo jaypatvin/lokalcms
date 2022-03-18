@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivitiesService } from '../../../service'
 
 /**
@@ -33,13 +33,12 @@ import { ActivitiesService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/Activity'
  */
-const getUserActivities = async (req: Request, res: Response) => {
+const getUserActivities: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  if (!userId) return res.status(400).json({ status: 'error', message: 'userId is required!' })
-
   const activities = await ActivitiesService.getActivitiesByUserID(userId, requestorDocId)
+
   return res.status(200).json({ status: 'ok', data: activities })
 }
 

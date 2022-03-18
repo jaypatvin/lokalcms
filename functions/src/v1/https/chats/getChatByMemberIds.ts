@@ -1,6 +1,7 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { includes } from 'lodash'
 import { ChatsService, ProductsService, ShopsService } from '../../../service'
+import { generateError, ErrorCode, generateNotFoundError } from '../../../utils/generators'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 
 /**
@@ -44,24 +45,25 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *                 data:
  *                   $ref: '#/components/schemas/Chat'
  */
-const getChatByMemberIds = async (req: Request, res: Response) => {
+const getChatByMemberIds: RequestHandler = async (req, res) => {
   const { memberIds } = req.query
   let requestorDocId = res.locals.userDoc.id
-  let chat
   let shop
   let product
 
   if (!memberIds || !memberIds.length) {
-    return res.status(400).json({ status: 'error', message: 'memberIds is required.' })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'memberIds is required',
+    })
   }
 
   const hashId = hashArrayOfStrings(memberIds as string[])
-  chat = await ChatsService.getGroupChatByHash(hashId)
+  let chat = await ChatsService.getGroupChatByHash(hashId)
   if (!chat) chat = await ChatsService.getChatById(hashId)
   if (!chat) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `chat for members ${memberIds} does not exist.` })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: `chat for members ${memberIds} does not exist`,
+    })
   }
 
   const chatMembers = [...chat.members]
@@ -69,9 +71,7 @@ const getChatByMemberIds = async (req: Request, res: Response) => {
   if (chat.shop_id) {
     shop = await ShopsService.getShopByID(chat.shop_id)
     if (!shop) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `shop with id ${chat.shop_id} does not exist` })
+      throw generateNotFoundError(ErrorCode.ChatApiError, 'Shop', chat.shop_id)
     }
     chatMembers.push(shop.user_id)
   }
@@ -79,20 +79,15 @@ const getChatByMemberIds = async (req: Request, res: Response) => {
   if (chat.product_id) {
     product = await ProductsService.getProductByID(chat.product_id)
     if (!product) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `product with id ${chat.product_id} does not exist` })
+      throw generateNotFoundError(ErrorCode.ChatApiError, 'Product', chat.product_id)
     }
     chatMembers.push(product.user_id)
   }
 
   if (!includes(chatMembers, requestorDocId)) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: `The requestor with document id ${requestorDocId} is not a member of the chat.`,
-      })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'The requestor is not a member of the chat',
+    })
   }
 
   return res.json({ status: 'ok', data: chat })

@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivitiesService } from '../../../service'
+import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -31,12 +32,14 @@ import { ActivitiesService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Activity'
  */
-const getActivity = async (req: Request, res: Response) => {
+const getActivity: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
   const activity = await ActivitiesService.getActivityById(activityId, requestorDocId)
-  if (!activity) return res.status(404).json({ status: 'error', message: 'Post does not exist!' })
+  if (!activity) {
+    throw generateNotFoundError(ErrorCode.ActivityApiError, 'Activity', activityId)
+  }
 
   return res.status(200).json({ status: 'ok', data: activity })
 }

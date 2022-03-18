@@ -1,6 +1,7 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService, ActivitiesService, CommentsService } from '../../../service'
 import { CommentCreateData } from '../../../models/Comment'
+import { generateError, ErrorCode, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -86,31 +87,28 @@ import { CommentCreateData } from '../../../models/Comment'
  *                   type: string
  *                   example: ok
  */
-const createComment = async (req: Request, res: Response) => {
+const createComment: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const data = req.body
 
-  try {
-    const activity = await ActivitiesService.getActivityById(activityId)
-    if (activity.archived)
-      return res.status(400).json({
-        status: 'error',
-        message: `Activity with id ${activityId} is currently archived!`,
-      })
-  } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+  const activity = await ActivitiesService.getActivityById(activityId)
+  if (!activity) {
+    throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
+  }
+  if (activity.archived) {
+    throw generateError(ErrorCode.CommentApiError, {
+      message: `Activity with id ${activityId} is currently archived`,
+    })
   }
 
-  // get user and validate
-  try {
-    const user = await UsersService.getUserByID(data.user_id)
-    if (user.archived)
-      return res.status(400).json({
-        status: 'error',
-        message: `User with id ${data.user_id} is currently archived!`,
-      })
-  } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  const user = await UsersService.getUserByID(data.user_id)
+  if (!user) {
+    throw generateNotFoundError(ErrorCode.CommentApiError, 'User', data.user_id)
+  }
+  if (user.archived) {
+    throw generateError(ErrorCode.CommentApiError, {
+      message: `User with id ${data.user_id} is currently archived`,
+    })
   }
 
   const commentData: CommentCreateData = {

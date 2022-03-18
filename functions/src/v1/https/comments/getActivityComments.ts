@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivitiesService, CommentsService } from '../../../service'
+import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -31,12 +32,14 @@ import { ActivitiesService, CommentsService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Activities/Comments'
  */
-const getActivityComments = async (req: Request, res: Response) => {
+const getActivityComments: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
   const activity = await ActivitiesService.getActivityById(activityId)
-  if (!activity) return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+  if (!activity) {
+    throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
+  }
 
   const comments = await CommentsService.getActivityComments(activityId, requestorDocId)
 

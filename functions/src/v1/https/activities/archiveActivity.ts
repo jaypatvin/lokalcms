@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivitiesService, CommentsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -29,20 +30,20 @@ import { ActivitiesService, CommentsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const archiveActivity = async (req: Request, res: Response) => {
+const archiveActivity: RequestHandler = async (req, res) => {
   const data = req.body
   const { activityId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  const _activity = await ActivitiesService.getActivityById(activityId)
 
-  if (!_activity)
-    return res.status(403).json({ status: 'error', message: 'Activity does not exist!' })
+  const activity = await ActivitiesService.getActivityById(activityId)
+  if (!activity) {
+    throw generateNotFoundError(ErrorCode.ActivityApiError, 'Acitivity', activityId)
+  }
 
-  if (!roles.admin && requestorDocId !== _activity.user_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
+  if (!roles.admin && requestorDocId !== activity.user_id) {
+    throw generateError(ErrorCode.ActivityApiError, {
+      message: 'User does not have a permission to delete an activity of another user',
     })
   }
 

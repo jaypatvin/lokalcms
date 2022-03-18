@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivitiesService, CommentsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -35,21 +36,24 @@ import { ActivitiesService, CommentsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const archiveComment = async (req: Request, res: Response) => {
+const archiveComment: RequestHandler = async (req, res) => {
   const { activityId, commentId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
   const activity = await ActivitiesService.getActivityById(activityId)
-  if (!activity) return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+  if (!activity) {
+    throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
+  }
 
   const comment = await CommentsService.getCommentById(activityId, commentId)
-  if(!comment) return res.status(400).json({ status: 'error', message: 'Invalid Comment ID!' })
+  if (!comment) {
+    throw generateNotFoundError(ErrorCode.CommentApiError, 'Comment', commentId)
+  }
 
   if (!roles.admin && requestorDocId !== comment.user_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
+    throw generateError(ErrorCode.CommentApiError, {
+      message: 'User does not have a permission to delete a comment of another user',
     })
   }
 

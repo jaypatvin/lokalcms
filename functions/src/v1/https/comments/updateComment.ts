@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService, ActivitiesService, CommentsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -54,39 +55,37 @@ import { UsersService, ActivitiesService, CommentsService } from '../../../servi
  *                 data:
  *                   $ref: '#/components/schemas/Activity/Comment'
  */
-const updateComment = async (req: Request, res: Response) => {
+const updateComment: RequestHandler = async (req, res) => {
   const { activityId, commentId } = req.params
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
+  const requestorDoc = res.locals.userDoc
 
   const activity = await ActivitiesService.getActivityById(activityId)
+  if (!activity) {
+    throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
+  }
 
-  if (!activity) return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
-
-  if (activity.archived)
-    return res.status(400).json({
-      status: 'error',
-      message: `Activity with id ${activityId} is currently archived!`,
+  if (activity.archived) {
+    throw generateError(ErrorCode.CommentApiError, {
+      message: `Activity with id ${activityId} is currently archived`,
     })
+  }
 
   const comment = await CommentsService.getCommentById(activityId, commentId)
+  if (!comment) {
+    throw generateNotFoundError(ErrorCode.CommentApiError, 'Comment', commentId)
+  }
 
-  if (!comment) return res.status(400).json({ status: 'error', message: 'Invalid Comment ID!' })
-
-  // get user and validate
-  const user = await UsersService.getUserByID(requestorDocId)
-  if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
-  // this should not happen, comment should also be archived
-  if (user.archived)
-    return res.status(406).json({
-      status: 'error',
-      message: `User with id ${user.id} is currently archived!`,
+  if (requestorDoc.archived) {
+    throw generateError(ErrorCode.CommentApiError, {
+      message: `User with id ${requestorDocId} is currently archived`,
     })
+  }
 
   if (requestorDocId !== comment.user_id) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to edit the comment.',
+    throw generateError(ErrorCode.CommentApiError, {
+      message: 'User does not have a permission to edit a comment of another user',
     })
   }
 

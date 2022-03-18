@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { firestore } from 'firebase-admin'
 import {
   UsersService,
@@ -10,6 +10,7 @@ import {
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 import { ChatCreateData } from '../../../models/Chat'
 import { ConversationCreateData } from '../../../models/Conversation'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -151,7 +152,7 @@ import { ConversationCreateData } from '../../../models/Conversation'
  *                 data:
  *                   $ref: '#/components/schemas/Chat'
  */
-const createChat = async (req: Request, res: Response) => {
+const createChat: RequestHandler = async (req, res) => {
   const data = req.body
   const { user_id, members, title, shop_id, product_id, message, media } = data
   let requestorDocId = res.locals.userDoc.id
@@ -167,40 +168,36 @@ const createChat = async (req: Request, res: Response) => {
     if (user_id) {
       const user = await UsersService.getUserByID(user_id)
       if (!user) {
-        return res
-          .status(400)
-          .json({ status: 'error', message: `User with user_id ${user_id} does not exist` })
+        throw generateNotFoundError(ErrorCode.ChatApiError, 'User', user_id)
       }
       requestorDocId = user.id
       requestorName = user.display_name
       requestorCommunityId = user.community_id
     } else {
-      return res.status(400).json({ status: 'error', message: 'Sender information is missing' })
+      throw generateError(ErrorCode.ChatApiError, {
+        message: 'Sender information is missing',
+      })
     }
   }
 
   if (shop_id) {
     shop = await ShopsService.getShopByID(shop_id)
     if (!shop) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `shop with id ${shop_id} does not exist` })
+      throw generateNotFoundError(ErrorCode.ChatApiError, 'Shop', shop_id)
     }
   }
 
   if (product_id) {
     product = await ProductsService.getProductByID(product_id)
     if (!product) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `product with id ${product_id} does not exist` })
+      throw generateNotFoundError(ErrorCode.ChatApiError, 'Product', product_id)
     }
   }
 
   if (!members.includes(requestorDocId) && (!shop || shop.user_id !== requestorDocId)) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'The requestor is not a member of the chat' })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'The requestor is not a member of the chat',
+    })
   }
 
   const last_message: any = {}
@@ -249,9 +246,7 @@ const createChat = async (req: Request, res: Response) => {
       for (let i = 0; i < members.length; i++) {
         const user = await UsersService.getUserByID(members[i])
         if (!user) {
-          return res
-            .status(400)
-            .json({ status: 'error', message: `User with id ${members[i]} is not found` })
+          throw generateNotFoundError(ErrorCode.ChatApiError, 'User', members[i])
         }
         member_names.push(user.display_name)
       }
@@ -277,7 +272,9 @@ const createChat = async (req: Request, res: Response) => {
       chatId = hashId
     }
   } else {
-    return res.status(400).json({ status: 'error', message: 'The chat is already existing.' })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'The chat already exists',
+    })
   }
 
   const chatMessage: ConversationCreateData = {
