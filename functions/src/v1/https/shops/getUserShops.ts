@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ShopsService } from '../../../service'
 
 /**
@@ -33,11 +33,8 @@ import { ShopsService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/Shop'
  */
-const getUserShops = async (req: Request, res: Response) => {
+const getUserShops: RequestHandler = async (req, res) => {
   const { userId } = req.params
-
-  if (!userId)
-    return res.status(400).json({ status: 'error', message: 'userId is required!' })
 
   const shops = await ShopsService.getShopsByUserID(userId)
 

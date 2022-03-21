@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { CategoriesService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -29,22 +30,21 @@ import { CategoriesService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const archiveCategory = async (req: Request, res: Response) => {
+const archiveCategory: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
   const roles = res.locals.userRoles
   if (!roles.admin) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
+    throw generateError(ErrorCode.CategoryApiError, {
+      message: 'User does not have a permission to delete a category',
     })
   }
 
   const { categoryId } = req.params
-  const _category = await CategoriesService.getCategoryById(categoryId)
-
-  if (!_category)
-    return res.status(403).json({ status: 'error', message: 'Category does not exist!' })
+  const category = await CategoriesService.getCategoryById(categoryId)
+  if (!category) {
+    throw generateNotFoundError(ErrorCode.CategoryApiError, 'Category', categoryId)
+  }
 
   const requestData = {
     updated_by: requestorDocId,

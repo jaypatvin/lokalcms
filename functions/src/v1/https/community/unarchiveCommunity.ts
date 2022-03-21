@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { CommunityService } from '../../../service'
+import { generateError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -29,32 +30,27 @@ import { CommunityService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const unarchiveCommunity = async (req: Request, res: Response) => {
+const unarchiveCommunity: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
   const roles = res.locals.userRoles
   if (!roles.admin) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to unarchive.',
+    throw generateError(ErrorCode.CommunityApiError, {
+      message: 'User does not have a permission to unarchive a community',
     })
   }
   const { communityId } = req.params
-  if (!communityId)
-    return res.status(400).json({ status: 'error', message: 'Community ID is required!' })
 
   const requestData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }
 
-  let result: any = ''
-  result = await CommunityService.unarchiveCommunity(communityId, requestData)
+  const result = await CommunityService.unarchiveCommunity(communityId, requestData)
 
   return res.json({
     status: 'ok',
     data: result,
-    message: `Community ${communityId} successfully unarchived.`,
   })
 }
 

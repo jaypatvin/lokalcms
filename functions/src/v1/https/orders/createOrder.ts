@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { OrderCreateData } from '../../../models/Order'
 import {
   NotificationsService,
@@ -7,6 +7,7 @@ import {
   ShopsService,
   UsersService,
 } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -123,7 +124,7 @@ import {
  *                 data:
  *                   $ref: '#/components/schemas/Order'
  */
-const createOrder = async (req: Request, res: Response) => {
+const createOrder: RequestHandler = async (req, res) => {
   const data = req.body
   const roles = res.locals.userRoles
   const { products, buyer_id, shop_id, delivery_option, delivery_date, instruction = '' } = data
@@ -133,18 +134,14 @@ const createOrder = async (req: Request, res: Response) => {
   if (roles.admin && buyer_id) {
     buyer = await UsersService.getUserByID(buyer_id)
     if (!buyer) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `User with id ${buyer_id} does not exist.` })
+      throw generateNotFoundError(ErrorCode.OrderApiError, 'User', buyer_id)
     }
     requestorDocId = buyer_id
   }
 
   const shop = await ShopsService.getShopByID(shop_id)
   if (!shop) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Shop with id ${shop_id} does not exist.` })
+    throw generateNotFoundError(ErrorCode.OrderApiError, 'Shop', shop_id)
   }
 
   const orderProducts = []
@@ -152,23 +149,15 @@ const createOrder = async (req: Request, res: Response) => {
     const { id, quantity, instruction = '' } = rawOrderProduct
     const product = await ProductsService.getProductByID(id)
     if (!product) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `Product with id ${id} does not exist.` })
+      throw generateNotFoundError(ErrorCode.OrderApiError, 'Product', id)
     }
     if (product.shop_id !== shop_id) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `Product ${product.name} is not on shop ${shop.name}` })
-    }
-    if (!isFinite(quantity) || quantity <= 0) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `Quantity of ${product.name} is not valid` })
+      throw generateError(ErrorCode.OrderApiError, {
+        message: `Product ${product.name} is not on shop ${shop.name}`,
+      })
     }
     if (product.quantity - quantity < 0) {
-      return res.status(400).json({
-        status: 'error',
+      throw generateError(ErrorCode.OrderApiError, {
         message: `Product "${product.name}" only has ${product.quantity} left.`,
       })
     }

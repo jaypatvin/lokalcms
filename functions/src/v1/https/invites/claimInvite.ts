@@ -1,5 +1,6 @@
+import { RequestHandler } from 'express'
 import { InvitesService, UsersService } from '../../../service'
-import { Request, Response } from 'express'
+import { generateError, ErrorCode, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -45,27 +46,32 @@ import { Request, Response } from 'express'
  *                   type: string
  *                   example: Invite code is now claimed by User!
  */
-const claimInvite = async (req: Request, res: Response) => {
+const claimInvite: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
-  const invite = await InvitesService.getInviteByCode(data.code)
 
+  const invite = await InvitesService.getInviteByCode(data.code)
   if (!invite) {
-    return res.status(400).json({ status: 'error', message: 'Invalid Invite Code!' })
+    throw generateError(ErrorCode.ActivityApiError, {
+      message: `Invite with code "${data.code} was not found"`,
+    })
   }
 
   if (invite.expire_by && Date.now() > invite.expire_by) {
-    return res.status(400).json({ status: 'error', message: 'The invite has expired.' })
+    throw generateError(ErrorCode.ActivityApiError, {
+      message: `Invite for "${invite.invitee_email}" has expired`,
+    })
   }
 
   const user = await UsersService.getUserByID(data.user_id)
-
   if (!user) {
-    return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+    throw generateNotFoundError(ErrorCode.InviteApiError, 'User', data.user_id)
   }
 
   if (user.email !== invite.invitee_email) {
-    return res.status(400).json({ status: 'error', message: 'Invitee email is different.' })
+    throw generateError(ErrorCode.ActivityApiError, {
+      message: 'Invitee email does not match with the requestor',
+    })
   }
 
   // update and claim the invite to the user
@@ -76,10 +82,7 @@ const claimInvite = async (req: Request, res: Response) => {
     updated_from: data.source || '',
   })
 
-  return res.json({
-    status: 'ok',
-    message: 'Invite code is now claimed by ' + user.email + '!',
-  })
+  return res.json({ status: 'ok' })
 }
 
 export default claimInvite

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ShopsService } from '../../../service'
+import { generateError, ErrorCode } from '../../../utils/generators'
 import getScheduledAvailableItems from '../../../utils/getScheduledAvailableItems'
 import { dateFormat } from '../../../utils/helpers'
 
@@ -52,16 +53,20 @@ import { dateFormat } from '../../../utils/helpers'
  *                   items:
  *                     $ref: '#/components/schemas/Shop'
  */
-const getAvailableShops = async (req: Request, res: Response) => {
+const getAvailableShops: RequestHandler = async (req, res) => {
   const { q = '', date = dayjs(new Date()).format('YYYY-MM-DD'), community_id }: any = req.query
 
-  if (!community_id)
-    return res.status(400).json({ status: 'error', message: 'community_id is required.' })
+  if (!community_id) {
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'community_id is required',
+    })
+  }
 
-  if (!dateFormat.test(date))
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Incorrect date format. Please follow format YYYY-MM-DD.' })
+  if (!dateFormat.test(date)) {
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'Incorrect date format. Please follow format YYYY-MM-DD',
+    })
+  }
 
   const initialWheres = []
   if (q) initialWheres.push(['keywords', 'array-contains', q])

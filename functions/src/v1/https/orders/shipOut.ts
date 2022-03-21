@@ -1,7 +1,8 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { NotificationsService, OrdersService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -52,7 +53,7 @@ import { NotificationsService, OrdersService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const shipOut = async (req: Request, res: Response) => {
+const shipOut: RequestHandler = async (req, res) => {
   const data = req.body
   const { seller_id } = data
   const { orderId } = req.params
@@ -60,18 +61,14 @@ const shipOut = async (req: Request, res: Response) => {
   let requestorDocId = res.locals.userDoc.id || seller_id
 
   const order = await OrdersService.getOrderByID(orderId)
-
   if (!order) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
+    throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
   }
 
   const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
 
   if (statusCode >= ORDER_STATUS.PENDING_RECEIPT || statusCode < ORDER_STATUS.PENDING_SHIPMENT) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.OrderApiError, {
       message: 'Cannot proceed to shipment due to the current order status',
     })
   }
@@ -80,11 +77,11 @@ const shipOut = async (req: Request, res: Response) => {
     requestorDocId = seller_id
   }
 
-  if (!roles.admin && order.seller_id !== requestorDocId)
-    return res.status(400).json({
-      status: 'error',
+  if (!roles.admin && order.seller_id !== requestorDocId) {
+    throw generateError(ErrorCode.OrderApiError, {
       message: `User with id ${requestorDocId} is not the seller from the order with id ${orderId}`,
     })
+  }
 
   const updateData = {
     updated_by: requestorDocId,

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivitiesService } from '../../../service'
 
 /**
@@ -26,7 +26,7 @@ import { ActivitiesService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/Activity'
  */
-const getActivities = async (req: Request, res: Response) => {
+const getActivities: RequestHandler = async (req, res) => {
   const requestorDocId = res.locals.userDoc.id
   const activities = await ActivitiesService.getAllActivities(requestorDocId)
 

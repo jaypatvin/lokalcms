@@ -1,9 +1,10 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
 import { auth } from '../index'
 import { UserCreateData } from '../../../models/User'
 import db from '../../../utils/db'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -83,7 +84,7 @@ import db from '../../../utils/db'
  *                 data:
  *                   $ref: '#/components/schemas/User'
  */
-const createUser = async (req: Request, res: Response) => {
+const createUser: RequestHandler = async (req, res) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
@@ -94,33 +95,35 @@ const createUser = async (req: Request, res: Response) => {
   try {
     authUser = await auth.getUserByEmail(data.email)
   } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Email not found' })
+    throw generateError(ErrorCode.UserApiError, {
+      message: `Auth user with email "${data.email}" does not exist`,
+    })
   }
 
   if (authUser.uid !== tokenUser.uid) {
-    if (!roles.editor)
-      return res
-        .status(400)
-        .json({ status: 'error', message: 'You do not have a permission to create a user' })
+    if (!roles.editor) {
+      throw generateError(ErrorCode.UserApiError, {
+        message: 'User does not have a permission to create another user',
+      })
+    }
     if (!roles.admin && data.is_admin) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'You do not have a permission to create an admin user',
+      throw generateError(ErrorCode.UserApiError, {
+        message: 'User do not have a permission to create an admin user',
       })
     }
   }
 
   const community = await CommunityService.getCommunityByID(data.community_id)
   if (!community) {
-    return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
+    throw generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id)
   }
 
   const existingUsers = await UsersService.getUserByUID(authUser.uid)
 
   if (existingUsers.length > 0) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'User "' + authUser.email + '" already exist!' })
+    throw generateError(ErrorCode.UserApiError, {
+      message: `User with email "${authUser.email}" already exists`,
+    })
   }
 
   const keywords = generateUserKeywords({

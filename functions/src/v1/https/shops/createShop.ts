@@ -1,6 +1,12 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { BankCodesService, ShopsService, UsersService } from '../../../service'
-import { generateShopKeywords, generateSchedule } from '../../../utils/generators'
+import {
+  generateShopKeywords,
+  generateSchedule,
+  generateError,
+  ErrorCode,
+  generateNotFoundError,
+} from '../../../utils/generators'
 import { ShopCreateData } from '../../../models/Shop'
 import { isValidPaymentOptions } from '../../../utils/validations'
 
@@ -133,7 +139,7 @@ import { isValidPaymentOptions } from '../../../utils/validations'
  *                 data:
  *                   $ref: '#/components/schemas/Shop'
  */
-const createShop = async (req: Request, res: Response) => {
+const createShop: RequestHandler = async (req, res) => {
   const data = req.body
   const {
     user_id,
@@ -150,22 +156,26 @@ const createShop = async (req: Request, res: Response) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== user_id) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to create a shop for another user.',
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'User does not have a permission to create a shop for another user',
     })
   }
 
   if (payment_options && !(await isValidPaymentOptions(payment_options))) {
-    return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'Invalid payment_options',
+    })
   }
 
-  const user = await UsersService.getUserByID(user_id ?? requestorDocId)
-  if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  const userId = user_id ?? requestorDocId
+
+  const user = await UsersService.getUserByID(userId)
+  if (!user) {
+    throw generateNotFoundError(ErrorCode.ShopApiError, 'User', userId)
+  }
   if (user.archived) {
-    return res.status(400).json({
-      status: 'error',
-      message: `User with id ${user_id} is currently archived!`,
+    throw generateError(ErrorCode.ShopApiError, {
+      message: `User with id ${userId} is currently archived`,
     })
   }
 

@@ -1,7 +1,8 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
 import { isBoolean } from 'lodash'
 import { UserUpdateData } from '../../../models/User'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -69,15 +70,14 @@ import { UserUpdateData } from '../../../models/User'
  *                 data:
  *                   $ref: '#/components/schemas/User'
  */
-const toggleNotificationSetting = async (req: Request, res: Response) => {
+const toggleNotificationSetting: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== userId) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to update another user',
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to update another user',
     })
   }
 
@@ -93,7 +93,9 @@ const toggleNotificationSetting = async (req: Request, res: Response) => {
   } = data
 
   const user = await UsersService.getUserByID(userId)
-  if (!user) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  if (!user) {
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
+  }
 
   const updateData: UserUpdateData = {
     updated_by: requestorDocId || '',

@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
+import { ErrorCode, generateNotFoundError } from '../../../utils/generators/generateError'
 
 /**
  * @openapi
@@ -31,14 +32,14 @@ import { UsersService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/User'
  */
-const getUser = async (req: Request, res: Response) => {
+const getUser: RequestHandler = async (req, res) => {
   const { userId } = req.params
-
-  if (!userId) return res.status(400).json({ status: 'error', message: 'userId is required!' })
 
   const result = await UsersService.getUserByID(userId)
 
-  if (!result) return res.status(200).json({ status: 'ok', data: null, message: 'User does not exist!' })
+  if (!result) {
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
+  }
 
   // reduce return data
   delete result.keywords

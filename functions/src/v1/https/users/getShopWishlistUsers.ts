@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { uniqBy } from 'lodash'
 import { UsersService, WishlistsService } from '../../../service'
 
@@ -34,12 +34,8 @@ import { UsersService, WishlistsService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/User'
  */
-const getShopWishlistUsers = async (req: Request, res: Response) => {
+const getShopWishlistUsers: RequestHandler = async (req, res) => {
   const { shopId } = req.params
-
-  if (!shopId) {
-    return res.status(400).json({ status: 'error', message: 'shopId is required!' })
-  }
 
   const wishlist = await WishlistsService.getWishlistsByShop(shopId)
   const filteredWishlist = uniqBy(wishlist, 'user_id')

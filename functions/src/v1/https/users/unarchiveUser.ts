@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
+import { ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -29,18 +30,16 @@ import { UsersService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const unarchiveUser = async (req: Request, res: Response) => {
+const unarchiveUser: RequestHandler = async (req, res) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.admin) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to unarchive.',
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to unarchive',
     })
   }
   const { userId } = req.params
-  if (!userId) return res.status(400).json({ status: 'error', message: 'User ID is required!' })
 
   const requestData = {
     updated_by: requestorDocId,
@@ -52,7 +51,6 @@ const unarchiveUser = async (req: Request, res: Response) => {
   return res.json({
     status: 'ok',
     data: result,
-    message: `User ${userId} successfully unarchived.`,
   })
 }
 

@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivitiesService, LikesService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -29,21 +30,18 @@ import { ActivitiesService, LikesService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const unlikeActivity = async (req: Request, res: Response) => {
+const unlikeActivity: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  if (!activityId)
-    return res.status(400).json({ status: 'error', message: 'activity id is required!' })
-  try {
-    const _activity = await ActivitiesService.getActivityById(activityId)
-    if (_activity.archived)
-      return res.status(400).json({
-        status: 'error',
-        message: `Activity with id ${activityId} is currently archived!`,
-      })
-  } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+  const activity = await ActivitiesService.getActivityById(activityId)
+  if (!activity) {
+    throw generateNotFoundError(ErrorCode.LikeApiError, 'Activity', activityId)
+  }
+  if (activity.archived) {
+    throw generateError(ErrorCode.LikeApiError, {
+      message: `Activity with id "${activityId}" is currently archived`,
+    })
   }
 
   const result = await LikesService.removeActivityLike(activityId, requestorDocId)

@@ -1,8 +1,9 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { OrderUpdateData } from '../../../models/Order'
 import { NotificationsService, OrdersService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -54,7 +55,7 @@ import { NotificationsService, OrdersService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const confirmPayment = async (req: Request, res: Response) => {
+const confirmPayment: RequestHandler = async (req, res) => {
   const data = req.body
   const { seller_id } = data
   const { orderId } = req.params
@@ -62,11 +63,8 @@ const confirmPayment = async (req: Request, res: Response) => {
   let requestorDocId = res.locals.userDoc.id || seller_id
 
   const order = await OrdersService.getOrderByID(orderId)
-
   if (!order) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Order with id ${orderId} does not exist!` })
+    throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
   }
 
   const statusCode = !isNumber(order.status_code) ? parseInt(order.status_code) : order.status_code
@@ -75,9 +73,8 @@ const confirmPayment = async (req: Request, res: Response) => {
     statusCode >= ORDER_STATUS.PENDING_SHIPMENT ||
     statusCode < ORDER_STATUS.PENDING_CONFIRM_PAYMENT
   ) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Cannot confirm the payment due to the current order status',
+    throw generateError(ErrorCode.OrderApiError, {
+      message: 'Cannot confirm the order due to the current order status',
     })
   }
 
@@ -85,11 +82,11 @@ const confirmPayment = async (req: Request, res: Response) => {
     requestorDocId = seller_id
   }
 
-  if (!roles.admin && order.seller_id !== requestorDocId)
-    return res.status(400).json({
-      status: 'error',
+  if (!roles.admin && order.seller_id !== requestorDocId) {
+    throw generateError(ErrorCode.OrderApiError, {
       message: `User with id ${requestorDocId} is not the seller from the order with id ${orderId}`,
     })
+  }
 
   const updateData: OrderUpdateData = {
     updated_by: requestorDocId,

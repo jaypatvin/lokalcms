@@ -1,8 +1,13 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import _ from 'lodash'
 import { ProductUpdateData } from '../../../models/Product'
 import { ProductsService, ShopsService } from '../../../service'
-import { generateSchedule } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateError,
+  generateNotFoundError,
+  generateSchedule,
+} from '../../../utils/generators'
 import { isScheduleDerived } from '../../../utils/validations'
 
 /**
@@ -156,22 +161,21 @@ import { isScheduleDerived } from '../../../utils/validations'
  *                   type: string
  *                   example: ok
  */
-const addProductAvailability = async (req: Request, res: Response) => {
+const addProductAvailability: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const data = req.body
 
-  if (!productId) return res.status(400).json({ status: 'error', message: 'id is required!' })
-
   // check if product exists
   const product = await ProductsService.getProductByID(productId)
-  if (!product) return res.status(400).json({ status: 'error', message: 'Invalid Product Id!' })
+  if (!product) {
+    throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
+  }
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== product.user_id) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to update a product of another user.',
+    throw generateError(ErrorCode.ProductApiError, {
+      message: 'User does not have a permission to update a product of another user',
     })
   }
 
@@ -212,9 +216,8 @@ const addProductAvailability = async (req: Request, res: Response) => {
   const productAvailability = updateData.availability
   const shopOperatingHours = shop.operating_hours
   if (!isScheduleDerived(productAvailability, shopOperatingHours)) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'The product availability must be derived from the shop schedule.',
+    throw generateError(ErrorCode.ProductApiError, {
+      message: 'The product availability must be derived from the shop schedule',
     })
   }
 

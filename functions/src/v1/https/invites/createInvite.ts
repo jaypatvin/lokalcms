@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import * as functions from 'firebase-functions'
 import humanPassword from 'human-password'
 import sgMail from '@sendgrid/mail'
@@ -51,7 +51,7 @@ sgMail.setApiKey(functions.config().mail_service.key)
  *                   $ref: '#/components/schemas/Invite'
  */
 
-const createInvite = async (req: Request, res: Response) => {
+const createInvite: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
   const requestorCommunityId = res.locals.userDoc.community_id

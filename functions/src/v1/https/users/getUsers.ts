@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService } from '../../../service'
 
 /**
@@ -26,12 +26,12 @@ import { UsersService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/User'
  */
-const getUsers = async (req: Request, res: Response) => {
+const getUsers: RequestHandler = async (req, res) => {
   const result = await UsersService.getUsers()
 
-  if (!result.length) return res.status(204).json({ status: 'ok', data: result, message: 'No users' })
+  if (!result.length) return res.status(204).json({ status: 'ok', data: result })
 
-  result.forEach(user => {
+  result.forEach((user) => {
     delete user.keywords
     delete user.community
   })

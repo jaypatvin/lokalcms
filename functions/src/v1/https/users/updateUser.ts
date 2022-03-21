@@ -1,9 +1,10 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isNil } from 'lodash'
 import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
 import { UserUpdateData } from '../../../models/User'
 import db from '../../../utils/db'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -88,20 +89,19 @@ import db from '../../../utils/db'
  *                   type: string
  *                   example: ok
  */
-const updateUser = async (req: Request, res: Response) => {
+const updateUser: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.editor && requestorDocId !== userId)
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to update another user',
+  if (!roles.editor && requestorDocId !== userId) {
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to updated another user',
     })
+  }
   if (!roles.admin && data.hasOwnProperty('is_admin')) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to set the admin value of any user',
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to set the admin value of any user',
     })
   }
 
@@ -111,13 +111,15 @@ const updateUser = async (req: Request, res: Response) => {
 
   // check if user id is valid
   const existingUser = await UsersService.getUserByID(userId)
-  if (!existingUser) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  if (!existingUser) {
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
+  }
 
   // check if community id is valid
   if (data.community_id) {
     newCommunity = await CommunityService.getCommunityByID(data.community_id)
     if (!newCommunity) {
-      return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
+      throw generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id)
     }
   }
 

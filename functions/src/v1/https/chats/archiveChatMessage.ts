@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ChatMessageService, ChatsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -35,21 +36,20 @@ import { ChatMessageService, ChatsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const archiveChatMessage = async (req: Request, res: Response) => {
+const archiveChatMessage: RequestHandler = async (req, res) => {
   const data = req.body
   const { chatId, messageId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  const _chatMessage = await ChatMessageService.getChatMessageById(chatId, messageId)
 
-  if (!_chatMessage) {
-    return res.status(403).json({ status: 'error', message: 'Chat message does not exist!' })
+  const chatMessage = await ChatMessageService.getChatMessageById(chatId, messageId)
+  if (!chatMessage) {
+    throw generateNotFoundError(ErrorCode.ChatApiError, 'Chat Message', messageId)
   }
 
-  if (!roles.admin && requestorDocId !== _chatMessage.sender_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
+  if (!roles.admin && requestorDocId !== chatMessage.sender_id) {
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'User does not have a permission to delete a chat message of another user',
     })
   }
 

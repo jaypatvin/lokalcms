@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductsService } from '../../../service'
 import { getProductLikes } from '../../../service/likes'
 
@@ -34,11 +34,8 @@ import { getProductLikes } from '../../../service/likes'
  *                   items:
  *                     $ref: '#/components/schemas/Product'
  */
-const getCommunityProducts = async (req: Request, res: Response) => {
+const getCommunityProducts: RequestHandler = async (req, res) => {
   const { communityId } = req.params
-
-  if (!communityId)
-    return res.status(400).json({ status: 'error', message: 'communityId is required!' })
 
   const products = await ProductsService.getProductsByCommunityID(communityId)
 

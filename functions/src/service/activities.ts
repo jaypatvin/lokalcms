@@ -12,7 +12,8 @@ export const getActivitiesByCommunityID = async (id: string, userId = '') =>
 export const getActivityById = async (id: string, userId = '') => {
   const activityRef = db.activities.doc(id)
   const activity = await activityRef.get()
-  const images = await activityRef.collection('images').get()
+
+  if (!activity.exists) return null
 
   let liked = false
   if (userId) {
@@ -21,17 +22,11 @@ export const getActivityById = async (id: string, userId = '') => {
   }
 
   const data = activity.data()
-  if (data)
-    return {
-      id: activity.id,
-      ...data,
-      images: images.docs.map((doc) => {
-        return { id: doc.id, ...doc.data() }
-      }),
-      liked,
-    }
-
-  return null
+  return {
+    id: activity.id,
+    ...data,
+    liked,
+  }
 }
 
 export const getAllActivities = async (userId = '') => {
@@ -40,7 +35,6 @@ export const getAllActivities = async (userId = '') => {
 
   return await Promise.all(
     activities.docs.map(async (activityDoc) => {
-      const images = await activityRef.doc(activityDoc.id).collection('images').get()
       let liked = false
       if (userId) {
         const likeDoc = await activityRef
@@ -53,9 +47,6 @@ export const getAllActivities = async (userId = '') => {
       return {
         id: activityDoc.id,
         ...activityDoc.data(),
-        images: images.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() }
-        }),
         liked,
       }
     })
@@ -119,7 +110,6 @@ const getActivitiesBy = async (idType, id, userId = '') => {
 
   return await Promise.all(
     activities.docs.map(async (activityDoc) => {
-      const images = await activityRef.doc(activityDoc.id).collection('images').get()
       let liked = false
       if (userId) {
         const likeDoc = await activityRef
@@ -132,9 +122,6 @@ const getActivitiesBy = async (idType, id, userId = '') => {
       return {
         id: activityDoc.id,
         ...activityDoc.data(),
-        images: images.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() }
-        }),
         liked,
       }
     })

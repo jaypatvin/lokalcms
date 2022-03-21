@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { CommunityService } from '../../../service'
+import { generateError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -29,38 +30,27 @@ import { CommunityService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const deleteCommunity = async (req: Request, res: Response) => {
+const deleteCommunity: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   if (!roles.admin) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
+    throw generateError(ErrorCode.CommunityApiError, {
+      message: 'User does not have a permission to delete a community',
     })
   }
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
-  const { communityId, name } = req.params
-  if (!communityId)
-    return res.status(400).json({ status: 'error', message: 'Community ID is required!' })
+  const { communityId } = req.params
 
   const requestData = {
     updated_by: requestorDocId,
     updated_from: data.source || '',
   }
 
-  let result: any = ''
-  if (data.hard_delete) {
-    result = await CommunityService.deleteCommunity(communityId)
-  } else {
-    result = await CommunityService.archiveCommunity(communityId, requestData)
-  }
+  const result = await CommunityService.archiveCommunity(communityId, requestData)
 
   return res.json({
     status: 'ok',
     data: result,
-    message: `Community ${name || communityId} successfully ${
-      data.hard_delete ? 'deleted' : 'archived'
-    }.`,
   })
 }
 

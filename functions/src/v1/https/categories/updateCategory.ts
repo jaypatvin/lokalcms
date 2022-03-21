@@ -1,7 +1,8 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isNil } from 'lodash'
 import { CategoryUpdateData } from '../../../models/Category'
 import { CategoriesService } from '../../../service'
+import { generateError, ErrorCode, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -59,21 +60,22 @@ import { CategoriesService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const updateCategory = async (req: Request, res: Response) => {
+const updateCategory: RequestHandler = async (req, res) => {
   const { categoryId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.admin) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to update a category',
+    throw generateError(ErrorCode.CategoryApiError, {
+      message: 'User does not have a permission to update a category',
     })
   }
 
   // check if category exists
   const product = await CategoriesService.getCategoryById(categoryId)
-  if (!product) return res.status(404).json({ status: 'error', message: 'Invalid Category Id!' })
+  if (!product) {
+    throw generateNotFoundError(ErrorCode.CategoryApiError, 'Category', categoryId)
+  }
 
   const updateData: CategoryUpdateData = {
     updated_by: requestorDocId,

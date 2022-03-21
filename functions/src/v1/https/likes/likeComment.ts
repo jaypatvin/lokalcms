@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActivitiesService, LikesService, CommentsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -37,35 +38,28 @@ import { ActivitiesService, LikesService, CommentsService } from '../../../servi
  */
 
 // this has too many GET queries just for checking validity; maybe for refactoring
-const likeComment = async (req: Request, res: Response) => {
+const likeComment: RequestHandler = async (req, res) => {
   const { activityId, commentId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  if (!activityId)
-    return res.status(400).json({ status: 'error', message: 'activity id is required!' })
-  try {
-    const _activity = await ActivitiesService.getActivityById(activityId)
-    if (_activity.archived)
-      return res.status(400).json({
-        status: 'error',
-        message: `Activity with id ${activityId} is currently archived!`,
-      })
-  } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Invalid Activity ID!' })
+  const activity = await ActivitiesService.getActivityById(activityId)
+  if (!activity) {
+    throw generateNotFoundError(ErrorCode.LikeApiError, 'Activity', activityId)
+  }
+  if (activity.archived) {
+    throw generateError(ErrorCode.LikeApiError, {
+      message: `Activity with id "${activityId}" is currently archived`,
+    })
   }
 
-  if (!commentId)
-    return res.status(400).json({ status: 'error', message: 'comment id is required!' })
-
-  try {
-    const _comment = await CommentsService.getCommentById(activityId, commentId)
-    if (_comment.archived)
-      return res.status(400).json({
-        status: 'error',
-        message: `Comment with id ${commentId} is currently archived!`,
-      })
-  } catch (e) {
-    return res.status(400).json({ status: 'error', message: 'Invalid comment ID!' })
+  const comment = await CommentsService.getCommentById(activityId, commentId)
+  if (!comment) {
+    throw generateNotFoundError(ErrorCode.LikeApiError, 'Activity', activityId)
+  }
+  if (comment.archived) {
+    throw generateError(ErrorCode.LikeApiError, {
+      message: `Comment with id "${commentId}" on Activity with id "${activityId}" is currently archived`,
+    })
   }
 
   const result = await LikesService.addCommentLike(activityId, commentId, requestorDocId)

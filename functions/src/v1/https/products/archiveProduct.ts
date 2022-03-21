@@ -1,6 +1,7 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductUpdateData } from '../../../models/Product'
 import { ProductsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -30,20 +31,20 @@ import { ProductsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const archiveProduct = async (req: Request, res: Response) => {
+const archiveProduct: RequestHandler = async (req, res) => {
   const data = req.body
   const { productId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  const _product = await ProductsService.getProductByID(productId)
 
-  if (!_product)
-    return res.status(403).json({ status: 'error', message: 'Product does not exist!' })
+  const product = await ProductsService.getProductByID(productId)
+  if (!product) {
+    throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
+  }
 
-  if (!roles.admin && requestorDocId !== _product.user_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
+  if (!roles.admin && requestorDocId !== product.user_id) {
+    throw generateError(ErrorCode.ProductApiError, {
+      message: 'User does not have a permission to delete a product of another user',
     })
   }
 

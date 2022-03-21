@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ActionTypesService, ApplicationLogService, CommunityService } from '../../../service'
+import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -63,26 +64,20 @@ import { ActionTypesService, ApplicationLogService, CommunityService } from '../
  *                 data:
  *                   $ref: '#/components/schemas/ApplicationLog'
  */
-const createApplicationLog = async (req: Request, res: Response) => {
+const createApplicationLog: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
 
   const { community_id, action_type, device_id, associated_document = '', metadata = {} } = data
 
   const community = await CommunityService.getCommunityByID(community_id)
-
   if (!community) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `community with id "${community_id}" does not exist.` })
+    throw generateNotFoundError(ErrorCode.ApplicationLogApiError, 'Community', community_id)
   }
 
   const actionType = await ActionTypesService.getActionTypeById(action_type)
-
   if (!actionType) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `action_type "${action_type}" is not valid.` })
+    throw generateNotFoundError(ErrorCode.ApplicationLogApiError, 'Action Type', action_type)
   }
 
   const logData = {

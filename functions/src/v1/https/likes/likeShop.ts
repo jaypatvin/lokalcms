@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { LikesService, ShopsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -28,21 +29,17 @@ import { LikesService, ShopsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const likeShop = async (req: Request, res: Response) => {
+const likeShop: RequestHandler = async (req, res) => {
   const { shopId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  if (!shopId) {
-    return res.status(400).json({ status: 'error', message: 'shop id is required!' })
-  }
   const shop = await ShopsService.getShopByID(shopId)
   if (!shop) {
-    return res.status(400).json({ status: 'error', message: 'Shop does not exist!' })
+    throw generateNotFoundError(ErrorCode.LikeApiError, 'Shop', shopId)
   }
   if (shop.archived) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Shop with id ${shopId} is currently archived!`,
+    throw generateError(ErrorCode.LikeApiError, {
+      message: `Shop with id "${shopId}" is currently archived`,
     })
   }
 

@@ -1,7 +1,12 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ShopUpdateData } from '../../../models/Shop'
 import { ProductsService, ShopsService } from '../../../service'
-import { generateSchedule } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateError,
+  generateNotFoundError,
+  generateSchedule,
+} from '../../../utils/generators'
 
 /**
  * @openapi
@@ -148,22 +153,20 @@ import { generateSchedule } from '../../../utils/generators'
  *                   type: string
  *                   example: ok
  */
-const addShopOperatingHours = async (req: Request, res: Response) => {
+const addShopOperatingHours: RequestHandler = async (req, res) => {
   const { shopId } = req.params
   const data = req.body
 
-  if (!shopId) return res.status(400).json({ status: 'error', message: 'id is required!' })
-
-  // check if shop exists
   const shop = await ShopsService.getShopByID(shopId)
-  if (!shop) return res.status(404).json({ status: 'error', message: 'Invalid Shop Id!' })
+  if (!shop) {
+    throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
+  }
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== shop.user_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to update a shop of another user.',
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'User does not have a permission to update a shop of another user',
     })
   }
 

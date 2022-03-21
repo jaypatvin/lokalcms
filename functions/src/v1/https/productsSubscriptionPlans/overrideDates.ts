@@ -1,6 +1,7 @@
+import { RequestHandler } from 'express'
 import dayjs from 'dayjs'
-import { Request, Response } from 'express'
 import { ProductSubscriptionPlansService } from '../../../service'
+import { generateError, ErrorCode, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -67,7 +68,7 @@ import { ProductSubscriptionPlansService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const overrideDates = async (req: Request, res: Response) => {
+const overrideDates: RequestHandler = async (req, res) => {
   const { planId } = req.params
   const data = req.body
   const { override_dates } = data
@@ -78,15 +79,15 @@ const overrideDates = async (req: Request, res: Response) => {
     const { original_date, new_date } = override
 
     if (!dayjs(original_date).isValid()) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `Original date ${original_date} is not a valid date.` })
+      throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+        message: `Original date "${original_date}" is not a valid date`,
+      })
     }
 
     if (!dayjs(new_date).isValid()) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `Original date ${new_date} is not a valid date.` })
+      throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+        message: `New date "${original_date}" is not a valid date`,
+      })
     }
     overrideDatesUpdates[`plan.override_dates.${original_date}`] = new_date
   }
@@ -96,16 +97,14 @@ const overrideDates = async (req: Request, res: Response) => {
   )
 
   if (!subscriptionPlan) {
-    return res
-      .status(400)
-      .json({
-        status: 'error',
-        message: `Product subscription plan with id ${planId} does not exist!`,
-      })
+    throw generateNotFoundError(
+      ErrorCode.ProductSubscriptionPlanApiError,
+      'Product Subscription Plan',
+      planId
+    )
   }
   if (subscriptionPlan.buyer_id !== requestorDocId) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
       message: `User with id ${requestorDocId} is not the buyer`,
     })
   }

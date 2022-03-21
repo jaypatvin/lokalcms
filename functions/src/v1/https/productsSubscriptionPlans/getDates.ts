@@ -1,8 +1,13 @@
+import { RequestHandler } from 'express'
 import dayjs from 'dayjs'
-import { Request, Response } from 'express'
 import { isString } from 'lodash'
 import { ProductSubscriptionPlansService } from '../../../service'
-import { generateDatesFromSchedule } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateDatesFromSchedule,
+  generateError,
+  generateNotFoundError,
+} from '../../../utils/generators'
 import { dateFormat } from '../../../utils/helpers'
 
 /**
@@ -55,43 +60,40 @@ import { dateFormat } from '../../../utils/helpers'
  *                   items:
  *                     type: string
  */
-const getDates = async (req: Request, res: Response) => {
+const getDates: RequestHandler = async (req, res) => {
   const { planId } = req.params
   const { start_date, end_date }: any = req.query
 
   if (start_date) {
     if (!isString(start_date) || !dateFormat.test(start_date)) {
-      return res.status(400).json({
-        status: 'error',
-        message: `Start date ${start_date} is not a valid format. Please follow format "YYYY-MM-DD"`,
+      throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+        message: `Start date "${start_date}" is not a valid format. Please follow format "YYYY-MM-DD"`,
       })
     }
     if (!dayjs(start_date).isValid()) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `Start date ${start_date} is not a valid date.` })
+      throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+        message: `Start date "${start_date}" is not a valid date"`,
+      })
     }
   }
 
   if (end_date) {
     if (!isString(end_date) || !dateFormat.test(end_date)) {
-      return res.status(400).json({
-        status: 'error',
-        message: `End date ${end_date} is not a valid format. Please follow format "YYYY-MM-DD"`,
+      throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+        message: `End date "${start_date}" is not a valid format. Please follow format "YYYY-MM-DD"`,
       })
     }
     if (!dayjs(end_date).isValid()) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `End date ${end_date} is not a valid date.` })
+      throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+        message: `End date "${start_date}" is not a valid date"`,
+      })
     }
   }
 
   if (start_date && end_date) {
     if (end_date < start_date) {
-      return res.status(400).json({
-        status: 'error',
-        message: `End date ${end_date} cannot be before the Start date ${start_date}`,
+      throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+        message: `End date "${end_date}" cannot be before the start date "${start_date}"`,
       })
     }
   }
@@ -101,9 +103,11 @@ const getDates = async (req: Request, res: Response) => {
     planId
   )
   if (!subscriptionPlan) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'Product Subscription Plan does not exist!' })
+    throw generateNotFoundError(
+      ErrorCode.ProductSubscriptionPlanApiError,
+      'Product Subscription Plan',
+      planId
+    )
   }
 
   const plan = subscriptionPlan.plan

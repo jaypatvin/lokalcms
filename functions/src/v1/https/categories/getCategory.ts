@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { CategoriesService } from '../../../service'
+import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -31,12 +32,13 @@ import { CategoriesService } from '../../../service'
  *                 data:
  *                   $ref: '#/components/schemas/Category'
  */
-const getCategory = async (req: Request, res: Response) => {
+const getCategory: RequestHandler = async (req, res) => {
   const { categoryId } = req.params
-  const category = await CategoriesService.getCategoryById(categoryId)
 
-  if (!category)
-    return res.status(403).json({ status: 'error', message: 'Category does not exist!' })
+  const category = await CategoriesService.getCategoryById(categoryId)
+  if (!category) {
+    throw generateNotFoundError(ErrorCode.CategoryApiError, 'Category', categoryId)
+  }
 
   delete category.keywords
   return res.json({ status: 'ok', data: category })

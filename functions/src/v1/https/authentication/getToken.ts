@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import firebase from 'firebase'
+import { generateError, ErrorCode } from '../../../utils/generators'
 import { config } from './firebase-config.json'
 firebase.initializeApp(config)
 
@@ -38,12 +39,14 @@ firebase.initializeApp(config)
  *                   type: string
  *                   example: tHis1sTh3t0K3ny0UcAnus3
  */
-const login = async (req: Request, res: Response) => {
+const login: RequestHandler = async (req, res) => {
   const data = req.body
   const { email, password } = data
 
   if (!email || !password) {
-    return res.status(400).json({ status: 'error', message: 'Email and Password is required!' })
+    throw generateError(ErrorCode.AuthenticationApiError, {
+      message: 'Email and Password is required',
+    })
   }
 
   const result = await firebase.auth().signInWithEmailAndPassword(email, password)

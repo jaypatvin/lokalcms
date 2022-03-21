@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ChatsService, UsersService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 
 /**
@@ -50,7 +51,7 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *                   type: string
  *                   example: ok
  */
-const chatRemoveUser = async (req: Request, res: Response) => {
+const chatRemoveUser: RequestHandler = async (req, res) => {
   const data = req.body
   const { user_id } = data
   const { chatId } = req.params
@@ -58,38 +59,39 @@ const chatRemoveUser = async (req: Request, res: Response) => {
   const requestorDocId = res.locals.userDoc.id
 
   const chat = await ChatsService.getChatById(chatId)
-
-  if (!chat) return res.status(403).json({ status: 'error', message: 'Chat does not exist!' })
+  if (!chat) {
+    throw generateNotFoundError(ErrorCode.ChatApiError, 'Chat', chatId)
+  }
 
   if (chat.shop_id) {
-    return res
-      .status(403)
-      .json({ status: 'error', message: "Can't update members of chat with shop" })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'Cannot update members of chat with shop',
+    })
   }
 
   if (chat.members.length === 2 || !chat.group_hash) {
-    return res
-      .status(403)
-      .json({ status: 'error', message: `Chat with id ${chatId} is not a group chat` })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: `Chat with id ${chatId} is not a group chat`,
+    })
   }
 
   if (chat.members.length === 3) {
-    return res
-      .status(403)
-      .json({ status: 'error', message: 'The minimum number of members on a group chat is 3' })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'The number of members in a group chat cannot be less than 3',
+    })
   }
 
   if (!chat.members.includes(user_id)) {
-    return res
-      .status(403)
-      .json({ status: 'error', message: `Chat members does not contain ${user_id}` })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: `Chat members does not contain ${user_id}`,
+    })
   }
 
-  if (!roles.admin && !chat.members.includes(requestorDocId))
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to invite another user',
+  if (!roles.admin && !chat.members.includes(requestorDocId)) {
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'User does not have a permission to remove another user in a group chat',
     })
+  }
 
   const members = chat.members.filter((m) => m !== user_id)
   const group_hash = hashArrayOfStrings(members)
@@ -98,9 +100,7 @@ const chatRemoveUser = async (req: Request, res: Response) => {
   for (const member of members) {
     const user = await UsersService.getUserByID(member)
     if (!user) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `User with id ${member} is not found` })
+      throw generateNotFoundError(ErrorCode.ChatApiError, 'User', member)
     }
     member_names.push(user.display_name)
   }

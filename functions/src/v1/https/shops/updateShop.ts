@@ -1,8 +1,13 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isBoolean, isNil } from 'lodash'
 import { BankCodesService, ShopsService } from '../../../service'
 import { isValidPaymentOptions } from '../../../utils/validations'
-import { generateShopKeywords } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateError,
+  generateNotFoundError,
+  generateShopKeywords,
+} from '../../../utils/generators'
 import { ShopUpdateData } from '../../../models/Shop'
 
 /**
@@ -93,7 +98,7 @@ import { ShopUpdateData } from '../../../models/Shop'
  *                   type: string
  *                   example: ok
  */
-const updateShop = async (req: Request, res: Response) => {
+const updateShop: RequestHandler = async (req, res) => {
   const { shopId } = req.params
   const data = req.body
   const {
@@ -107,24 +112,23 @@ const updateShop = async (req: Request, res: Response) => {
     delivery_options,
   } = data
 
-  if (!shopId) return res.status(400).json({ status: 'error', message: 'id is required!' })
-
   const currentShop = await ShopsService.getShopByID(shopId)
-
-  if (!currentShop)
-    return res.status(400).json({ status: 'error', message: 'Shop does not exist!' })
+  if (!currentShop) {
+    throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
+  }
 
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== currentShop.user_id) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to update a shop of another user.',
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'User does not have a permission to update a shop of another user',
     })
   }
 
   if (payment_options && !(await isValidPaymentOptions(payment_options))) {
-    return res.status(400).json({ status: 'error', message: 'invalid payment_options' })
+    throw generateError(ErrorCode.ShopApiError, {
+      message: 'invalid payment_options',
+    })
   }
 
   const updateData: ShopUpdateData = {

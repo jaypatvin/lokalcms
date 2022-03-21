@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { CategoriesService } from '../../../service'
+import { generateError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -25,11 +26,14 @@ import { CategoriesService } from '../../../service'
  *                   type: array
  *                   $ref: '#/components/schemas/Category'
  */
-const getCategories = async (req: Request, res: Response) => {
+const getCategories: RequestHandler = async (req, res) => {
   const categories = await CategoriesService.getAllCategories()
 
-  if (!categories.length)
-    return res.status(403).json({ status: 'error', message: 'No categories found' })
+  if (!categories.length) {
+    throw generateError(ErrorCode.CategoryApiError, {
+      message: 'No categories found',
+    })
+  }
 
   // delete this if we want to return keywords
   categories.forEach((category) => delete category.keywords)

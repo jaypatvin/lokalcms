@@ -1,6 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { CategoriesService } from '../../../service'
-import { generateCategoryKeywords } from '../../../utils/generators'
+import { ErrorCode, generateCategoryKeywords, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -58,15 +58,15 @@ import { generateCategoryKeywords } from '../../../utils/generators'
  *                 data:
  *                   $ref: '#/components/schemas/Category'
  */
-const createCategory = async (req: Request, res: Response) => {
+const createCategory: RequestHandler = async (req, res) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  if (!roles.admin)
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to create a category',
+  if (!roles.admin) {
+    throw generateError(ErrorCode.CategoryApiError, {
+      message: 'User does not have a permission to create a category',
     })
+  }
 
   const keywords = generateCategoryKeywords({
     name: data.name,

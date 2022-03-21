@@ -1,6 +1,7 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isBoolean } from 'lodash'
 import { UsersService } from '../../../service'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -44,27 +45,28 @@ import { UsersService } from '../../../service'
  *               show_read_receipts:
  *                 type: boolean
  */
-const updateUserChatSettings = async (req: Request, res: Response) => {
+const updateUserChatSettings: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const { show_read_receipts, source } = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== userId) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to update another user',
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'User does not have a permission to update another user',
     })
   }
 
-  const existingUser = await UsersService.getUserByID(userId)
-  if (!existingUser) return res.status(400).json({ status: 'error', message: 'Invalid User ID!' })
+  const user = await UsersService.getUserByID(userId)
+  if (!user) {
+    throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
+  }
 
   const updateData: any = {
     updated_by: requestorDocId || '',
     updated_from: source || '',
   }
 
-  const newChatSettings = existingUser.chat_settings || {}
+  const newChatSettings = user.chat_settings || {}
 
   if (isBoolean(show_read_receipts)) newChatSettings.show_read_receipts = show_read_receipts
 

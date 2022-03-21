@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { OrderCreateData } from '../../../models/Order'
 import {
   UsersService,
@@ -6,6 +6,7 @@ import {
   ProductSubscriptionsService,
   OrdersService,
 } from '../../../service'
+import { generateError, ErrorCode, generateNotFoundError } from '../../../utils/generators'
 import { ORDER_STATUS } from '../orders'
 
 /**
@@ -70,25 +71,22 @@ import { ORDER_STATUS } from '../orders'
  *                 data:
  *                   $ref: '#/components/schemas/Order'
  */
-const createOrderFromSubscription = async (req: Request, res: Response) => {
+const createOrderFromSubscription: RequestHandler = async (req, res) => {
   const data = req.body
-  const { buyer_id, proof_of_payment, payment_method } = data
+  const { buyer_id, payment_method } = data
   const { id } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor && requestorDocId !== buyer_id) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.ProductSubscriptionApiError, {
       message:
-        'You do not have a permission to create an order of a product subscription of another user.',
+        'User does not have a permission to create an order of a product subscription of another user',
     })
   }
 
   const subscriptionOrder = await ProductSubscriptionsService.getProductSubscriptionById(id)
   if (!subscriptionOrder) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Product subscription with id ${id} does not exist!` })
+    throw generateNotFoundError(ErrorCode.ProductSubscriptionApiError, 'Product Subscription', id)
   }
 
   const {
@@ -104,17 +102,17 @@ const createOrderFromSubscription = async (req: Request, res: Response) => {
   )
 
   if (!plan) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Product subscription plan with id ${product_subscription_plan_id} does not exist!`,
-    })
+    throw generateNotFoundError(
+      ErrorCode.ProductSubscriptionApiError,
+      'Product Subscription Plan',
+      product_subscription_plan_id
+    )
   }
 
   if (plan.buyer_id !== buyer_id) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.ProductSubscriptionApiError, {
       message:
-        'You do not have a permission to create an order of a product subscription of another user.',
+        'User does not have a permission to create an order of a product subscription of another user',
     })
   }
 
@@ -124,8 +122,7 @@ const createOrderFromSubscription = async (req: Request, res: Response) => {
   )
 
   if (existingOrder.length) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.ProductSubscriptionApiError, {
       message: `An order already exist for the product subscription with id ${id}`,
     })
   }

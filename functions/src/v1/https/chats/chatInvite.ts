@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ChatsService, UsersService } from '../../../service'
+import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
 import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
 
 /**
@@ -63,7 +64,7 @@ import hashArrayOfStrings from '../../../utils/hashArrayOfStrings'
  *                   type: string
  *                   example: ok
  */
-const chatInvite = async (req: Request, res: Response) => {
+const chatInvite: RequestHandler = async (req, res) => {
   const data = req.body
   const { user_id, new_members } = data
   const { chatId } = req.params
@@ -71,42 +72,43 @@ const chatInvite = async (req: Request, res: Response) => {
   const requestorDocId = res.locals.userDoc.id
 
   const chat = await ChatsService.getChatById(chatId)
-
-  if (!chat) return res.status(400).json({ status: 'error', message: 'Chat does not exist!' })
+  if (!chat) {
+    throw generateNotFoundError(ErrorCode.ChatApiError, 'Chat', chatId)
+  }
 
   if (chat.shop_id) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: "Can't update members of chat with shop" })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'Cannot update members of chat with shop',
+    })
   }
 
   if (chat.members.length === 2 || !chat.group_hash) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: `Chat with id ${chatId} is not a group chat` })
+    throw generateError(ErrorCode.ChatApiError, {
+      message: `Chat with id ${chatId} is not a group chat`,
+    })
   }
 
-  if (!roles.admin && !chat.members.includes(requestorDocId))
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to invite another user',
+  if (!roles.admin && !chat.members.includes(requestorDocId)) {
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'User does not have a permission to invite another user in a group chat',
     })
+  }
 
   let members
 
   if (user_id) {
     if (chat.members.includes(user_id)) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `User with id ${user_id} is already a member` })
+      throw generateError(ErrorCode.ChatApiError, {
+        message: `User with id ${user_id} is already a member`,
+      })
     }
     members = [...chat.members, user_id]
   } else if (new_members) {
     for (const member of new_members) {
       if (chat.members.includes(member)) {
-        return res
-          .status(400)
-          .json({ status: 'error', message: `User with id ${member} is already a member` })
+        throw generateError(ErrorCode.ChatApiError, {
+          message: `User with id ${user_id} is already a member`,
+        })
       }
     }
     members = [...chat.members, ...new_members]
@@ -117,9 +119,7 @@ const chatInvite = async (req: Request, res: Response) => {
   for (const member of members) {
     const user = await UsersService.getUserByID(member)
     if (!user) {
-      return res
-        .status(400)
-        .json({ status: 'error', message: `User with id ${member} is not found` })
+      throw generateNotFoundError(ErrorCode.ChatApiError, 'User', member)
     }
     member_names.push(user.display_name)
   }

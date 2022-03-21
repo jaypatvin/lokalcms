@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { LikesService, OrdersService, ProductsService } from '../../../service'
+import { generateError, ErrorCode } from '../../../utils/generators'
 import getScheduledAvailableItems from '../../../utils/getScheduledAvailableItems'
 
 /**
@@ -39,15 +40,15 @@ import getScheduledAvailableItems from '../../../utils/getScheduledAvailableItem
  *                   items:
  *                     $ref: '#/components/schemas/Product'
  */
-const getRecommendedProducts = async (req: Request, res: Response) => {
+const getRecommendedProducts: RequestHandler = async (req, res) => {
   const { user_id, community_id: communityId }: any = req.query
   const buyer_id = res.locals.userDoc.id || user_id
   const community_id = res.locals.userDoc.commuity_id || communityId
 
   if (!buyer_id || !community_id) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'buyer_id and community_id is required.' })
+    throw generateError(ErrorCode.ProductApiError, {
+      message: 'buyer_id and community_id is required',
+    })
   }
 
   // get all product likes

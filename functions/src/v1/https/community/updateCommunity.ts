@@ -1,6 +1,11 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { isNil } from 'lodash'
-import { generateCommunityKeywords } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateCommunityKeywords,
+  generateError,
+  generateNotFoundError,
+} from '../../../utils/generators'
 import { UsersService, CommunityService } from '../../../service'
 import { CommunityUpdateData } from '../../../models/Community'
 
@@ -75,21 +80,20 @@ import { CommunityUpdateData } from '../../../models/Community'
  *                   type: string
  *                   example: ok
  */
-export const updateCommunity = async (req: Request, res: Response) => {
+export const updateCommunity: RequestHandler = async (req, res) => {
   const { communityId } = req.params
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
   if (!roles.editor) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to update a community',
+    throw generateError(ErrorCode.CommunityApiError, {
+      message: 'User does not have a permission to update a community',
     })
   }
 
   const existing_community = await CommunityService.getCommunityByID(communityId)
   if (!existing_community) {
-    return res.status(400).json({ status: 'error', message: 'Invalid Community ID!' })
+    throw generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId)
   }
 
   if (data.name || data.subdivision || data.barangay || data.city || data.zip_code) {
@@ -102,10 +106,8 @@ export const updateCommunity = async (req: Request, res: Response) => {
     })
 
     if (existing_communities.find((community) => community.id !== communityId)) {
-      return res.status(400).json({
-        status: 'error',
-        message: `Community "${data.name}" already exists with the same address.`,
-        data: existing_communities,
+      throw generateError(ErrorCode.CommunityApiError, {
+        message: `Community "${data.name}" already exists with the same address`,
       })
     }
   }
@@ -119,13 +121,13 @@ export const updateCommunity = async (req: Request, res: Response) => {
       if (!user) notExistingUsers.push(user_id)
       if (user && user.community_id !== communityId) differentCommunityUsers.push(user_id)
     }
-    if (notExistingUsers.length || differentCommunityUsers.length)
-      return res.status(400).json({
-        status: 'error',
-        message: 'invalid user ids on admin',
+    if (notExistingUsers.length || differentCommunityUsers.length) {
+      throw generateError(ErrorCode.CommunityApiError, {
+        message: 'Invalid admin user ids',
         not_existing_users: notExistingUsers,
         different_community_users: differentCommunityUsers,
       })
+    }
   }
 
   const updateData: CommunityUpdateData = {
@@ -165,9 +167,6 @@ export const updateCommunity = async (req: Request, res: Response) => {
   if (data.country) updateData['address.country'] = data.country
   if (data.zip_code) updateData['address.zip_code'] = data.zip_code
   if (data.admin) updateData.admin = data.admin
-
-  if (!Object.keys(updateData).length)
-    return res.status(400).json({ status: 'error', message: 'no field for community is provided' })
 
   const result = await CommunityService.updateCommunity(communityId, updateData)
 

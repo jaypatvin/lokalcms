@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ChatsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -39,27 +40,29 @@ import { ChatsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const updateChatTitle = async (req: Request, res: Response) => {
+const updateChatTitle: RequestHandler = async (req, res) => {
   const data = req.body
   const { title } = data
   const { chatId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  const _chat = await ChatsService.getChatById(chatId)
+  const chat = await ChatsService.getChatById(chatId)
+  if (!chat) {
+    throw generateNotFoundError(ErrorCode.ChatApiError, 'Chat', chatId)
+  }
 
-  if (!_chat) return res.status(400).json({ status: 'error', message: 'Chat does not exist!' })
+  if (chat.shop_id) {
+    throw generateError(ErrorCode.ChatApiError, {
+      message: 'Cannot update chat title for shop or product',
+    })
+  }
 
-  if (_chat.shop_id)
-    return res
-      .status(400)
-      .json({ status: 'error', message: "Can't update chat title for shop or product." })
-
-  if (!roles.admin && !_chat.members.includes(requestorDocId))
-    return res.status(400).json({
-      status: 'error',
+  if (!roles.admin && !chat.members.includes(requestorDocId)) {
+    throw generateError(ErrorCode.ChatApiError, {
       message: 'You do not have a permission to update the chat title',
     })
+  }
 
   const requestData = {
     updated_by: requestorDocId,
@@ -67,7 +70,7 @@ const updateChatTitle = async (req: Request, res: Response) => {
     title,
   }
 
-  const result = await ChatsService.updateChat(_chat.id, { ...requestData })
+  const result = await ChatsService.updateChat(chat.id, { ...requestData })
   return res.json({ status: 'ok', data: result })
 }
 
