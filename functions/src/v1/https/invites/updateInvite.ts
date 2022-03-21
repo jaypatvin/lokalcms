@@ -1,6 +1,7 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { InviteUpdateData } from '../../../models/Invite'
 import { InvitesService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -49,20 +50,22 @@ import { InvitesService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const updateInvite = async (req: Request, res: Response) => {
+const updateInvite: RequestHandler = async (req, res) => {
   const { inviteId } = req.params
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
 
   const invite = await InvitesService.getInviteByID(inviteId)
-  if (!invite) return res.status(400).json({ status: 'error', message: 'Invalid Invite Id!' })
+  if (!invite) {
+    throw generateNotFoundError(ErrorCode.InviteApiError, 'Invite', inviteId)
+  }
 
   const roles = res.locals.userRoles
-  if (!roles.editor)
-    return res.status(400).json({
-      status: 'error',
-      message: 'You do not have a permission to update an invite',
+  if (!roles.editor) {
+    throw generateError(ErrorCode.InviteApiError, {
+      message: 'User does not have a permission to update an invite',
     })
+  }
 
   const updateData: InviteUpdateData = {
     updated_by: requestorDocId,

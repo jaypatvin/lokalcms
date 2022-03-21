@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { WishlistsService, ProductsService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -28,21 +29,17 @@ import { WishlistsService, ProductsService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const addToWishlist = async (req: Request, res: Response) => {
+const addToWishlist: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  if (!productId) {
-    return res.status(400).json({ status: 'error', message: 'product id is required!' })
-  }
   const product = await ProductsService.getProductByID(productId)
   if (!product) {
-    return res.status(400).json({ status: 'error', message: 'Product does not exist!' })
+    throw generateNotFoundError(ErrorCode.WishlistApiError, 'Product', productId)
   }
   if (product.archived) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Product with id ${productId} is currently archived!`,
+    throw generateError(ErrorCode.WishlistApiError, {
+      message: `Product with id "${productId}" is currently archived`,
     })
   }
 

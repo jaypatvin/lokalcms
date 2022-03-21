@@ -1,7 +1,8 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { Product, Shop } from '../../../models'
 import { searchProducts } from '../../../service/products'
 import { searchShops } from '../../../service/shops'
+import { generateError, ErrorCode } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -67,11 +68,14 @@ import { searchShops } from '../../../service/shops'
  *                       items:
  *                         $ref: '#/components/schemas/Shop'
  */
-const mainSearch = async (req: Request, res: Response) => {
+const mainSearch: RequestHandler = async (req, res) => {
   const { q, criteria = 'products', category, community_id } = req.query
 
-  if (!community_id)
-    return res.status(400).json({ status: 'error', message: 'community_id is required.' })
+  if (!community_id) {
+    throw generateError(ErrorCode.SearchApiError, {
+      message: 'community_id is required',
+    })
+  }
 
   const result: {
     products?: (Product & { id: string })[]

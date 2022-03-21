@@ -8,12 +8,11 @@ const webhook = new IncomingWebhook(
   get(
     functions.config(),
     'slack_config.alerts_url',
-    'https://hooks.slack.com/services/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'
   ),
   {
-    channel: get(functions.config(), 'slack_config.alerts_channel', '#alerts'),
-    username: 'lokal-api',
-    icon_emoji: ':thanos:',
+    channel: get(functions.config(), 'slack_config.alerts_channel'),
+    username: 'Lokal-API',
+    icon_emoji: ':alert-danger:',
   }
 )
 
@@ -53,7 +52,7 @@ const errorAlert: ErrorRequestHandler = async (err, req, res, next) => {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `*Referer:* ${req.headers.referer}`,
+              text: `*Referer:* ${req.headers.referer ?? '--'}`,
             },
           },
           {

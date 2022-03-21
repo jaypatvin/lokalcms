@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductReviewsService } from '../../../service'
 
 /**
@@ -33,12 +33,8 @@ import { ProductReviewsService } from '../../../service'
  *                   items:
  *                     $ref: '#/components/schemas/Review'
  */
-const getProductReviews = async (req: Request, res: Response) => {
+const getProductReviews: RequestHandler = async (req, res) => {
   const { productId } = req.params
-
-  if (!productId) {
-    return res.status(400).json({ status: 'error', message: 'productId is required!' })
-  }
 
   const reviews = await ProductReviewsService.getAllProductReviews(productId)
 

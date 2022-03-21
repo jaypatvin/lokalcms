@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { get } from 'lodash'
 import { ProductSubscriptionPlanCreateData } from '../../../models/ProductSubscriptionPlan'
 import {
@@ -7,7 +7,12 @@ import {
   ProductsService,
   ProductSubscriptionPlansService,
 } from '../../../service'
-import { generateSubscriptionPlanSchedule } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateError,
+  generateNotFoundError,
+  generateSubscriptionPlanSchedule,
+} from '../../../utils/generators'
 
 /**
  * @openapi
@@ -125,7 +130,7 @@ import { generateSubscriptionPlanSchedule } from '../../../utils/generators'
  *                 data:
  *                   $ref: '#/components/schemas/ProductSubscriptionPlan'
  */
-const createProductSubscriptionPlan = async (req: Request, res: Response) => {
+const createProductSubscriptionPlan: RequestHandler = async (req, res) => {
   const data = req.body
   const { product_id, shop_id, buyer_id, quantity, instruction = '', plan, payment_method } = data
   const roles = res.locals.userRoles
@@ -133,17 +138,14 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   let buyer
   if (buyer_id && requestorDocId !== buyer_id) {
     if (!roles.editor) {
-      return res.status(403).json({
-        status: 'error',
+      throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
         message:
-          'You do not have a permission to create a product subscription plan for another user.',
+          'User does not have a permission to create a product subscription plan for another user',
       })
     } else {
       buyer = await UsersService.getUserByID(buyer_id)
       if (!buyer) {
-        return res
-          .status(400)
-          .json({ status: 'error', message: `User with id ${buyer_id} does not exist.` })
+        throw generateNotFoundError(ErrorCode.ProductSubscriptionPlanApiError, 'User', buyer_id)
       }
       requestorDocId = buyer_id
       community_id = buyer.community_id
@@ -153,13 +155,15 @@ const createProductSubscriptionPlan = async (req: Request, res: Response) => {
   const product = await ProductsService.getProductByID(product_id)
   if (!product) return res.status(400).json({ status: 'error', message: 'Invalid Product ID!' })
   if (!product.can_subscribe) {
-    return res
-      .status(400)
-      .json({ status: 'error', message: 'This product is not available for subscription.' })
+    throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+      message: `The product with id "${product_id}" is not available for subscription`,
+    })
   }
 
   const shop = await ShopsService.getShopByID(shop_id)
-  if (!shop) return res.status(400).json({ status: 'error', message: 'Invalid Shop ID!' })
+  if (!shop) {
+    throw generateNotFoundError(ErrorCode.ProductSubscriptionPlanApiError, 'Shop', shop_id)
+  }
 
   const {
     start_dates,

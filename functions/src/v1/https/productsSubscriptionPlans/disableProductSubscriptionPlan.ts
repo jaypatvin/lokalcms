@@ -1,6 +1,7 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductSubscriptionPlanUpdateData } from '../../../models/ProductSubscriptionPlan'
 import { ProductSubscriptionPlansService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -33,24 +34,23 @@ import { ProductSubscriptionPlansService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const disableProductSubscriptionPlan = async (req: Request, res: Response) => {
+const disableProductSubscriptionPlan: RequestHandler = async (req, res) => {
   const data = req.body
   const { planId } = req.params
   let requestorDocId = res.locals.userDoc.id
 
   const plan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)
-
   if (!plan) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Product subscription plan with id ${planId} does not exist!`,
-    })
+    throw generateNotFoundError(
+      ErrorCode.ProductSubscriptionPlanApiError,
+      'Product Subscription Plan',
+      planId
+    )
   }
 
   if (plan.seller_id !== requestorDocId && plan.buyer_id !== requestorDocId) {
-    return res.status(400).json({
-      status: 'error',
-      message: `User with id ${requestorDocId} is not the seller nor the buyer`,
+    throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+      message: `User with id ${requestorDocId} is not the buyer`,
     })
   }
 

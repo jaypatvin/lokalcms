@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { InvitesService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -29,19 +30,20 @@ import { InvitesService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const archiveInvite = async (req: Request, res: Response) => {
+const archiveInvite: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
   const { inviteId } = req.params
   const roles = res.locals.userRoles
-  const _invite = await InvitesService.getInviteByID(inviteId)
 
-  if (!_invite) return res.status(403).json({ status: 'error', message: 'Invite does not exist!' })
+  const invite = await InvitesService.getInviteByID(inviteId)
+  if (!invite) {
+    throw generateNotFoundError(ErrorCode.InviteApiError, 'Invite', inviteId)
+  }
 
   if (!roles.admin) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'You do not have a permission to delete.',
+    throw generateError(ErrorCode.InviteApiError, {
+      message: 'User does not have a permission to delete an invite',
     })
   }
 

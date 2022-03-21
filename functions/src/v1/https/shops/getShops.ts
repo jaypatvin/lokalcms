@@ -1,6 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 
-const getShops = async (req: Request, res: Response) => {
+const getShops: RequestHandler = async (req, res) => {
   return res.json({ status: 'ok' })
 }
 

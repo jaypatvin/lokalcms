@@ -2,20 +2,27 @@ import errCode from 'err-code'
 import { get } from 'lodash'
 
 export enum ErrorCode {
-  UnknownError = 'UnknownError',
-  UnauthorizedError = 'UnauthorizedError',
-  ValidationError = 'ValidationError',
-  AuthenticationApiError = 'AuthenticationApiError',
-  UserApiError = 'UserApiError',
-  CommunityApiError = 'CommunityApiError',
-  ShopApiError = 'ShopApiError',
-  ProductApiError = 'ProductApiError',
-  OrderApiError = 'OrderApiError',
   ActivityApiError = 'ActivityApiError',
   ApplicationLogApiError = 'ApplicationLogApiError',
+  AuthenticationApiError = 'AuthenticationApiError',
   CategoryApiError = 'CategoryApiError',
   ChatApiError = 'ChatApiError',
   CommentApiError = 'CommentApiError',
+  CommunityApiError = 'CommunityApiError',
+  InviteApiError = 'InviteApiError',
+  LikeApiError = 'LikeApiError',
+  OrderApiError = 'OrderApiError',
+  ProductApiError = 'ProductApiError',
+  ProductSubscriptionApiError = 'ProductSubscriptionApiError',
+  ProductSubscriptionPlanApiError = 'ProductSubscriptionPlanApiError',
+  ReviewApiError = 'ReviewApiError',
+  SearchApiError = 'SearchApiError',
+  ShopApiError = 'ShopApiError',
+  UnauthorizedError = 'UnauthorizedError',
+  UnknownError = 'UnknownError',
+  UserApiError = 'UserApiError',
+  ValidationError = 'ValidationError',
+  WishlistApiError = 'WishlistApiError',
 }
 
 type Props = {

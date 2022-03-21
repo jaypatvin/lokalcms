@@ -77,7 +77,7 @@ const createApplicationLog: RequestHandler = async (req, res) => {
 
   const actionType = await ActionTypesService.getActionTypeById(action_type)
   if (!actionType) {
-    throw generateNotFoundError(ErrorCode.ApplicationLogApiError, 'ActionType', action_type)
+    throw generateNotFoundError(ErrorCode.ApplicationLogApiError, 'Action Type', action_type)
   }
 
   const logData = {

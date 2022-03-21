@@ -2,7 +2,7 @@
 # from https://github.com/firebase/functions-samples/blob/master/authorized-https-endpoint/functions/index.js
 */
 
-import { NextFunction, Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { UsersService } from '../service'
 
 type RolesType = {
@@ -11,13 +11,9 @@ type RolesType = {
   member?: boolean
 }
 
-const roles = [
-  'admin',
-  'editor',
-  'member'
-]
+const roles = ['admin', 'editor', 'member']
 
-const role = async (req: Request, res: Response, next: NextFunction) => {
+const role: RequestHandler = async (req, res, next) => {
   const authUser = req.user
   let userRoles: RolesType = {}
   res.locals.userDoc = {}
@@ -29,7 +25,7 @@ const role = async (req: Request, res: Response, next: NextFunction) => {
       userRoles = user.roles
       if (userRoles && userRoles.admin) {
         // if admin, all roles should be true
-        roles.forEach(role => userRoles[role] = true)
+        roles.forEach((role) => (userRoles[role] = true))
       }
     }
   }

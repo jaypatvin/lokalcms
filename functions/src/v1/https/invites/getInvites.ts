@@ -1,6 +1,6 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 
-const getInvites = async (req: Request, res: Response) => {
+const getInvites: RequestHandler = async (req, res) => {
   return res.json({ status: 'ok' })
 }
 

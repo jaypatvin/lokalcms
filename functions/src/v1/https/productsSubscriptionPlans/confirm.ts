@@ -1,7 +1,8 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductSubscriptionPlanUpdateData } from '../../../models/ProductSubscriptionPlan'
 import generateProductSubscriptions from '../../../scheduled/generateProductSubscriptions'
 import { ProductSubscriptionPlansService } from '../../../service'
+import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -51,7 +52,7 @@ import { ProductSubscriptionPlansService } from '../../../service'
  *                   type: string
  *                   example: ok
  */
-const confirm = async (req: Request, res: Response) => {
+const confirm: RequestHandler = async (req, res) => {
   const data = req.body
   const { seller_id } = data
   const { planId } = req.params
@@ -59,18 +60,17 @@ const confirm = async (req: Request, res: Response) => {
   let requestorDocId = res.locals.userDoc.id
 
   const plan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)
-
   if (!plan) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Product subscription plan with id ${planId} does not exist!`,
-    })
+    throw generateNotFoundError(
+      ErrorCode.ProductSubscriptionPlanApiError,
+      'Product Subscription Plan',
+      planId
+    )
   }
 
   if (plan.archived) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Product subscription plan with id ${planId} is archived!`,
+    throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
+      message: `Product subscription plan with id ${planId} is archived`,
     })
   }
 
@@ -79,8 +79,7 @@ const confirm = async (req: Request, res: Response) => {
   }
 
   if (!roles.admin && plan.seller_id !== requestorDocId) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
       message: `User with id ${requestorDocId} is not the seller`,
     })
   }

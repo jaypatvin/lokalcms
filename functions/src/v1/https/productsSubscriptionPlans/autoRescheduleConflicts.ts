@@ -1,6 +1,11 @@
-import { Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import { ProductsService, ProductSubscriptionPlansService, ShopsService } from '../../../service'
-import { generateDatesFromSchedule } from '../../../utils/generators'
+import {
+  ErrorCode,
+  generateDatesFromSchedule,
+  generateError,
+  generateNotFoundError,
+} from '../../../utils/generators'
 
 /**
  * @openapi
@@ -33,44 +38,43 @@ import { generateDatesFromSchedule } from '../../../utils/generators'
  *                   type: string
  *                   example: ok
  */
-const autoRescheduleConflicts = async (req: Request, res: Response) => {
+const autoRescheduleConflicts: RequestHandler = async (req, res) => {
   const { planId } = req.params
   let requestorDocId = res.locals.userDoc.id
 
   const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
     planId
   )
-
   if (!subscriptionPlan) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Product subscription plan with id ${planId} does not exist!`,
-    })
+    throw generateNotFoundError(
+      ErrorCode.ProductSubscriptionPlanApiError,
+      'Product Subscription Plan',
+      planId
+    )
   }
 
   if (subscriptionPlan.buyer_id !== requestorDocId) {
-    return res.status(400).json({
-      status: 'error',
+    throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
       message: `User with id ${requestorDocId} is not the buyer`,
     })
   }
 
   const shop = await ShopsService.getShopByID(subscriptionPlan.shop_id)
-
   if (!shop) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Shop with id ${subscriptionPlan.shop_id} does not exist!`,
-    })
+    throw generateNotFoundError(
+      ErrorCode.ProductSubscriptionPlanApiError,
+      'Shop',
+      subscriptionPlan.shop_id
+    )
   }
 
   const product = await ProductsService.getProductByID(subscriptionPlan.product_id)
-
   if (!product) {
-    return res.status(400).json({
-      status: 'error',
-      message: `Product with id ${subscriptionPlan.product_id} does not exist!`,
-    })
+    throw generateNotFoundError(
+      ErrorCode.ProductSubscriptionPlanApiError,
+      'Product',
+      subscriptionPlan.product_id
+    )
   }
 
   const availability = product.availability || shop.operating_hours
