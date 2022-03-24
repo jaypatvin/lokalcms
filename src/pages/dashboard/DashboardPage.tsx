@@ -1,52 +1,46 @@
 import React, { useEffect, useState } from 'react'
-import { ActionType } from '../../models'
-import { getActionTypes } from '../../services/actionTypes'
 import { getAppMeta } from '../../services/meta'
+import MetaCard from './MetaCard'
 
 type Meta = {
   id: string
   count: number
 }
 
+const metaFields = [
+  'activities',
+  'chats',
+  'community',
+  'invites',
+  'orders',
+  'product_subscription_plans',
+  'products',
+  'shops',
+  'users',
+]
+
 const DashboardPage = ({}) => {
   const [metadata, setMetadata] = useState<Meta[]>([])
-  const [isNextLevel, setIsNextLevel] = useState(false)
-  const [actionTypes, setActionTypes] = useState<ActionType[]>([])
 
   useEffect(() => {
     getAppMeta()
       .get()
-      .then((data) => data.docs.map((doc) => ({ id: doc.id, count: doc.data().count })))
+      .then((data) =>
+        data.docs
+          .filter((doc) => metaFields.includes(doc.id))
+          .map((doc) => ({
+            id: doc.id.replace('product_subscription_plans', 'subscriptions'),
+            count: doc.data().count,
+          }))
+      )
       .then((data) => setMetadata(data))
   }, [])
 
-  const clickHandler = (id: string) => {
-    setIsNextLevel(true)
-    if (id === 'action_types') {
-      getActionTypes()
-        .get()
-        .then((data) => data.docs.map((doc) => doc.data()))
-        .then((data) => setActionTypes(data))
-    }
-  }
-
   return (
-    <div className="">
-      {isNextLevel
-        ? actionTypes.map((actionType) => (
-            <button type="button" className="border-none bg-none text-primary-600 block">
-              {actionType.name}
-            </button>
-          ))
-        : metadata.map((m) => (
-            <button
-              type="button"
-              className="border-none bg-none text-primary-600 block"
-              onClick={() => clickHandler(m.id)}
-            >
-              {m.id}: {m.count}
-            </button>
-          ))}
+    <div className="grid grid-cols-5 gap-5">
+      {metadata.map(({ id, count }) => (
+        <MetaCard key={id} title={id} count={count} />
+      ))}
     </div>
   )
 }
