@@ -29,7 +29,7 @@ import { UsersService } from '../../../service'
 const getUsers: RequestHandler = async (req, res) => {
   const result = await UsersService.getUsers()
 
-  if (!result.length) return res.status(204).json({ status: 'ok', data: result })
+  if (!result.length) return res.status(200).json({ status: 'ok', data: result })
 
   result.forEach((user) => {
     delete user.keywords

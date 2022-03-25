@@ -107,8 +107,6 @@ const updateUser: RequestHandler = async (req, res) => {
 
   let newCommunity
 
-  if (!userId) return res.status(400).json({ status: 'error', message: 'id is required!' })
-
   // check if user id is valid
   const existingUser = await UsersService.getUserByID(userId)
   if (!existingUser) {
