@@ -153,7 +153,9 @@ const createProductSubscriptionPlan: RequestHandler = async (req, res) => {
   }
 
   const product = await ProductsService.getProductByID(product_id)
-  if (!product) return res.status(400).json({ status: 'error', message: 'Invalid Product ID!' })
+  if (!product) {
+    throw generateNotFoundError(ErrorCode.ProductSubscriptionPlanApiError, 'Product', product_id)
+  }
   if (!product.can_subscribe) {
     throw generateError(ErrorCode.ProductSubscriptionPlanApiError, {
       message: `The product with id "${product_id}" is not available for subscription`,

@@ -35,19 +35,19 @@ const checkInvite: RequestHandler = async (req, res) => {
 
   const invite = await InvitesService.getInviteByCode(inviteCode)
   if (!invite) {
-    throw generateError(ErrorCode.ActivityApiError, {
+    throw generateError(ErrorCode.InviteApiError, {
       message: `Invite with code "${inviteCode} was not found"`,
     })
   }
 
   if (invite.claimed) {
-    throw generateError(ErrorCode.ActivityApiError, {
+    throw generateError(ErrorCode.InviteApiError, {
       message: `Invite with code "${inviteCode} was already claimed"`,
     })
   }
 
   if (invite.status !== 'enabled') {
-    throw generateError(ErrorCode.ActivityApiError, {
+    throw generateError(ErrorCode.InviteApiError, {
       message: `Invite with code "${inviteCode} is disabled"`,
     })
   }

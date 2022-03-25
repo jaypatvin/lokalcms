@@ -1,6 +1,6 @@
 import { ErrorRequestHandler } from 'express'
 import * as functions from 'firebase-functions'
-import { get } from 'lodash'
+import { get, isEmpty } from 'lodash'
 import { IncomingWebhook } from '@slack/webhook'
 import { ErrorCode } from '../utils/generators'
 
@@ -19,6 +19,41 @@ const errorAlert: ErrorRequestHandler = async (err, req, res, next) => {
       errorCode !== 'UnknownError'
         ? JSON.stringify(err)
         : JSON.stringify(err, Object.getOwnPropertyNames(err))
+    const moreInfos = []
+    if (req.headers.referer) {
+      moreInfos.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Referer:* ${req.headers.referer}`,
+        },
+      })
+    }
+    if (req.method !== 'GET') {
+      moreInfos.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Method:* ${req.method}`,
+        },
+      })
+      moreInfos.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Body:* ${JSON.stringify(req.body)}`,
+        },
+      })
+    }
+    if (!isEmpty(req.query)) {
+      moreInfos.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Params:* ${JSON.stringify(req.query)}`,
+        },
+      })
+    }
     await webhook.send({
       attachments: [
         {
@@ -47,30 +82,10 @@ const errorAlert: ErrorRequestHandler = async (err, req, res, next) => {
               type: 'section',
               text: {
                 type: 'mrkdwn',
-                text: `*Referer:* ${req.headers.referer ?? '--'}`,
-              },
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
                 text: `*Path:* ${req.path}`,
               },
             },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*Method:* ${req.method}`,
-              },
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*Body:* ${JSON.stringify(req.body)}`,
-              },
-            },
+            ...moreInfos,
           ],
         },
       ],

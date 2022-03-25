@@ -52,13 +52,13 @@ const claimInvite: RequestHandler = async (req, res) => {
 
   const invite = await InvitesService.getInviteByCode(data.code)
   if (!invite) {
-    throw generateError(ErrorCode.ActivityApiError, {
+    throw generateError(ErrorCode.InviteApiError, {
       message: `Invite with code "${data.code} was not found"`,
     })
   }
 
   if (invite.expire_by && Date.now() > invite.expire_by) {
-    throw generateError(ErrorCode.ActivityApiError, {
+    throw generateError(ErrorCode.InviteApiError, {
       message: `Invite for "${invite.invitee_email}" has expired`,
     })
   }
@@ -69,7 +69,7 @@ const claimInvite: RequestHandler = async (req, res) => {
   }
 
   if (user.email !== invite.invitee_email) {
-    throw generateError(ErrorCode.ActivityApiError, {
+    throw generateError(ErrorCode.InviteApiError, {
       message: 'Invitee email does not match with the requestor',
     })
   }
