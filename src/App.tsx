@@ -6,10 +6,10 @@ import PrivateRoute from './components/PrivateRoute'
 
 import LoginPage from './pages/LoginPage'
 import LogoutPage from './pages/LogoutPage'
-import DashboardPage from './pages/DashboardPage'
 import TestPage from './pages/TestPage'
 
 // Pages
+import DashboardPage from './pages/dashboard/DashboardPage'
 import CommunityListPage from './pages/communities/CommunityListPage'
 import CommunityEditPage from './pages/communities/CommunityEditPage'
 import ActivityListPage from './pages/activities/ActivityListPage'
@@ -49,7 +49,11 @@ class App extends React.Component {
             <PrivateRoute exact path="/shops" component={ShopListPage} />
             <PrivateRoute exact path="/shops/:id" component={ShopPage} />
             <PrivateRoute exact path="/products" component={ProductListPage} />
-            <PrivateRoute exact path="/productSubscriptionPlans" component={ProductSubscriptionPlansPage} />
+            <PrivateRoute
+              exact
+              path="/productSubscriptionPlans"
+              component={ProductSubscriptionPlansPage}
+            />
             <PrivateRoute exact path="/orders" component={OrdersPage} />
             <PrivateRoute exact path="/createOrder" component={OrderCreatePage} />
             <PrivateRoute exact path="/categories" component={CategoryListPage} />
