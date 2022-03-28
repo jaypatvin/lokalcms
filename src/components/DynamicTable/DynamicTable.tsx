@@ -1,34 +1,8 @@
 import React from 'react'
-
-type Column = {
-  title: string
-  type:
-    | 'string'
-    | 'number'
-    | 'currency'
-    | 'schedule'
-    | 'image'
-    | 'gallery'
-    | 'reference'
-    | 'date'
-    | 'datetime'
-    | 'datepast'
-    | 'datefuture'
-}
-
-type DataItem = {
-  [x: string]: unknown
-}
+import DynamicRow from './DynamicRow'
+import { Row, Cell, ContextMenu, DataItem, Column } from './types'
 
 type Data = DataItem[]
-
-type ContextItem = {
-  title: string
-  type?: 'default' | 'warning' | 'danger'
-  onClick?: (data: DataItem) => void
-}
-
-type ContextMenu = ContextItem[]
 
 type Props = {
   columns: Column[]
@@ -37,6 +11,22 @@ type Props = {
 }
 
 const DynamicTable = ({ columns, data, contextMenu }: Props) => {
+  const rows = data.reduce((acc, item) => {
+    const row: Cell[] = columns.map((col) => ({ type: col.type, value: item[col.key] }))
+    if (contextMenu) {
+      for (const menuItem of contextMenu) {
+        if (menuItem.onClick) {
+          menuItem.onClick = () => menuItem.onClick!(item)
+        }
+      }
+      row.push({
+        type: 'menu',
+        value: contextMenu,
+      })
+    }
+    acc.push(row)
+    return acc
+  }, [] as Row[])
   return (
     <table>
       <thead>
@@ -47,7 +37,11 @@ const DynamicTable = ({ columns, data, contextMenu }: Props) => {
           {contextMenu ? <th className="action-col"></th> : ''}
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody>
+        {rows.map((row) => (
+          <DynamicRow row={row} />
+        ))}
+      </tbody>
     </table>
   )
 }
