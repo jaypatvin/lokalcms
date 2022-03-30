@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useOuterClick from '../../customHooks/useOuterClick'
+import { fetchCommunityByID } from '../../services/community'
 import { Cell, ContextMenu } from './types'
 
 type Props = {
@@ -8,13 +9,37 @@ type Props = {
 
 const DynamicCell = ({ cell }: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+  const [referenceValue, setReferenceValue] = useState<string>()
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
+
+  const getReferenceValue = async () => {
+    if (cell.collection === 'community') {
+      const doc = await fetchCommunityByID(cell.value as string)
+      const data = doc.data()
+      if (data) {
+        // @ts-ignore
+        setReferenceValue(data[cell.referenceField!])
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (cell.type === 'reference') {
+      getReferenceValue()
+    }
+  }, [])
 
   switch (cell.type) {
     case 'string':
       return (
         <td>
           <p className="text-gray-900 whitespace-no-wrap">{cell.value as string}</p>
+        </td>
+      )
+    case 'reference':
+      return (
+        <td>
+          <p className="text-gray-900 whitespace-no-wrap">{referenceValue ?? '--'}</p>
         </td>
       )
     case 'menu':

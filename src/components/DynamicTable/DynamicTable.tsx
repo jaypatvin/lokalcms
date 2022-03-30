@@ -3,6 +3,7 @@ import ReactLoading from 'react-loading'
 import { Button } from '../buttons'
 import Dropdown from '../Dropdown'
 import { MultiSelect } from '../inputs'
+import { MultiSelectOption } from '../inputs/MultiSelect'
 import DynamicRow from './DynamicRow'
 import { Row, Cell, ContextMenu, DataItem, Column } from './types'
 
@@ -18,13 +19,29 @@ type Props = {
 
 const DynamicTable = ({ allColumns, columns, data, contextMenu, loading }: Props) => {
   const [shownColumns, setShownColumns] = useState<Column[]>(columns)
-  const fieldOptions = (allColumns ?? columns).map((col) => ({
+  const fieldOptions: MultiSelectOption[] = (allColumns ?? columns).map((col) => ({
     id: col.key,
     name: col.title,
     checked: shownColumns.some((scol) => scol.key === col.key),
   }))
+
+  const fieldsFilterHandler = (options: MultiSelectOption[]) => {
+    const newShownColumns = options
+      .filter((option) => option.checked)
+      .map((option) => (allColumns ?? columns).find((col) => col.key === option.id)!)
+    setShownColumns(newShownColumns)
+  }
+
   const rows = data.reduce((acc, item) => {
-    const row: Cell[] = shownColumns.map((col) => ({ type: col.type, value: item[col.key] }))
+    const row: Cell[] = shownColumns.map((col) => {
+      return {
+        type: col.type,
+        value: item[col.key],
+        collection: col.collection,
+        referenceField: col.referenceField,
+        referenceLink: col.referenceLink,
+      }
+    })
     if (contextMenu) {
       for (const menuItem of contextMenu) {
         if (menuItem.onClick) {
@@ -62,7 +79,13 @@ const DynamicTable = ({ allColumns, columns, data, contextMenu, loading }: Props
             <Button className="ml-5" icon="arrowBack" size="small" color={'secondary'} />
             <Button className="ml-3" icon="arrowForward" size="small" color={'primary'} />
           </div>
-          <MultiSelect name="fields" size="small" options={fieldOptions} placeholder="Fields" />
+          <MultiSelect
+            name="fields"
+            size="small"
+            options={fieldOptions}
+            placeholder="Fields"
+            onChange={fieldsFilterHandler}
+          />
         </div>
       </div>
       <div className="table-wrapper w-full">

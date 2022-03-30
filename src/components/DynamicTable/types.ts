@@ -2,6 +2,7 @@ export type DynamicType =
   | 'menu'
   | 'string'
   | 'number'
+  | 'boolean'
   | 'currency'
   | 'schedule'
   | 'image'
@@ -15,6 +16,9 @@ export type DynamicType =
 export type Cell = {
   type: DynamicType
   value?: unknown
+  collection?: 'community'
+  referenceField?: string
+  referenceLink?: string
 }
 
 export type Row = Cell[]
@@ -23,6 +27,9 @@ export type Column = {
   title: string
   key: string
   type: DynamicType
+  collection?: 'community'
+  referenceField?: string
+  referenceLink?: string
 }
 
 export type DataItem = {

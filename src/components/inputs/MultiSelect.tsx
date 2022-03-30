@@ -1,15 +1,18 @@
-import React, { ChangeEventHandler, useState } from 'react'
+import React, { useState } from 'react'
+import { cloneDeep } from 'lodash'
 import { useField } from 'formik'
 import { cn } from '../../utils/format'
 import { InputProps, sizes } from './utils'
 import useOuterClick from '../../customHooks/useOuterClick'
 
+export type MultiSelectOption = { id: string; name: string; checked: boolean }
+
 type Props = InputProps & {
-  options: { id: string; name: string; checked: boolean }[]
+  options: MultiSelectOption[]
   optionKeyRef: string
   optionValueRef: string
   optionPlaceholderRef: string
-  onChange?: ChangeEventHandler<HTMLSelectElement>
+  onChange?: (options: MultiSelectOption[]) => void
   [x: string]: any
 }
 
@@ -32,8 +35,20 @@ const MultiSelect = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
     optionValueRef,
     optionPlaceholderRef,
     size = 'medium',
+    onChange,
     ...rest
   } = props
+  const [stateOptions, setStateOptions] = useState(options)
+
+  const checkHandler = (id: string) => {
+    const newOptions = cloneDeep(stateOptions)
+    const option = newOptions.find((o) => o.id === id)!
+    option.checked = !option.checked
+    setStateOptions(newOptions)
+    if (onChange) {
+      onChange(newOptions)
+    }
+  }
 
   const styles = {
     wrapper: {
@@ -77,9 +92,15 @@ const MultiSelect = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
       </div>
       {isOpen ? (
         <div className="border-solid border-1 absolute left-0 top-full w-full bg-white">
-          {options.map((option) => (
-            <label htmlFor={option.id} className="block px-2">
-              <input type="checkbox" id={option.id} className="mr-2" checked={option.checked} />
+          {stateOptions.map((option) => (
+            <label key={option.id} htmlFor={option.id} className="block px-2">
+              <input
+                type="checkbox"
+                id={option.id}
+                className="mr-2"
+                checked={option.checked}
+                onChange={() => checkHandler(option.id)}
+              />
               {option.name}
             </label>
           ))}
