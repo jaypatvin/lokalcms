@@ -12,6 +12,7 @@ export type DynamicType =
   | 'datetime'
   | 'datepast'
   | 'datefuture'
+  | 'metadata'
 
 export type Cell = {
   type: DynamicType

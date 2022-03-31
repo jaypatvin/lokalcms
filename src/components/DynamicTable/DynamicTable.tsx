@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import ReactLoading from 'react-loading'
+import { get } from 'lodash'
 import { Button } from '../buttons'
 import Dropdown from '../Dropdown'
 import { MultiSelect } from '../inputs'
@@ -36,7 +37,7 @@ const DynamicTable = ({ allColumns, columns, data, contextMenu, loading }: Props
     const row: Cell[] = shownColumns.map((col) => {
       return {
         type: col.type,
-        value: item[col.key],
+        value: get(item, col.key),
         collection: col.collection,
         referenceField: col.referenceField,
         referenceLink: col.referenceLink,

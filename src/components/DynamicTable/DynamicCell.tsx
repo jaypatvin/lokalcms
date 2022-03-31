@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { fetchCommunityByID } from '../../services/community'
 import { Cell, ContextMenu } from './types'
@@ -31,15 +33,44 @@ const DynamicCell = ({ cell }: Props) => {
 
   switch (cell.type) {
     case 'string':
+    case 'number':
       return (
         <td>
-          <p className="text-gray-900 whitespace-no-wrap">{cell.value as string}</p>
+          <p className="text-gray-900 whitespace-no-wrap">{(cell.value as string) ?? '--'}</p>
         </td>
       )
     case 'reference':
+      let basePath = ''
+      if (cell.collection === 'community') {
+        basePath = '/communities'
+      }
       return (
         <td>
-          <p className="text-gray-900 whitespace-no-wrap">{referenceValue ?? '--'}</p>
+          <div className="flex items-center">
+            {referenceValue ? (
+              <Link to={`${basePath}/${cell.value}`}>
+                <p className="text-primary-600 hover:text-primary-400 ml-2">{referenceValue}</p>
+              </Link>
+            ) : (
+              <p className="text-gray-900 whitespace-no-wrap">--</p>
+            )}
+          </div>
+        </td>
+      )
+    case 'datepast':
+      let dateAt = cell.value ? dayjs((cell.value as any).toDate()).format() : null
+      return (
+        <td>
+          <p className="text-gray-900 whitespace-no-wrap">
+            {dateAt ? dayjs(dateAt).fromNow() : '--'}
+          </p>
+        </td>
+      )
+    case 'datefuture':
+      let dateBy = cell.value ? dayjs(cell.value as any).fromNow() : null
+      return (
+        <td>
+          <p className="text-gray-900 whitespace-no-wrap">{dateBy ?? '--'}</p>
         </td>
       )
     case 'menu':
