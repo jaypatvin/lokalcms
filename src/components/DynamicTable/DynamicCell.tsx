@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
+import ViewModal from '../modals/ViewModal'
 import { fetchCommunityByID } from '../../services/community'
 import { Cell, ContextMenu } from './types'
 
@@ -12,6 +13,7 @@ type Props = {
 const DynamicCell = ({ cell }: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const [referenceValue, setReferenceValue] = useState<string>()
+  const [imageModalOpen, setImageModalOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
   const getReferenceValue = async () => {
@@ -37,6 +39,18 @@ const DynamicCell = ({ cell }: Props) => {
       return (
         <td>
           <p className="text-gray-900 whitespace-no-wrap">{(cell.value as string) ?? '--'}</p>
+        </td>
+      )
+    case 'boolean':
+      return (
+        <td>
+          <p
+            className={`text-gray-900 whitespace-no-wrap ${
+              cell.value === true ? 'text-primary-600' : ''
+            } ${cell.value === false ? 'text-danger-600' : ''}`}
+          >
+            {(cell.value as boolean).toString() ?? '--'}
+          </p>
         </td>
       )
     case 'reference':
@@ -73,6 +87,31 @@ const DynamicCell = ({ cell }: Props) => {
           <p className="text-gray-900 whitespace-no-wrap">{dateBy ?? '--'}</p>
         </td>
       )
+    case 'image':
+      return (
+        <td>
+          <ViewModal isOpen={imageModalOpen} close={() => setImageModalOpen(false)}>
+            <div className="relative h-full">
+              <img
+                src={cell.value as string}
+                alt={cell.value as string}
+                className="max-w-full max-h-full"
+              />
+            </div>
+          </ViewModal>
+          <button
+            type="button"
+            className="border-none bg-none"
+            onClick={() => setImageModalOpen(true)}
+          >
+            <img
+              src={cell.value as string}
+              alt={cell.value as string}
+              className="max-w-16 max-h-16"
+            />
+          </button>
+        </td>
+      )
     case 'menu':
       return (
         <td className="action-col">
@@ -90,6 +129,7 @@ const DynamicCell = ({ cell }: Props) => {
               <div className="absolute top-0 right-full shadow w-36 bg-white">
                 {(cell.value as ContextMenu).map((item) => (
                   <button
+                    key={item.title}
                     onClick={() => {
                       if (item.onClick) item.onClick()
                       setIsOptionsOpen(false)

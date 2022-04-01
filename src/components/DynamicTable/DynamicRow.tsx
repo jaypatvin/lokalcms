@@ -9,8 +9,8 @@ type Props = {
 const DynamicRow = ({ row }: Props) => {
   return (
     <tr>
-      {row.map((cell) => (
-        <DynamicCell cell={cell} />
+      {row.map((cell, i) => (
+        <DynamicCell key={i} cell={cell} />
       ))}
     </tr>
   )

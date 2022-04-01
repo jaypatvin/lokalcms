@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import ReactLoading from 'react-loading'
-import { get } from 'lodash'
+import { get, cloneDeep } from 'lodash'
 import { Button } from '../buttons'
 import Dropdown from '../Dropdown'
 import { MultiSelect } from '../inputs'
@@ -11,14 +11,15 @@ import { Row, Cell, ContextMenu, DataItem, Column } from './types'
 type Data = DataItem[]
 
 type Props = {
-  allColumns?: Column[]
-  columns: Column[]
+  allColumns: Column[]
+  columnKeys: string[]
   data: Data
   contextMenu?: ContextMenu
   loading?: boolean
 }
 
-const DynamicTable = ({ allColumns, columns, data, contextMenu, loading }: Props) => {
+const DynamicTable = ({ allColumns, columnKeys, data, contextMenu, loading }: Props) => {
+  const columns = allColumns.filter((col) => columnKeys.includes(col.key))
   const [shownColumns, setShownColumns] = useState<Column[]>(columns)
   const fieldOptions: MultiSelectOption[] = (allColumns ?? columns).map((col) => ({
     id: col.key,
@@ -44,14 +45,18 @@ const DynamicTable = ({ allColumns, columns, data, contextMenu, loading }: Props
       }
     })
     if (contextMenu) {
-      for (const menuItem of contextMenu) {
+      const itemContextMenu = cloneDeep(contextMenu)
+      for (const menuItem of itemContextMenu) {
         if (menuItem.onClick) {
-          menuItem.onClick = () => menuItem.onClick!(item)
+          const originalMethod = menuItem.onClick
+          menuItem.onClick = () => {
+            originalMethod(item)
+          }
         }
       }
       row.push({
         type: 'menu',
-        value: contextMenu,
+        value: itemContextMenu,
       })
     }
     acc.push(row)
@@ -110,8 +115,8 @@ const DynamicTable = ({ allColumns, columns, data, contextMenu, loading }: Props
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <DynamicRow row={row} />
+                {rows.map((row, i) => (
+                  <DynamicRow key={i} row={row} />
                 ))}
               </tbody>
             </table>
