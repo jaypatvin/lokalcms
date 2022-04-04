@@ -6,7 +6,7 @@ import { GenericGetArgType, SortOrderType, UserFilterType, UserSortByType } from
 import { useAuth } from '../../contexts/AuthContext'
 import { DocumentType, User } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
-import { Column, ContextMenu } from '../../components/DynamicTable/types'
+import { Column, ContextMenu, FiltersMenu } from '../../components/DynamicTable/types'
 
 type UserData = User & {
   id: string
@@ -128,6 +128,61 @@ const allColumns: Column[] = [
 ]
 
 const columns = ['email', 'display_name', 'community_id', 'created_at', 'updated_at']
+
+const filtersMenu: FiltersMenu = [
+  {
+    title: 'Status',
+    id: 'status',
+    options: [
+      {
+        key: 'all',
+        name: 'All',
+      },
+      {
+        key: 'active',
+        name: 'Active',
+      },
+      {
+        key: 'suspended',
+        name: 'Suspended',
+      },
+      {
+        key: 'pending',
+        name: 'Pending',
+      },
+      {
+        key: 'locked',
+        name: 'Locked',
+      },
+    ],
+  },
+  {
+    title: 'Method',
+    id: 'method',
+    options: [
+      {
+        key: 'all',
+        name: 'All',
+      },
+      {
+        key: 'post',
+        name: 'POST',
+      },
+      {
+        key: 'get',
+        name: 'GET',
+      },
+      {
+        key: 'put',
+        name: 'PUT',
+      },
+      {
+        key: 'delete',
+        name: 'DELETE',
+      },
+    ],
+  },
+]
 
 const UserListPage = () => {
   const [users, setUsers] = useState<UserData[]>([])
@@ -275,12 +330,18 @@ const UserListPage = () => {
     },
   ]
 
+  const onChangeFilter = (data: { [x: string]: string }) => {
+    console.log('filter changed data', data)
+  }
+
   return (
     <DynamicTable
       allColumns={allColumns}
       columnKeys={columns}
       data={users}
       contextMenu={contextMenu}
+      filtersMenu={filtersMenu}
+      onChangeFilter={onChangeFilter}
     />
   )
 

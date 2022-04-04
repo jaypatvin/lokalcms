@@ -3,10 +3,10 @@ import ReactLoading from 'react-loading'
 import { get, cloneDeep } from 'lodash'
 import { Button } from '../buttons'
 import Dropdown from '../Dropdown'
-import { MultiSelect } from '../inputs'
+import { MultiSelect, RadioSelectGroup } from '../inputs'
 import { MultiSelectOption } from '../inputs/MultiSelect'
 import DynamicRow from './DynamicRow'
-import { Row, Cell, ContextMenu, DataItem, Column } from './types'
+import { Row, Cell, ContextMenu, DataItem, Column, FiltersMenu } from './types'
 
 type Data = DataItem[]
 
@@ -16,9 +16,19 @@ type Props = {
   data: Data
   contextMenu?: ContextMenu
   loading?: boolean
+  filtersMenu?: FiltersMenu
+  onChangeFilter?: (data: { [x: string]: string }) => void
 }
 
-const DynamicTable = ({ allColumns, columnKeys, data, contextMenu, loading }: Props) => {
+const DynamicTable = ({
+  allColumns,
+  columnKeys,
+  data,
+  contextMenu,
+  loading,
+  filtersMenu,
+  onChangeFilter,
+}: Props) => {
   const columns = allColumns.filter((col) => columnKeys.includes(col.key))
   const [shownColumns, setShownColumns] = useState<Column[]>(columns)
   const fieldOptions: MultiSelectOption[] = (allColumns ?? columns).map((col) => ({
@@ -92,6 +102,18 @@ const DynamicTable = ({ allColumns, columnKeys, data, contextMenu, loading }: Pr
             placeholder="Fields"
             onChange={fieldsFilterHandler}
           />
+          {filtersMenu ? (
+            <div className="ml-2">
+              <RadioSelectGroup
+                placeholder="Filters"
+                size="small"
+                options={filtersMenu}
+                onChange={onChangeFilter}
+              />
+            </div>
+          ) : (
+            ''
+          )}
         </div>
       </div>
       <div className="table-wrapper w-full">

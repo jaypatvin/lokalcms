@@ -44,3 +44,11 @@ export type ContextItem = {
 }
 
 export type ContextMenu = ContextItem[]
+
+export type Filters = {
+  title: string
+  id: string
+  options: { key: string; name: string }[]
+}
+
+export type FiltersMenu = Filters[]
