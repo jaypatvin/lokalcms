@@ -17,7 +17,8 @@ type Props = {
   contextMenu?: ContextMenu
   loading?: boolean
   filtersMenu?: FiltersMenu
-  onChangeFilter?: (data: { [x: string]: string }) => void
+  initialFilter?: { [x: string]: unknown }
+  onChangeFilter?: (data: { [x: string]: unknown }) => void
 }
 
 const DynamicTable = ({
@@ -26,6 +27,7 @@ const DynamicTable = ({
   data,
   contextMenu,
   loading,
+  initialFilter,
   filtersMenu,
   onChangeFilter,
 }: Props) => {
@@ -108,6 +110,7 @@ const DynamicTable = ({
                 placeholder="Filters"
                 size="small"
                 options={filtersMenu}
+                initialValue={initialFilter}
                 onChange={onChangeFilter}
               />
             </div>

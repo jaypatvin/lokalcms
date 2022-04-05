@@ -13,11 +13,12 @@ type RadioGroup = {
 export type RadioGroups = RadioGroup[]
 
 type StateValue = {
-  [x: string]: string
+  [x: string]: unknown
 }
 
 type Props = InputProps & {
   options: RadioGroups
+  initialValue: StateValue
   onChange?: (data: StateValue) => void
   [x: string]: any
 }
@@ -41,7 +42,7 @@ const RadioSelectGroup = React.forwardRef<HTMLSelectElement, Props>((props, ref)
     onChange,
     ...rest
   } = props
-  const [stateOptions, setStateOptions] = useState<StateValue>({})
+  const [stateOptions, setStateOptions] = useState<StateValue>(initialValue)
 
   const checkHandler = (id: string, key: string) => {
     const newState = { ...stateOptions, [id]: key }
@@ -102,6 +103,7 @@ const RadioSelectGroup = React.forwardRef<HTMLSelectElement, Props>((props, ref)
                     name={option.id}
                     className="mr-2"
                     onChange={() => checkHandler(option.id, subOption.key)}
+                    checked={stateOptions[option.id] === subOption.key}
                   />
                   {subOption.name}
                 </label>

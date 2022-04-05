@@ -38,8 +38,14 @@ export const fetchUserByUID = async (uid = '') => {
   }
 }
 
+type FilterType = {
+  status: string
+  role: string
+  archived?: boolean
+}
+
 type GetUsersParamTypes = {
-  filter?: UserFilterType
+  filter?: FilterType
   search?: string
   sortBy?: UserSortByType
   sortOrder?: SortOrderType
@@ -48,7 +54,7 @@ type GetUsersParamTypes = {
 }
 
 export const getUsers = ({
-  filter = 'all',
+  filter = { status: 'all', role: 'all', archived: false },
   search = '',
   sortBy = 'display_name',
   sortOrder = 'asc',
@@ -61,18 +67,14 @@ export const getUsers = ({
     ref = ref.where('community_id', '==', community)
   }
 
-  if (filter === 'member') {
-    ref = ref.where('roles.admin', '==', false)
-  } else if (filter === 'unregistered') {
-    ref = ref.where('registration.verified', '==', false)
-  } else if (!['all', 'archived'].includes(filter)) {
-    ref = ref.where(`roles.${filter}`, '==', true)
+  if (filter.status !== 'all') {
+    ref = ref.where('status', '==', filter.status)
+  }
+  if (filter.role !== 'all') {
+    ref = ref.where(`roles.${filter.role}`, '==', true)
   }
 
-  ref = ref
-    .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
-    .limit(limit)
+  ref = ref.where('archived', '==', filter.archived).orderBy(sortBy, sortOrder).limit(limit)
 
   return ref
 }

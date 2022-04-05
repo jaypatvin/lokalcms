@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { DocumentType, User } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
 import { Column, ContextMenu, FiltersMenu } from '../../components/DynamicTable/types'
+import UserCreateUpdateForm from './UserCreateUpdateForm'
 
 type UserData = User & {
   id: string
@@ -157,121 +158,76 @@ const filtersMenu: FiltersMenu = [
     ],
   },
   {
-    title: 'Method',
-    id: 'method',
+    title: 'Role',
+    id: 'role',
     options: [
       {
         key: 'all',
         name: 'All',
       },
       {
-        key: 'post',
-        name: 'POST',
+        key: 'admin',
+        name: 'Admin',
       },
       {
-        key: 'get',
-        name: 'GET',
+        key: 'editor',
+        name: 'Editor',
       },
       {
-        key: 'put',
-        name: 'PUT',
-      },
-      {
-        key: 'delete',
-        name: 'DELETE',
+        key: 'member',
+        name: 'Member',
       },
     ],
   },
 ]
 
+const initialFilter = {
+  status: 'all',
+  role: 'all',
+  archived: false,
+}
+
+type FormData = {
+  id: string
+  status: string
+  email: string
+  first_name: string
+  last_name: string
+  display_name: string
+  community_id: string
+  profile_photo?: string
+  street: string
+  is_admin: boolean
+}
+
 const UserListPage = () => {
   const [users, setUsers] = useState<UserData[]>([])
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [dataToUpdate, setDataToUpdate] = useState<FormData>()
+  const [filter, setFilter] = useState(initialFilter)
 
   useEffect(() => {
-    getUsers({ limit: 10 })
+    // @ts-ignore
+    getUsers({ limit: 10, filter })
       .get()
       .then((snapshot) => snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
       .then(setUsers)
-  }, [])
+  }, [filter])
   // const { firebaseToken } = useAuth()
-  // const [filter, setFilter] = useState<UserFilterType>('all')
-  // const [sortBy, setSortBy] = useState<UserSortByType>('display_name')
-  // const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
-  // const menuOptions = [
-  //   {
-  //     key: 'all',
-  //     name: 'All Users',
-  //   },
-  //   {
-  //     key: 'archived',
-  //     name: 'Archived Users',
-  //   },
-  //   {
-  //     key: 'admin',
-  //     name: 'Admins',
-  //   },
-  //   {
-  //     key: 'member',
-  //     name: 'Members',
-  //   },
-  //   {
-  //     key: 'unregistered',
-  //     name: 'Unregistered',
-  //   },
-  // ]
-  // const columns = [
-  //   {
-  //     label: 'User',
-  //     fieldName: 'display_name',
-  //     sortable: true,
-  //   },
-  //   {
-  //     label: 'Community',
-  //     fieldName: 'community_id',
-  //     sortable: false,
-  //   },
-  //   {
-  //     label: 'Status',
-  //     fieldName: 'status',
-  //     sortable: false,
-  //   },
-  //   {
-  //     label: 'Member Since',
-  //     fieldName: 'created_at',
-  //     sortable: true,
-  //   },
-  //   {
-  //     label: 'Updated',
-  //     fieldName: 'updated_at',
-  //     sortable: true,
-  //   },
-  // ]
-  // const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<User>[]) => {
-  //   const newList: UserData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  //   for (let i = 0; i < newList.length; i++) {
-  //     const user = newList[i]
-  //     const community = await user.community.get()
-  //     const communityData = community.data()
-  //     if (communityData) {
-  //       user.community_name = communityData.name
-  //     }
-  //   }
-  //   return newList
-  // }
-  // const normalizeData = (data: User & { id: string }) => {
-  //   return {
-  //     id: data.id,
-  //     status: data.status,
-  //     email: data.email,
-  //     first_name: data.first_name,
-  //     last_name: data.last_name,
-  //     display_name: data.display_name,
-  //     community_id: data.community_id,
-  //     profile_photo: data.profile_photo,
-  //     street: data.address.street,
-  //     is_admin: data.roles.admin,
-  //   }
-  // }
+  const normalizeData = (data: UserData) => {
+    return {
+      id: data.id,
+      status: data.status,
+      email: data.email,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      display_name: data.display_name,
+      community_id: data.community_id,
+      profile_photo: data.profile_photo,
+      street: data.address.street,
+      is_admin: data.roles.admin,
+    }
+  }
 
   // const onArchive = async (user: DocumentType) => {
   //   let res
@@ -311,15 +267,13 @@ const UserListPage = () => {
   //   return res
   // }
 
-  // const getData = ({ search, limit, community }: GenericGetArgType) => {
-  //   return getUsers({ filter, sortBy, sortOrder, search, limit, community })
-  // }
-
   const contextMenu: ContextMenu = [
     {
       title: 'Edit',
       onClick: (data) => {
         console.log('editing data', data)
+        setDataToUpdate(normalizeData(data as UserData))
+        setIsFormOpen(true)
       },
     },
     {
@@ -330,41 +284,30 @@ const UserListPage = () => {
     },
   ]
 
-  const onChangeFilter = (data: { [x: string]: string }) => {
-    console.log('filter changed data', data)
+  const onChangeFilter = (data: { [x: string]: unknown }) => {
+    setFilter({ ...filter, ...data })
   }
 
   return (
-    <DynamicTable
-      allColumns={allColumns}
-      columnKeys={columns}
-      data={users}
-      contextMenu={contextMenu}
-      filtersMenu={filtersMenu}
-      onChangeFilter={onChangeFilter}
-    />
+    <>
+      <UserCreateUpdateForm
+        isOpen={isFormOpen}
+        setIsOpen={setIsFormOpen}
+        mode="update"
+        dataToUpdate={dataToUpdate}
+        isModal
+      />
+      <DynamicTable
+        allColumns={allColumns}
+        columnKeys={columns}
+        data={users}
+        contextMenu={contextMenu}
+        filtersMenu={filtersMenu}
+        initialFilter={initialFilter}
+        onChangeFilter={onChangeFilter}
+      />
+    </>
   )
-
-  // return (
-  //   <ListPage
-  //     name="users"
-  //     menuName="Users"
-  //     filterMenuOptions={menuOptions}
-  //     createLabel="New User"
-  //     columns={columns}
-  //     filter={filter}
-  //     onChangeFilter={setFilter}
-  //     sortBy={sortBy}
-  //     onChangeSortBy={setSortBy}
-  //     sortOrder={sortOrder}
-  //     onChangeSortOrder={setSortOrder}
-  //     getData={getData}
-  //     setupDataList={setupDataList}
-  //     normalizeDataToUpdate={normalizeData}
-  //     onArchive={onArchive}
-  //     onUnarchive={onUnarchive}
-  //   />
-  // )
 }
 
 export default UserListPage
