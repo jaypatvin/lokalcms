@@ -3,14 +3,15 @@ import { Link } from 'react-router-dom'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import ViewModal from '../modals/ViewModal'
-import { fetchCommunityByID } from '../../services/community'
 import { Cell, ContextMenu } from './types'
+import { useCommunities } from '../BasePage'
 
 type Props = {
   cell: Cell
 }
 
 const DynamicCell = ({ cell }: Props) => {
+  const communities = useCommunities()
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const [referenceValue, setReferenceValue] = useState<string>()
   const [imageModalOpen, setImageModalOpen] = useState(false)
@@ -18,8 +19,7 @@ const DynamicCell = ({ cell }: Props) => {
 
   const getReferenceValue = async () => {
     if (cell.collection === 'community') {
-      const doc = await fetchCommunityByID(cell.value as string)
-      const data = doc.data()
+      const data = communities.find((community) => community.id === cell.value)
       if (data) {
         // @ts-ignore
         setReferenceValue(data[cell.referenceField!])
@@ -31,7 +31,7 @@ const DynamicCell = ({ cell }: Props) => {
     if (cell.type === 'reference') {
       getReferenceValue()
     }
-  }, [])
+  }, [cell])
 
   switch (cell.type) {
     case 'string':

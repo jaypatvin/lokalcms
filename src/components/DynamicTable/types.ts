@@ -52,3 +52,9 @@ export type Filters = {
 }
 
 export type FiltersMenu = Filters[]
+
+export type TableConfig = {
+  search: string
+  limit: 10 | 25 | 50 | 100
+  page: number
+}

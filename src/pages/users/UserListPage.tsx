@@ -6,8 +6,10 @@ import { GenericGetArgType, SortOrderType, UserFilterType, UserSortByType } from
 import { useAuth } from '../../contexts/AuthContext'
 import { DocumentType, User } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
-import { Column, ContextMenu, FiltersMenu } from '../../components/DynamicTable/types'
+import { Column, ContextMenu, FiltersMenu, TableConfig } from '../../components/DynamicTable/types'
 import UserCreateUpdateForm from './UserCreateUpdateForm'
+import { useCommunity } from '../../components/BasePage'
+import { ConfirmationDialog } from '../../components/Dialog'
 
 type UserData = User & {
   id: string
@@ -201,19 +203,23 @@ type FormData = {
 }
 
 const UserListPage = () => {
-  const [users, setUsers] = useState<UserData[]>([])
+  const { firebaseToken } = useAuth()
+  const community = useCommunity()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<DocumentType>>()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [dataToUpdate, setDataToUpdate] = useState<FormData>()
-  const [filter, setFilter] = useState(initialFilter)
+  const [queryOptions, setQueryOptions] = useState({
+    search: '',
+    limit: 10 as TableConfig['limit'],
+    filter: initialFilter,
+    community: community?.id,
+  })
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   useEffect(() => {
-    // @ts-ignore
-    getUsers({ limit: 10, filter })
-      .get()
-      .then((snapshot) => snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-      .then(setUsers)
-  }, [filter])
-  // const { firebaseToken } = useAuth()
+    setDataRef(getUsers(queryOptions))
+  }, [queryOptions])
   const normalizeData = (data: UserData) => {
     return {
       id: data.id,
@@ -229,43 +235,38 @@ const UserListPage = () => {
     }
   }
 
-  // const onArchive = async (user: DocumentType) => {
-  //   let res
-  //   if (API_URL && firebaseToken) {
-  //     const { id } = user
-  //     let url = `${API_URL}/users/${id}`
-  //     res = await fetch(url, {
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         Authorization: `Bearer ${firebaseToken}`,
-  //       },
-  //       method: 'DELETE',
-  //     })
-  //     res = await res.json()
-  //   } else {
-  //     console.error('environment variable for the api does not exist.')
-  //   }
-  //   return res
-  // }
+  const onArchive = async (user?: FormData) => {
+    if (!user) return
+    if (API_URL && firebaseToken) {
+      const { id } = user
+      let url = `${API_URL}/users/${id}`
+      await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'DELETE',
+      })
+    } else {
+      console.error('environment variable for the api does not exist.')
+    }
+  }
 
-  // const onUnarchive = async (user: DocumentType) => {
-  //   let res
-  //   if (API_URL && firebaseToken) {
-  //     let url = `${API_URL}/users/${user.id}/unarchive`
-  //     res = await fetch(url, {
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         Authorization: `Bearer ${firebaseToken}`,
-  //       },
-  //       method: 'PUT',
-  //     })
-  //     res = await res.json()
-  //     console.log('res', res)
-  //   } else {
-  //     console.error('environment variable for the api does not exist.')
-  //   }
-  //   return res
-  // }
+  const onUnarchive = async (user?: FormData) => {
+    if (!user) return
+    if (API_URL && firebaseToken) {
+      let url = `${API_URL}/users/${user.id}/unarchive`
+      await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'PUT',
+      })
+    } else {
+      console.error('environment variable for the api does not exist.')
+    }
+  }
 
   const contextMenu: ContextMenu = [
     {
@@ -277,15 +278,21 @@ const UserListPage = () => {
       },
     },
     {
-      title: 'Delete',
+      title: 'Archive',
       onClick: (data) => {
-        console.log('deleting data', data)
+        console.log('archiving data', data)
+        setDataToUpdate(normalizeData(data as UserData))
+        setIsDeleteDialogOpen(true)
       },
     },
   ]
 
   const onChangeFilter = (data: { [x: string]: unknown }) => {
-    setFilter({ ...filter, ...data })
+    setQueryOptions({ ...queryOptions, filter: { ...queryOptions.filter, ...data } })
+  }
+
+  const onChangeTableConfig = (data: TableConfig) => {
+    setQueryOptions({ ...queryOptions, ...data })
   }
 
   return (
@@ -297,15 +304,40 @@ const UserListPage = () => {
         dataToUpdate={dataToUpdate}
         isModal
       />
-      <DynamicTable
-        allColumns={allColumns}
-        columnKeys={columns}
-        data={users}
-        contextMenu={contextMenu}
-        filtersMenu={filtersMenu}
-        initialFilter={initialFilter}
-        onChangeFilter={onChangeFilter}
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onAccept={() => onArchive(dataToUpdate)}
+        color="danger"
+        title="Archive"
+        descriptions={`Are you sure you want to archive ${dataToUpdate?.email}?`}
+        acceptLabel="Archive"
+        cancelLabel="Cancel"
       />
+      <ConfirmationDialog
+        isOpen={isUnarchiveDialogOpen}
+        onClose={() => setIsUnarchiveDialogOpen(false)}
+        onAccept={() => onUnarchive(dataToUpdate)}
+        color="primary"
+        title="Unarchive"
+        descriptions={`Are you sure you want to unarchive ${dataToUpdate?.email}?`}
+        acceptLabel="Unarchive"
+        cancelLabel="Cancel"
+      />
+      {dataRef ? (
+        <DynamicTable
+          dataRef={dataRef}
+          allColumns={allColumns}
+          columnKeys={columns}
+          contextMenu={contextMenu}
+          filtersMenu={filtersMenu}
+          initialFilter={initialFilter}
+          onChangeFilter={onChangeFilter}
+          onChangeTableConfig={onChangeTableConfig}
+        />
+      ) : (
+        ''
+      )}
     </>
   )
 }
