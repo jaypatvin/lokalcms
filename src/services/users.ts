@@ -1,4 +1,4 @@
-import { UserSortByType, UserFilterType, SortOrderType } from '../utils/types'
+import { UserSortByType, SortOrderType } from '../utils/types'
 import { db } from '../utils'
 
 export const getUsersByCommunity = (community_id: string, limit = 10) => {
@@ -38,14 +38,14 @@ export const fetchUserByUID = async (uid = '') => {
   }
 }
 
-type FilterType = {
+export type UserFilterType = {
   status: string
   role: string
   archived?: boolean
 }
 
 type GetUsersParamTypes = {
-  filter?: FilterType
+  filter?: UserFilterType
   search?: string
   sortBy?: UserSortByType
   sortOrder?: SortOrderType
@@ -74,7 +74,7 @@ export const getUsers = ({
     ref = ref.where(`roles.${filter.role}`, '==', true)
   }
 
-  ref = ref.where('archived', '==', filter.archived).orderBy(sortBy, sortOrder).limit(limit)
+  ref = ref.orderBy(sortBy, sortOrder).limit(limit)
 
   return ref
 }

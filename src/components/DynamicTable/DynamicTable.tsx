@@ -12,6 +12,7 @@ import { DocumentType } from '../../models'
 type Data = DataItem[]
 
 type Props = {
+  name: string
   dataRef: firebase.default.firestore.Query<DocumentType>
   allColumns: Column[]
   columnKeys: string[]
@@ -21,9 +22,11 @@ type Props = {
   initialFilter?: { [x: string]: unknown }
   onChangeFilter?: (data: { [x: string]: unknown }) => void
   onChangeTableConfig?: (data: TableConfig) => void
+  onClickCreate?: () => void
 }
 
 const DynamicTable = ({
+  name,
   dataRef,
   allColumns,
   columnKeys,
@@ -33,6 +36,7 @@ const DynamicTable = ({
   filtersMenu,
   onChangeFilter,
   onChangeTableConfig,
+  onClickCreate,
 }: Props) => {
   const [tableConfig, setTableConfig] = useState<TableConfig>({
     search: '',
@@ -94,7 +98,9 @@ const DynamicTable = ({
       }
     })
     if (contextMenu) {
-      const itemContextMenu = cloneDeep(contextMenu)
+      const itemContextMenu = cloneDeep(contextMenu).filter(
+        (menuItem) => !menuItem.showOverride || menuItem.showOverride(item)
+      )
       for (const menuItem of itemContextMenu) {
         if (menuItem.onClick) {
           const originalMethod = menuItem.onClick
@@ -154,7 +160,7 @@ const DynamicTable = ({
       <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
         <div className="flex items-center">
           <input
-            className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-64 py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+            className="border-2 border-gray-200 rounded w-64 py-2 px-4 leading-tight focus:outline-none focus:bg-white"
             id="inline-search"
             type="text"
             placeholder="Search"
@@ -207,6 +213,15 @@ const DynamicTable = ({
             ''
           )}
         </div>
+        {onClickCreate ? (
+          <div className="flex items-center">
+            <Button icon="add" size="small" onClick={onClickCreate}>
+                Add {name}
+            </Button>
+          </div>
+        ) : (
+          ''
+        )}
       </div>
       <div className="table-wrapper w-full">
         {loading ? (

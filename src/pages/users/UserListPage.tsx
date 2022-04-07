@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import ListPage from '../../components/pageComponents/ListPage'
 import { API_URL } from '../../config/variables'
-import { getUsers } from '../../services/users'
-import { GenericGetArgType, SortOrderType, UserFilterType, UserSortByType } from '../../utils/types'
+import { getUsers, UserFilterType } from '../../services/users'
 import { useAuth } from '../../contexts/AuthContext'
-import { DocumentType, User } from '../../models'
+import { User } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
 import { Column, ContextMenu, FiltersMenu, TableConfig } from '../../components/DynamicTable/types'
 import UserCreateUpdateForm from './UserCreateUpdateForm'
@@ -205,16 +203,17 @@ type FormData = {
 const UserListPage = () => {
   const { firebaseToken } = useAuth()
   const community = useCommunity()
-  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<DocumentType>>()
-  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<User>>()
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
+  const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
   const [dataToUpdate, setDataToUpdate] = useState<FormData>()
   const [queryOptions, setQueryOptions] = useState({
     search: '',
     limit: 10 as TableConfig['limit'],
-    filter: initialFilter,
+    filter: initialFilter as UserFilterType,
     community: community?.id,
   })
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   useEffect(() => {
@@ -235,10 +234,10 @@ const UserListPage = () => {
     }
   }
 
-  const onArchive = async (user?: FormData) => {
-    if (!user) return
+  const onArchive = async (data?: FormData) => {
+    if (!data) return
     if (API_URL && firebaseToken) {
-      const { id } = user
+      const { id } = data
       let url = `${API_URL}/users/${id}`
       await fetch(url, {
         headers: {
@@ -247,15 +246,16 @@ const UserListPage = () => {
         },
         method: 'DELETE',
       })
+      setIsArchiveDialogOpen(false)
     } else {
       console.error('environment variable for the api does not exist.')
     }
   }
 
-  const onUnarchive = async (user?: FormData) => {
-    if (!user) return
+  const onUnarchive = async (data?: FormData) => {
+    if (!data) return
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/users/${user.id}/unarchive`
+      let url = `${API_URL}/users/${data.id}/unarchive`
       await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -263,6 +263,7 @@ const UserListPage = () => {
         },
         method: 'PUT',
       })
+      setIsUnarchiveDialogOpen(false)
     } else {
       console.error('environment variable for the api does not exist.')
     }
@@ -272,17 +273,30 @@ const UserListPage = () => {
     {
       title: 'Edit',
       onClick: (data) => {
-        console.log('editing data', data)
         setDataToUpdate(normalizeData(data as UserData))
-        setIsFormOpen(true)
+        setIsUpdateFormOpen(true)
       },
     },
     {
       title: 'Archive',
+      type: 'danger',
       onClick: (data) => {
-        console.log('archiving data', data)
         setDataToUpdate(normalizeData(data as UserData))
-        setIsDeleteDialogOpen(true)
+        setIsArchiveDialogOpen(true)
+      },
+      showOverride: (data) => {
+        return !(data as UserData).archived
+      },
+    },
+    {
+      title: 'Unarchive',
+      type: 'warning',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as UserData))
+        setIsUnarchiveDialogOpen(true)
+      },
+      showOverride: (data) => {
+        return (data as UserData).archived
       },
     },
   ]
@@ -298,15 +312,21 @@ const UserListPage = () => {
   return (
     <>
       <UserCreateUpdateForm
-        isOpen={isFormOpen}
-        setIsOpen={setIsFormOpen}
+        isOpen={isCreateFormOpen}
+        setIsOpen={setIsCreateFormOpen}
+        mode="create"
+        isModal
+      />
+      <UserCreateUpdateForm
+        isOpen={isUpdateFormOpen}
+        setIsOpen={setIsUpdateFormOpen}
         mode="update"
         dataToUpdate={dataToUpdate}
         isModal
       />
       <ConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        isOpen={isArchiveDialogOpen}
+        onClose={() => setIsArchiveDialogOpen(false)}
         onAccept={() => onArchive(dataToUpdate)}
         color="danger"
         title="Archive"
@@ -326,6 +346,7 @@ const UserListPage = () => {
       />
       {dataRef ? (
         <DynamicTable
+          name="User"
           dataRef={dataRef}
           allColumns={allColumns}
           columnKeys={columns}
@@ -334,6 +355,7 @@ const UserListPage = () => {
           initialFilter={initialFilter}
           onChangeFilter={onChangeFilter}
           onChangeTableConfig={onChangeTableConfig}
+          onClickCreate={() => setIsCreateFormOpen(true)}
         />
       ) : (
         ''

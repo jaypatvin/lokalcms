@@ -17,7 +17,7 @@ export type DynamicType =
 export type Cell = {
   type: DynamicType
   value?: unknown
-  collection?: 'community'
+  collection?: 'community' | 'users'
   referenceField?: string
   referenceLink?: string
 }
@@ -28,7 +28,7 @@ export type Column = {
   title: string
   key: string
   type: DynamicType
-  collection?: 'community'
+  collection?: 'community' | 'users'
   referenceField?: string
   referenceLink?: string
 }
@@ -41,6 +41,7 @@ export type ContextItem = {
   title: string
   type?: 'default' | 'warning' | 'danger'
   onClick?: (data?: DataItem) => void
+  showOverride?: (data: DataItem) => boolean
 }
 
 export type ContextMenu = ContextItem[]

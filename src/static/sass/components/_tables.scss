@@ -1,48 +1,41 @@
-
 .table-wrapper {
+  @apply py-2 min-w-full overflow-y-visible;
 
-    @apply p-2 min-w-full overflow-y-visible;
-    
-    .table-container {
+  .table-container {
+    @apply block min-w-full shadow-md rounded-lg overflow-y-visible overflow-x-scroll;
+    min-width: $table_container_width;
+    max-height: $table_container_height;
 
-        @apply block min-w-full shadow-md rounded-lg overflow-y-visible;
-        min-width: $table_container_width;
-    
-        table {
-            @apply min-w-full leading-normal;
-    
-            th {
-                @apply px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider;
-            
-                &.action-col-sm {
-                    @apply px-6 py-4 whitespace-nowrap border-b-2 border-gray-200 bg-gray-100;
-                    width: 50px;
-                 }
+    table {
+      @apply min-w-full leading-normal;
 
-                &.action-col {
-                   @apply px-5 py-3 border-b-2 border-gray-200 bg-gray-100;
-                   width: 50px;
-                }
-            
-            }
-    
-            td {
-                @apply px-5 py-5 border-b border-gray-200 bg-white text-sm;
-    
-                &.action-col-sm {
-                   @apply px-6 py-4 whitespace-nowrap border-b border-gray-200;
-                   width: 50px;
-                }
-    
-                &.action-col {
-                    @apply px-5 py-5 border-b border-gray-200 bg-white text-sm text-right;
-                    width: 50px;
-                }
-            }
-    
+      th {
+        @apply px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider;
+
+        &.action-col-sm {
+          @apply px-6 py-4 whitespace-nowrap border-b-2 border-gray-200 bg-gray-100;
+          width: 50px;
         }
-    
-    
-    }
 
+        &.action-col {
+          @apply px-5 py-3 border-b-2 border-gray-200 bg-gray-100;
+          width: 50px;
+        }
+      }
+
+      td {
+        @apply px-5 py-5 border-b border-gray-200 bg-white text-sm;
+
+        &.action-col-sm {
+          @apply px-6 py-4 whitespace-nowrap border-b border-gray-200;
+          width: 50px;
+        }
+
+        &.action-col {
+          @apply px-5 py-5 border-b border-gray-200 bg-white text-sm text-right;
+          width: 50px;
+        }
+      }
+    }
+  }
 }

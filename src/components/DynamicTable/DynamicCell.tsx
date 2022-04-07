@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ReactCalendar from 'react-calendar'
 import dayjs from 'dayjs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import ViewModal from '../modals/ViewModal'
 import { Cell, ContextMenu } from './types'
 import { useCommunities } from '../BasePage'
+import { fetchUserByID } from '../../services/users'
+import { OutlineButton } from '../../components/buttons'
+import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
+import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
 
 type Props = {
   cell: Cell
@@ -15,6 +20,8 @@ const DynamicCell = ({ cell }: Props) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
   const [referenceValue, setReferenceValue] = useState<string>()
   const [imageModalOpen, setImageModalOpen] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const calendarRef = useOuterClick(() => setShowCalendar(false))
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
 
   const getReferenceValue = async () => {
@@ -24,6 +31,14 @@ const DynamicCell = ({ cell }: Props) => {
         // @ts-ignore
         setReferenceValue(data[cell.referenceField!])
       }
+    } else if (cell.collection === 'users') {
+      const data = await (await fetchUserByID(cell.value as string)).data()
+      if (data) {
+        // @ts-ignore
+        setReferenceValue(data[cell.referenceField!])
+      }
+    } else {
+      setReferenceValue(cell.value as string)
     }
   }
 
@@ -57,6 +72,8 @@ const DynamicCell = ({ cell }: Props) => {
       let basePath = ''
       if (cell.collection === 'community') {
         basePath = '/communities'
+      } else {
+        basePath = cell.collection ?? ''
       }
       return (
         <td>
@@ -146,6 +163,29 @@ const DynamicCell = ({ cell }: Props) => {
               ''
             )}
           </div>
+        </td>
+      )
+    case 'schedule':
+      return (
+        <td ref={calendarRef} className="relative">
+          <p className="text-gray-900 whitespace-no-wrap flex">
+            <OutlineButton
+              className="h-8 text-primary-500 mr-1"
+              size="small"
+              icon="calendar"
+              onClick={() => setShowCalendar(!showCalendar)}
+            />
+            {getAvailabilitySummary(cell.value)}
+          </p>
+          {showCalendar && (
+            <div className="w-64 absolute z-10 shadow">
+              <ReactCalendar
+                tileClassName={getCalendarTileClassFn(cell.value)}
+                onChange={() => null}
+                calendarType="US"
+              />
+            </div>
+          )}
         </td>
       )
     default:
