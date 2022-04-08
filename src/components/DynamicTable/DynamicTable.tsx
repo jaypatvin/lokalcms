@@ -89,12 +89,21 @@ const DynamicTable = ({
 
   const rows = dataList.reduce((acc, item) => {
     const row: Cell[] = shownColumns.map((col) => {
+      let referenceLink = col.referenceLink
+      const linkParams = referenceLink ? referenceLink.match(/:\w+/g) : undefined
+      if (linkParams && linkParams.length) {
+        const fields = linkParams.map((param) => param.slice(1))
+        for (let i = 0; i < fields.length; i++) {
+          // @ts-ignore
+          referenceLink = referenceLink?.replace(linkParams[i], get(item, fields[i]))
+        }
+      }
       return {
         type: col.type,
         value: get(item, col.key),
         collection: col.collection,
         referenceField: col.referenceField,
-        referenceLink: col.referenceLink,
+        referenceLink: referenceLink,
       }
     })
     if (contextMenu) {
@@ -216,7 +225,7 @@ const DynamicTable = ({
         {onClickCreate ? (
           <div className="flex items-center">
             <Button icon="add" size="small" onClick={onClickCreate}>
-                Add {name}
+              Add {name}
             </Button>
           </div>
         ) : (

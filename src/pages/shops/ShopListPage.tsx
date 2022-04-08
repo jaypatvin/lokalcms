@@ -21,6 +21,7 @@ const allColumns: Column[] = [
     type: 'string',
     title: 'Name',
     key: 'name',
+    referenceLink: '/shops/:id',
   },
   {
     type: 'image',

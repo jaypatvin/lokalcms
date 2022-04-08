@@ -17,7 +17,7 @@ export type DynamicType =
 export type Cell = {
   type: DynamicType
   value?: unknown
-  collection?: 'community' | 'users'
+  collection?: 'community' | 'users' | 'shops'
   referenceField?: string
   referenceLink?: string
 }
@@ -28,7 +28,7 @@ export type Column = {
   title: string
   key: string
   type: DynamicType
-  collection?: 'community' | 'users'
+  collection?: 'community' | 'users' | 'shops'
   referenceField?: string
   referenceLink?: string
 }

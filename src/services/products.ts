@@ -1,5 +1,10 @@
-import { SortOrderType, ProductSortByType, ProductFilterType } from '../utils/types'
+import { SortOrderType, ProductSortByType } from '../utils/types'
 import { db } from '../utils'
+
+export type ProductFilterType = {
+  status: string
+  archived?: boolean
+}
 
 type GetProductsParamTypes = {
   search?: string
@@ -47,7 +52,7 @@ export const getProductsByCommunity = (community_id: string, limit = 10) => {
 
 export const getProducts = ({
   search = '',
-  filter = 'all',
+  filter = { status: 'all', archived: false },
   sortBy = 'name',
   sortOrder = 'asc',
   limit = 10,
@@ -59,13 +64,10 @@ export const getProducts = ({
     ref = ref.where('community_id', '==', community)
   }
 
-  if (['enabled', 'disabled'].includes(filter)) {
-    ref = ref.where('status', '==', filter)
+  if (filter.status !== 'all') {
+    ref = ref.where('status', '==', filter.status)
   }
-  ref = ref
-    .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
-    .limit(limit)
+  ref = ref.where('archived', '==', filter.archived).orderBy(sortBy, sortOrder).limit(limit)
 
   return ref
 }

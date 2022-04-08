@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { cloneDeep } from 'lodash'
 import { useField } from 'formik'
 import { cn } from '../../utils/format'
@@ -9,9 +9,6 @@ export type MultiSelectOption = { id: string; name: string; checked: boolean }
 
 type Props = InputProps & {
   options: MultiSelectOption[]
-  optionKeyRef: string
-  optionValueRef: string
-  optionPlaceholderRef: string
   onChange?: (options: MultiSelectOption[]) => void
   [x: string]: any
 }
@@ -25,20 +22,18 @@ const MultiSelect = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
     isError,
     errorMessage,
     required,
-    touched,
-    initialValue,
-    initialTouched,
-    initialError,
     noMargin,
     placeholder,
-    optionKeyRef,
-    optionValueRef,
-    optionPlaceholderRef,
     size = 'medium',
     onChange,
     ...rest
   } = props
+  const [defaultOptions, setDefaultOptions] = useState<MultiSelectOption[]>()
   const [stateOptions, setStateOptions] = useState(options)
+
+  useEffect(() => {
+    setDefaultOptions(options)
+  }, [])
 
   const checkHandler = (id: string) => {
     const newOptions = cloneDeep(stateOptions)
@@ -47,6 +42,27 @@ const MultiSelect = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
     setStateOptions(newOptions)
     if (onChange) {
       onChange(newOptions)
+    }
+  }
+
+  const onSelectAll = () => {
+    const newOptions = cloneDeep(stateOptions)
+    for (const option of newOptions) {
+      option.checked = true
+    }
+    setStateOptions(newOptions)
+    if (onChange) {
+      onChange(newOptions)
+    }
+  }
+
+  const onReset = () => {
+    if (defaultOptions) {
+      const newOptions = cloneDeep(defaultOptions)
+      setStateOptions(newOptions)
+      if (onChange) {
+        onChange(newOptions)
+      }
     }
   }
 
@@ -92,14 +108,35 @@ const MultiSelect = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
       </div>
       {isOpen ? (
         <div className="border-solid border-1 absolute left-0 top-full w-full bg-white">
+          <button
+            className="block text-primary-600 px-2 w-full text-left hover:bg-secondary-100"
+            type="button"
+            onClick={() => onReset()}
+          >
+            Reset
+          </button>
+          <button
+            className="block text-primary-600 px-2 w-full text-left hover:bg-secondary-100"
+            type="button"
+            onClick={() => onSelectAll()}
+          >
+            Select All
+          </button>
           {stateOptions.map((option) => (
-            <label key={option.id} htmlFor={option.id} className="block px-2">
+            <label
+              key={option.id}
+              htmlFor={option.id}
+              className="block px-2 hover:bg-secondary-100"
+            >
               <input
                 type="checkbox"
                 id={option.id}
                 className="mr-2"
                 checked={option.checked}
                 onChange={() => checkHandler(option.id)}
+                disabled={
+                  defaultOptions && defaultOptions.some((o) => o.id === option.id && o.checked)
+                }
               />
               {option.name}
             </label>

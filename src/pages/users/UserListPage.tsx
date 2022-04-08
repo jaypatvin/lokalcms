@@ -18,6 +18,7 @@ const allColumns: Column[] = [
     type: 'string',
     title: 'Email',
     key: 'email',
+    referenceLink: '/users/:id',
   },
   {
     type: 'image',

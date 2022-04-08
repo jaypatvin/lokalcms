@@ -10,6 +10,8 @@ import { fetchUserByID } from '../../services/users'
 import { OutlineButton } from '../../components/buttons'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
+import { fetchShopByID } from '../../services/shops'
+import { formatToPeso } from '../../utils/helper'
 
 type Props = {
   cell: Cell
@@ -37,6 +39,12 @@ const DynamicCell = ({ cell }: Props) => {
         // @ts-ignore
         setReferenceValue(data[cell.referenceField!])
       }
+    } else if (cell.collection === 'shops') {
+      const data = await (await fetchShopByID(cell.value as string)).data()
+      if (data) {
+        // @ts-ignore
+        setReferenceValue(data[cell.referenceField!])
+      }
     } else {
       setReferenceValue(cell.value as string)
     }
@@ -53,7 +61,22 @@ const DynamicCell = ({ cell }: Props) => {
     case 'number':
       return (
         <td>
-          <p className="text-gray-900 whitespace-no-wrap">{(cell.value as string) ?? '--'}</p>
+          {cell.referenceLink ? (
+            <Link
+              className="text-primary-600 hover:text-primary-400 whitespace-no-wrap"
+              to={cell.referenceLink}
+            >
+              {(cell.value as string) ?? '--'}
+            </Link>
+          ) : (
+            <p className="text-gray-900 whitespace-no-wrap">{(cell.value as string) ?? '--'}</p>
+          )}
+        </td>
+      )
+    case 'currency':
+      return (
+        <td>
+          <p className="text-gray-900 whitespace-no-wrap">{formatToPeso(cell.value as number)}</p>
         </td>
       )
     case 'boolean':
