@@ -1,29 +1,36 @@
-import { SortOrderType, CommunitySortByType, CommunityFilterType } from '../utils/types'
+import { SortOrderType, CommunitySortByType } from '../utils/types'
 import { db } from '../utils'
 
 export const fetchCommunityByID = async (id: string) => {
   return db.community.doc(id).get()
 }
 
+export type CommunityFilterType = {
+  archived?: boolean
+}
+
+export type CommunitySort = {
+  sortBy: CommunitySortByType
+  sortOrder: SortOrderType
+}
+
 type GetCommunitiesParamTypes = {
   search?: string
   filter?: CommunityFilterType
-  sortBy?: CommunitySortByType
-  sortOrder?: SortOrderType
+  sort?: CommunitySort
   limit?: number
 }
 
 export const getCommunities = ({
   search = '',
-  filter,
-  sortBy = 'name',
-  sortOrder = 'asc',
+  filter = { archived: false },
+  sort = { sortBy: 'name', sortOrder: 'asc' },
   limit = 50,
 }: GetCommunitiesParamTypes) => {
   return db.community
     .where('keywords', 'array-contains', search.toLowerCase())
     .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
+    .orderBy(sort.sortBy, sort.sortOrder)
     .limit(limit)
 }
 

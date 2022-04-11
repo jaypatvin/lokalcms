@@ -53,6 +53,7 @@ export type Filters = {
 }
 
 export type FiltersMenu = Filters[]
+export type SortMenu = FiltersMenu
 
 export type TableConfig = {
   search: string

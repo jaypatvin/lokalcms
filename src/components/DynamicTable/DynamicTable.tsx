@@ -6,7 +6,16 @@ import Dropdown from '../Dropdown'
 import { MultiSelect, RadioSelectGroup } from '../inputs'
 import { MultiSelectOption } from '../inputs/MultiSelect'
 import DynamicRow from './DynamicRow'
-import { Row, Cell, ContextMenu, DataItem, Column, FiltersMenu, TableConfig } from './types'
+import {
+  Row,
+  Cell,
+  ContextMenu,
+  DataItem,
+  Column,
+  FiltersMenu,
+  TableConfig,
+  SortMenu,
+} from './types'
 import { DocumentType } from '../../models'
 
 type Data = DataItem[]
@@ -18,9 +27,12 @@ type Props = {
   columnKeys: string[]
   contextMenu?: ContextMenu
   loading?: boolean
+  sortMenu?: SortMenu
+  initialSort?: { [x: string]: unknown }
   filtersMenu?: FiltersMenu
   initialFilter?: { [x: string]: unknown }
   onChangeFilter?: (data: { [x: string]: unknown }) => void
+  onChangeSort?: (data: { [x: string]: unknown }) => void
   onChangeTableConfig?: (data: TableConfig) => void
   onClickCreate?: () => void
 }
@@ -33,8 +45,11 @@ const DynamicTable = ({
   contextMenu,
   loading,
   initialFilter,
+  sortMenu,
+  initialSort,
   filtersMenu,
   onChangeFilter,
+  onChangeSort,
   onChangeTableConfig,
   onClickCreate,
 }: Props) => {
@@ -216,6 +231,19 @@ const DynamicTable = ({
                 options={filtersMenu}
                 initialValue={initialFilter}
                 onChange={onChangeFilter}
+              />
+            </div>
+          ) : (
+            ''
+          )}
+          {sortMenu ? (
+            <div className="ml-2">
+              <RadioSelectGroup
+                placeholder="Sort"
+                size="small"
+                options={sortMenu}
+                initialValue={initialSort}
+                onChange={onChangeSort}
               />
             </div>
           ) : (

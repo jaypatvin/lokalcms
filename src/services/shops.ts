@@ -7,11 +7,15 @@ export type ShopFilterType = {
   archived?: boolean
 }
 
+export type ShopSort = {
+  sortBy: ShopSortByType
+  sortOrder: SortOrderType
+}
+
 type GetShopsParamTypes = {
   search?: string
   filter?: ShopFilterType
-  sortBy?: ShopSortByType
-  sortOrder?: SortOrderType
+  sort?: ShopSort
   limit?: number
   community?: string
 }
@@ -43,8 +47,7 @@ export const getShopsByCommunity = (community_id: string, limit = 10) => {
 export const getShops = ({
   search = '',
   filter = { status: 'all', isClose: 'all', archived: false },
-  sortBy = 'name',
-  sortOrder = 'asc',
+  sort = { sortBy: 'name', sortOrder: 'asc' },
   limit = 10,
   community,
 }: GetShopsParamTypes) => {
@@ -61,7 +64,10 @@ export const getShops = ({
     ref = ref.where('is_close', '==', filter.isClose)
   }
 
-  ref = ref.where('archived', '==', filter.archived).orderBy(sortBy, sortOrder).limit(limit)
+  ref = ref
+    .where('archived', '==', filter.archived)
+    .orderBy(sort.sortBy, sort.sortOrder)
+    .limit(limit)
 
   return ref
 }

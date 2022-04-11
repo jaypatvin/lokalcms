@@ -44,11 +44,15 @@ export type UserFilterType = {
   archived?: boolean
 }
 
+export type UserSort = {
+  sortBy: UserSortByType
+  sortOrder: SortOrderType
+}
+
 type GetUsersParamTypes = {
   filter?: UserFilterType
   search?: string
-  sortBy?: UserSortByType
-  sortOrder?: SortOrderType
+  sort?: UserSort
   limit?: number
   community?: string
 }
@@ -56,8 +60,7 @@ type GetUsersParamTypes = {
 export const getUsers = ({
   filter = { status: 'all', role: 'all', archived: false },
   search = '',
-  sortBy = 'display_name',
-  sortOrder = 'asc',
+  sort = { sortBy: 'display_name', sortOrder: 'asc' },
   limit = 50,
   community,
 }: GetUsersParamTypes) => {
@@ -74,7 +77,7 @@ export const getUsers = ({
     ref = ref.where(`roles.${filter.role}`, '==', true)
   }
 
-  ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+  ref = ref.orderBy(sort.sortBy, sort.sortOrder).limit(limit)
 
   return ref
 }

@@ -6,11 +6,15 @@ export type ProductFilterType = {
   archived?: boolean
 }
 
+export type ProductSort = {
+  sortBy: ProductSortByType
+  sortOrder: SortOrderType
+}
+
 type GetProductsParamTypes = {
   search?: string
   filter?: ProductFilterType
-  sortBy?: ProductSortByType
-  sortOrder?: SortOrderType
+  sort?: ProductSort
   limit?: number
   community?: string
 }
@@ -53,8 +57,7 @@ export const getProductsByCommunity = (community_id: string, limit = 10) => {
 export const getProducts = ({
   search = '',
   filter = { status: 'all', archived: false },
-  sortBy = 'name',
-  sortOrder = 'asc',
+  sort = { sortBy: 'name', sortOrder: 'asc' },
   limit = 10,
   community,
 }: GetProductsParamTypes) => {
@@ -67,7 +70,10 @@ export const getProducts = ({
   if (filter.status !== 'all') {
     ref = ref.where('status', '==', filter.status)
   }
-  ref = ref.where('archived', '==', filter.archived).orderBy(sortBy, sortOrder).limit(limit)
+  ref = ref
+    .where('archived', '==', filter.archived)
+    .orderBy(sort.sortBy, sort.sortOrder)
+    .limit(limit)
 
   return ref
 }

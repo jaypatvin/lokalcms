@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getShops, ShopFilterType } from '../../services/shops'
+import { getShops, ShopFilterType, ShopSort } from '../../services/shops'
 import { useAuth } from '../../contexts/AuthContext'
 import { Shop } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
-import { Column, ContextMenu, FiltersMenu, TableConfig } from '../../components/DynamicTable/types'
+import {
+  Column,
+  ContextMenu,
+  FiltersMenu,
+  SortMenu,
+  TableConfig,
+} from '../../components/DynamicTable/types'
 import ShopCreateUpdateForm from './ShopCreateUpdateForm'
 import { useCommunity } from '../../components/BasePage'
 import { ConfirmationDialog } from '../../components/Dialog'
@@ -92,10 +98,50 @@ const filtersMenu: FiltersMenu = [
   },
 ]
 
+const sortMenu: SortMenu = [
+  {
+    title: 'Order',
+    id: 'sortOrder',
+    options: [
+      {
+        key: 'asc',
+        name: 'Ascending',
+      },
+      {
+        key: 'desc',
+        name: 'Descending',
+      },
+    ],
+  },
+  {
+    title: 'Column',
+    id: 'sortBy',
+    options: [
+      {
+        key: 'name',
+        name: 'Name',
+      },
+      {
+        key: 'created_at',
+        name: 'Created at',
+      },
+      {
+        key: 'updated_at',
+        name: 'Updated at',
+      },
+    ],
+  },
+]
+
 const initialFilter = {
   status: 'all',
   isClose: 'all',
   archived: false,
+}
+
+const initialSort = {
+  sortOrder: 'asc',
+  sortBy: 'name',
 }
 
 type FormData = {
@@ -120,6 +166,7 @@ const ShopListPage = () => {
     limit: 10 as TableConfig['limit'],
     filter: initialFilter as ShopFilterType,
     community: community?.id,
+    sort: initialSort as ShopSort,
   })
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
@@ -250,6 +297,10 @@ const ShopListPage = () => {
     setQueryOptions({ ...queryOptions, ...data })
   }
 
+  const onChangeSort = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, sort: { ...queryOptions.sort, ...data } })
+  }
+
   return (
     <>
       <ShopCreateUpdateForm
@@ -294,6 +345,9 @@ const ShopListPage = () => {
           contextMenu={contextMenu}
           filtersMenu={filtersMenu}
           initialFilter={initialFilter}
+          sortMenu={sortMenu}
+          initialSort={initialSort}
+          onChangeSort={onChangeSort}
           onChangeFilter={onChangeFilter}
           onChangeTableConfig={onChangeTableConfig}
           onClickCreate={() => setIsCreateFormOpen(true)}

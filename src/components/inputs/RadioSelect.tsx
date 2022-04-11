@@ -4,26 +4,21 @@ import { cn } from '../../utils/format'
 import { InputProps, sizes } from './utils'
 import useOuterClick from '../../customHooks/useOuterClick'
 
-type RadioGroup = {
+type RadioItem = {
   title: string
   id: string
-  options: { key: string; name: string }[]
 }
 
-export type RadioGroups = RadioGroup[]
-
-type StateValue = {
-  [x: string]: unknown
-}
+export type RadioOptions = RadioItem[]
 
 type Props = InputProps & {
-  options: RadioGroups
-  initialValue: StateValue
-  onChange?: (data: StateValue) => void
+  options: RadioOptions
+  defaultValue: string
+  onChange?: (data: string) => void
   [x: string]: any
 }
 
-const RadioSelectGroup = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
+const RadioSelect = React.forwardRef<HTMLSelectElement, Props>((props, ref) => {
   const [isOpen, setIsOpen] = useState(false)
   const optionsRef = useOuterClick(() => setIsOpen(false))
   const {
@@ -32,18 +27,17 @@ const RadioSelectGroup = React.forwardRef<HTMLSelectElement, Props>((props, ref)
     isError,
     errorMessage,
     required,
-    initialValue,
+    defaultValue,
     placeholder,
     size = 'medium',
     onChange,
     ...rest
   } = props
-  const [stateOptions, setStateOptions] = useState<StateValue>(initialValue)
+  const [stateValue, setStateValue] = useState<string>(defaultValue)
 
-  const checkHandler = (id: string, key: string) => {
-    const newState = { ...stateOptions, [id]: key }
-    setStateOptions(newState)
-    if (onChange) onChange(newState)
+  const checkHandler = (id: string) => {
+    setStateValue(id)
+    if (onChange) onChange(id)
   }
 
   const styles = {
@@ -91,19 +85,17 @@ const RadioSelectGroup = React.forwardRef<HTMLSelectElement, Props>((props, ref)
           {options.map((option) => (
             <div key={option.id} className="p-2">
               <p>{option.title}</p>
-              {option.options.map((subOption) => (
-                <label key={subOption.key} htmlFor={subOption.key} className="block px-2">
-                  <input
-                    type="radio"
-                    id={subOption.key}
-                    name={option.id}
-                    className="mr-2"
-                    onChange={() => checkHandler(option.id, subOption.key)}
-                    checked={stateOptions[option.id] === subOption.key}
-                  />
-                  {subOption.name}
-                </label>
-              ))}
+              <label key={option.id} htmlFor={option.id} className="block px-2">
+                <input
+                  type="radio"
+                  id={option.id}
+                  name={option.id}
+                  className="mr-2"
+                  onChange={() => checkHandler(option.id)}
+                  checked={stateValue === option.id}
+                />
+                {option.title}
+              </label>
             </div>
           ))}
         </div>
@@ -114,10 +106,10 @@ const RadioSelectGroup = React.forwardRef<HTMLSelectElement, Props>((props, ref)
   )
 })
 
-const FormikRadioSelectGroup = ({ ...rest }: any) => {
+const FormikRadioSelect = ({ ...rest }: any) => {
   const [field, meta] = useField(rest)
 
-  return <RadioSelectGroup label={rest.label} {...field} {...meta} {...rest} />
+  return <RadioSelect label={rest.label} {...field} {...meta} {...rest} />
 }
 
-export { RadioSelectGroup, FormikRadioSelectGroup }
+export { RadioSelect, FormikRadioSelect }

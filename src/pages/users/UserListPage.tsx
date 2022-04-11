@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getUsers, UserFilterType } from '../../services/users'
+import { getUsers, UserFilterType, UserSort } from '../../services/users'
 import { useAuth } from '../../contexts/AuthContext'
 import { User } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
-import { Column, ContextMenu, FiltersMenu, TableConfig } from '../../components/DynamicTable/types'
+import {
+  Column,
+  ContextMenu,
+  FiltersMenu,
+  SortMenu,
+  TableConfig,
+} from '../../components/DynamicTable/types'
 import UserCreateUpdateForm from './UserCreateUpdateForm'
 import { useCommunity } from '../../components/BasePage'
 import { ConfirmationDialog } from '../../components/Dialog'
@@ -182,10 +188,50 @@ const filtersMenu: FiltersMenu = [
   },
 ]
 
+const sortMenu: SortMenu = [
+  {
+    title: 'Order',
+    id: 'sortOrder',
+    options: [
+      {
+        key: 'asc',
+        name: 'Ascending',
+      },
+      {
+        key: 'desc',
+        name: 'Descending',
+      },
+    ],
+  },
+  {
+    title: 'Column',
+    id: 'sortBy',
+    options: [
+      {
+        key: 'display_name',
+        name: 'Display name',
+      },
+      {
+        key: 'created_at',
+        name: 'Created at',
+      },
+      {
+        key: 'updated_at',
+        name: 'Updated at',
+      },
+    ],
+  },
+]
+
 const initialFilter = {
   status: 'all',
   role: 'all',
   archived: false,
+}
+
+const initialSort = {
+  sortOrder: 'asc',
+  sortBy: 'display_name',
 }
 
 type FormData = {
@@ -213,6 +259,7 @@ const UserListPage = () => {
     limit: 10 as TableConfig['limit'],
     filter: initialFilter as UserFilterType,
     community: community?.id,
+    sort: initialSort as UserSort,
   })
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
@@ -310,6 +357,10 @@ const UserListPage = () => {
     setQueryOptions({ ...queryOptions, ...data })
   }
 
+  const onChangeSort = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, sort: { ...queryOptions.sort, ...data } })
+  }
+
   return (
     <>
       <UserCreateUpdateForm
@@ -353,8 +404,11 @@ const UserListPage = () => {
           columnKeys={columns}
           contextMenu={contextMenu}
           filtersMenu={filtersMenu}
+          sortMenu={sortMenu}
           initialFilter={initialFilter}
+          initialSort={initialSort}
           onChangeFilter={onChangeFilter}
+          onChangeSort={onChangeSort}
           onChangeTableConfig={onChangeTableConfig}
           onClickCreate={() => setIsCreateFormOpen(true)}
         />
