@@ -1,110 +1,195 @@
-import React, { useState } from 'react'
-import ListPage from '../../components/pageComponents/ListPage'
+import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import {
-  GenericGetArgType,
-  InviteFilterType,
-  InviteSortByType,
-  SortOrderType,
-} from '../../utils/types'
+import { getInvites, InviteFilterType, InviteSort } from '../../services/invites'
 import { useAuth } from '../../contexts/AuthContext'
-import { fetchUserByID } from '../../services/users'
-import { getInvites } from '../../services/invites'
-import { DocumentType, Invite } from '../../models'
+import { Invite } from '../../models'
+import DynamicTable from '../../components/DynamicTable/DynamicTable'
+import {
+  Column,
+  ContextMenu,
+  FiltersMenu,
+  SortMenu,
+  TableConfig,
+} from '../../components/DynamicTable/types'
+import InviteCreateUpdateForm from './InviteCreateUpdateForm'
+import { useCommunity } from '../../components/BasePage'
+import { ConfirmationDialog } from '../../components/Dialog'
 
 type InviteData = Invite & {
   id: string
-  inviter_email?: string
+}
+
+const allColumns: Column[] = [
+  {
+    type: 'string',
+    title: 'Invitee',
+    key: 'invitee_email',
+  },
+  {
+    type: 'reference',
+    title: 'Inviter',
+    key: 'inviter',
+    collection: 'users',
+    referenceField: 'email',
+  },
+  {
+    type: 'reference',
+    title: 'Community',
+    key: 'community_id',
+    collection: 'community',
+    referenceField: 'name',
+  },
+  {
+    type: 'string',
+    title: 'Code',
+    key: 'code',
+  },
+  {
+    type: 'boolean',
+    title: 'Claimed',
+    key: 'claimed',
+  },
+  {
+    type: 'datefuture',
+    title: 'Expire by',
+    key: 'expire_by',
+  },
+  {
+    type: 'string',
+    title: 'Status',
+    key: 'status',
+  },
+  {
+    type: 'boolean',
+    title: 'Archived',
+    key: 'archived',
+  },
+  {
+    type: 'datepast',
+    title: 'Created',
+    key: 'created_at',
+  },
+  {
+    type: 'datepast',
+    title: 'Updated',
+    key: 'updated_at',
+  },
+]
+
+const columns = [
+  'invitee_email',
+  'inviter',
+  'community_id',
+  'code',
+  'claimed',
+  'expire_by',
+  'created_at',
+  'updated_at',
+]
+
+const filtersMenu: FiltersMenu = [
+  {
+    title: 'Status',
+    id: 'status',
+    options: [
+      {
+        key: 'all',
+        name: 'All',
+      },
+      {
+        key: 'enabled',
+        name: 'Enabled',
+      },
+      {
+        key: 'disabled',
+        name: 'Disabled',
+      },
+    ],
+  },
+]
+
+const sortMenu: SortMenu = [
+  {
+    title: 'Order',
+    id: 'sortOrder',
+    options: [
+      {
+        key: 'asc',
+        name: 'Ascending',
+      },
+      {
+        key: 'desc',
+        name: 'Descending',
+      },
+    ],
+  },
+  {
+    title: 'Column',
+    id: 'sortBy',
+    options: [
+      {
+        key: 'created_at',
+        name: 'Created at',
+      },
+      {
+        key: 'updated_at',
+        name: 'Updated at',
+      },
+      {
+        key: 'expire_by',
+        name: 'Expire by',
+      },
+    ],
+  },
+]
+
+const initialFilter = {
+  status: 'all',
+  claimed: 'all',
+  archived: false,
+}
+
+const initialSort = {
+  sortOrder: 'desc',
+  sortBy: 'created_at',
+}
+
+type FormData = {
+  id: string
+  email: string
+  user_id: string
+  expire_by: number
+  code: string
+  status: string
+  claimed: boolean
 }
 
 const InviteListPage = () => {
   const { firebaseToken } = useAuth()
-  const [filter, setFilter] = useState<InviteFilterType>('all')
-  const [sortBy, setSortBy] = useState<InviteSortByType>('created_at')
-  const [sortOrder, setSortOrder] = useState<SortOrderType>('desc')
-  const menuOptions = [
-    {
-      key: 'all',
-      name: 'All',
-    },
-    {
-      key: 'enabled',
-      name: 'Enabled',
-    },
-    {
-      key: 'disabled',
-      name: 'Disabled',
-    },
-    {
-      key: 'claimed',
-      name: 'Claimed',
-    },
-    {
-      key: 'not_claimed',
-      name: 'Not Claimed',
-    },
-    {
-      key: 'archived',
-      name: 'Archived',
-    },
-  ]
-  const columns = [
-    {
-      label: 'Invitee Email',
-      fieldName: 'invitee_email',
-      sortable: true,
-    },
-    {
-      label: 'Inviter',
-      fieldName: 'user_id',
-      sortable: false,
-    },
-    {
-      label: 'Code',
-      fieldName: 'code',
-      sortable: false,
-    },
-    {
-      label: 'Status',
-      fieldName: 'status',
-      sortable: false,
-    },
-    {
-      label: 'Claimed',
-      fieldName: 'claimed',
-      sortable: false,
-    },
-    {
-      label: 'Expire by',
-      fieldName: 'expire_by',
-      sortable: true,
-    },
-    {
-      label: 'Created At',
-      fieldName: 'created_at',
-      sortable: true,
-    },
-    {
-      label: 'Updated At',
-      fieldName: 'updated_at',
-      sortable: true,
-    },
-  ]
-  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Invite>[]) => {
-    const newList: InviteData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    for (let i = 0; i < newList.length; i++) {
-      const data = newList[i]
-      if (data.inviter) {
-        const inviter = await fetchUserByID(data.inviter)
-        const inviterData = inviter.data()
-        if (inviterData) {
-          data.inviter_email = inviterData.email
-        }
-      }
-    }
-    return newList
-  }
-  const normalizeData = (data: Invite & { id: string }) => {
+  const community = useCommunity()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Invite>>()
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
+  const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
+  const [dataToUpdate, setDataToUpdate] = useState<FormData>()
+  const [queryOptions, setQueryOptions] = useState({
+    search: '',
+    limit: 10 as TableConfig['limit'],
+    filter: initialFilter as InviteFilterType,
+    community: community?.id,
+    sort: initialSort as InviteSort,
+  })
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
+  const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
+
+  useEffect(() => {
+    setDataRef(getInvites(queryOptions))
+  }, [queryOptions])
+
+  useEffect(() => {
+    setQueryOptions({ ...queryOptions, community: community.id })
+  }, [community])
+
+  const normalizeData = (data: InviteData) => {
     return {
       id: data.id,
       email: data.invitee_email,
@@ -116,67 +201,140 @@ const InviteListPage = () => {
     }
   }
 
-  const onArchive = async (data: DocumentType) => {
-    let res
+  const onArchive = async (data?: FormData) => {
+    if (!data) return
     if (API_URL && firebaseToken) {
       const { id } = data
       let url = `${API_URL}/invite/${id}`
-      res = await fetch(url, {
+      await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
       })
-      res = await res.json()
+      setIsArchiveDialogOpen(false)
     } else {
       console.error('environment variable for the api does not exist.')
     }
-    return res
   }
 
-  const onUnarchive = async (data: DocumentType) => {
-    let res
+  const onUnarchive = async (data?: FormData) => {
+    if (!data) return
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/invite/${data.id}/unarchive`
-      res = await fetch(url, {
+      await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'PUT',
       })
-      res = await res.json()
-      console.log('res', res)
+      setIsUnarchiveDialogOpen(false)
     } else {
       console.error('environment variable for the api does not exist.')
     }
-    return res
   }
 
-  const getData = ({ search, limit, community }: GenericGetArgType) => {
-    return getInvites({ filter, sortBy, sortOrder, search, limit, community })
+  const contextMenu: ContextMenu = [
+    {
+      title: 'Edit',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as InviteData))
+        setIsUpdateFormOpen(true)
+      },
+    },
+    {
+      title: 'Archive',
+      type: 'danger',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as InviteData))
+        setIsArchiveDialogOpen(true)
+      },
+      showOverride: (data) => {
+        return !(data as InviteData).archived
+      },
+    },
+    {
+      title: 'Unarchive',
+      type: 'warning',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as InviteData))
+        setIsUnarchiveDialogOpen(true)
+      },
+      showOverride: (data) => {
+        return (data as InviteData).archived
+      },
+    },
+  ]
+
+  const onChangeFilter = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, filter: { ...queryOptions.filter, ...data } })
+  }
+
+  const onChangeTableConfig = (data: TableConfig) => {
+    setQueryOptions({ ...queryOptions, ...data })
+  }
+
+  const onChangeSort = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, sort: { ...queryOptions.sort, ...data } })
   }
 
   return (
-    <ListPage
-      name="invites"
-      menuName="Invites"
-      filterMenuOptions={menuOptions}
-      createLabel="New Invite"
-      columns={columns}
-      filter={filter}
-      onChangeFilter={setFilter}
-      sortBy={sortBy}
-      onChangeSortBy={setSortBy}
-      sortOrder={sortOrder}
-      onChangeSortOrder={setSortOrder}
-      getData={getData}
-      setupDataList={setupDataList}
-      normalizeDataToUpdate={normalizeData}
-      onArchive={onArchive}
-      onUnarchive={onUnarchive}
-    />
+    <>
+      <InviteCreateUpdateForm
+        isOpen={isCreateFormOpen}
+        setIsOpen={setIsCreateFormOpen}
+        mode="create"
+        isModal
+      />
+      <InviteCreateUpdateForm
+        isOpen={isUpdateFormOpen}
+        setIsOpen={setIsUpdateFormOpen}
+        mode="update"
+        dataToUpdate={dataToUpdate}
+        isModal
+      />
+      <ConfirmationDialog
+        isOpen={isArchiveDialogOpen}
+        onClose={() => setIsArchiveDialogOpen(false)}
+        onAccept={() => onArchive(dataToUpdate)}
+        color="danger"
+        title="Archive"
+        descriptions={'Are you sure you want to archive the invite?'}
+        acceptLabel="Archive"
+        cancelLabel="Cancel"
+      />
+      <ConfirmationDialog
+        isOpen={isUnarchiveDialogOpen}
+        onClose={() => setIsUnarchiveDialogOpen(false)}
+        onAccept={() => onUnarchive(dataToUpdate)}
+        color="primary"
+        title="Unarchive"
+        descriptions={'Are you sure you want to unarchive the invite?'}
+        acceptLabel="Unarchive"
+        cancelLabel="Cancel"
+      />
+      {dataRef ? (
+        <DynamicTable
+          name="Invite"
+          dataRef={dataRef}
+          allColumns={allColumns}
+          columnKeys={columns}
+          contextMenu={contextMenu}
+          filtersMenu={filtersMenu}
+          initialFilter={initialFilter}
+          sortMenu={sortMenu}
+          initialSort={initialSort}
+          onChangeSort={onChangeSort}
+          onChangeFilter={onChangeFilter}
+          onChangeTableConfig={onChangeTableConfig}
+          onClickCreate={() => setIsCreateFormOpen(true)}
+        />
+      ) : (
+        ''
+      )}
+    </>
   )
 }
 

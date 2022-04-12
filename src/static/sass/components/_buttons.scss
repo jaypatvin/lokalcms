@@ -1,11 +1,9 @@
-
-
 /*
  Default Button Component
  */
 
 .button {
-  @apply flex items-center justify-center rounded-lg text-sm text-white border transition-all w-auto cursor-pointer opacity-100 focus:outline-none;
+  @apply flex items-center justify-center rounded-lg text-sm text-white border transition-all w-auto cursor-pointer focus:outline-none;
 
   &:disabled {
     @apply cursor-not-allowed opacity-50;
@@ -15,40 +13,34 @@
     @apply bg-primary-400 border-primary-400 hover:bg-primary-500 hover:border-primary-500;
 
     &:disabled {
-      @apply  bg-primary-400 border-primary-400;
+      @apply bg-primary-400 border-primary-400;
     }
-
   }
 
   &.secondary {
     @apply bg-secondary-400 border-secondary-400 hover:bg-secondary-500 hover:border-secondary-500;
 
     &:disabled {
-      @apply  bg-secondary-400 border-secondary-400;
+      @apply bg-secondary-400 border-secondary-400;
     }
-
   }
 
   &.danger {
     @apply bg-danger-400 border-danger-400 hover:bg-danger-500 hover:border-danger-500;
 
     &:disabled {
-      @apply  bg-danger-400 border-danger-400;
+      @apply bg-danger-400 border-danger-400;
     }
-
   }
 
   &.warning {
     @apply bg-warning-400 border-warning-400 hover:bg-warning-500 hover:border-warning-500;
 
     &:disabled {
-      @apply  bg-warning-400 border-warning-400;
+      @apply bg-warning-400 border-warning-400;
     }
-
   }
-
 }
-
 
 /*
  Outlined Button Component
@@ -65,7 +57,7 @@
     @apply text-primary-400 border-primary-400 hover:bg-primary-100 hover:text-primary-500 hover:border-primary-500;
 
     &:disabled {
-      @apply  border-primary-400 bg-transparent;
+      @apply border-primary-400 bg-transparent;
     }
   }
 
@@ -73,29 +65,25 @@
     @apply text-secondary-400 border-secondary-400 hover:bg-secondary-100 hover:text-secondary-500 hover:border-secondary-500;
 
     &:disabled {
-      @apply  border-secondary-400 bg-transparent;
+      @apply border-secondary-400 bg-transparent;
     }
-
   }
 
   &.danger {
     @apply text-danger-400 border-danger-400 hover:bg-danger-100 hover:text-danger-500 hover:border-danger-500;
 
     &:disabled {
-      @apply  border-danger-400 bg-transparent;
+      @apply border-danger-400 bg-transparent;
     }
-
   }
 
   &.warning {
     @apply text-warning-400 border-warning-400 hover:bg-warning-100 hover:text-warning-500 hover:border-warning-500;
 
     &:disabled {
-      @apply  border-warning-400 bg-transparent;
+      @apply border-warning-400 bg-transparent;
     }
-
   }
-
 }
 
 /*
@@ -105,8 +93,6 @@
 .button-icon {
   @apply flex items-center justify-center rounded border transition-all text-white w-auto cursor-pointer opacity-100 focus:outline-none;
 
-  
-
   &:disabled {
     @apply cursor-not-allowed opacity-50;
   }
@@ -115,7 +101,7 @@
     @apply bg-primary-400 border-primary-400 hover:bg-primary-500 hover:border-primary-500 hover:text-white;
 
     &:disabled {
-      @apply  border-primary-400 bg-transparent;
+      @apply border-primary-400 bg-transparent;
     }
   }
 
@@ -123,7 +109,7 @@
     @apply bg-secondary-400 border-secondary-400 hover:bg-secondary-500 hover:border-secondary-500 hover:text-white;
 
     &:disabled {
-      @apply  border-secondary-400 bg-transparent;
+      @apply border-secondary-400 bg-transparent;
     }
   }
 
@@ -131,22 +117,19 @@
     @apply bg-danger-400 border-danger-400 hover:bg-danger-500 hover:border-danger-500 hover:text-white;
 
     &:disabled {
-      @apply  border-primary-400 bg-transparent;
+      @apply border-primary-400 bg-transparent;
     }
-
   }
 
   &.warning {
     @apply bg-warning-400 border-warning-400 hover:bg-warning-500 hover:border-warning-500 hover:text-white;
 
     &:disabled {
-      @apply  border-warning-400 bg-transparent;
+      @apply border-warning-400 bg-transparent;
     }
-
   }
 
   &.with-outline {
-
     @apply bg-transparent;
 
     &.primary {
@@ -164,7 +147,5 @@
     &.warning {
       @apply text-warning-400 hover:bg-warning-100 hover:bg-warning-500;
     }
-    
   }
-
 }

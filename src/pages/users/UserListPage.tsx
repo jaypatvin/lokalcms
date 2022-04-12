@@ -267,6 +267,11 @@ const UserListPage = () => {
   useEffect(() => {
     setDataRef(getUsers(queryOptions))
   }, [queryOptions])
+
+  useEffect(() => {
+    setQueryOptions({ ...queryOptions, community: community.id })
+  }, [community])
+
   const normalizeData = (data: UserData) => {
     return {
       id: data.id,

@@ -1,11 +1,21 @@
-import { SortOrderType, InviteSortByType, InviteFilterType } from '../utils/types'
+import { SortOrderType, InviteSortByType } from '../utils/types'
 import { db } from '../utils'
+
+export type InviteFilterType = {
+  status: string
+  claimed: 'all' | boolean
+  archived?: boolean
+}
+
+export type InviteSort = {
+  sortBy: InviteSortByType
+  sortOrder: SortOrderType
+}
 
 type GetInvitesParamTypes = {
   search?: string
   filter?: InviteFilterType
-  sortBy?: InviteSortByType
-  sortOrder?: SortOrderType
+  sort?: InviteSort
   limit?: number
   community?: string
 }
@@ -19,9 +29,8 @@ export const getInvitesByCommunity = (community_id: string, limit = 10) => {
 
 export const getInvites = ({
   search = '',
-  filter = 'all',
-  sortBy = 'created_at',
-  sortOrder = 'desc',
+  filter = { status: 'all', claimed: 'all', archived: false },
+  sort = { sortBy: 'created_at', sortOrder: 'desc' },
   limit = 10,
   community,
 }: GetInvitesParamTypes) => {
@@ -31,15 +40,16 @@ export const getInvites = ({
     ref = ref.where('community_id', '==', community)
   }
 
-  if (['enabled', 'disabled'].includes(filter)) {
-    ref = ref.where('status', '==', filter)
-  } else if (['claimed', 'not_claimed'].includes(filter)) {
-    const claimed = filter === 'claimed'
-    ref = ref.where('claimed', '==', claimed)
+  if (filter.status !== 'all') {
+    ref = ref.where('status', '==', filter.status)
   }
+  if (filter.claimed !== 'all') {
+    ref = ref.where('claimed', '==', filter.claimed)
+  }
+
   ref = ref
-    .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
+    .where('archived', '==', filter.archived)
+    .orderBy(sort.sortBy, sort.sortOrder)
     .limit(limit)
 
   return ref

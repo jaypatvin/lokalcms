@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ReactCalendar from 'react-calendar'
 import dayjs from 'dayjs'
+import { isNil, isEmpty, isObject } from 'lodash'
+import { Button } from '../buttons'
 import useOuterClick from '../../customHooks/useOuterClick'
 import ViewModal from '../modals/ViewModal'
 import { Cell, ContextMenu } from './types'
@@ -17,14 +19,30 @@ type Props = {
   cell: Cell
 }
 
+type Gallery = {
+  url: string
+  order: number
+}[]
+
 const DynamicCell = ({ cell }: Props) => {
   const communities = useCommunities()
+
+  // menu cell
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+
+  // reference cell
   const [referenceValue, setReferenceValue] = useState<string>()
+
+  // image cell
   const [imageModalOpen, setImageModalOpen] = useState(false)
+
+  // calendar cell
   const [showCalendar, setShowCalendar] = useState(false)
   const calendarRef = useOuterClick(() => setShowCalendar(false))
   const optionsRef = useOuterClick(() => setIsOptionsOpen(false))
+
+  // gallery cell
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   const getReferenceValue = async () => {
     if (cell.collection === 'community') {
@@ -55,6 +73,14 @@ const DynamicCell = ({ cell }: Props) => {
       getReferenceValue()
     }
   }, [cell])
+
+  if (isNil(cell.value) || (isObject(cell.value) && isEmpty(cell.value)) || cell.value === '') {
+    return (
+      <td>
+        <p className="text-gray-900 whitespace-no-wrap">--</p>
+      </td>
+    )
+  }
 
   switch (cell.type) {
     case 'string':
@@ -149,6 +175,51 @@ const DynamicCell = ({ cell }: Props) => {
               alt={cell.value as string}
               className="max-w-16 max-h-16"
             />
+          </button>
+        </td>
+      )
+    case 'gallery':
+      const gallery = cell.value as Gallery
+      const galleryLength = gallery.length
+      const isFirst = currentImageIndex === 0
+      const isLast = currentImageIndex === galleryLength - 1
+
+      return (
+        <td>
+          <ViewModal isOpen={imageModalOpen} close={() => setImageModalOpen(false)}>
+            <div className="relative h-full">
+              <Button
+                className="absolute top-1/2 left-0 -translate-y-1/2 opacity-60 hover:opacity-100"
+                icon="arrowBack"
+                size="small"
+                color="secondary"
+                onClick={() =>
+                  setCurrentImageIndex(isFirst ? galleryLength - 1 : currentImageIndex - 1)
+                }
+              />
+              <Button
+                className="absolute top-1/2 right-0 -translate-y-1/2 opacity-60 hover:opacity-100"
+                icon="arrowForward"
+                size="small"
+                color="secondary"
+                onClick={() => setCurrentImageIndex(isLast ? 0 : currentImageIndex + 1)}
+              />
+              <img src={gallery[currentImageIndex].url} alt="" className="max-w-full max-h-full" />
+            </div>
+          </ViewModal>
+          <button
+            type="button"
+            className="border-none bg-none w-24 flex flex-wrap justify-around gap-1 text-primary-600 hover:text-primary-400"
+            onClick={() => setImageModalOpen(true)}
+          >
+            {gallery.slice(0, 3).map((image) => (
+              <img
+                src={image.url as string}
+                alt=""
+                className={galleryLength === 1 ? 'max-w-full max-h-full' : 'w-11'}
+              />
+            ))}
+            {galleryLength > 3 ? <span>{galleryLength - 3} more</span> : ''}
           </button>
         </td>
       )

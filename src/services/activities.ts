@@ -1,11 +1,20 @@
-import { SortOrderType, ActivitySortByType, ActivityFilterType } from '../utils/types'
+import { SortOrderType, ActivitySortByType } from '../utils/types'
 import { db } from '../utils'
+
+export type ActivityFilterType = {
+  status: string
+  archived?: boolean
+}
+
+export type ActivitySort = {
+  sortBy: ActivitySortByType
+  sortOrder: SortOrderType
+}
 
 type GetActivitiesParamTypes = {
   search?: string
   filter?: ActivityFilterType
-  sortBy?: ActivitySortByType
-  sortOrder?: SortOrderType
+  sort?: ActivitySort
   limit?: number
   community?: string
 }
@@ -31,22 +40,22 @@ export const getActivitiesByCommunity = (community_id: string, limit = 10) => {
 }
 
 export const getActivities = ({
-  filter = 'all',
-  sortBy = 'created_at',
-  sortOrder = 'asc',
+  filter = { status: 'all', archived: false },
+  sort = { sortBy: 'created_at', sortOrder: 'desc' },
   limit = 10,
   community,
 }: GetActivitiesParamTypes) => {
-  let ref = db.activities.where('archived', '==', filter === 'archived')
+  let ref = db.activities.where('archived', '==', filter.archived)
 
   if (community) {
     ref = ref.where('community_id', '==', community)
   }
 
-  if (['enabled', 'disabled'].includes(filter)) {
-    ref = ref.where('status', '==', filter)
+  if (filter.status !== 'all') {
+    ref = ref.where('status', '==', filter.status)
   }
-  ref = ref.orderBy(sortBy, sortOrder).limit(limit)
+
+  ref = ref.orderBy(sort.sortBy, sort.sortOrder).limit(limit)
 
   return ref
 }

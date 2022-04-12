@@ -59,6 +59,26 @@ const allColumns: Column[] = [
     key: 'status',
   },
   {
+    type: 'number',
+    title: 'Likes',
+    key: '_meta.likes_count',
+  },
+  {
+    type: 'number',
+    title: 'Orders',
+    key: '_meta.orders_count',
+  },
+  {
+    type: 'number',
+    title: 'Subscriptions',
+    key: '_meta.product_subscription_plans_count',
+  },
+  {
+    type: 'number',
+    title: 'Products',
+    key: '_meta.products_count',
+  },
+  {
     type: 'boolean',
     title: 'Archived',
     key: 'archived',
@@ -174,6 +194,10 @@ const ShopListPage = () => {
   useEffect(() => {
     setDataRef(getShops(queryOptions))
   }, [queryOptions])
+
+  useEffect(() => {
+    setQueryOptions({ ...queryOptions, community: community.id })
+  }, [community])
 
   const constructOperatingHours = (data: Shop['operating_hours']) => {
     const { repeat_type, repeat_unit, start_time, end_time, start_dates, schedule } = data

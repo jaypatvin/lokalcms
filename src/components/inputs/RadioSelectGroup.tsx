@@ -73,7 +73,7 @@ const RadioSelectGroup = React.forwardRef<HTMLSelectElement, Props>((props, ref)
   }
 
   return (
-    <div ref={optionsRef} className="w-48 relative">
+    <div ref={optionsRef} className="w-48 relative z-10">
       <div className={cn(styles.wrapper)} onClick={() => setIsOpen(!isOpen)}>
         {label && (
           <label className={cn(styles.label)}>

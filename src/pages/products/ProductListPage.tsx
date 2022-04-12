@@ -31,6 +31,11 @@ const allColumns: Column[] = [
     key: 'description',
   },
   {
+    type: 'gallery',
+    title: 'Gallery',
+    key: 'gallery',
+  },
+  {
     type: 'string',
     title: 'Category',
     key: 'product_category',
@@ -82,6 +87,26 @@ const allColumns: Column[] = [
     key: 'quantity',
   },
   {
+    type: 'number',
+    title: 'Rating',
+    key: '_meta.average_rating',
+  },
+  {
+    type: 'number',
+    title: 'Likes',
+    key: '_meta.likes_count',
+  },
+  {
+    type: 'number',
+    title: 'Reviews',
+    key: '_meta.reviews_count',
+  },
+  {
+    type: 'number',
+    title: 'Wishlists',
+    key: '_meta.wishlists_count',
+  },
+  {
     type: 'boolean',
     title: 'Archived',
     key: 'archived',
@@ -101,6 +126,7 @@ const allColumns: Column[] = [
 const columns = [
   'name',
   'user_id',
+  'gallery',
   'community_id',
   'shop_id',
   'availability',
@@ -207,6 +233,10 @@ const ProductListPage = () => {
   useEffect(() => {
     setDataRef(getProducts(queryOptions))
   }, [queryOptions])
+
+  useEffect(() => {
+    setQueryOptions({ ...queryOptions, community: community.id })
+  }, [community])
 
   const normalizeData = (data: ProductData) => {
     return {

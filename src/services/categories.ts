@@ -1,11 +1,21 @@
-import { SortOrderType, CategorySortByType, CategoryFilterType } from '../utils/types'
+import { isNil } from 'lodash'
+import { SortOrderType, CategorySortByType } from '../utils/types'
 import { db } from '../utils'
+
+export type CategoryFilterType = {
+  status: string
+  archived?: boolean
+}
+
+export type CategorySort = {
+  sortBy: CategorySortByType
+  sortOrder: SortOrderType
+}
 
 type GetCategoriesParamTypes = {
   search?: string
   filter?: CategoryFilterType
-  sortBy?: CategorySortByType
-  sortOrder?: SortOrderType
+  sort?: CategorySort
   limit?: number
 }
 
@@ -15,17 +25,19 @@ export const fetchCategoryByID = async (id: string) => {
 
 export const getCategories = ({
   search = '',
-  filter = 'all',
-  sortBy = 'name',
-  sortOrder = 'asc',
+  filter = { status: 'all', archived: false },
+  sort = { sortBy: 'name', sortOrder: 'asc' },
   limit,
 }: GetCategoriesParamTypes) => {
   let ref = db.categories.where('keywords', 'array-contains', search.toLowerCase())
-  if (['enabled', 'disabled'].includes(filter)) {
-    ref = ref.where('status', '==', filter)
+
+  if (filter.status !== 'all') {
+    ref = ref.where('status', '==', filter.status)
   }
-  ref = ref.where('archived', '==', filter === 'archived').orderBy(sortBy, sortOrder)
-  if (limit) ref = ref.limit(limit)
+
+  ref = ref.where('archived', '==', filter.archived).orderBy(sort.sortBy, sort.sortOrder)
+
+  if (!isNil(limit)) ref = ref.limit(limit)
 
   return ref
 }
