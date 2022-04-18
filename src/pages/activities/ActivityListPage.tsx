@@ -294,6 +294,7 @@ const ActivityListPage = () => {
           contextMenu={contextMenu}
           filtersMenu={filtersMenu}
           initialFilter={initialFilter}
+          showSearch={false}
           sortMenu={sortMenu}
           initialSort={initialSort}
           onChangeSort={onChangeSort}

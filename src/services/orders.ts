@@ -1,13 +1,26 @@
+import { isString } from 'lodash'
 import { SortOrderType } from '../utils/types'
 import { db } from '../utils'
 
+export type OrderFilterType = {
+  statusCode: 'all' | number | string
+  isPaid: 'all' | boolean
+  deliveryOption: 'all' | 'pickup' | 'delivery'
+  paymentMethod: 'all' | 'bank' | 'cod'
+}
+
+export type OrderSort = {
+  sortBy: 'created_at' | 'updated_at'
+  sortOrder: SortOrderType
+}
+
 type GetOrdersParamTypes = {
-  community_id: string
-  product_id?: string
-  shop_id?: string
-  status_code?: number
+  communityId: string
+  productId?: string
+  shopId?: string
+  filter?: OrderFilterType
   limit?: number
-  sortOrder?: SortOrderType
+  sort?: OrderSort
 }
 
 export const fetchOrderByID = async (id: string) => {
@@ -38,24 +51,39 @@ export const getOrdersByShop = (shop_id: string, limit = 10) => {
 }
 
 export const getOrders = ({
-  community_id,
-  product_id,
-  shop_id,
-  status_code,
+  communityId,
+  productId,
+  shopId,
+  filter = {
+    statusCode: 'all',
+    isPaid: 'all',
+    deliveryOption: 'all',
+    paymentMethod: 'all',
+  },
   limit = 10,
-  sortOrder = 'desc',
+  sort = { sortBy: 'created_at', sortOrder: 'desc' },
 }: GetOrdersParamTypes) => {
-  let ref = db.orders.where('community_id', '==', community_id)
-  if (status_code) {
-    ref = ref.where('status_code', '==', status_code)
+  let ref = db.orders.where('community_id', '==', communityId)
+  if (filter.statusCode !== 'all') {
+    const code = isString(filter.statusCode) ? parseInt(filter.statusCode) : filter.statusCode
+    ref = ref.where('status_code', '==', code)
   }
-  if (shop_id) {
-    ref = ref.where('shop_id', '==', shop_id)
+  if (filter.isPaid !== 'all') {
+    ref = ref.where('is_paid', '==', filter.isPaid)
   }
-  if (product_id) {
-    ref = ref.where('product_ids', 'array-contains', product_id)
+  if (filter.deliveryOption !== 'all') {
+    ref = ref.where('delivery_option', '==', filter.deliveryOption)
   }
-  ref = ref.orderBy('created_at', sortOrder).limit(limit)
+  if (filter.paymentMethod !== 'all') {
+    ref = ref.where('payment_method', '==', filter.paymentMethod)
+  }
+  if (shopId) {
+    ref = ref.where('shop_id', '==', shopId)
+  }
+  if (productId) {
+    ref = ref.where('product_ids', 'array-contains', productId)
+  }
+  ref = ref.orderBy(sort.sortBy, sort.sortOrder).limit(limit)
 
   return ref
 }

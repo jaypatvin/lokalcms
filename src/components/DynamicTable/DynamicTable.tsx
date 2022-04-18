@@ -27,6 +27,7 @@ type Props = {
   columnKeys: string[]
   contextMenu?: ContextMenu
   loading?: boolean
+  showSearch?: boolean
   sortMenu?: SortMenu
   initialSort?: { [x: string]: unknown }
   filtersMenu?: FiltersMenu
@@ -45,6 +46,7 @@ const DynamicTable = ({
   contextMenu,
   loading,
   initialFilter,
+  showSearch = true,
   sortMenu,
   initialSort,
   filtersMenu,
@@ -183,13 +185,15 @@ const DynamicTable = ({
     <div>
       <div className="-mb-2 pb-2 flex flex-wrap flex-grow justify-between">
         <div className="flex items-center">
-          <input
-            className="border-2 border-gray-200 rounded w-64 py-2 px-4 leading-tight focus:outline-none focus:bg-white"
-            id="inline-search"
-            type="text"
-            placeholder="Search"
-            onChange={(e) => searchHandler(e.target.value)}
-          />
+          {showSearch && (
+            <input
+              className="border-2 border-gray-200 rounded w-64 py-2 px-4 leading-tight focus:outline-none focus:bg-white"
+              id="inline-search"
+              type="text"
+              placeholder="Search"
+              onChange={(e) => searchHandler(e.target.value)}
+            />
+          )}
           <div className="flex justify-between align-middle mx-4">
             <div className="flex items-center">
               Show:{' '}

@@ -13,6 +13,8 @@ export type DynamicType =
   | 'datepast'
   | 'datefuture'
   | 'metadata'
+  | 'product'
+  | 'products'
 
 export type Cell = {
   type: DynamicType

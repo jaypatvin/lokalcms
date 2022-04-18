@@ -14,6 +14,7 @@ import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
 import { fetchShopByID } from '../../services/shops'
 import { formatToPeso } from '../../utils/helper'
+import { Order, ProductSubscriptionPlan } from '../../models'
 
 type Props = {
   cell: Cell
@@ -280,6 +281,49 @@ const DynamicCell = ({ cell }: Props) => {
               />
             </div>
           )}
+        </td>
+      )
+    case 'product':
+      const product = cell.value as ProductSubscriptionPlan['product']
+      return (
+        <td ref={calendarRef} className="relative">
+          <div className="border-b-1 mb-2 py-2 flex items-center">
+            <div className="w-24 mr-2">
+              {product.image ? (
+                <img src={product.image} alt={product.name} className="max-w-24 max-h-24" />
+              ) : (
+                ''
+              )}
+            </div>
+            <div className="">
+              <p>{product.name}</p>
+              <p>{formatToPeso(product.price)}</p>
+            </div>
+          </div>
+        </td>
+      )
+    case 'products':
+      const products = cell.value as Order['products']
+      let totalPrice = 0
+      return (
+        <td ref={calendarRef} className="relative">
+          {products.map((product) => {
+            const subTotalPrice = product.quantity * product.price
+            totalPrice += subTotalPrice
+            return (
+              <div className="border-b-1 mb-2 py-2 flex items-center">
+                <div className="w-24 mr-2">
+                  {product.image ? (
+                    <img src={product.image} alt={product.name} className="max-w-24 max-h-24" />
+                  ) : (
+                    ''
+                  )}
+                </div>
+                <p>{`${product.name} (${product.quantity}) = ${formatToPeso(subTotalPrice)}`} </p>
+              </div>
+            )
+          })}
+          <p>Total Price: {formatToPeso(totalPrice)}</p>
         </td>
       )
     default:
