@@ -182,10 +182,6 @@ const sortMenu: SortMenu = [
         key: 'created_at',
         name: 'Created at',
       },
-      {
-        key: 'updated_at',
-        name: 'Updated at',
-      },
     ],
   },
 ]

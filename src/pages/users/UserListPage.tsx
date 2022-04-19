@@ -208,10 +208,6 @@ const sortMenu: SortMenu = [
     id: 'sortBy',
     options: [
       {
-        key: 'display_name',
-        name: 'Display name',
-      },
-      {
         key: 'created_at',
         name: 'Created at',
       },
@@ -230,8 +226,8 @@ const initialFilter = {
 }
 
 const initialSort = {
-  sortOrder: 'asc',
-  sortBy: 'display_name',
+  sortOrder: 'desc',
+  sortBy: 'created_at',
 }
 
 type FormData = {

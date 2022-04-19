@@ -132,10 +132,6 @@ const sortMenu: SortMenu = [
         name: 'Created at',
       },
       {
-        key: 'updated_at',
-        name: 'Updated at',
-      },
-      {
         key: 'expire_by',
         name: 'Expire by',
       },

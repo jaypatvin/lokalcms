@@ -139,24 +139,8 @@ const sortMenu: SortMenu = [
         name: 'Name',
       },
       {
-        key: 'address.subdivision',
-        name: 'Subdivision',
-      },
-      {
-        key: 'address.barangay',
-        name: 'Barangay',
-      },
-      {
-        key: 'address.city',
-        name: 'City',
-      },
-      {
         key: 'created_at',
         name: 'Created at',
-      },
-      {
-        key: 'updated_at',
-        name: 'Updated at',
       },
     ],
   },

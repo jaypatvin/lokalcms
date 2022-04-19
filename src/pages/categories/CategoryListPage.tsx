@@ -62,7 +62,7 @@ const allColumns: Column[] = [
   },
 ]
 
-const columns = ['name', 'icon_url', 'created_at', 'updated_at']
+const columns = ['name', 'description', 'icon_url', 'cover_url']
 
 const filtersMenu: FiltersMenu = [
   {
@@ -107,14 +107,6 @@ const sortMenu: SortMenu = [
       {
         key: 'name',
         name: 'Name',
-      },
-      {
-        key: 'created_at',
-        name: 'Created at',
-      },
-      {
-        key: 'updated_at',
-        name: 'Updated at',
       },
     ],
   },
