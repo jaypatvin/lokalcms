@@ -70,7 +70,7 @@ const DynamicCell = ({ cell }: Props) => {
   }
 
   useEffect(() => {
-    if (cell.type === 'reference') {
+    if (cell.type === 'reference' && cell.value) {
       getReferenceValue()
     }
   }, [cell])

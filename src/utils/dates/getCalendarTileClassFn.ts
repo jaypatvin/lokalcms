@@ -51,9 +51,12 @@ const getCalendarTileClassFn =
         }
       }
       if (nthDayOfMonthFormat.test(repeat_type)) {
+        const firstDateMonth = dayjs(firstDate).month() + 1
+        const tileDateMonth = dayjs(date).month() + 1
+
         const isValid =
           firstDateNthDayOfMonth === tileDateNthDayOfMonth &&
-          dayjs(date).diff(firstDate, 'months') % repeat_unit === 0
+          (firstDateMonth - tileDateMonth) % repeat_unit === 0
         if (isValid && (dayjs(firstDate).isBefore(date) || dayjs(firstDate).isSame(date))) {
           tileClass = 'orange'
         }
