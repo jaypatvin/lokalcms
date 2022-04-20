@@ -1,11 +1,21 @@
-import { SortOrderType, ShopSortByType, ShopFilterType } from '../utils/types'
+import { SortOrderType, ShopSortByType } from '../utils/types'
 import { db } from '../utils'
+
+export type ShopFilterType = {
+  status: string
+  isClose: 'all' | boolean
+  archived?: boolean
+}
+
+export type ShopSort = {
+  sortBy: ShopSortByType
+  sortOrder: SortOrderType
+}
 
 type GetShopsParamTypes = {
   search?: string
   filter?: ShopFilterType
-  sortBy?: ShopSortByType
-  sortOrder?: SortOrderType
+  sort?: ShopSort
   limit?: number
   community?: string
 }
@@ -36,9 +46,8 @@ export const getShopsByCommunity = (community_id: string, limit = 10) => {
 
 export const getShops = ({
   search = '',
-  filter = 'all',
-  sortBy = 'name',
-  sortOrder = 'asc',
+  filter = { status: 'all', isClose: 'all', archived: false },
+  sort = { sortBy: 'name', sortOrder: 'asc' },
   limit = 10,
   community,
 }: GetShopsParamTypes) => {
@@ -48,15 +57,16 @@ export const getShops = ({
     ref = ref.where('community_id', '==', community)
   }
 
-  if (['enabled', 'disabled'].includes(filter)) {
-    ref = ref.where('status', '==', filter)
-  } else if (['close', 'open'].includes(filter)) {
-    const is_close = filter === 'close'
-    ref = ref.where('is_close', '==', is_close)
+  if (filter.status !== 'all') {
+    ref = ref.where('status', '==', filter.status)
   }
+  if (filter.isClose !== 'all') {
+    ref = ref.where('is_close', '==', filter.isClose)
+  }
+
   ref = ref
-    .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
+    .where('archived', '==', filter.archived)
+    .orderBy(sort.sortBy, sort.sortOrder)
     .limit(limit)
 
   return ref

@@ -120,6 +120,13 @@ const BasePage = (props: Props) => {
     setCommunitySearchText(community.name!)
   }
 
+  const clearSelectedCommunity = () => {
+    setShowCommunitySearchResult(false)
+    setCommunitySearchResult([])
+    setCommunity({} as CommunityData)
+    setCommunitySearchText('')
+  }
+
   return (
     <>
       <ConfirmationDialog
@@ -169,7 +176,7 @@ const BasePage = (props: Props) => {
             <div>&nbsp;</div>
 
             <div ref={node} className="flex justify-center">
-              <div ref={communitySearchResultRef} className="relative mr-5">
+              <div ref={communitySearchResultRef} className="relative mr-5 z-20">
                 <TextField
                   required
                   type="text"
@@ -182,6 +189,12 @@ const BasePage = (props: Props) => {
                 />
                 {showCommunitySearchResult && communitySearchResult.length > 0 && (
                   <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+                    <button
+                      className="w-full p-1 hover:bg-gray-200 block text-left"
+                      onClick={clearSelectedCommunity}
+                    >
+                      --
+                    </button>
                     {communitySearchResult.map((community) => (
                       <button
                         className="w-full p-1 hover:bg-gray-200 block text-left"

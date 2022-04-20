@@ -1,163 +1,307 @@
-import React, { useState } from 'react'
-import ListPage from '../../components/pageComponents/ListPage'
+import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getActivities } from '../../services/activities'
-import { fetchCommunityByID } from '../../services/community'
-import { fetchUserByID } from '../../services/users'
-import {
-  ActivityFilterType,
-  ActivitySortByType,
-  GenericGetArgType,
-  SortOrderType,
-} from '../../utils/types'
+import { getActivities, ActivityFilterType, ActivitySort } from '../../services/activities'
 import { useAuth } from '../../contexts/AuthContext'
-import { Activity, DocumentType } from '../../models'
+import { Activity } from '../../models'
+import DynamicTable from '../../components/DynamicTable/DynamicTable'
+import {
+  Column,
+  ContextMenu,
+  FiltersMenu,
+  SortMenu,
+  TableConfig,
+} from '../../components/DynamicTable/types'
+import ActivityCreateUpdateForm from './ActivityCreateUpdateForm'
+import { useCommunity } from '../../components/BasePage'
+import { ConfirmationDialog } from '../../components/Dialog'
 
-type ActivityData = Activity & { id: string; user_email?: string; community_name?: string }
+type ActivityData = Activity & {
+  id: string
+}
+
+const allColumns: Column[] = [
+  {
+    type: 'string',
+    title: 'Message',
+    key: 'message',
+  },
+  {
+    type: 'gallery',
+    title: 'Images',
+    key: 'images',
+  },
+  {
+    type: 'reference',
+    title: 'Owner',
+    key: 'user_id',
+    collection: 'users',
+    referenceField: 'email',
+  },
+  {
+    type: 'reference',
+    title: 'Community',
+    key: 'community_id',
+    collection: 'community',
+    referenceField: 'name',
+  },
+  {
+    type: 'string',
+    title: 'Status',
+    key: 'status',
+  },
+  {
+    type: 'boolean',
+    title: 'Archived',
+    key: 'archived',
+  },
+  {
+    type: 'datepast',
+    title: 'Created',
+    key: 'created_at',
+  },
+  {
+    type: 'datepast',
+    title: 'Updated',
+    key: 'updated_at',
+  },
+]
+
+const columns = ['message', 'images', 'user_id', 'community_id', 'created_at', 'updated_at']
+
+const filtersMenu: FiltersMenu = [
+  {
+    title: 'Status',
+    id: 'status',
+    options: [
+      {
+        key: 'all',
+        name: 'All',
+      },
+      {
+        key: 'enabled',
+        name: 'Enabled',
+      },
+      {
+        key: 'disabled',
+        name: 'Disabled',
+      },
+    ],
+  },
+]
+
+const sortMenu: SortMenu = [
+  {
+    title: 'Order',
+    id: 'sortOrder',
+    options: [
+      {
+        key: 'asc',
+        name: 'Ascending',
+      },
+      {
+        key: 'desc',
+        name: 'Descending',
+      },
+    ],
+  },
+  {
+    title: 'Column',
+    id: 'sortBy',
+    options: [
+      {
+        key: 'created_at',
+        name: 'Created at',
+      },
+    ],
+  },
+]
+
+const initialFilter = {
+  status: 'all',
+  archived: false,
+}
+
+const initialSort = {
+  sortOrder: 'desc',
+  sortBy: 'created_at',
+}
+
+type FormData = {
+  id: string
+  message: string
+  user_id: string
+  status: string
+}
 
 const ActivityListPage = () => {
   const { firebaseToken } = useAuth()
-  const [filter, setFilter] = useState<ActivityFilterType>('all')
-  const [sortBy, setSortBy] = useState<ActivitySortByType>('created_at')
-  const [sortOrder, setSortOrder] = useState<SortOrderType>('desc')
-  const menuOptions = [
-    {
-      key: 'all',
-      name: 'All',
-    },
-    {
-      key: 'enabled',
-      name: 'Enabled',
-    },
-    {
-      key: 'disabled',
-      name: 'Disabled',
-    },
-    {
-      key: 'archived',
-      name: 'Archived',
-    },
-  ]
-  const columns = [
-    {
-      label: 'User',
-      fieldName: 'user_id',
-      sortable: false,
-    },
-    {
-      label: 'Community',
-      fieldName: 'community_id',
-      sortable: false,
-    },
-    {
-      label: 'Message',
-      fieldName: 'message',
-      sortable: false,
-    },
-    {
-      label: 'Status',
-      fieldName: 'status',
-      sortable: false,
-    },
-    {
-      label: 'Created At',
-      fieldName: 'created_at',
-      sortable: true,
-    },
-    {
-      label: 'Updated At',
-      fieldName: 'updated_at',
-      sortable: true,
-    },
-  ]
-  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Activity>[]) => {
-    const newList: ActivityData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    for (let i = 0; i < newList.length; i++) {
-      const activity = newList[i]
-      const user = await fetchUserByID(activity.user_id)
-      const userData = user.data()
-      if (userData) {
-        activity.user_email = userData.email
-      }
-      const community = await fetchCommunityByID(activity.community_id)
-      const communityData = community.data()
-      if (communityData) {
-        activity.community_name = communityData.name
-      }
+  const community = useCommunity()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Activity>>()
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
+  const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
+  const [dataToUpdate, setDataToUpdate] = useState<FormData>()
+  const [queryOptions, setQueryOptions] = useState({
+    search: '',
+    limit: 10 as TableConfig['limit'],
+    filter: initialFilter as ActivityFilterType,
+    community: community?.id,
+    sort: initialSort as ActivitySort,
+  })
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
+  const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
+
+  useEffect(() => {
+    setDataRef(getActivities(queryOptions))
+  }, [queryOptions])
+
+  useEffect(() => {
+    setQueryOptions({ ...queryOptions, community: community.id })
+  }, [community])
+
+  const normalizeData = (data: ActivityData) => {
+    return {
+      id: data.id,
+      message: data.message,
+      user_id: data.user_id,
+      status: data.status,
     }
-    return newList
-  }
-  const normalizeData = (activity: Activity & { id: string }) => {
-    const data = {
-      id: activity.id,
-      message: activity.message,
-      user_id: activity.user_id,
-      status: activity.status,
-    }
-    return data
   }
 
-  const onArchive = async (activity: DocumentType) => {
-    let res
+  const onArchive = async (data?: FormData) => {
+    if (!data) return
     if (API_URL && firebaseToken) {
-      const { id } = activity
+      const { id } = data
       let url = `${API_URL}/activities/${id}`
-      res = await fetch(url, {
+      await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
       })
-      res = await res.json()
+      setIsArchiveDialogOpen(false)
     } else {
       console.error('environment variable for the api does not exist.')
     }
-    return res
   }
 
-  const onUnarchive = async (activity: DocumentType) => {
-    let res
+  const onUnarchive = async (data?: FormData) => {
+    if (!data) return
     if (API_URL && firebaseToken) {
-      let url = `${API_URL}/activities/${activity.id}/unarchive`
-      res = await fetch(url, {
+      let url = `${API_URL}/activities/${data.id}/unarchive`
+      await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'PUT',
       })
-      res = await res.json()
-      console.log('res', res)
+      setIsUnarchiveDialogOpen(false)
     } else {
       console.error('environment variable for the api does not exist.')
     }
-    return res
   }
 
-  const getData = ({ search, limit, community }: GenericGetArgType) => {
-    return getActivities({ filter, sortBy, sortOrder, search, limit, community })
+  const contextMenu: ContextMenu = [
+    {
+      title: 'Edit',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as ActivityData))
+        setIsUpdateFormOpen(true)
+      },
+    },
+    {
+      title: 'Archive',
+      type: 'danger',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as ActivityData))
+        setIsArchiveDialogOpen(true)
+      },
+      showOverride: (data) => {
+        return !(data as ActivityData).archived
+      },
+    },
+    {
+      title: 'Unarchive',
+      type: 'warning',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as ActivityData))
+        setIsUnarchiveDialogOpen(true)
+      },
+      showOverride: (data) => {
+        return (data as ActivityData).archived
+      },
+    },
+  ]
+
+  const onChangeFilter = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, filter: { ...queryOptions.filter, ...data } })
+  }
+
+  const onChangeTableConfig = (data: TableConfig) => {
+    setQueryOptions({ ...queryOptions, ...data })
+  }
+
+  const onChangeSort = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, sort: { ...queryOptions.sort, ...data } })
   }
 
   return (
-    <ListPage
-      name="activities"
-      menuName="Activities"
-      filterMenuOptions={menuOptions}
-      createLabel="New Activity"
-      columns={columns}
-      filter={filter}
-      onChangeFilter={setFilter}
-      sortBy={sortBy}
-      onChangeSortBy={setSortBy}
-      sortOrder={sortOrder}
-      onChangeSortOrder={setSortOrder}
-      getData={getData}
-      setupDataList={setupDataList}
-      normalizeDataToUpdate={normalizeData}
-      onArchive={onArchive}
-      onUnarchive={onUnarchive}
-    />
+    <>
+      <ActivityCreateUpdateForm
+        isOpen={isCreateFormOpen}
+        setIsOpen={setIsCreateFormOpen}
+        mode="create"
+        isModal
+      />
+      <ActivityCreateUpdateForm
+        isOpen={isUpdateFormOpen}
+        setIsOpen={setIsUpdateFormOpen}
+        mode="update"
+        dataToUpdate={dataToUpdate}
+        isModal
+      />
+      <ConfirmationDialog
+        isOpen={isArchiveDialogOpen}
+        onClose={() => setIsArchiveDialogOpen(false)}
+        onAccept={() => onArchive(dataToUpdate)}
+        color="danger"
+        title="Archive"
+        descriptions={'Are you sure you want to archive the activity?'}
+        acceptLabel="Archive"
+        cancelLabel="Cancel"
+      />
+      <ConfirmationDialog
+        isOpen={isUnarchiveDialogOpen}
+        onClose={() => setIsUnarchiveDialogOpen(false)}
+        onAccept={() => onUnarchive(dataToUpdate)}
+        color="primary"
+        title="Unarchive"
+        descriptions={'Are you sure you want to unarchive the activity?'}
+        acceptLabel="Unarchive"
+        cancelLabel="Cancel"
+      />
+      {dataRef ? (
+        <DynamicTable
+          name="Activity"
+          dataRef={dataRef}
+          allColumns={allColumns}
+          columnKeys={columns}
+          contextMenu={contextMenu}
+          filtersMenu={filtersMenu}
+          initialFilter={initialFilter}
+          showSearch={false}
+          sortMenu={sortMenu}
+          initialSort={initialSort}
+          onChangeSort={onChangeSort}
+          onChangeFilter={onChangeFilter}
+          onChangeTableConfig={onChangeTableConfig}
+          onClickCreate={() => setIsCreateFormOpen(true)}
+        />
+      ) : (
+        ''
+      )}
+    </>
   )
 }
 

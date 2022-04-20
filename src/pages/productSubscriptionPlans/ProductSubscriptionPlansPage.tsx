@@ -1,321 +1,238 @@
-import React, { ChangeEventHandler, useEffect, useState } from 'react'
-import ReactLoading from 'react-loading'
+import React, { useEffect, useState } from 'react'
+import {
+  getProductSubscriptionPlans,
+  ProductSubscriptionPlanFilterType,
+  ProductSubscriptionPlanSort,
+} from '../../services/productSubscriptionPlans'
+import { ProductSubscriptionPlan } from '../../models'
+import DynamicTable from '../../components/DynamicTable/DynamicTable'
+import { Column, FiltersMenu, SortMenu, TableConfig } from '../../components/DynamicTable/types'
 import { useCommunity } from '../../components/BasePage'
-import { Button } from '../../components/buttons'
-import Dropdown from '../../components/Dropdown'
-import { TextField } from '../../components/inputs'
-import useOuterClick from '../../customHooks/useOuterClick'
-import { Product, ProductSubscriptionPlan, Shop } from '../../models'
-import { getProducts } from '../../services/products'
-import { getProductSubscriptionPlans } from '../../services/productSubscriptionPlans'
-import { getShops } from '../../services/shops'
-import { fetchUserByID } from '../../services/users'
-import { LimitType } from '../../utils/types'
-import ProductSubscriptionPlanDetails from './ProductSubscriptionPlanDetails'
-import ProductSubscriptions from './ProductSubscriptions'
 
-type ShopData = Shop & { id: string }
-type ProductData = Product & { id: string }
-type ProductSubscriptionPlanData = ProductSubscriptionPlan & {
-  id: string
-  buyer_email?: string
-  seller_email?: string
+const allColumns: Column[] = [
+  {
+    type: 'reference',
+    title: 'Buyer',
+    key: 'buyer_id',
+    collection: 'users',
+    referenceField: 'email',
+  },
+  {
+    type: 'reference',
+    title: 'Seller',
+    key: 'seller_id',
+    collection: 'users',
+    referenceField: 'email',
+  },
+  {
+    type: 'reference',
+    title: 'Shop',
+    key: 'shop_id',
+    collection: 'shops',
+    referenceField: 'name',
+  },
+  {
+    type: 'product',
+    title: 'Product',
+    key: 'product',
+  },
+  {
+    type: 'number',
+    title: 'Quantity',
+    key: 'quantity',
+  },
+  {
+    type: 'schedule',
+    title: 'Plan',
+    key: 'plan',
+  },
+  {
+    type: 'string',
+    title: 'Payment method',
+    key: 'payment_method',
+  },
+  {
+    type: 'string',
+    title: 'Status',
+    key: 'status',
+  },
+  {
+    type: 'string',
+    title: 'Instruction',
+    key: 'instruction',
+  },
+  {
+    type: 'string',
+    title: 'Cancellation reason',
+    key: 'cancellation_reason',
+  },
+  {
+    type: 'string',
+    title: 'Decline reason',
+    key: 'decline_reason',
+  },
+  {
+    type: 'datepast',
+    title: 'Created',
+    key: 'created_at',
+  },
+  {
+    type: 'datepast',
+    title: 'Updated',
+    key: 'updated_at',
+  },
+]
+
+const columns = [
+  'buyer_id',
+  'seller_id',
+  'shop_id',
+  'product',
+  'quantity',
+  'plan',
+  'created_at',
+  'updated_at',
+]
+
+const filtersMenu: FiltersMenu = [
+  {
+    title: 'Status',
+    id: 'status',
+    options: [
+      {
+        key: 'all',
+        name: 'All',
+      },
+      {
+        key: 'enabled',
+        name: 'Enabled',
+      },
+      {
+        key: 'disabled',
+        name: 'Disabled',
+      },
+      {
+        key: 'cancelled',
+        name: 'Cancelled',
+      },
+      {
+        key: 'unsubscribed',
+        name: 'Unsubscribed',
+      },
+    ],
+  },
+  {
+    title: 'Payment method',
+    id: 'paymentMethod',
+    options: [
+      {
+        key: 'all',
+        name: 'All',
+      },
+      {
+        key: 'bank',
+        name: 'Bank',
+      },
+      {
+        key: 'cod',
+        name: 'Cash on delivery',
+      },
+    ],
+  },
+]
+
+const sortMenu: SortMenu = [
+  {
+    title: 'Order',
+    id: 'sortOrder',
+    options: [
+      {
+        key: 'asc',
+        name: 'Ascending',
+      },
+      {
+        key: 'desc',
+        name: 'Descending',
+      },
+    ],
+  },
+  {
+    title: 'Column',
+    id: 'sortBy',
+    options: [
+      {
+        key: 'created_at',
+        name: 'Created at',
+      },
+    ],
+  },
+]
+
+const initialFilter = {
+  status: 'all',
+  paymentMethod: 'all',
 }
 
-const ProductSubscriptionPlansPage = () => {
+const initialSort = {
+  sortOrder: 'desc',
+  sortBy: 'created_at',
+}
+
+const ProductSubscriptionPlanListPage = () => {
   const community = useCommunity()
-
-  const [shop, setShop] = useState<ShopData>()
-  const [showShopSearchResult, setShowShopSearchResult] = useState(false)
-  const shopSearchResultRef = useOuterClick(() => setShowShopSearchResult(false))
-  const [shopSearchText, setShopSearchText] = useState('')
-  const [shopSearchResult, setShopSearchResult] = useState<ShopData[]>([])
-
-  const [product, setProduct] = useState<ProductData>()
-  const [showProductSearchResult, setShowProductSearchResult] = useState(false)
-  const productSearchResultRef = useOuterClick(() => setShowProductSearchResult(false))
-  const [productSearchText, setProductSearchText] = useState('')
-  const [productSearchResult, setProductSearchResult] = useState<ProductData[]>([])
-
-  const [productSubscriptionPlans, setProductSubscriptionPlans] = useState<
-    ProductSubscriptionPlanData[]
-  >([])
-  const [productSubscriptionPlansSnapshot, setProductSubscriptionPlansSnapshot] =
-    useState<{ unsubscribe: () => void }>()
-  const [loading, setLoading] = useState(false)
-
-  const [limit, setLimit] = useState<LimitType>(10)
-  const [pageNum, setPageNum] = useState(1)
   const [dataRef, setDataRef] =
     useState<firebase.default.firestore.Query<ProductSubscriptionPlan>>()
-  const [firstDataOnList, setFirstDataOnList] =
-    useState<firebase.default.firestore.QueryDocumentSnapshot<ProductSubscriptionPlan>>()
-  const [lastDataOnList, setLastDataOnList] =
-    useState<firebase.default.firestore.QueryDocumentSnapshot<ProductSubscriptionPlan>>()
-  const [isLastPage, setIsLastPage] = useState(false)
-
-  const [showSubscriptions, setShowSubscriptions] = useState(false)
-  const [activeSubscriptionPlan, setActiveSubscriptionPlan] =
-    useState<ProductSubscriptionPlanData>()
+  const [queryOptions, setQueryOptions] = useState({
+    limit: 10 as TableConfig['limit'],
+    filter: initialFilter as ProductSubscriptionPlanFilterType,
+    communityId: community?.id,
+    sort: initialSort as ProductSubscriptionPlanSort,
+  })
 
   useEffect(() => {
-    if (community && community.id) {
-      getCommunityProductSubscriptionPlans(community.id)
-    }
-  }, [community, limit])
+    if (!community || !community.id || !queryOptions.communityId) return
+    setDataRef(getProductSubscriptionPlans(queryOptions))
+  }, [queryOptions])
 
-  const shopSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    setShopSearchText(e.target.value)
-    if (e.target.value.length > 2) {
-      const shopsRef = getShops({ search: e.target.value })
-      const result = await shopsRef.get()
-      const shops = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
-      setShopSearchResult(shops)
-      setShowShopSearchResult(shops.length > 0)
-    } else {
-      setShowShopSearchResult(false)
-      setShopSearchResult([])
-    }
+  useEffect(() => {
+    setQueryOptions({ ...queryOptions, communityId: community.id })
+  }, [community])
+
+  const onChangeFilter = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, filter: { ...queryOptions.filter, ...data } })
   }
 
-  const shopSelectHandler = (shop: ShopData) => {
-    setShowShopSearchResult(false)
-    setShopSearchResult([])
-    setShop(shop)
-    setShopSearchText(shop.name)
-    getCommunityProductSubscriptionPlans(community.id, shop.id, product?.id)
+  const onChangeTableConfig = (data: TableConfig) => {
+    setQueryOptions({ ...queryOptions, ...data })
   }
 
-  const productSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    setProductSearchText(e.target.value)
-    if (e.target.value.length > 2) {
-      const productsRef = getProducts({ search: e.target.value })
-      const result = await productsRef.get()
-      const products = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
-      setProductSearchResult(products)
-      setShowProductSearchResult(products.length > 0)
-    } else {
-      setShowProductSearchResult(false)
-      setProductSearchResult([])
-    }
-  }
-
-  const productSelectHandler = (product: ProductData) => {
-    setShowProductSearchResult(false)
-    setProductSearchResult([])
-    setProduct(product)
-    setProductSearchText(product.name)
-    getCommunityProductSubscriptionPlans(community.id, shop?.id, product.id)
-  }
-
-  const setupDataList = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<ProductSubscriptionPlan>[]
-  ) => {
-    const newProductSubscriptionPlans: ProductSubscriptionPlanData[] = docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }))
-    for (let productSubscription of newProductSubscriptionPlans) {
-      const buyer = (await fetchUserByID(productSubscription.buyer_id)).data()
-      const seller = (await fetchUserByID(productSubscription.seller_id)).data()
-      productSubscription.buyer_email = buyer?.email
-      productSubscription.seller_email = seller?.email
-    }
-    setProductSubscriptionPlans(newProductSubscriptionPlans)
-    setLastDataOnList(docs[docs.length - 1])
-    setFirstDataOnList(docs[0])
-    setLoading(false)
-  }
-
-  const getCommunityProductSubscriptionPlans = async (
-    communityId: string,
-    shopId?: string,
-    productId?: string
-  ) => {
-    if (!communityId) return
-    setLoading(true)
-    const filter: {
-      community_id: string
-      limit: LimitType
-      shop_id?: string
-      product_id?: string
-    } = { community_id: communityId, limit }
-    if (shopId) filter.shop_id = shopId
-    if (productId) filter.product_id = productId
-    const dataRef = getProductSubscriptionPlans(filter)
-    if (productSubscriptionPlansSnapshot && productSubscriptionPlansSnapshot.unsubscribe)
-      productSubscriptionPlansSnapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
-      setupDataList(snapshot.docs)
-    })
-    setProductSubscriptionPlansSnapshot({ unsubscribe: newUnsubscribe })
-    setDataRef(dataRef)
-    setPageNum(1)
-    setIsLastPage(false)
-  }
-
-  const onNextPage = () => {
-    if (dataRef && lastDataOnList && !isLastPage) {
-      setLoading(true)
-      const newDataRef = dataRef.startAfter(lastDataOnList).limit(limit)
-      newDataRef.onSnapshot(async (snapshot) => {
-        if (snapshot.docs.length) {
-          setupDataList(snapshot.docs)
-          setPageNum(pageNum + 1)
-        } else if (!isLastPage) {
-          setLoading(false)
-          setIsLastPage(true)
-        }
-      })
-    }
-  }
-
-  const onPreviousPage = () => {
-    const newPageNum = pageNum - 1
-    if (dataRef && firstDataOnList && newPageNum > 0) {
-      setLoading(true)
-      const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(limit)
-      newDataRef.onSnapshot(async (snapshot) => {
-        setupDataList(snapshot.docs)
-      })
-    }
-    setIsLastPage(false)
-    setPageNum(Math.max(1, newPageNum))
-  }
-
-  const onViewSubscriptions = (subscriptionPlan: ProductSubscriptionPlanData) => {
-    setShowSubscriptions(true)
-    setActiveSubscriptionPlan(subscriptionPlan)
-  }
-
-  const onCloseViewSubscriptions = () => {
-    setShowSubscriptions(false)
-    setActiveSubscriptionPlan(undefined)
+  const onChangeSort = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, sort: { ...queryOptions.sort, ...data } })
   }
 
   return (
     <>
-      <ProductSubscriptions
-        subscriptionPlan={activeSubscriptionPlan}
-        show={showSubscriptions}
-        onClose={onCloseViewSubscriptions}
-      />
-      <h2 className="text-2xl font-semibold leading-tight">Product Subscription Plans</h2>
-      <div className="flex items-center my-5 w-full">
-        {community && community.id ? (
-          <>
-            <div ref={shopSearchResultRef} className="relative ml-2">
-              <TextField
-                label="Shop"
-                type="text"
-                size="small"
-                placeholder="Search"
-                onChange={shopSearchHandler}
-                value={shopSearchText}
-                onFocus={() => setShowShopSearchResult(shopSearchResult.length > 0)}
-                noMargin
-              />
-              {showShopSearchResult && shopSearchResult.length > 0 && (
-                <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                  {shopSearchResult.map((shop) => (
-                    <button
-                      className="w-full p-1 hover:bg-gray-200 block text-left"
-                      key={shop.id}
-                      onClick={() => shopSelectHandler(shop)}
-                    >
-                      {shop.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div ref={productSearchResultRef} className="relative ml-2">
-              <TextField
-                label="Product"
-                type="text"
-                size="small"
-                placeholder="Search"
-                onChange={productSearchHandler}
-                value={productSearchText}
-                onFocus={() => setShowProductSearchResult(productSearchResult.length > 0)}
-                noMargin
-              />
-              {showProductSearchResult && productSearchResult.length > 0 && (
-                <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
-                  {productSearchResult.map((product) => (
-                    <button
-                      className="w-full p-1 hover:bg-gray-200 block text-left"
-                      key={product.id}
-                      onClick={() => productSelectHandler(product)}
-                    >
-                      {product.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          ''
-        )}
-        <div className="flex justify-between align-middle ml-4">
-          <div className="flex items-center">
-            Show:{' '}
-            <Dropdown
-              className="ml-1 z-10"
-              simpleOptions={[10, 25, 50, 100]}
-              size="small"
-              onSelect={(option) => setLimit(option.value as LimitType)}
-              currentValue={limit}
-            />
-          </div>
-          <Button
-            className="ml-5"
-            icon="arrowBack"
-            size="small"
-            color={pageNum === 1 ? 'secondary' : 'primary'}
-            onClick={onPreviousPage}
-          />
-          <Button
-            className="ml-3"
-            icon="arrowForward"
-            size="small"
-            color={isLastPage ? 'secondary' : 'primary'}
-            onClick={onNextPage}
-          />
-        </div>
-      </div>
-      <div className="flex">
-        {loading ? (
-          <div className="h-96 w-full relative">
-            <ReactLoading
-              type="spin"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-              color="gray"
-            />
-          </div>
-        ) : !community || !community.id ? (
-          <h2 className="text-xl ml-5">Select a community first</h2>
-        ) : (
-          <div className="h-full w-full overflow-y-auto mb-10">
-            {productSubscriptionPlans.map((subscriptionPlan) => (
-              <ProductSubscriptionPlanDetails
-                key={subscriptionPlan.id}
-                subscriptionPlan={subscriptionPlan}
-                onViewSubscriptions={() => onViewSubscriptions(subscriptionPlan)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {!community?.id ? <h2 className="text-xl ml-5">Select a community first</h2> : ''}
+      {dataRef && community?.id ? (
+        <DynamicTable
+          name="Product Subscription Plan"
+          dataRef={dataRef}
+          allColumns={allColumns}
+          columnKeys={columns}
+          filtersMenu={filtersMenu}
+          initialFilter={initialFilter}
+          showSearch={false}
+          sortMenu={sortMenu}
+          initialSort={initialSort}
+          onChangeSort={onChangeSort}
+          onChangeFilter={onChangeFilter}
+          onChangeTableConfig={onChangeTableConfig}
+        />
+      ) : (
+        ''
+      )}
     </>
   )
 }
 
-export default ProductSubscriptionPlansPage
+export default ProductSubscriptionPlanListPage

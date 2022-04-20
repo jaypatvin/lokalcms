@@ -1,149 +1,240 @@
-import React, { useState } from 'react'
-import { difference } from 'lodash'
-import ListPage from '../../components/pageComponents/ListPage'
+import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getProducts } from '../../services/products'
-import {
-  GenericGetArgType,
-  ProductFilterType,
-  ProductSortByType,
-  SortOrderType,
-} from '../../utils/types'
+import { getProducts, ProductFilterType, ProductSort } from '../../services/products'
 import { useAuth } from '../../contexts/AuthContext'
-import { fetchUserByID } from '../../services/users'
-import { fetchShopByID } from '../../services/shops'
-import { DocumentType, Product, Shop } from '../../models'
+import { Product } from '../../models'
+import DynamicTable from '../../components/DynamicTable/DynamicTable'
+import {
+  Column,
+  ContextMenu,
+  FiltersMenu,
+  SortMenu,
+  TableConfig,
+} from '../../components/DynamicTable/types'
+import ProductCreateUpdateForm from './ProductCreateUpdateForm'
+import { useCommunity } from '../../components/BasePage'
+import { ConfirmationDialog } from '../../components/Dialog'
 
 type ProductData = Product & {
   id: string
-  user_email?: string
-  shop?: Shop
-  shop_name?: string
+}
+
+const allColumns: Column[] = [
+  {
+    type: 'string',
+    title: 'Name',
+    key: 'name',
+  },
+  {
+    type: 'string',
+    title: 'Description',
+    key: 'description',
+  },
+  {
+    type: 'gallery',
+    title: 'Gallery',
+    key: 'gallery',
+  },
+  {
+    type: 'string',
+    title: 'Category',
+    key: 'product_category',
+  },
+  {
+    type: 'reference',
+    title: 'Owner',
+    key: 'user_id',
+    collection: 'users',
+    referenceField: 'email',
+  },
+  {
+    type: 'reference',
+    title: 'Shop',
+    key: 'shop_id',
+    collection: 'shops',
+    referenceField: 'name',
+  },
+  {
+    type: 'reference',
+    title: 'Community',
+    key: 'community_id',
+    collection: 'community',
+    referenceField: 'name',
+  },
+  {
+    type: 'schedule',
+    title: 'Availability',
+    key: 'availability',
+  },
+  {
+    type: 'string',
+    title: 'Status',
+    key: 'status',
+  },
+  {
+    type: 'boolean',
+    title: 'Subscription',
+    key: 'can_subscribe',
+  },
+  {
+    type: 'currency',
+    title: 'Base price',
+    key: 'base_price',
+  },
+  {
+    type: 'number',
+    title: 'Quantity',
+    key: 'quantity',
+  },
+  {
+    type: 'number',
+    title: 'Rating',
+    key: '_meta.average_rating',
+  },
+  {
+    type: 'number',
+    title: 'Likes',
+    key: '_meta.likes_count',
+  },
+  {
+    type: 'number',
+    title: 'Reviews',
+    key: '_meta.reviews_count',
+  },
+  {
+    type: 'number',
+    title: 'Wishlists',
+    key: '_meta.wishlists_count',
+  },
+  {
+    type: 'boolean',
+    title: 'Archived',
+    key: 'archived',
+  },
+  {
+    type: 'datepast',
+    title: 'Created',
+    key: 'created_at',
+  },
+  {
+    type: 'datepast',
+    title: 'Updated',
+    key: 'updated_at',
+  },
+]
+
+const columns = [
+  'name',
+  'user_id',
+  'gallery',
+  'community_id',
+  'shop_id',
+  'availability',
+  'created_at',
+  'updated_at',
+]
+
+const filtersMenu: FiltersMenu = [
+  {
+    title: 'Status',
+    id: 'status',
+    options: [
+      {
+        key: 'all',
+        name: 'All',
+      },
+      {
+        key: 'enabled',
+        name: 'Enabled',
+      },
+      {
+        key: 'disabled',
+        name: 'Disabled',
+      },
+    ],
+  },
+]
+
+const sortMenu: SortMenu = [
+  {
+    title: 'Order',
+    id: 'sortOrder',
+    options: [
+      {
+        key: 'asc',
+        name: 'Ascending',
+      },
+      {
+        key: 'desc',
+        name: 'Descending',
+      },
+    ],
+  },
+  {
+    title: 'Column',
+    id: 'sortBy',
+    options: [
+      {
+        key: 'name',
+        name: 'Name',
+      },
+      {
+        key: 'created_at',
+        name: 'Created at',
+      },
+    ],
+  },
+]
+
+const initialFilter = {
+  status: 'all',
+  isClose: 'all',
+  archived: false,
+}
+
+const initialSort = {
+  sortOrder: 'asc',
+  sortBy: 'name',
+}
+
+type FormData = {
+  id: string
+  shop_id: string
+  name: string
+  description: string
+  base_price: number
+  quantity: number
+  status: string
+  product_category: string
+  gallery?: Product['gallery']
 }
 
 const ProductListPage = () => {
   const { firebaseToken } = useAuth()
-  const [filter, setFilter] = useState<ProductFilterType>('all')
-  const [sortBy, setSortBy] = useState<ProductSortByType>('name')
-  const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
-  const menuOptions = [
-    {
-      key: 'all',
-      name: 'All',
-    },
-    {
-      key: 'enabled',
-      name: 'Enabled',
-    },
-    {
-      key: 'disabled',
-      name: 'Disabled',
-    },
-    {
-      key: 'archived',
-      name: 'Archived',
-    },
-  ]
-  const columns = [
-    {
-      label: 'Name',
-      fieldName: 'name',
-      sortable: true,
-    },
-    {
-      label: 'Description',
-      fieldName: 'description',
-      sortable: false,
-    },
-    {
-      label: 'Owner',
-      fieldName: 'user_id',
-      sortable: false,
-    },
-    {
-      label: 'Shop',
-      fieldName: 'shop_id',
-      sortable: false,
-    },
-    {
-      label: 'Availability',
-      fieldName: 'availability',
-      sortable: false,
-    },
-    {
-      label: 'Price',
-      fieldName: 'base_price',
-      sortable: true,
-    },
-    {
-      label: 'Quantity',
-      fieldName: 'quantity',
-      sortable: true,
-    },
-    {
-      label: 'Category',
-      fieldName: 'product_category',
-      sortable: false,
-    },
-    {
-      label: 'Status',
-      fieldName: 'status',
-      sortable: false,
-    },
-    {
-      label: 'Created At',
-      fieldName: 'created_at',
-      sortable: true,
-    },
-    {
-      label: 'Updated At',
-      fieldName: 'updated_at',
-      sortable: true,
-    },
-  ]
-  const setupDataList = async (docs: firebase.default.firestore.QueryDocumentSnapshot<Product>[]) => {
-    const newList: ProductData[] = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    for (let i = 0; i < newList.length; i++) {
-      const data = newList[i]
-      const user = await fetchUserByID(data.user_id)
-      const userData = user.data()
-      if (userData) {
-        data.user_email = userData.email
-      }
-      const shop = await fetchShopByID(data.shop_id)
-      const shopData = shop.data()
-      if (shopData) {
-        data.shop = shopData
-        data.shop_name = shopData.name
-      }
-    }
-    return newList
-  }
+  const community = useCommunity()
+  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Product>>()
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
+  const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
+  const [dataToUpdate, setDataToUpdate] = useState<FormData>()
+  const [queryOptions, setQueryOptions] = useState({
+    search: '',
+    limit: 10 as TableConfig['limit'],
+    filter: initialFilter as ProductFilterType,
+    community: community?.id,
+    sort: initialSort as ProductSort,
+  })
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
+  const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
-  const getUnavailableDates = (data: Product['availability']) => {
-    if (!data) return []
-    const { schedule } = data
-    const unavailable_dates: string[] = []
-    if (schedule && schedule.custom) {
-      Object.entries(schedule.custom).forEach(([key, val]) => {
-        if (val.unavailable) {
-          unavailable_dates.push(key)
-        }
-      })
-    }
-    return unavailable_dates
-  }
+  useEffect(() => {
+    setDataRef(getProducts(queryOptions))
+  }, [queryOptions])
 
-  const isUsingShopSchedule = (data: ProductData) => {
-    if (!data.availability || !data.shop || !data.shop.operating_hours) return true
-    const productUnavailableDates = getUnavailableDates(data.availability)
-    const shopUnavailableDates = getUnavailableDates(data.shop.operating_hours)
-    if (difference(productUnavailableDates, shopUnavailableDates).length) return false
-    return true
-  }
+  useEffect(() => {
+    setQueryOptions({ ...queryOptions, community: community.id })
+  }, [community])
 
-  const normalizeData = (data: Product & { id: string }) => {
-    const unavailable_dates = getUnavailableDates(data.availability)
+  const normalizeData = (data: ProductData) => {
     return {
       id: data.id,
       shop_id: data.shop_id,
@@ -153,74 +244,144 @@ const ProductListPage = () => {
       quantity: data.quantity,
       status: data.status,
       product_category: data.product_category,
-      gallery: data.gallery ?? null,
-      availability: data.availability,
-      unavailable_dates: unavailable_dates,
-      custom_availability: !isUsingShopSchedule(data),
+      gallery: data.gallery,
     }
   }
 
-  const onArchive = async (data: DocumentType) => {
-    let res
+  const onArchive = async (data?: FormData) => {
+    if (!data) return
     if (API_URL && firebaseToken) {
       const { id } = data
       let url = `${API_URL}/products/${id}`
-      res = await fetch(url, {
+      await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'DELETE',
       })
-      res = await res.json()
+      setIsArchiveDialogOpen(false)
     } else {
       console.error('environment variable for the api does not exist.')
     }
-    return res
   }
 
-  const onUnarchive = async (data: DocumentType) => {
-    let res
+  const onUnarchive = async (data?: FormData) => {
+    if (!data) return
     if (API_URL && firebaseToken) {
       let url = `${API_URL}/products/${data.id}/unarchive`
-      res = await fetch(url, {
+      await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,
         },
         method: 'PUT',
       })
-      res = await res.json()
-      console.log('res', res)
+      setIsUnarchiveDialogOpen(false)
     } else {
       console.error('environment variable for the api does not exist.')
     }
-    return res
   }
 
-  const getData = ({ search, limit, community }: GenericGetArgType) => {
-    return getProducts({ filter, sortBy, sortOrder, search, limit, community })
+  const contextMenu: ContextMenu = [
+    {
+      title: 'Edit',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as ProductData))
+        setIsUpdateFormOpen(true)
+      },
+    },
+    {
+      title: 'Archive',
+      type: 'danger',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as ProductData))
+        setIsArchiveDialogOpen(true)
+      },
+      showOverride: (data) => {
+        return !(data as ProductData).archived
+      },
+    },
+    {
+      title: 'Unarchive',
+      type: 'warning',
+      onClick: (data) => {
+        setDataToUpdate(normalizeData(data as ProductData))
+        setIsUnarchiveDialogOpen(true)
+      },
+      showOverride: (data) => {
+        return (data as ProductData).archived
+      },
+    },
+  ]
+
+  const onChangeFilter = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, filter: { ...queryOptions.filter, ...data } })
+  }
+
+  const onChangeTableConfig = (data: TableConfig) => {
+    setQueryOptions({ ...queryOptions, ...data })
+  }
+
+  const onChangeSort = (data: { [x: string]: unknown }) => {
+    setQueryOptions({ ...queryOptions, sort: { ...queryOptions.sort, ...data } })
   }
 
   return (
-    <ListPage
-      name="products"
-      menuName="Products"
-      filterMenuOptions={menuOptions}
-      createLabel="New Product"
-      columns={columns}
-      filter={filter}
-      onChangeFilter={setFilter}
-      sortBy={sortBy}
-      onChangeSortBy={setSortBy}
-      sortOrder={sortOrder}
-      onChangeSortOrder={setSortOrder}
-      getData={getData}
-      setupDataList={setupDataList}
-      normalizeDataToUpdate={normalizeData}
-      onArchive={onArchive}
-      onUnarchive={onUnarchive}
-    />
+    <>
+      <ProductCreateUpdateForm
+        isOpen={isCreateFormOpen}
+        setIsOpen={setIsCreateFormOpen}
+        mode="create"
+        isModal
+      />
+      <ProductCreateUpdateForm
+        isOpen={isUpdateFormOpen}
+        setIsOpen={setIsUpdateFormOpen}
+        mode="update"
+        dataToUpdate={dataToUpdate}
+        isModal
+      />
+      <ConfirmationDialog
+        isOpen={isArchiveDialogOpen}
+        onClose={() => setIsArchiveDialogOpen(false)}
+        onAccept={() => onArchive(dataToUpdate)}
+        color="danger"
+        title="Archive"
+        descriptions={`Are you sure you want to archive ${dataToUpdate?.name}?`}
+        acceptLabel="Archive"
+        cancelLabel="Cancel"
+      />
+      <ConfirmationDialog
+        isOpen={isUnarchiveDialogOpen}
+        onClose={() => setIsUnarchiveDialogOpen(false)}
+        onAccept={() => onUnarchive(dataToUpdate)}
+        color="primary"
+        title="Unarchive"
+        descriptions={`Are you sure you want to unarchive ${dataToUpdate?.name}?`}
+        acceptLabel="Unarchive"
+        cancelLabel="Cancel"
+      />
+      {dataRef ? (
+        <DynamicTable
+          name="Product"
+          dataRef={dataRef}
+          allColumns={allColumns}
+          columnKeys={columns}
+          contextMenu={contextMenu}
+          filtersMenu={filtersMenu}
+          initialFilter={initialFilter}
+          sortMenu={sortMenu}
+          initialSort={initialSort}
+          onChangeSort={onChangeSort}
+          onChangeFilter={onChangeFilter}
+          onChangeTableConfig={onChangeTableConfig}
+          onClickCreate={() => setIsCreateFormOpen(true)}
+        />
+      ) : (
+        ''
+      )}
+    </>
   )
 }
 

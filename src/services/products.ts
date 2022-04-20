@@ -1,11 +1,20 @@
-import { SortOrderType, ProductSortByType, ProductFilterType } from '../utils/types'
+import { SortOrderType, ProductSortByType } from '../utils/types'
 import { db } from '../utils'
+
+export type ProductFilterType = {
+  status: string
+  archived?: boolean
+}
+
+export type ProductSort = {
+  sortBy: ProductSortByType
+  sortOrder: SortOrderType
+}
 
 type GetProductsParamTypes = {
   search?: string
   filter?: ProductFilterType
-  sortBy?: ProductSortByType
-  sortOrder?: SortOrderType
+  sort?: ProductSort
   limit?: number
   community?: string
 }
@@ -47,9 +56,8 @@ export const getProductsByCommunity = (community_id: string, limit = 10) => {
 
 export const getProducts = ({
   search = '',
-  filter = 'all',
-  sortBy = 'name',
-  sortOrder = 'asc',
+  filter = { status: 'all', archived: false },
+  sort = { sortBy: 'name', sortOrder: 'asc' },
   limit = 10,
   community,
 }: GetProductsParamTypes) => {
@@ -59,12 +67,12 @@ export const getProducts = ({
     ref = ref.where('community_id', '==', community)
   }
 
-  if (['enabled', 'disabled'].includes(filter)) {
-    ref = ref.where('status', '==', filter)
+  if (filter.status !== 'all') {
+    ref = ref.where('status', '==', filter.status)
   }
   ref = ref
-    .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
+    .where('archived', '==', filter.archived)
+    .orderBy(sort.sortBy, sort.sortOrder)
     .limit(limit)
 
   return ref

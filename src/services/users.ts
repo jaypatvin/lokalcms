@@ -1,4 +1,4 @@
-import { UserSortByType, UserFilterType, SortOrderType } from '../utils/types'
+import { UserSortByType, SortOrderType } from '../utils/types'
 import { db } from '../utils'
 
 export const getUsersByCommunity = (community_id: string, limit = 10) => {
@@ -38,20 +38,29 @@ export const fetchUserByUID = async (uid = '') => {
   }
 }
 
+export type UserFilterType = {
+  status: string
+  role: string
+  archived?: boolean
+}
+
+export type UserSort = {
+  sortBy: UserSortByType
+  sortOrder: SortOrderType
+}
+
 type GetUsersParamTypes = {
   filter?: UserFilterType
   search?: string
-  sortBy?: UserSortByType
-  sortOrder?: SortOrderType
+  sort?: UserSort
   limit?: number
   community?: string
 }
 
 export const getUsers = ({
-  filter = 'all',
+  filter = { status: 'all', role: 'all', archived: false },
   search = '',
-  sortBy = 'display_name',
-  sortOrder = 'asc',
+  sort = { sortBy: 'display_name', sortOrder: 'asc' },
   limit = 50,
   community,
 }: GetUsersParamTypes) => {
@@ -61,18 +70,14 @@ export const getUsers = ({
     ref = ref.where('community_id', '==', community)
   }
 
-  if (filter === 'member') {
-    ref = ref.where('roles.admin', '==', false)
-  } else if (filter === 'unregistered') {
-    ref = ref.where('registration.verified', '==', false)
-  } else if (!['all', 'archived'].includes(filter)) {
-    ref = ref.where(`roles.${filter}`, '==', true)
+  if (filter.status !== 'all') {
+    ref = ref.where('status', '==', filter.status)
+  }
+  if (filter.role !== 'all') {
+    ref = ref.where(`roles.${filter.role}`, '==', true)
   }
 
-  ref = ref
-    .where('archived', '==', filter === 'archived')
-    .orderBy(sortBy, sortOrder)
-    .limit(limit)
+  ref = ref.orderBy(sort.sortBy, sort.sortOrder).limit(limit)
 
   return ref
 }

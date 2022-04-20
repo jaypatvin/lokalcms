@@ -1,12 +1,22 @@
 import { SortOrderType } from '../utils/types'
 import { db } from '../utils'
 
+export type ApplicationLogFilterType = {
+  actionType: 'all' | string
+  isAuthenticated: 'all' | boolean
+}
+
+export type ApplicationLogSort = {
+  sortBy: 'created_at'
+  sortOrder: SortOrderType
+}
+
 type GetApplicationLogsParamTypes = {
-  action_type?: string
-  user_id?: string
-  community_id: string
+  filter?: ApplicationLogFilterType
+  userId?: string
+  communityId: string
   limit?: number
-  sortOrder?: SortOrderType
+  sort?: ApplicationLogSort
 }
 
 export const getApplicationLogsByUser = (user_id: string, limit = 10) => {
@@ -24,20 +34,25 @@ export const getApplicationLogsByCommunity = (community_id: string, limit = 10) 
 }
 
 export const getApplicationLogs = ({
-  action_type,
-  user_id,
-  community_id,
+  userId,
+  communityId,
   limit = 10,
-  sortOrder = 'desc',
+  filter = {
+    actionType: 'all',
+    isAuthenticated: 'all',
+  },
+  sort = { sortBy: 'created_at', sortOrder: 'desc' },
 }: GetApplicationLogsParamTypes) => {
-  let ref = db.applicationLogs.where('community_id', '==', community_id)
-  if (action_type) {
-    ref = ref.where('action_type', '==', action_type)
+  let ref = db.applicationLogs.where('community_id', '==', communityId)
+
+  if (filter.actionType !== 'all') {
+    ref = ref.where('action_type', '==', filter.actionType)
   }
-  if (user_id) {
-    ref = ref.where('user_id', '==', user_id)
+
+  if (userId) {
+    ref = ref.where('user_id', '==', userId)
   }
-  ref = ref.orderBy('created_at', sortOrder).limit(limit)
+  ref = ref.orderBy(sort.sortBy, sort.sortOrder).limit(limit)
 
   return ref
 }

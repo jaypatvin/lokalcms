@@ -41,9 +41,9 @@ const Button = (props: ButtonProps) => {
       default: [
         'button',
         size ? buttonSizes[size] : buttonSizes['medium'],
-        (customColor || color),
+        customColor || color,
         block ? 'w-full block' : 'w-auto',
-        disabled ? 'pointer-events-none' : ''
+        disabled ? 'pointer-events-none' : '',
       ],
     },
   }
@@ -55,7 +55,7 @@ const Button = (props: ButtonProps) => {
       type={type}
       {...rest}
     >
-      {icon && !loading && <span className="mr-1">{buttonIcons[icon]}</span>}
+      {icon && !loading && <span>{buttonIcons[icon]}</span>}
       {loading ? (
         <ReactLoading width={24} height={24} type="bubbles" className="mx-auto" />
       ) : (
