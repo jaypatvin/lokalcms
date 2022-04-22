@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express'
-import { UsersService } from '../../../service'
+import algoliasearch from 'algoliasearch'
+import * as functions from 'firebase-functions'
+import { get } from 'lodash'
 
 /**
  * @openapi
@@ -9,7 +11,21 @@ import { UsersService } from '../../../service'
  *       - users
  *     security:
  *       - bearerAuth: []
- *     description: Returns all users
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Text to search
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: number
+ *     description: Returns users
  *     responses:
  *       200:
  *         description: List of users
@@ -27,16 +43,23 @@ import { UsersService } from '../../../service'
  *                     $ref: '#/components/schemas/User'
  */
 const getUsers: RequestHandler = async (req, res) => {
-  const result = await UsersService.getUsers()
+  const {
+    q: query = '',
+    page = 0,
+    limit: hitsPerPage,
+  } = req.query as unknown as { q: string; page: number; limit: number }
 
-  if (!result.length) return res.status(200).json({ status: 'ok', data: result })
+  const appId = get(functions.config(), 'algolia_config.app_id')
+  const apiKey = get(functions.config(), 'algolia_config.api_key')
+  const client = algoliasearch(appId, apiKey)
+  const usersIndex = client.initIndex('users')
 
-  result.forEach((user) => {
-    delete user.keywords
-    delete user.community
+  const hits = await usersIndex.search(query, {
+    page,
+    hitsPerPage,
   })
 
-  return res.json({ status: 'ok', data: result })
+  return res.json({ status: 'ok', data: hits })
 }
 
 export default getUsers

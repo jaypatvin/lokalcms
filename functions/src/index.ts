@@ -6,6 +6,8 @@ import helmet from 'helmet'
 import compression from 'compression'
 import cors from 'cors'
 import express from 'express'
+import algoliasearch from 'algoliasearch'
+import { get, pick } from 'lodash'
 admin.initializeApp()
 
 import { authMiddleware, roleMiddleware, errorAlert, errorResponder } from './middlewares'
@@ -15,6 +17,12 @@ import { runCounter, logActivity, updateRatings } from './utils/triggers'
 import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
 import notifyUsersOnproductSubscriptions from './scheduled/notifyUsersOnProductSubscriptions'
 import { errorHandler } from './middlewares/validation'
+import { userFields } from './utils/algoliaFields'
+
+const appId = get(functions.config(), 'algolia_config.app_id')
+const apiKey = get(functions.config(), 'algolia_config.api_key')
+const client = algoliasearch(appId, apiKey)
+const usersIndex = client.initIndex('users')
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -35,6 +43,29 @@ app.use(errorAlert)
 app.use(errorResponder)
 
 exports.api = functions.https.onRequest(app)
+
+// algolia indices
+exports.addUserIndex = functions.firestore.document('users/{userId}').onCreate((snapshot) => {
+  const data = snapshot.data()
+  const user = {
+    objectID: snapshot.id,
+    ...pick(data, userFields),
+  }
+
+  return usersIndex.saveObject(user)
+})
+exports.updateUserIndex = functions.firestore.document('users/{userId}').onUpdate((change) => {
+  const newData = change.after.data()
+  const user = {
+    objectID: change.after.id,
+    ...pick(newData, userFields),
+  }
+
+  return usersIndex.saveObject(user)
+})
+exports.deleteUserIndex = functions.firestore.document('users/{userId}').onDelete((snapshot) => {
+  return usersIndex.deleteObject(snapshot.id)
+})
 
 // Counter functions
 exports.userCounter = functions.firestore
