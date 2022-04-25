@@ -2,6 +2,7 @@ import { RequestHandler } from 'express'
 import algoliasearch from 'algoliasearch'
 import * as functions from 'firebase-functions'
 import { get } from 'lodash'
+import { ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
@@ -43,20 +44,28 @@ import { get } from 'lodash'
  *                     $ref: '#/components/schemas/User'
  */
 const getUsers: RequestHandler = async (req, res) => {
+  const { searchKey } = res.locals
   const {
     q: query = '',
     page = 0,
     limit: hitsPerPage,
-  } = req.query as unknown as { q: string; page: number; limit: number }
+    community,
+  } = req.query as unknown as { q: string; page: number; limit: number; community?: string }
+
+  if (!searchKey) {
+    throw generateError(ErrorCode.UserApiError, {
+      message: 'invalid searchKey',
+    })
+  }
 
   const appId = get(functions.config(), 'algolia_config.app_id')
-  const apiKey = get(functions.config(), 'algolia_config.api_key')
-  const client = algoliasearch(appId, apiKey)
+  const client = algoliasearch(appId, searchKey)
   const usersIndex = client.initIndex('users')
 
-  const hits = await usersIndex.search(query, {
+  const { hits } = await usersIndex.search(query, {
     page,
     hitsPerPage,
+    ...(community ? { filters: `community_id:${community}` } : {}),
   })
 
   return res.json({ status: 'ok', data: hits })

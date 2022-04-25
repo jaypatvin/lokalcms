@@ -4,6 +4,7 @@ import swaggerJsdoc from 'swagger-jsdoc'
 import wrapAsync from './utils/wrapAsync'
 import { postStreamFeedCredentials } from './v1/https/streamFeedCredentials'
 import { validation } from './middlewares/validation'
+import { searchMiddleware } from './middlewares'
 
 import {
   UsersAPI,
@@ -90,7 +91,7 @@ module.exports = (api: Express) => {
     .post(StreamUsersAPI.requireAuthHeader, wrapAsync(postStreamFeedCredentials))
 
   // -- Users routes
-  api.route('/v1/users').get(wrapAsync(UsersAPI.getUsers))
+  api.route('/v1/users').get(searchMiddleware, wrapAsync(UsersAPI.getUsers))
   api.route('/v1/users').post(validation.user.create, wrapAsync(UsersAPI.createUser))
   api.route('/v1/users/:userId').get(wrapAsync(UsersAPI.getUser))
   api.route('/v1/users/:userId').put(validation.user.update, wrapAsync(UsersAPI.updateUser))
