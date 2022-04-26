@@ -110,7 +110,7 @@ module.exports = (api: Express) => {
 
   // -- Shops routes
   api.route('/v1/availableShops').get(wrapAsync(ShopsAPI.getAvailableShops))
-  api.route('/v1/shops').get(wrapAsync(ShopsAPI.getShops))
+  api.route('/v1/shops').get(searchMiddleware, wrapAsync(ShopsAPI.getShops))
   api.route('/v1/shops').post(validation.shop.create, wrapAsync(ShopsAPI.createShop))
   api.route('/v1/shops/:shopId').get(wrapAsync(ShopsAPI.getShop))
   api.route('/v1/shops/:shopId').put(validation.shop.update, wrapAsync(ShopsAPI.updateShop))
@@ -144,7 +144,7 @@ module.exports = (api: Express) => {
   // -- Products routes
   api.route('/v1/availableProducts').get(wrapAsync(ProductsAPI.getAvailableProducts))
   api.route('/v1/recommendedProducts').get(wrapAsync(ProductsAPI.getRecommendedProducts))
-  api.route('/v1/products').get(wrapAsync(ProductsAPI.getProducts))
+  api.route('/v1/products').get(searchMiddleware, wrapAsync(ProductsAPI.getProducts))
   api.route('/v1/products').post(validation.product.create, wrapAsync(ProductsAPI.createProduct))
   api.route('/v1/products/:productId').get(wrapAsync(ProductsAPI.getProduct))
   api.route('/v1/products/:productId').put(validation.product.update, wrapAsync(ProductsAPI.updateProduct))

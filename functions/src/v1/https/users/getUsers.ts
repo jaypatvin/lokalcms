@@ -26,6 +26,10 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         name: limit
  *         schema:
  *           type: number
+ *       - in: query
+ *         name: community
+ *         schema:
+ *           type: string
  *     description: Returns users
  *     responses:
  *       200:
