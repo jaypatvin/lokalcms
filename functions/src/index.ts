@@ -17,12 +17,15 @@ import { runCounter, logActivity, updateRatings } from './utils/triggers'
 import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
 import notifyUsersOnproductSubscriptions from './scheduled/notifyUsersOnProductSubscriptions'
 import { errorHandler } from './middlewares/validation'
-import { userFields } from './utils/algoliaFields'
+import { productFields, shopFields, userFields } from './utils/algoliaFields'
+import db from './utils/db'
 
 const appId = get(functions.config(), 'algolia_config.app_id')
 const apiKey = get(functions.config(), 'algolia_config.api_key')
 const client = algoliasearch(appId, apiKey)
 const usersIndex = client.initIndex('users')
+const shopsIndex = client.initIndex('shops')
+const productsIndex = client.initIndex('products')
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -66,6 +69,85 @@ exports.updateUserIndex = functions.firestore.document('users/{userId}').onUpdat
 exports.deleteUserIndex = functions.firestore.document('users/{userId}').onDelete((snapshot) => {
   return usersIndex.deleteObject(snapshot.id)
 })
+
+exports.addShopIndex = functions.firestore.document('shops/{shopId}').onCreate((snapshot) => {
+  const data = snapshot.data()
+  const shop = {
+    objectID: snapshot.id,
+    ...pick(data, shopFields),
+  }
+
+  return shopsIndex.saveObject(shop)
+})
+exports.updateShopIndex = functions.firestore.document('shops/{shopId}').onUpdate((change) => {
+  const newData = change.after.data()
+  const shop = {
+    objectID: change.after.id,
+    ...pick(newData, shopFields),
+  }
+
+  return shopsIndex.saveObject(shop)
+})
+exports.deleteShopIndex = functions.firestore.document('shops/{shopId}').onDelete((snapshot) => {
+  return shopsIndex.deleteObject(snapshot.id)
+})
+
+exports.addProductIndex = functions.firestore
+  .document('products/{productId}')
+  .onCreate(async (snapshot) => {
+    const data = snapshot.data()
+    const shop = await (await db.shops.doc(data.shop_id).get()).data()
+    const product = {
+      objectID: snapshot.id,
+      ...pick(data, productFields),
+      shop_name: shop.name,
+    }
+
+    await shopsIndex.partialUpdateObject({
+      products: {
+        _operation: 'AddUnique',
+        value: data.name,
+      },
+      categories: {
+        _operation: 'AddUnique',
+        value: data.product_category,
+      },
+      objectID: data.shop_id,
+    })
+
+    return productsIndex.saveObject(product)
+  })
+exports.updateProductIndex = functions.firestore
+  .document('products/{productId}')
+  .onUpdate(async (change) => {
+    const oldData = change.before.data()
+    const newData = change.after.data()
+    const product = {
+      objectID: change.after.id,
+      ...pick(newData, productFields),
+    }
+
+    if (oldData.name !== newData.name || oldData.product_category !== newData.product_category) {
+      await shopsIndex.partialUpdateObject({
+        products: {
+          _operation: 'AddUnique',
+          value: newData.name,
+        },
+        categories: {
+          _operation: 'AddUnique',
+          value: newData.product_category,
+        },
+        objectID: newData.shop_id,
+      })
+    }
+
+    return productsIndex.saveObject(product)
+  })
+exports.deleteProductIndex = functions.firestore
+  .document('products/{productId}')
+  .onDelete((snapshot) => {
+    return productsIndex.deleteObject(snapshot.id)
+  })
 
 // Counter functions
 exports.userCounter = functions.firestore

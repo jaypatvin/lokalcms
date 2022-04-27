@@ -15,3 +15,39 @@ export const userFields = [
   'status',
   'updated_at',
 ]
+
+export const shopFields = [
+  '_meta',
+  'archived',
+  'community_id',
+  'cover_photo',
+  'created_at',
+  'description',
+  'is_close',
+  'name',
+  'operating_hours',
+  'payment_options',
+  'profile_photo',
+  'status',
+  'user_id',
+  'updated_at',
+]
+
+export const productFields = [
+  '_meta',
+  'archived',
+  'availability',
+  'base_price',
+  'can_subscribe',
+  'community_id',
+  'created_at',
+  'description',
+  'gallery',
+  'name',
+  'product_category',
+  'quantity',
+  'shop_id',
+  'status',
+  'user_id',
+  'updated_at',
+]
