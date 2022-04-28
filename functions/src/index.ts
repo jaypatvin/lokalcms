@@ -79,11 +79,26 @@ exports.addShopIndex = functions.firestore.document('shops/{shopId}').onCreate((
 
   return shopsIndex.saveObject(shop)
 })
-exports.updateShopIndex = functions.firestore.document('shops/{shopId}').onUpdate((change) => {
+exports.updateShopIndex = functions.firestore.document('shops/{shopId}').onUpdate(async (change) => {
+  const oldData = change.before.data()
   const newData = change.after.data()
   const shop = {
     objectID: change.after.id,
     ...pick(newData, shopFields),
+  }
+
+  if (oldData.name !== newData.name) {
+    const productObjects = []
+    const productsRef = await db.products.where('shop_id', '==', newData.id).get()
+    for (const doc of productsRef.docs) {
+      const productData = doc.data()
+      productObjects.push({
+        objectID: doc.id,
+        ...pick(productData, productFields),
+        shop_name: newData.name,
+      })
+    }
+    await productsIndex.saveObjects(productObjects)
   }
 
   return shopsIndex.saveObject(shop)
