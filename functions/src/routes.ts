@@ -4,7 +4,7 @@ import swaggerJsdoc from 'swagger-jsdoc'
 import wrapAsync from './utils/wrapAsync'
 import { postStreamFeedCredentials } from './v1/https/streamFeedCredentials'
 import { validation } from './middlewares/validation'
-import { searchMiddleware } from './middlewares'
+import { chatSearchMiddleware, conversationSearchMiddleware, searchMiddleware } from './middlewares'
 
 import {
   UsersAPI,
@@ -197,6 +197,8 @@ module.exports = (api: Express) => {
   api.route('/v1/applicationLogs').post(wrapAsync(ApplicationLogsApi.createApplicationLog))
 
   // -- Chats routes
+  api.route('/v1/chats').get(chatSearchMiddleware, wrapAsync(ChatsAPI.getChats))
+  api.route('/v1/conversations').get(conversationSearchMiddleware, wrapAsync(ChatsAPI.getConversations))
   api.route('/v1/chats').post(validation.chat.create, wrapAsync(ChatsAPI.createChat))
   api.route('/v1/chats/:chatId/conversation').post(validation.chat.conversation, wrapAsync(ChatsAPI.createConversation))
   api.route('/v1/chats/:chatId/invite').put(validation.chat.invite, wrapAsync(ChatsAPI.chatInvite))
