@@ -51,3 +51,30 @@ export const productFields = [
   'user_id',
   'updated_at',
 ]
+
+export const chatFields = [
+  'archived',
+  'chat_type',
+  'community_id',
+  'created_at',
+  'customer_name',
+  'last_message',
+  'members',
+  'shop_id',
+  'product_id',
+  'title',
+  'updated_at',
+]
+
+export const conversationFields = [
+  'archived',
+  'created_at',
+  'media',
+  'message',
+  'sender_id',
+  'sent_at',
+  'reply_to',
+  'updated_at',
+  'community_id',
+  'chat_id',
+]

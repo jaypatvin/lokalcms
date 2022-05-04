@@ -7,7 +7,7 @@ import compression from 'compression'
 import cors from 'cors'
 import express from 'express'
 import algoliasearch from 'algoliasearch'
-import { get, pick } from 'lodash'
+import { get, pick, uniq, isEqual, sortBy } from 'lodash'
 admin.initializeApp()
 
 import { authMiddleware, roleMiddleware, errorAlert, errorResponder } from './middlewares'
@@ -17,7 +17,13 @@ import { runCounter, logActivity, updateRatings } from './utils/triggers'
 import generateProductSubscriptions from './scheduled/generateProductSubscriptions'
 import notifyUsersOnproductSubscriptions from './scheduled/notifyUsersOnProductSubscriptions'
 import { errorHandler } from './middlewares/validation'
-import { productFields, shopFields, userFields } from './utils/algoliaFields'
+import {
+  chatFields,
+  conversationFields,
+  productFields,
+  shopFields,
+  userFields,
+} from './utils/algoliaFields'
 import db from './utils/db'
 
 const appId = get(functions.config(), 'algolia_config.app_id')
@@ -26,6 +32,8 @@ const client = algoliasearch(appId, apiKey)
 const usersIndex = client.initIndex('users')
 const shopsIndex = client.initIndex('shops')
 const productsIndex = client.initIndex('products')
+const chatsIndex = client.initIndex('chats')
+const conversationsIndex = client.initIndex('conversations')
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -79,30 +87,32 @@ exports.addShopIndex = functions.firestore.document('shops/{shopId}').onCreate((
 
   return shopsIndex.saveObject(shop)
 })
-exports.updateShopIndex = functions.firestore.document('shops/{shopId}').onUpdate(async (change) => {
-  const oldData = change.before.data()
-  const newData = change.after.data()
-  const shop = {
-    objectID: change.after.id,
-    ...pick(newData, shopFields),
-  }
-
-  if (oldData.name !== newData.name) {
-    const productObjects = []
-    const productsRef = await db.products.where('shop_id', '==', newData.id).get()
-    for (const doc of productsRef.docs) {
-      const productData = doc.data()
-      productObjects.push({
-        objectID: doc.id,
-        ...pick(productData, productFields),
-        shop_name: newData.name,
-      })
+exports.updateShopIndex = functions.firestore
+  .document('shops/{shopId}')
+  .onUpdate(async (change) => {
+    const oldData = change.before.data()
+    const newData = change.after.data()
+    const shop = {
+      objectID: change.after.id,
+      ...pick(newData, shopFields),
     }
-    await productsIndex.saveObjects(productObjects)
-  }
 
-  return shopsIndex.saveObject(shop)
-})
+    if (oldData.name !== newData.name) {
+      const productObjects = []
+      const productsRef = await db.products.where('shop_id', '==', newData.id).get()
+      for (const doc of productsRef.docs) {
+        const productData = doc.data()
+        productObjects.push({
+          objectID: doc.id,
+          ...pick(productData, productFields),
+          shop_name: newData.name,
+        })
+      }
+      await productsIndex.saveObjects(productObjects)
+    }
+
+    return shopsIndex.saveObject(shop)
+  })
 exports.deleteShopIndex = functions.firestore.document('shops/{shopId}').onDelete((snapshot) => {
   return shopsIndex.deleteObject(snapshot.id)
 })
@@ -162,6 +172,112 @@ exports.deleteProductIndex = functions.firestore
   .document('products/{productId}')
   .onDelete((snapshot) => {
     return productsIndex.deleteObject(snapshot.id)
+  })
+
+exports.addChatIndex = functions.firestore.document('chats/{chatId}').onCreate(async (snapshot) => {
+  const data = snapshot.data()
+
+  const moreInfo = {
+    member_emails: [],
+  }
+
+  for (const member of data.members) {
+    let user
+
+    if (data.shop_id === member) {
+      const shop = await (await db.shops.doc(data.shop_id).get()).data()
+      user = await (await db.users.doc(shop.user_id).get()).data()
+    } else if (data.product_id === member) {
+      const product = await (await db.products.doc(data.product_id).get()).data()
+      user = await (await db.users.doc(product.user_id).get()).data()
+    } else {
+      user = await (await db.users.doc(member).get()).data()
+    }
+
+    if (user) {
+      moreInfo.member_emails.push(user.email)
+    }
+  }
+
+  moreInfo.member_emails = uniq(moreInfo.member_emails)
+
+  const chat = {
+    objectID: data.id,
+    ...pick(data, chatFields),
+    ...moreInfo,
+  }
+
+  return chatsIndex.saveObject(chat)
+})
+exports.updateChatIndex = functions.firestore
+  .document('chats/{chatId}')
+  .onUpdate(async (change) => {
+    const oldData = change.before.data()
+    const newData = change.after.data()
+
+    const moreInfo: { member_emails?: string[] } = {}
+    if (!isEqual(sortBy(oldData.members), sortBy(newData.members))) {
+      moreInfo.member_emails = []
+      for (const member of newData.members) {
+        let user
+
+        if (newData.shop_id === member) {
+          const shop = await (await db.shops.doc(newData.shop_id).get()).data()
+          user = await (await db.users.doc(shop.user_id).get()).data()
+        } else if (newData.product_id === member) {
+          const product = await (await db.products.doc(newData.product_id).get()).data()
+          user = await (await db.users.doc(product.user_id).get()).data()
+        } else {
+          user = await (await db.users.doc(member).get()).data()
+        }
+
+        if (user) {
+          moreInfo.member_emails.push(user.email)
+        }
+      }
+
+      moreInfo.member_emails = uniq(moreInfo.member_emails)
+    }
+    const chat = {
+      objectID: change.after.id,
+      ...pick(newData, chatFields),
+      ...moreInfo,
+    }
+
+    return chatsIndex.saveObject(chat)
+  })
+exports.deleteChatIndex = functions.firestore.document('chats/{chatId}').onDelete((snapshot) => {
+  return chatsIndex.deleteObject(snapshot.id)
+})
+
+exports.addConversationIndex = functions.firestore
+  .document('chats/{chatId}/conversations/{conversationId}')
+  .onCreate(async (snapshot) => {
+    const data = snapshot.data()
+
+    const chat = {
+      objectID: data.id,
+      ...pick(data, conversationFields),
+    }
+
+    return conversationsIndex.saveObject(chat)
+  })
+exports.updateConversationIndex = functions.firestore
+  .document('chats/{chatId}/conversations/{conversationId}')
+  .onUpdate(async (change) => {
+    const data = change.after.data()
+
+    const chat = {
+      objectID: data.id,
+      ...pick(data, conversationFields),
+    }
+
+    return conversationsIndex.saveObject(chat)
+  })
+exports.deleteConversationIndex = functions.firestore
+  .document('chats/{chatId}/conversations/{conversationId}')
+  .onDelete((snapshot) => {
+    return conversationsIndex.deleteObject(snapshot.id)
   })
 
 // Counter functions
