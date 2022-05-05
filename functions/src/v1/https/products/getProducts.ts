@@ -89,7 +89,7 @@ const getProducts: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const productsIndex = client.initIndex('products')
 
-  const { hits } = await productsIndex.search(query, {
+  const { hits, nbPages, nbHits } = await productsIndex.search(query, {
     page,
     hitsPerPage,
     ...(community ? { filters: `community_id:${community}` } : {}),
@@ -98,7 +98,7 @@ const getProducts: RequestHandler = async (req, res) => {
     ...(user ? { filters: `user_id:${user}` } : {}),
   })
 
-  return res.json({ status: 'ok', data: hits })
+  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
 }
 
 export default getProducts

@@ -281,6 +281,8 @@ const createChat: RequestHandler = async (req, res) => {
     sender_id: requestorDocId,
     sent_at: firestore.Timestamp.now(),
     archived: false,
+    community_id: chat.community_id,
+    chat_id: chat.id,
   }
 
   if (message) chatMessage.message = message

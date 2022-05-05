@@ -6,10 +6,10 @@ import { ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
- * /v1/chats:
+ * /v1/orders:
  *   get:
  *     tags:
- *       - chats
+ *       - orders
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -39,13 +39,39 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: string
  *       - in: query
- *         name: user
+ *         name: buyer
  *         schema:
  *           type: string
- *     description: Returns chats
+ *       - in: query
+ *         name: seller
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: delivery_option
+ *         schema:
+ *           type: string
+ *           enum: [pickup, delivery]
+ *       - in: query
+ *         name: paid
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: payment_method
+ *         schema:
+ *           type: string
+ *           enum: [bank, cod]
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: number
+ *     description: Returns orders
  *     responses:
  *       200:
- *         description: List of chats
+ *         description: List of orders
  *         content:
  *           application/json:
  *             schema:
@@ -57,18 +83,24 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Chat'
+ *                     $ref: '#/components/schemas/Order'
  */
-const getChats: RequestHandler = async (req, res) => {
+const getOrders: RequestHandler = async (req, res) => {
   const { searchKey } = res.locals
   const {
     q: query = '',
     page = 0,
-    limit: hitsPerPage,
+    limit: hitsPerPage = 100,
     community,
     shop,
     product,
-    user,
+    buyer,
+    seller,
+    delivery_option,
+    paid,
+    payment_method,
+    category,
+    status,
   } = req.query as unknown as {
     q: string
     page: number
@@ -76,30 +108,42 @@ const getChats: RequestHandler = async (req, res) => {
     community?: string
     shop?: string
     product?: string
-    user?: string
+    buyer?: string
+    seller?: string
+    delivery_option?: 'pickup' | 'delivery'
+    paid?: boolean
+    payment_method?: 'cod' | 'bank'
+    category?: string
+    status?: number
   }
 
   if (!searchKey) {
-    throw generateError(ErrorCode.ChatApiError, {
+    throw generateError(ErrorCode.OrderApiError, {
       message: 'invalid searchKey',
     })
   }
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const chatsIndex = client.initIndex('chats')
+  const ordersIndex = client.initIndex('orders')
 
-  const { hits, nbPages, nbHits } = await chatsIndex.search(query, {
+  const { hits, nbPages, nbHits } = await ordersIndex.search(query, {
     page,
     hitsPerPage,
     ...(community ? { filters: `community_id:${community}` } : {}),
     ...(shop ? { filters: `shop_id:${shop}` } : {}),
-    ...(product ? { filters: `product_id:${product}` } : {}),
-    ...(user ? { filters: `members:${user}` } : {}),
+    ...(product ? { filters: `product_ids:${product}` } : {}),
+    ...(seller ? { filters: `seller_id:${seller}` } : {}),
+    ...(buyer ? { filters: `buyer_id:${buyer}` } : {}),
+    ...(delivery_option ? { filters: `delivery_option:${delivery_option}` } : {}),
+    ...(paid ? { filters: `is_paid:${paid}` } : {}),
+    ...(payment_method ? { filters: `payment_method:${payment_method}` } : {}),
+    ...(category ? { filters: `products.category:${category}` } : {}),
+    ...(status ? { filters: `status_code:${status}` } : {}),
     attributesToHighlight: [],
   })
 
   return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
 }
 
-export default getChats
+export default getOrders

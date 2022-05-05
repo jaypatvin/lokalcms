@@ -60,6 +60,8 @@ const seedProductChatsByUser = async ({
         archived: false,
         message: messageContent,
         created_at: chatDate,
+        community_id: user.community_id,
+        chat_id: hashId,
       })
 
       const numOfReplies = chance.integer({ min: 1, max: 10 })
@@ -80,6 +82,8 @@ const seedProductChatsByUser = async ({
           archived: false,
           message,
           created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+          community_id: sender.community_id,
+          chat_id: hashId,
         }
         if (replyToPrevious && lastMessageRef) {
           // @ts-ignore
@@ -155,6 +159,8 @@ const seedShopChatsByUser = async ({
         archived: false,
         message: messageContent,
         created_at: chatDate,
+        community_id: user.community_id,
+        chat_id: hashId,
       })
 
       const numOfReplies = chance.integer({ min: 1, max: 10 })
@@ -175,6 +181,8 @@ const seedShopChatsByUser = async ({
           archived: false,
           message,
           created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+          community_id: sender.community_id,
+          chat_id: hashId,
         }
         if (replyToPrevious && lastMessageRef) {
           // @ts-ignore
@@ -248,6 +256,8 @@ const seedUserChatsByUser = async ({
           archived: false,
           message: messageContent,
           created_at: chatDate,
+          community_id: user.community_id,
+          chat_id: hashId,
         })
 
         const numOfReplies = chance.integer({ min: 1, max: 10 })
@@ -268,6 +278,8 @@ const seedUserChatsByUser = async ({
             archived: false,
             message,
             created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+            community_id: sender.community_id,
+            chat_id: hashId,
           }
           if (replyToPrevious && lastMessageRef) {
             // @ts-ignore
@@ -351,6 +363,8 @@ const seedGroupChatsByUser = async ({
           archived: false,
           message: messageContent,
           created_at: chatDate,
+          community_id: user.community_id,
+          chat_id: groupChat.id,
         })
 
         const numOfReplies = chance.integer({ min: 1, max: 10 })
@@ -371,6 +385,8 @@ const seedGroupChatsByUser = async ({
             archived: false,
             message,
             created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+            community_id: sender.community_id,
+            chat_id: groupChat.id,
           }
           if (replyToPrevious && lastMessageRef) {
             // @ts-ignore

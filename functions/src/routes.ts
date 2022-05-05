@@ -4,7 +4,7 @@ import swaggerJsdoc from 'swagger-jsdoc'
 import wrapAsync from './utils/wrapAsync'
 import { postStreamFeedCredentials } from './v1/https/streamFeedCredentials'
 import { validation } from './middlewares/validation'
-import { chatSearchMiddleware, conversationSearchMiddleware, searchMiddleware } from './middlewares'
+import { chatSearchMiddleware, conversationSearchMiddleware, orderSearchMiddleware, searchMiddleware } from './middlewares'
 
 import {
   UsersAPI,
@@ -208,6 +208,7 @@ module.exports = (api: Express) => {
   api.route('/v1/getChatByMemberIds').get(wrapAsync(ChatsAPI.getChatByMemberIds))
 
   // -- Orders routes
+  api.route('/v1/orders').get(orderSearchMiddleware, wrapAsync(OrdersAPI.getOrders))
   api.route('/v1/orders').post(validation.order.create, wrapAsync(OrdersAPI.createOrder))
   api.route('/v1/orders/:orderId/confirm').put(wrapAsync(OrdersAPI.confirmOrder))
   api.route('/v1/orders/:orderId/pay').put(validation.order.pay, wrapAsync(OrdersAPI.pay))

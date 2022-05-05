@@ -34,6 +34,34 @@ const search: RequestHandler = async (req, res, next) => {
   return
 }
 
+export const orderSearch: RequestHandler = async (req, res, next) => {
+  const { userRoles, userDoc } = res.locals as {
+    userRoles: RolesType
+    userDoc: User & { id: string }
+  }
+
+  const APP_ID = get(functions.config(), 'algolia_config.app_id')
+  const API_KEY = get(functions.config(), 'algolia_config.api_key')
+  const SEARCH_KEY = get(functions.config(), 'algolia_config.search_key')
+  const client = algoliasearch(APP_ID, API_KEY)
+
+  const params = {
+    ...(!userRoles.admin
+      ? {
+          filters: `community_id:${userDoc.community_id} AND (seller_id:${userDoc.id} OR buyer_id:${userDoc.id})`,
+        }
+      : {}),
+    userToken: userDoc.id,
+  }
+
+  const key = client.generateSecuredApiKey(SEARCH_KEY, params)
+
+  res.locals.searchKey = key
+
+  next()
+  return
+}
+
 export const chatSearch: RequestHandler = async (req, res, next) => {
   const { userRoles, userDoc } = res.locals as {
     userRoles: RolesType
@@ -46,7 +74,9 @@ export const chatSearch: RequestHandler = async (req, res, next) => {
   const client = algoliasearch(APP_ID, API_KEY)
 
   const params = {
-    ...(!userRoles.admin ? { filters: `community_id:${userDoc.community_id} AND members:${userDoc.id}` } : {}),
+    ...(!userRoles.admin
+      ? { filters: `community_id:${userDoc.community_id} AND members:${userDoc.id}` }
+      : {}),
     userToken: userDoc.id,
   }
 
@@ -70,7 +100,9 @@ export const conversationSearch: RequestHandler = async (req, res, next) => {
   const client = algoliasearch(APP_ID, API_KEY)
 
   const params = {
-    ...(!userRoles.admin ? { filters: `community_id:${userDoc.community_id} AND sender_id:${userDoc.id}` } : {}),
+    ...(!userRoles.admin
+      ? { filters: `community_id:${userDoc.community_id} AND sender_id:${userDoc.id}` }
+      : {}),
     userToken: userDoc.id,
   }
 

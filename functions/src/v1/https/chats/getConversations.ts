@@ -83,7 +83,7 @@ const getConversations: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const conversationsIndex = client.initIndex('conversations')
 
-  const { hits } = await conversationsIndex.search(query, {
+  const { hits, nbPages, nbHits } = await conversationsIndex.search(query, {
     page,
     hitsPerPage,
     ...(community ? { filters: `community_id:${community}` } : {}),
@@ -91,7 +91,7 @@ const getConversations: RequestHandler = async (req, res) => {
     ...(user ? { filters: `sender_id:${user}` } : {}),
   })
 
-  return res.json({ status: 'ok', data: hits })
+  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
 }
 
 export default getConversations

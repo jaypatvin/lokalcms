@@ -66,13 +66,13 @@ const getUsers: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const usersIndex = client.initIndex('users')
 
-  const { hits } = await usersIndex.search(query, {
+  const { hits, nbPages, nbHits } = await usersIndex.search(query, {
     page,
     hitsPerPage,
     ...(community ? { filters: `community_id:${community}` } : {}),
   })
 
-  return res.json({ status: 'ok', data: hits })
+  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
 }
 
 export default getUsers
