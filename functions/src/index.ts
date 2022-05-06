@@ -20,7 +20,9 @@ import { errorHandler } from './middlewares/validation'
 import {
   chatFields,
   conversationFields,
+  orderFields,
   productFields,
+  productSubscriptionPlanFields,
   shopFields,
   userFields,
 } from './utils/algoliaFields'
@@ -34,6 +36,8 @@ const shopsIndex = client.initIndex('shops')
 const productsIndex = client.initIndex('products')
 const chatsIndex = client.initIndex('chats')
 const conversationsIndex = client.initIndex('conversations')
+const ordersIndex = client.initIndex('orders')
+const productSubscriptionPlansIndex = client.initIndex('product_subscription_plans')
 
 const app = express()
 app.use(cors({ origin: true }))
@@ -278,6 +282,64 @@ exports.deleteConversationIndex = functions.firestore
   .document('chats/{chatId}/conversations/{conversationId}')
   .onDelete((snapshot) => {
     return conversationsIndex.deleteObject(snapshot.id)
+  })
+
+exports.addOrderIndex = functions.firestore
+  .document('orders/{orderId}')
+  .onCreate(async (snapshot) => {
+    const data = snapshot.data()
+
+    const order = {
+      objectID: data.id,
+      ...pick(data, orderFields),
+    }
+
+    return ordersIndex.saveObject(order)
+  })
+exports.updateOrderIndex = functions.firestore
+  .document('orders/{orderId}')
+  .onUpdate(async (change) => {
+    const data = change.after.data()
+
+    const order = {
+      objectID: data.id,
+      ...pick(data, orderFields),
+    }
+
+    return ordersIndex.saveObject(order)
+  })
+exports.deleteOrderIndex = functions.firestore.document('orders/{orderId}').onDelete((snapshot) => {
+  return ordersIndex.deleteObject(snapshot.id)
+})
+
+exports.addProductSubscriptionPlanIndex = functions.firestore
+  .document('product_subscription_plans/{planId}')
+  .onCreate(async (snapshot) => {
+    const data = snapshot.data()
+
+    const plan = {
+      objectID: data.id,
+      ...pick(data, productSubscriptionPlanFields),
+    }
+
+    return productSubscriptionPlansIndex.saveObject(plan)
+  })
+exports.updateProductSubscriptionPlanIndex = functions.firestore
+  .document('product_subscription_plans/{planId}')
+  .onUpdate(async (change) => {
+    const data = change.after.data()
+
+    const plan = {
+      objectID: data.id,
+      ...pick(data, productSubscriptionPlanFields),
+    }
+
+    return productSubscriptionPlansIndex.saveObject(plan)
+  })
+exports.deleteProductSubscriptionPlanIndex = functions.firestore
+  .document('product_subscription_plans/{planId}')
+  .onDelete((snapshot) => {
+    return productSubscriptionPlansIndex.deleteObject(snapshot.id)
   })
 
 // Counter functions
