@@ -1,5 +1,6 @@
 type Comment = {
   archived: boolean
+  activity_id: string
   created_at: FirebaseFirestore.Timestamp
   images?: {
     url: string
@@ -15,7 +16,7 @@ type Comment = {
 
 export type CommentCreateData = Pick<
   Comment,
-  'message' | 'user_id' | 'status' | 'archived' | 'images'
+  'message' | 'user_id' | 'status' | 'archived' | 'images' | 'activity_id'
 >
 
 export type CommentUpdateData = Partial<Pick<Comment, 'message'>>

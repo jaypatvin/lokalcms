@@ -2,7 +2,7 @@
  * @openapi
  * components:
  *   schemas:
- *     Community:
+ *     Comment:
  *       type: object
  *       properties:
  *         id:
@@ -29,3 +29,4 @@ export { default as unarchiveComment } from './unarchiveComment'
 export { default as getComment } from './getComment'
 export { default as getUserComments } from './getUserComments'
 export { default as getActivityComments } from './getActivityComments'
+export { default as getComments } from './getComments'

@@ -167,7 +167,7 @@ module.exports = (api: Express) => {
   api.route('/v1/categories/:categoryId/unarchive').put(wrapAsync(CategoriesAPI.unarchiveCategory))
 
   // -- Activities routes
-  api.route('/v1/activities').get(wrapAsync(ActivitiesAPI.getActivities))
+  api.route('/v1/activities').get(searchMiddleware, wrapAsync(ActivitiesAPI.getActivities))
   api.route('/v1/activities').post(validation.activity.create, wrapAsync(ActivitiesAPI.createActivity))
   api.route('/v1/activities/:activityId').get(wrapAsync(ActivitiesAPI.getActivity))
   api.route('/v1/activities/:activityId').put(validation.activity.update, wrapAsync(ActivitiesAPI.updateActivity))
@@ -176,6 +176,7 @@ module.exports = (api: Express) => {
   api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
 
   // -- Comments routes
+  api.route('/v1/activities/:activityId/comments').get(searchMiddleware, wrapAsync(CommentsAPI.getComments))
   api.route('/v1/activities/:activityId/comments').post(validation.comment.create, wrapAsync(CommentsAPI.createComment))
   api.route('/v1/activities/:activityId/comments/:commentId').get(wrapAsync(CommentsAPI.getComment))
   api.route('/v1/activities/:activityId/comments/:commentId').put(validation.comment.update, wrapAsync(CommentsAPI.updateComment))
