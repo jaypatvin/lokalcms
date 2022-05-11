@@ -5,6 +5,9 @@ const ordersIndex = require('./ordersIndex')
 const productsIndex = require('./productsIndex')
 const productSubscriptionPlansIndex = require('./productSubscriptionPlansIndex')
 const shopsIndex = require('./shopsIndex')
+const activitiesIndex = require('./activitiesIndex')
+const commentsIndex = require('./commentsIndex')
+const communitiesIndex = require('./communitiesIndex')
 
 exports.addUserIndex = usersIndex.addUserIndex
 exports.updateUserIndex = usersIndex.updateUserIndex
@@ -33,3 +36,15 @@ exports.deleteProductSubscriptionPlanIndex = productSubscriptionPlansIndex.delet
 exports.addShopIndex = shopsIndex.addShopIndex
 exports.updateShopIndex = shopsIndex.updateShopIndex
 exports.deleteShopIndex = shopsIndex.deleteShopIndex
+
+exports.addActivityIndex = activitiesIndex.addActivityIndex
+exports.updateActivityIndex = activitiesIndex.updateActivityIndex
+exports.deleteActivityIndex = activitiesIndex.deleteActivityIndex
+
+exports.addCommentIndex = commentsIndex.addCommentIndex
+exports.updateCommentIndex = commentsIndex.updateCommentIndex
+exports.deleteCommentIndex = commentsIndex.deleteCommentIndex
+
+exports.addCommunityIndex = communitiesIndex.addCommunityIndex
+exports.updateCommunityIndex = communitiesIndex.updateCommunityIndex
+exports.deleteCommunityIndex = communitiesIndex.deleteCommunityIndex

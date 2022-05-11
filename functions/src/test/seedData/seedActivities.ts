@@ -70,6 +70,7 @@ const seedActivityComments = async ({
           message: chance.sentence(),
           status: chance.pickone(['enabled', 'disabled']),
           user_id: user.id,
+          activity_id: activity.id,
         })
       } catch (error) {
         console.error('Error creating activity comment:', error)

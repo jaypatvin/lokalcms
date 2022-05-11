@@ -130,6 +130,7 @@ module.exports = (api: Express) => {
   api.route('/v1/invite/claim').post(validation.invite.claim, wrapAsync(InvitesAPI.claimInvite))
 
   // -- Community routes
+  api.route('/v1/communities').get(wrapAsync(CommunityAPI.getCommunities))
   api.route('/v1/community').get(wrapAsync(CommunityAPI.getCommunities))
   api.route('/v1/community').post(validation.community.create, wrapAsync(CommunityAPI.createCommunity))
   api.route('/v1/community/:communityId').get(wrapAsync(CommunityAPI.getCommunity))

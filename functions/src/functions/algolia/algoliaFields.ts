@@ -121,3 +121,41 @@ export const productSubscriptionPlanFields = [
   'status',
   'updated_at',
 ]
+
+export const activityFields = [
+  '_meta',
+  'archived',
+  'archived_at',
+  'community_id',
+  'created_at',
+  'images',
+  'message',
+  'status',
+  'updated_at',
+  'user_id',
+]
+
+export const commentFields = [
+  'archived',
+  'archived_at',
+  'activity_id',
+  'community_id',
+  'created_at',
+  'images',
+  'message',
+  'status',
+  'updated_at',
+  'user_id',
+]
+
+export const communityFields = [
+  '_meta',
+  'archived',
+  'address',
+  'admin',
+  'cover_photo',
+  'created_at',
+  'name',
+  'profile_photo',
+  'updated_at',
+]
