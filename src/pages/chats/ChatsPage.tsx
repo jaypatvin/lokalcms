@@ -10,6 +10,7 @@ import { fetchUserByID, getUsers } from '../../services/users'
 import ChatItem from './ChatItem'
 import ConversationItem from './ConversationItem'
 import { Chat, Conversation, User } from '../../models'
+import { useAuth } from '../../contexts/AuthContext'
 
 type UserData = User & { id: string }
 type MembersInfo = { [x: string]: { name: string } }
@@ -21,6 +22,7 @@ type ConversationData = Conversation & {
 }
 
 const ChatsPage = () => {
+  const { firebaseToken } = useAuth()
   const [user, setUser] = useState<UserData>()
   const [showUserSearchResult, setShowUserSearchResult] = useState(false)
   const userSearchResultRef = useOuterClick(() => setShowUserSearchResult(false))
@@ -42,12 +44,7 @@ const ChatsPage = () => {
   const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setUserSearchText(e.target.value)
     if (e.target.value.length > 2) {
-      const usersRef = getUsers({ search: e.target.value })
-      const result = await usersRef.get()
-      const users = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
+      const users = (await getUsers({ search: e.target.value }, firebaseToken!))!.data
       setUserSearchResult(users)
       setShowUserSearchResult(users.length > 0)
     } else {

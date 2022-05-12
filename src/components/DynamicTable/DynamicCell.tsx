@@ -139,7 +139,7 @@ const DynamicCell = ({ cell }: Props) => {
         </td>
       )
     case 'datepast':
-      let dateAt = cell.value ? dayjs((cell.value as any).toDate()).format() : null
+      let dateAt = cell.value ? dayjs(cell.value as any).format() : null
       return (
         <td>
           <p className="text-gray-900 whitespace-no-wrap">

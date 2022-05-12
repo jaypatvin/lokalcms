@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getUsers, UserFilterType, UserSort } from '../../services/users'
+import { getUsers, UserFilterType, UserSort, UsersResponse } from '../../services/users'
 import { useAuth } from '../../contexts/AuthContext'
 import { User } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
@@ -246,12 +246,14 @@ type FormData = {
 const UserListPage = () => {
   const { firebaseToken } = useAuth()
   const community = useCommunity()
-  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<User>>()
+  const [data, setData] = useState<UsersResponse>()
+  const [isLoading, setIsLoading] = useState(false)
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
   const [dataToUpdate, setDataToUpdate] = useState<FormData>()
   const [queryOptions, setQueryOptions] = useState({
     search: '',
+    page: 0,
     limit: 10 as TableConfig['limit'],
     filter: initialFilter as UserFilterType,
     community: community?.id,
@@ -261,7 +263,12 @@ const UserListPage = () => {
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   useEffect(() => {
-    setDataRef(getUsers(queryOptions))
+    if (firebaseToken) {
+      setIsLoading(true)
+      getUsers(queryOptions, firebaseToken)
+        .then((data) => setData(data))
+        .finally(() => setIsLoading(false))
+    }
   }, [queryOptions])
 
   useEffect(() => {
@@ -397,25 +404,22 @@ const UserListPage = () => {
         acceptLabel="Unarchive"
         cancelLabel="Cancel"
       />
-      {dataRef ? (
-        <DynamicTable
-          name="User"
-          dataRef={dataRef}
-          allColumns={allColumns}
-          columnKeys={columns}
-          contextMenu={contextMenu}
-          filtersMenu={filtersMenu}
-          sortMenu={sortMenu}
-          initialFilter={initialFilter}
-          initialSort={initialSort}
-          onChangeFilter={onChangeFilter}
-          onChangeSort={onChangeSort}
-          onChangeTableConfig={onChangeTableConfig}
-          onClickCreate={() => setIsCreateFormOpen(true)}
-        />
-      ) : (
-        ''
-      )}
+      <DynamicTable
+        name="User"
+        data={data}
+        loading={isLoading}
+        allColumns={allColumns}
+        columnKeys={columns}
+        contextMenu={contextMenu}
+        filtersMenu={filtersMenu}
+        sortMenu={sortMenu}
+        initialFilter={initialFilter}
+        initialSort={initialSort}
+        onChangeFilter={onChangeFilter}
+        onChangeSort={onChangeSort}
+        onChangeTableConfig={onChangeTableConfig}
+        onClickCreate={() => setIsCreateFormOpen(true)}
+      />
     </>
   )
 }

@@ -19,10 +19,16 @@ import {
 import { DocumentType } from '../../models'
 
 type Data = DataItem[]
+type PaginatedData = {
+  pages: number
+  totalItems: number
+  data: Data
+}
 
 type Props = {
   name: string
-  dataRef: firebase.default.firestore.Query<DocumentType>
+  data?: PaginatedData
+  dataRef?: firebase.default.firestore.Query<DocumentType>
   allColumns: Column[]
   columnKeys: string[]
   contextMenu?: ContextMenu
@@ -54,18 +60,20 @@ const DynamicTable = ({
   onChangeSort,
   onChangeTableConfig,
   onClickCreate,
+  data,
 }: Props) => {
   const [tableConfig, setTableConfig] = useState<TableConfig>({
     search: '',
     limit: 10,
-    page: 1,
+    page: 0,
   })
-  const [dataList, setDataList] = useState<Data>([])
+  // const [dataList, setDataList] = useState<Data>(data)
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
   const [firstDataOnList, setFirstDataOnList] =
     useState<firebase.default.firestore.QueryDocumentSnapshot<DocumentType>>()
   const [lastDataOnList, setLastDataOnList] =
     useState<firebase.default.firestore.QueryDocumentSnapshot<DocumentType>>()
+  const [isFirstPage, setIsFirstPage] = useState(true)
   const [isLastPage, setIsLastPage] = useState(false)
 
   const columns = allColumns.filter((col) => columnKeys.includes(col.key))
@@ -76,14 +84,14 @@ const DynamicTable = ({
     checked: shownColumns.some((scol) => scol.key === col.key),
   }))
 
-  useEffect(() => {
-    if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
-      updateDataPagination(snapshot.docs)
-    })
-    setSnapshot({ unsubscribe: newUnsubscribe })
-    setIsLastPage(false)
-  }, [dataRef])
+  // useEffect(() => {
+  //   if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
+  //   const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
+  //     updateDataPagination(snapshot.docs)
+  //   })
+  //   setSnapshot({ unsubscribe: newUnsubscribe })
+  //   setIsLastPage(false)
+  // }, [dataRef])
 
   const searchHandler = (value: string) => {
     const newConfig = { ...tableConfig, search: value }
@@ -104,7 +112,7 @@ const DynamicTable = ({
     setShownColumns(newShownColumns)
   }
 
-  const rows = dataList.reduce((acc, item) => {
+  const rows = data?.data.reduce((acc, item) => {
     const row: Cell[] = shownColumns.map((col) => {
       let referenceLink = col.referenceLink
       const linkParams = referenceLink ? referenceLink.match(/:\w+/g) : undefined
@@ -144,41 +152,59 @@ const DynamicTable = ({
     return acc
   }, [] as Row[])
 
-  const updateDataPagination = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<DocumentType>[]
-  ) => {
-    const newDataList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    setDataList(newDataList)
-    setLastDataOnList(docs[docs.length - 1])
-    setFirstDataOnList(docs[0])
-  }
+  // const updateDataPagination = async (
+  //   docs: firebase.default.firestore.QueryDocumentSnapshot<DocumentType>[]
+  // ) => {
+  //   const newDataList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  //   setDataList(newDataList)
+  //   setLastDataOnList(docs[docs.length - 1])
+  //   setFirstDataOnList(docs[0])
+  // }
 
   const onNextPage = () => {
-    if (dataRef && lastDataOnList && !isLastPage) {
-      const newDataRef = dataRef.startAfter(lastDataOnList).limit(tableConfig.limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
-        if (snapshot.docs.length) {
-          updateDataPagination(snapshot.docs)
-          const newConfig = { ...tableConfig, page: tableConfig.page + 1 }
-          setTableConfig(newConfig)
-        } else if (!isLastPage) {
-          setIsLastPage(true)
-        }
-      })
-    }
+    const newPage = tableConfig.page + 1
+    const lastPage = data!.pages - 1
+    if (newPage > lastPage) return
+    setIsFirstPage(false)
+    setIsLastPage(newPage === lastPage)
+
+    const newConfig = { ...tableConfig, page: newPage }
+    setTableConfig(newConfig)
+    if (onChangeTableConfig) onChangeTableConfig(newConfig)
+    // if (dataRef && lastDataOnList && !isLastPage) {
+    //   const newDataRef = dataRef.startAfter(lastDataOnList).limit(tableConfig.limit)
+    //   newDataRef.onSnapshot(async (snapshot: any) => {
+    //     if (snapshot.docs.length) {
+    //       updateDataPagination(snapshot.docs)
+    //       const newConfig = { ...tableConfig, page: tableConfig.page + 1 }
+    //       setTableConfig(newConfig)
+    //     } else if (!isLastPage) {
+    //       setIsLastPage(true)
+    //     }
+    //   })
+    // }
   }
 
   const onPreviousPage = () => {
-    const newPageNum = tableConfig.page - 1
-    if (dataRef && firstDataOnList && newPageNum > 0) {
-      const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(tableConfig.limit)
-      newDataRef.onSnapshot(async (snapshot: any) => {
-        updateDataPagination(snapshot.docs)
-      })
+    if (tableConfig.page - 1 < 0) return
+    if (tableConfig.page - 1 === 0) {
+      setIsFirstPage(true)
     }
+    const newConfig = { ...tableConfig, page: tableConfig.page - 1 }
     setIsLastPage(false)
-    const newConfig = { ...tableConfig, page: Math.max(1, newPageNum) }
+
     setTableConfig(newConfig)
+    if (onChangeTableConfig) onChangeTableConfig(newConfig)
+    // const newPageNum = tableConfig.page - 1
+    // if (dataRef && firstDataOnList && newPageNum > 0) {
+    //   const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(tableConfig.limit)
+    //   newDataRef.onSnapshot(async (snapshot: any) => {
+    //     updateDataPagination(snapshot.docs)
+    //   })
+    // }
+    // setIsLastPage(false)
+    // const newConfig = { ...tableConfig, page: Math.max(1, newPageNum) }
+    // setTableConfig(newConfig)
   }
 
   return (
@@ -209,7 +235,7 @@ const DynamicTable = ({
               className="ml-5"
               icon="arrowBack"
               size="small"
-              color={tableConfig.page === 1 ? 'secondary' : 'primary'}
+              color={isFirstPage ? 'secondary' : 'primary'}
               onClick={onPreviousPage}
             />
             <Button
@@ -284,11 +310,15 @@ const DynamicTable = ({
                   {contextMenu ? <th className="action-col"></th> : ''}
                 </tr>
               </thead>
-              <tbody>
-                {rows.map((row, i) => (
-                  <DynamicRow key={i} row={row} />
-                ))}
-              </tbody>
+              {rows ? (
+                <tbody>
+                  {rows.map((row, i) => (
+                    <DynamicRow key={i} row={row} />
+                  ))}
+                </tbody>
+              ) : (
+                ''
+              )}
             </table>
           </div>
         )}
