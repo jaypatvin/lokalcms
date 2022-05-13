@@ -31,6 +31,14 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: string
  *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: status
  *         schema:
  *           type: string
@@ -64,6 +72,8 @@ const getUsers: RequestHandler = async (req, res) => {
     community,
     status,
     role,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
@@ -71,6 +81,8 @@ const getUsers: RequestHandler = async (req, res) => {
     community?: string
     status: string
     role: string
+    sortBy: 'display_name' | 'created_at'
+    sortOrder: 'asc' | 'desc'
   }
 
   if (!searchKey) {
@@ -81,7 +93,20 @@ const getUsers: RequestHandler = async (req, res) => {
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const usersIndex = client.initIndex('users')
+  let usersIndex
+  if (sortBy === 'created_at') {
+    if (sortOrder === 'asc') {
+      usersIndex = client.initIndex('users_created_at_asc')
+    } else {
+      usersIndex = client.initIndex('users_created_at_desc')
+    }
+  } else {
+    if (sortOrder === 'asc') {
+      usersIndex = client.initIndex('users')
+    } else {
+      usersIndex = client.initIndex('users_name_desc')
+    }
+  }
 
   const { hits, nbPages, nbHits } = await usersIndex.search(query, {
     page,

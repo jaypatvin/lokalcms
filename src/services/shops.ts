@@ -1,5 +1,7 @@
 import { SortOrderType, ShopSortByType } from '../utils/types'
 import { db } from '../utils'
+import { API_URL } from '../config/variables'
+import { Shop } from '../models'
 
 export type ShopFilterType = {
   status: string
@@ -17,6 +19,7 @@ type GetShopsParamTypes = {
   filter?: ShopFilterType
   sort?: ShopSort
   limit?: number
+  page?: number
   community?: string
 }
 
@@ -44,30 +47,51 @@ export const getShopsByCommunity = (community_id: string, limit = 10) => {
     .limit(limit)
 }
 
-export const getShops = ({
-  search = '',
-  filter = { status: 'all', isClose: 'all', archived: false },
-  sort = { sortBy: 'name', sortOrder: 'asc' },
-  limit = 10,
-  community,
-}: GetShopsParamTypes) => {
-  let ref = db.shops.where('keywords', 'array-contains', search.toLowerCase())
+export type ShopsResponse = {
+  pages: number
+  totalItems: number
+  data: (Shop & { id: string })[]
+}
 
+export const getShops = async (
+  {
+    search = '',
+    filter = { status: 'all', isClose: 'all', archived: false },
+    sort = { sortBy: 'name', sortOrder: 'asc' },
+    limit = 10,
+    page = 0,
+    community,
+  }: GetShopsParamTypes,
+  firebaseToken: string
+): Promise<ShopsResponse | undefined> => {
+  let params: any = {
+    limit,
+    page,
+    sortBy: sort.sortBy,
+    sortOrder: sort.sortOrder,
+  }
+  if (search) {
+    params.q = search
+  }
   if (community) {
-    ref = ref.where('community_id', '==', community)
+    params.community = community
   }
-
   if (filter.status !== 'all') {
-    ref = ref.where('status', '==', filter.status)
+    params.status = filter.status
   }
-  if (filter.isClose !== 'all') {
-    ref = ref.where('is_close', '==', filter.isClose)
+  const searchParams = new URLSearchParams(params)
+  if (API_URL) {
+    const res = await (
+      await fetch(`${API_URL}/shops?${searchParams}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'get',
+      })
+    ).json()
+    return res
   }
 
-  ref = ref
-    .where('archived', '==', filter.archived)
-    .orderBy(sort.sortBy, sort.sortOrder)
-    .limit(limit)
-
-  return ref
+  console.error('environment variable for the api does not exist.')
 }

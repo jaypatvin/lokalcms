@@ -77,25 +77,11 @@ export const getUsers = async (
   }: GetUsersParamTypes,
   firebaseToken: string
 ): Promise<UsersResponse | undefined> => {
-  // let ref = db.users.where('keywords', 'array-contains', search.toLowerCase())
-
-  // if (community) {
-  //   ref = ref.where('community_id', '==', community)
-  // }
-
-  // if (filter.status !== 'all') {
-  //   ref = ref.where('status', '==', filter.status)
-  // }
-  // if (filter.role !== 'all') {
-  //   ref = ref.where(`roles.${filter.role}`, '==', true)
-  // }
-
-  // ref = ref.orderBy(sort.sortBy, sort.sortOrder).limit(limit)
-
-  // return ref
   let params: any = {
     limit,
     page,
+    sortBy: sort.sortBy,
+    sortOrder: sort.sortOrder,
   }
   if (search) {
     params.q = search
@@ -107,7 +93,7 @@ export const getUsers = async (
     params.status = filter.status
   }
   if (filter.role !== 'all') {
-    params[`role`] = filter.role
+    params.role = filter.role
   }
   const searchParams = new URLSearchParams(params)
   if (API_URL) {

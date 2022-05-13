@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getShops, ShopFilterType, ShopSort } from '../../services/shops'
+import { getShops, ShopFilterType, ShopSort, ShopsResponse } from '../../services/shops'
 import { useAuth } from '../../contexts/AuthContext'
 import { Shop } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
@@ -173,7 +173,8 @@ type FormData = {
 const ShopListPage = () => {
   const { firebaseToken } = useAuth()
   const community = useCommunity()
-  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Shop>>()
+  const [data, setData] = useState<ShopsResponse>()
+  const [isLoading, setIsLoading] = useState(false)
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
   const [dataToUpdate, setDataToUpdate] = useState<FormData>()
@@ -188,7 +189,12 @@ const ShopListPage = () => {
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   useEffect(() => {
-    setDataRef(getShops(queryOptions))
+    if (firebaseToken) {
+      setIsLoading(true)
+      getShops(queryOptions, firebaseToken)
+        .then((data) => setData(data))
+        .finally(() => setIsLoading(false))
+    }
   }, [queryOptions])
 
   useEffect(() => {
@@ -356,25 +362,22 @@ const ShopListPage = () => {
         acceptLabel="Unarchive"
         cancelLabel="Cancel"
       />
-      {dataRef ? (
-        <DynamicTable
-          name="Shop"
-          dataRef={dataRef}
-          allColumns={allColumns}
-          columnKeys={columns}
-          contextMenu={contextMenu}
-          filtersMenu={filtersMenu}
-          initialFilter={initialFilter}
-          sortMenu={sortMenu}
-          initialSort={initialSort}
-          onChangeSort={onChangeSort}
-          onChangeFilter={onChangeFilter}
-          onChangeTableConfig={onChangeTableConfig}
-          onClickCreate={() => setIsCreateFormOpen(true)}
-        />
-      ) : (
-        ''
-      )}
+      <DynamicTable
+        name="Shop"
+        data={data}
+        loading={isLoading}
+        allColumns={allColumns}
+        columnKeys={columns}
+        contextMenu={contextMenu}
+        filtersMenu={filtersMenu}
+        initialFilter={initialFilter}
+        sortMenu={sortMenu}
+        initialSort={initialSort}
+        onChangeSort={onChangeSort}
+        onChangeFilter={onChangeFilter}
+        onChangeTableConfig={onChangeTableConfig}
+        onClickCreate={() => setIsCreateFormOpen(true)}
+      />
     </>
   )
 }

@@ -55,6 +55,11 @@ const allColumns: Column[] = [
   },
   {
     type: 'string',
+    title: 'Street',
+    key: 'address.street',
+  },
+  {
+    type: 'string',
     title: 'Birthdate',
     key: 'birthdate',
   },
@@ -208,12 +213,12 @@ const sortMenu: SortMenu = [
     id: 'sortBy',
     options: [
       {
-        key: 'created_at',
-        name: 'Created at',
+        key: 'display_name',
+        name: 'Name',
       },
       {
-        key: 'updated_at',
-        name: 'Updated at',
+        key: 'created_at',
+        name: 'Created at',
       },
     ],
   },
@@ -226,8 +231,8 @@ const initialFilter = {
 }
 
 const initialSort = {
-  sortOrder: 'desc',
-  sortBy: 'created_at',
+  sortOrder: 'asc',
+  sortBy: 'display_name',
 }
 
 type FormData = {
