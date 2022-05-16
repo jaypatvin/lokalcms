@@ -1,5 +1,7 @@
 import { SortOrderType, ProductSortByType } from '../utils/types'
 import { db } from '../utils'
+import { API_URL } from '../config/variables'
+import { Product } from '../models'
 
 export type ProductFilterType = {
   status: string
@@ -16,6 +18,7 @@ type GetProductsParamTypes = {
   filter?: ProductFilterType
   sort?: ProductSort
   limit?: number
+  page?: number
   community?: string
 }
 
@@ -54,26 +57,51 @@ export const getProductsByCommunity = (community_id: string, limit = 10) => {
     .limit(limit)
 }
 
-export const getProducts = ({
-  search = '',
-  filter = { status: 'all', archived: false },
-  sort = { sortBy: 'name', sortOrder: 'asc' },
-  limit = 10,
-  community,
-}: GetProductsParamTypes) => {
-  let ref = db.products.where('keywords', 'array-contains', search.toLowerCase())
+export type ProductsResponse = {
+  pages: number
+  totalItems: number
+  data: (Product & { id: string })[]
+}
 
+export const getProducts = async (
+  {
+    search = '',
+    filter = { status: 'all', archived: false },
+    sort = { sortBy: 'name', sortOrder: 'asc' },
+    limit = 10,
+    page = 0,
+    community,
+  }: GetProductsParamTypes,
+  firebaseToken: string
+): Promise<ProductsResponse | undefined> => {
+  let params: any = {
+    limit,
+    page,
+    sortBy: sort.sortBy,
+    sortOrder: sort.sortOrder,
+  }
+  if (search) {
+    params.q = search
+  }
   if (community) {
-    ref = ref.where('community_id', '==', community)
+    params.community = community
   }
-
   if (filter.status !== 'all') {
-    ref = ref.where('status', '==', filter.status)
+    params.status = filter.status
   }
-  ref = ref
-    .where('archived', '==', filter.archived)
-    .orderBy(sort.sortBy, sort.sortOrder)
-    .limit(limit)
+  const searchParams = new URLSearchParams(params)
+  if (API_URL) {
+    const res = await (
+      await fetch(`${API_URL}/products?${searchParams}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'get',
+      })
+    ).json()
+    return res
+  }
 
-  return ref
+  console.error('environment variable for the api does not exist.')
 }

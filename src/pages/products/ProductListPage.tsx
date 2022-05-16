@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getProducts, ProductFilterType, ProductSort } from '../../services/products'
+import {
+  getProducts,
+  ProductFilterType,
+  ProductSort,
+  ProductsResponse,
+} from '../../services/products'
 import { useAuth } from '../../contexts/AuthContext'
 import { Product } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
@@ -179,6 +184,10 @@ const sortMenu: SortMenu = [
         name: 'Name',
       },
       {
+        key: 'base_price',
+        name: 'Price',
+      },
+      {
         key: 'created_at',
         name: 'Created at',
       },
@@ -212,7 +221,8 @@ type FormData = {
 const ProductListPage = () => {
   const { firebaseToken } = useAuth()
   const community = useCommunity()
-  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Product>>()
+  const [data, setData] = useState<ProductsResponse>()
+  const [isLoading, setIsLoading] = useState(false)
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
   const [dataToUpdate, setDataToUpdate] = useState<FormData>()
@@ -227,7 +237,12 @@ const ProductListPage = () => {
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   useEffect(() => {
-    setDataRef(getProducts(queryOptions))
+    if (firebaseToken) {
+      setIsLoading(true)
+      getProducts(queryOptions, firebaseToken)
+        .then((data) => setData(data))
+        .finally(() => setIsLoading(false))
+    }
   }, [queryOptions])
 
   useEffect(() => {
@@ -362,25 +377,22 @@ const ProductListPage = () => {
         acceptLabel="Unarchive"
         cancelLabel="Cancel"
       />
-      {dataRef ? (
-        <DynamicTable
-          name="Product"
-          dataRef={dataRef}
-          allColumns={allColumns}
-          columnKeys={columns}
-          contextMenu={contextMenu}
-          filtersMenu={filtersMenu}
-          initialFilter={initialFilter}
-          sortMenu={sortMenu}
-          initialSort={initialSort}
-          onChangeSort={onChangeSort}
-          onChangeFilter={onChangeFilter}
-          onChangeTableConfig={onChangeTableConfig}
-          onClickCreate={() => setIsCreateFormOpen(true)}
-        />
-      ) : (
-        ''
-      )}
+      <DynamicTable
+        name="Product"
+        data={data}
+        loading={isLoading}
+        allColumns={allColumns}
+        columnKeys={columns}
+        contextMenu={contextMenu}
+        filtersMenu={filtersMenu}
+        initialFilter={initialFilter}
+        sortMenu={sortMenu}
+        initialSort={initialSort}
+        onChangeSort={onChangeSort}
+        onChangeFilter={onChangeFilter}
+        onChangeTableConfig={onChangeTableConfig}
+        onClickCreate={() => setIsCreateFormOpen(true)}
+      />
     </>
   )
 }

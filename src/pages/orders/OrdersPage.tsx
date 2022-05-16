@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { getOrders, OrderFilterType, OrderSort } from '../../services/orders'
-import { Order } from '../../models'
+import { getOrders, OrderFilterType, OrderSort, OrdersResponse } from '../../services/orders'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
 import { Column, FiltersMenu, SortMenu, TableConfig } from '../../components/DynamicTable/types'
 import { useCommunity } from '../../components/BasePage'
+import { useAuth } from '../../contexts/AuthContext'
 
 const allColumns: Column[] = [
   {
@@ -220,9 +220,12 @@ const initialSort = {
 }
 
 const OrderListPage = () => {
+  const { firebaseToken } = useAuth()
   const community = useCommunity()
-  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Order>>()
+  const [data, setData] = useState<OrdersResponse>()
+  const [isLoading, setIsLoading] = useState(false)
   const [queryOptions, setQueryOptions] = useState({
+    search: '',
     limit: 10 as TableConfig['limit'],
     filter: initialFilter as OrderFilterType,
     communityId: community?.id,
@@ -231,7 +234,12 @@ const OrderListPage = () => {
 
   useEffect(() => {
     if (!community || !community.id || !queryOptions.communityId) return
-    setDataRef(getOrders(queryOptions))
+    if (firebaseToken) {
+      setIsLoading(true)
+      getOrders(queryOptions, firebaseToken)
+        .then((data) => setData(data))
+        .finally(() => setIsLoading(false))
+    }
   }, [queryOptions])
 
   useEffect(() => {
@@ -253,15 +261,15 @@ const OrderListPage = () => {
   return (
     <>
       {!community?.id ? <h2 className="text-xl ml-5">Select a community first</h2> : ''}
-      {dataRef && community?.id ? (
+      {community?.id ? (
         <DynamicTable
           name="Order"
-          dataRef={dataRef}
+          data={data}
+          loading={isLoading}
           allColumns={allColumns}
           columnKeys={columns}
           filtersMenu={filtersMenu}
           initialFilter={initialFilter}
-          showSearch={false}
           sortMenu={sortMenu}
           initialSort={initialSort}
           onChangeSort={onChangeSort}
