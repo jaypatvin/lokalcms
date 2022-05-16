@@ -8,6 +8,7 @@
     "@testing-library/jest-dom": "^5.11.8",
     "@testing-library/react": "^11.2.3",
     "@testing-library/user-event": "^12.6.0",
+    "algoliasearch": "^4.13.0",
     "dayjs": "^1.10.3",
     "firebase": "^8.2.2",
     "firebase-admin": "^9.4.2",

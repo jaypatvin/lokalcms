@@ -112,6 +112,7 @@ const createComment: RequestHandler = async (req, res) => {
   }
 
   const commentData: CommentCreateData = {
+    activity_id: activity.id,
     message: data.message,
     user_id: data.user_id,
     status: data.status || 'enabled',

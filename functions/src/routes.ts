@@ -4,6 +4,7 @@ import swaggerJsdoc from 'swagger-jsdoc'
 import wrapAsync from './utils/wrapAsync'
 import { postStreamFeedCredentials } from './v1/https/streamFeedCredentials'
 import { validation } from './middlewares/validation'
+import { chatSearchMiddleware, conversationSearchMiddleware, orderSearchMiddleware, searchMiddleware } from './middlewares'
 
 import {
   UsersAPI,
@@ -90,7 +91,7 @@ module.exports = (api: Express) => {
     .post(StreamUsersAPI.requireAuthHeader, wrapAsync(postStreamFeedCredentials))
 
   // -- Users routes
-  api.route('/v1/users').get(wrapAsync(UsersAPI.getUsers))
+  api.route('/v1/users').get(searchMiddleware, wrapAsync(UsersAPI.getUsers))
   api.route('/v1/users').post(validation.user.create, wrapAsync(UsersAPI.createUser))
   api.route('/v1/users/:userId').get(wrapAsync(UsersAPI.getUser))
   api.route('/v1/users/:userId').put(validation.user.update, wrapAsync(UsersAPI.updateUser))
@@ -109,7 +110,7 @@ module.exports = (api: Express) => {
 
   // -- Shops routes
   api.route('/v1/availableShops').get(wrapAsync(ShopsAPI.getAvailableShops))
-  api.route('/v1/shops').get(wrapAsync(ShopsAPI.getShops))
+  api.route('/v1/shops').get(searchMiddleware, wrapAsync(ShopsAPI.getShops))
   api.route('/v1/shops').post(validation.shop.create, wrapAsync(ShopsAPI.createShop))
   api.route('/v1/shops/:shopId').get(wrapAsync(ShopsAPI.getShop))
   api.route('/v1/shops/:shopId').put(validation.shop.update, wrapAsync(ShopsAPI.updateShop))
@@ -129,6 +130,7 @@ module.exports = (api: Express) => {
   api.route('/v1/invite/claim').post(validation.invite.claim, wrapAsync(InvitesAPI.claimInvite))
 
   // -- Community routes
+  api.route('/v1/communities').get(wrapAsync(CommunityAPI.getCommunities))
   api.route('/v1/community').get(wrapAsync(CommunityAPI.getCommunities))
   api.route('/v1/community').post(validation.community.create, wrapAsync(CommunityAPI.createCommunity))
   api.route('/v1/community/:communityId').get(wrapAsync(CommunityAPI.getCommunity))
@@ -143,7 +145,7 @@ module.exports = (api: Express) => {
   // -- Products routes
   api.route('/v1/availableProducts').get(wrapAsync(ProductsAPI.getAvailableProducts))
   api.route('/v1/recommendedProducts').get(wrapAsync(ProductsAPI.getRecommendedProducts))
-  api.route('/v1/products').get(wrapAsync(ProductsAPI.getProducts))
+  api.route('/v1/products').get(searchMiddleware, wrapAsync(ProductsAPI.getProducts))
   api.route('/v1/products').post(validation.product.create, wrapAsync(ProductsAPI.createProduct))
   api.route('/v1/products/:productId').get(wrapAsync(ProductsAPI.getProduct))
   api.route('/v1/products/:productId').put(validation.product.update, wrapAsync(ProductsAPI.updateProduct))
@@ -166,7 +168,7 @@ module.exports = (api: Express) => {
   api.route('/v1/categories/:categoryId/unarchive').put(wrapAsync(CategoriesAPI.unarchiveCategory))
 
   // -- Activities routes
-  api.route('/v1/activities').get(wrapAsync(ActivitiesAPI.getActivities))
+  api.route('/v1/activities').get(searchMiddleware, wrapAsync(ActivitiesAPI.getActivities))
   api.route('/v1/activities').post(validation.activity.create, wrapAsync(ActivitiesAPI.createActivity))
   api.route('/v1/activities/:activityId').get(wrapAsync(ActivitiesAPI.getActivity))
   api.route('/v1/activities/:activityId').put(validation.activity.update, wrapAsync(ActivitiesAPI.updateActivity))
@@ -175,6 +177,7 @@ module.exports = (api: Express) => {
   api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
 
   // -- Comments routes
+  api.route('/v1/activities/:activityId/comments').get(searchMiddleware, wrapAsync(CommentsAPI.getComments))
   api.route('/v1/activities/:activityId/comments').post(validation.comment.create, wrapAsync(CommentsAPI.createComment))
   api.route('/v1/activities/:activityId/comments/:commentId').get(wrapAsync(CommentsAPI.getComment))
   api.route('/v1/activities/:activityId/comments/:commentId').put(validation.comment.update, wrapAsync(CommentsAPI.updateComment))
@@ -196,6 +199,8 @@ module.exports = (api: Express) => {
   api.route('/v1/applicationLogs').post(wrapAsync(ApplicationLogsApi.createApplicationLog))
 
   // -- Chats routes
+  api.route('/v1/chats').get(chatSearchMiddleware, wrapAsync(ChatsAPI.getChats))
+  api.route('/v1/conversations').get(conversationSearchMiddleware, wrapAsync(ChatsAPI.getConversations))
   api.route('/v1/chats').post(validation.chat.create, wrapAsync(ChatsAPI.createChat))
   api.route('/v1/chats/:chatId/conversation').post(validation.chat.conversation, wrapAsync(ChatsAPI.createConversation))
   api.route('/v1/chats/:chatId/invite').put(validation.chat.invite, wrapAsync(ChatsAPI.chatInvite))
@@ -205,6 +210,7 @@ module.exports = (api: Express) => {
   api.route('/v1/getChatByMemberIds').get(wrapAsync(ChatsAPI.getChatByMemberIds))
 
   // -- Orders routes
+  api.route('/v1/orders').get(orderSearchMiddleware, wrapAsync(OrdersAPI.getOrders))
   api.route('/v1/orders').post(validation.order.create, wrapAsync(OrdersAPI.createOrder))
   api.route('/v1/orders/:orderId/confirm').put(wrapAsync(OrdersAPI.confirmOrder))
   api.route('/v1/orders/:orderId/pay').put(validation.order.pay, wrapAsync(OrdersAPI.pay))

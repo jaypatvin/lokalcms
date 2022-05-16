@@ -6,10 +6,10 @@ import { ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
- * /v1/users:
+ * /v1/activities/{activityId}/comments:
  *   get:
  *     tags:
- *       - users
+ *       - activity comments
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -30,10 +30,22 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         name: community
  *         schema:
  *           type: string
- *     description: Returns users
+ *       - in: query
+ *         name: activity
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: user
+ *         schema:
+ *           type: string
+ *     description: Returns comments
  *     responses:
  *       200:
- *         description: List of users
+ *         description: List of comments
  *         content:
  *           application/json:
  *             schema:
@@ -45,34 +57,48 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/User'
+ *                     $ref: '#/components/schemas/Comment'
  */
-const getUsers: RequestHandler = async (req, res) => {
+const getComments: RequestHandler = async (req, res) => {
   const { searchKey } = res.locals
   const {
     q: query = '',
     page = 0,
     limit: hitsPerPage,
     community,
-  } = req.query as unknown as { q: string; page: number; limit: number; community?: string }
+    activity,
+    status,
+    user,
+  } = req.query as unknown as {
+    q: string
+    page: number
+    limit: number
+    community?: string
+    activity?: string
+    status?: string
+    user?: string
+  }
 
   if (!searchKey) {
-    throw generateError(ErrorCode.UserApiError, {
+    throw generateError(ErrorCode.CommentApiError, {
       message: 'invalid searchKey',
     })
   }
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const usersIndex = client.initIndex('users')
+  const commentsIndex = client.initIndex('comments')
 
-  const { hits, nbPages, nbHits } = await usersIndex.search(query, {
+  const { hits, nbPages, nbHits } = await commentsIndex.search(query, {
     page,
     hitsPerPage,
     ...(community ? { filters: `community_id:${community}` } : {}),
+    ...(activity ? { filters: `activity_id:${activity}` } : {}),
+    ...(user ? { filters: `user_id:${user}` } : {}),
+    ...(status ? { filters: `status:${status}` } : {}),
   })
 
   return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
 }
 
-export default getUsers
+export default getComments

@@ -2,7 +2,7 @@
  * @openapi
  * components:
  *   schemas:
- *     Community:
+ *     Activity:
  *       type: object
  *       properties:
  *         id:

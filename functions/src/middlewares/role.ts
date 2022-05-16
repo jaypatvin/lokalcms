@@ -1,7 +1,3 @@
-/*
-# from https://github.com/firebase/functions-samples/blob/master/authorized-https-endpoint/functions/index.js
-*/
-
 import { RequestHandler } from 'express'
 import { UsersService } from '../service'
 

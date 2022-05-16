@@ -6,10 +6,10 @@ import { ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
- * /v1/users:
+ * /v1/conversations:
  *   get:
  *     tags:
- *       - users
+ *       - chats
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -30,10 +30,18 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         name: community
  *         schema:
  *           type: string
- *     description: Returns users
+ *       - in: query
+ *         name: chat
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: user
+ *         schema:
+ *           type: string
+ *     description: Returns conversations
  *     responses:
  *       200:
- *         description: List of users
+ *         description: List of conversations
  *         content:
  *           application/json:
  *             schema:
@@ -45,34 +53,45 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/User'
+ *                     $ref: '#/components/schemas/ChatMessage'
  */
-const getUsers: RequestHandler = async (req, res) => {
+const getConversations: RequestHandler = async (req, res) => {
   const { searchKey } = res.locals
   const {
     q: query = '',
     page = 0,
     limit: hitsPerPage,
     community,
-  } = req.query as unknown as { q: string; page: number; limit: number; community?: string }
+    chat,
+    user,
+  } = req.query as unknown as {
+    q: string
+    page: number
+    limit: number
+    community?: string
+    chat?: string
+    user?: string
+  }
 
   if (!searchKey) {
-    throw generateError(ErrorCode.UserApiError, {
+    throw generateError(ErrorCode.ChatApiError, {
       message: 'invalid searchKey',
     })
   }
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const usersIndex = client.initIndex('users')
+  const conversationsIndex = client.initIndex('conversations')
 
-  const { hits, nbPages, nbHits } = await usersIndex.search(query, {
+  const { hits, nbPages, nbHits } = await conversationsIndex.search(query, {
     page,
     hitsPerPage,
     ...(community ? { filters: `community_id:${community}` } : {}),
+    ...(chat ? { filters: `chat_id:${chat}` } : {}),
+    ...(user ? { filters: `sender_id:${user}` } : {}),
   })
 
   return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
 }
 
-export default getUsers
+export default getConversations
