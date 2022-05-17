@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getCommunities, CommunitySort } from '../../services/community'
+import { getCommunities, CommunitySort, CommunitiesResponse } from '../../services/community'
 import { useAuth } from '../../contexts/AuthContext'
 import { Community } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
-import {
-  Column,
-  ContextMenu,
-  SortMenu,
-  TableConfig,
-} from '../../components/DynamicTable/types'
+import { Column, ContextMenu, SortMenu, TableConfig } from '../../components/DynamicTable/types'
 import CommunityCreateUpdateForm from './CommunityCreateUpdateForm'
 import { ConfirmationDialog } from '../../components/Dialog'
 
@@ -167,7 +162,8 @@ type FormData = {
 
 const CommunityListPage = () => {
   const { firebaseToken } = useAuth()
-  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Community>>()
+  const [data, setData] = useState<CommunitiesResponse>()
+  const [isLoading, setIsLoading] = useState(false)
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
   const [dataToUpdate, setDataToUpdate] = useState<FormData>()
@@ -180,7 +176,12 @@ const CommunityListPage = () => {
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   useEffect(() => {
-    setDataRef(getCommunities(queryOptions))
+    if (firebaseToken) {
+      setIsLoading(true)
+      getCommunities(queryOptions, firebaseToken)
+        .then((data) => setData(data))
+        .finally(() => setIsLoading(false))
+    }
   }, [queryOptions])
 
   const normalizeData = (data: CommunityData) => {
@@ -304,22 +305,19 @@ const CommunityListPage = () => {
         acceptLabel="Unarchive"
         cancelLabel="Cancel"
       />
-      {dataRef ? (
-        <DynamicTable
-          name="Community"
-          dataRef={dataRef}
-          allColumns={allColumns}
-          columnKeys={columns}
-          contextMenu={contextMenu}
-          sortMenu={sortMenu}
-          initialSort={initialSort}
-          onChangeSort={onChangeSort}
-          onChangeTableConfig={onChangeTableConfig}
-          onClickCreate={() => setIsCreateFormOpen(true)}
-        />
-      ) : (
-        ''
-      )}
+      <DynamicTable
+        name="Community"
+        data={data}
+        loading={isLoading}
+        allColumns={allColumns}
+        columnKeys={columns}
+        contextMenu={contextMenu}
+        sortMenu={sortMenu}
+        initialSort={initialSort}
+        onChangeSort={onChangeSort}
+        onChangeTableConfig={onChangeTableConfig}
+        onClickCreate={() => setIsCreateFormOpen(true)}
+      />
     </>
   )
 }

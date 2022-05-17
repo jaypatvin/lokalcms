@@ -38,7 +38,7 @@ exports.addChatIndex = functions.firestore.document('chats/{chatId}').onCreate(a
   moreInfo.member_emails = uniq(moreInfo.member_emails)
 
   const chat = {
-    objectID: data.id,
+    objectID: snapshot.id,
     ...pick(data, chatFields),
     ...moreInfo,
   }

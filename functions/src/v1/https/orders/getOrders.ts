@@ -125,7 +125,7 @@ const getOrders: RequestHandler = async (req, res) => {
     payment_method?: 'cod' | 'bank'
     category?: string
     status?: number
-    sortBy: 'name' | 'created_at' | 'base_price'
+    sortBy: 'created_at'
     sortOrder: 'asc' | 'desc'
   }
 

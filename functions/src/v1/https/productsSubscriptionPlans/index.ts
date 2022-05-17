@@ -92,6 +92,7 @@
  *               type: string
  */
 
+export { default as getProductSubscriptionPlans } from './getProductSubscriptionPlans'
 export { default as createProductSubscriptionPlan } from './createProductSubscriptionPlan'
 export { default as confirm } from './confirm'
 export { default as overrideDates } from './overrideDates'

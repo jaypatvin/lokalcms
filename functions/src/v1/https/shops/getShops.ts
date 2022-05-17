@@ -128,6 +128,7 @@ const getShops: RequestHandler = async (req, res) => {
     ...(product ? { filters: `products:${product}` } : {}),
     ...(user ? { filters: `user_id:${user}` } : {}),
     ...(status ? { filters: `status:${status}` } : {}),
+    attributesToHighlight: [],
   })
 
   const data = hits.map((hit) => ({

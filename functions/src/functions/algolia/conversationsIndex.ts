@@ -15,7 +15,7 @@ exports.addConversationIndex = functions.firestore
     const data = snapshot.data()
 
     const chat = {
-      objectID: data.id,
+      objectID: snapshot.id,
       ...pick(data, conversationFields),
     }
 
@@ -27,7 +27,7 @@ exports.updateConversationIndex = functions.firestore
     const data = change.after.data()
 
     const chat = {
-      objectID: data.id,
+      objectID: change.after.id,
       ...pick(data, conversationFields),
     }
 

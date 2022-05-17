@@ -1,4 +1,3 @@
-import { isString } from 'lodash'
 import { SortOrderType } from '../utils/types'
 import { db } from '../utils'
 import { API_URL } from '../config/variables'
@@ -103,10 +102,10 @@ export const getOrders = async (
     params.paymentMethod = filter.paymentMethod
   }
   if (shopId) {
-    params.shopId = shopId
+    params.shop = shopId
   }
   if (productId) {
-    params.productId = productId
+    params.product = productId
   }
   const searchParams = new URLSearchParams(params)
   if (API_URL) {

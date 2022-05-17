@@ -89,6 +89,7 @@ const getActivities: RequestHandler = async (req, res) => {
     ...(community ? { filters: `community_id:${community}` } : {}),
     ...(user ? { filters: `user_id:${user}` } : {}),
     ...(status ? { filters: `status:${status}` } : {}),
+    attributesToHighlight: [],
   })
 
   return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })

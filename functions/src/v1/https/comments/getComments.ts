@@ -96,6 +96,7 @@ const getComments: RequestHandler = async (req, res) => {
     ...(activity ? { filters: `activity_id:${activity}` } : {}),
     ...(user ? { filters: `user_id:${user}` } : {}),
     ...(status ? { filters: `status:${status}` } : {}),
+    attributesToHighlight: [],
   })
 
   return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })

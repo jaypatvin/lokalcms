@@ -25,6 +25,14 @@ import { get } from 'lodash'
  *         name: limit
  *         schema:
  *           type: number
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
  *     description: Returns communities
  *     responses:
  *       200:
@@ -47,23 +55,50 @@ const getCommunities: RequestHandler = async (req, res) => {
     q: query = '',
     page = 0,
     limit: hitsPerPage,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
     limit: number
+    sortBy: 'name' | 'created_at'
+    sortOrder: 'asc' | 'desc'
   }
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const apiKey = get(functions.config(), 'algolia_config.api_key')
   const client = algoliasearch(appId, apiKey)
-  const communitiesIndex = client.initIndex('communities')
+  let communitiesIndex
+  if (sortBy === 'created_at') {
+    if (sortOrder === 'asc') {
+      communitiesIndex = client.initIndex('communities_created_at_asc')
+    } else {
+      communitiesIndex = client.initIndex('communities_created_at_desc')
+    }
+  } else {
+    if (sortOrder === 'asc') {
+      communitiesIndex = client.initIndex('communities')
+    } else {
+      communitiesIndex = client.initIndex('communities_name_desc')
+    }
+  }
 
   const { hits, nbPages, nbHits } = await communitiesIndex.search(query, {
     page,
     hitsPerPage,
+    attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getCommunities

@@ -221,6 +221,7 @@ module.exports = (api: Express) => {
   api.route('/v1/orders/:orderId/cancel').put(validation.order.cancel, wrapAsync(OrdersAPI.cancel))
 
   // -- Product Subscription Plans routes
+  api.route('/v1/productSubscriptionPlans').get(orderSearchMiddleware, wrapAsync(ProductSubscriptionPlansAPI.getProductSubscriptionPlans))
   api.route('/v1/productSubscriptionPlans').post(validation.productSubscriptionPlan.create, wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
   api.route('/v1/productSubscriptionPlans/:planId/autoRescheduleConflicts').post(wrapAsync(ProductSubscriptionPlansAPI.autoRescheduleConflicts))
   api.route('/v1/productSubscriptionPlans/:planId/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))

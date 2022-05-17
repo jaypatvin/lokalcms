@@ -114,6 +114,7 @@ const getUsers: RequestHandler = async (req, res) => {
     ...(community ? { filters: `community_id:${community}` } : {}),
     ...(status ? { filters: `status:${status}` } : {}),
     ...(role ? { filters: `roles.${role}:true` } : {}),
+    attributesToHighlight: [],
   })
 
   const data = hits.map((hit) => ({
