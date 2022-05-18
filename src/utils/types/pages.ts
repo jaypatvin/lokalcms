@@ -80,7 +80,7 @@ export type ProductSortByType =
 
 // --- Category Types --- //
 export type CategoryFilterType = 'all' | 'enabled' | 'disabled' | 'archived'
-export type CategorySortByType = 'name' | 'created_at' | 'updated_at'
+export type CategorySortByType = 'name'
 
 // --- Activity Types --- //
 export type ActivityFilterType = 'all' | 'enabled' | 'disabled' | 'archived'

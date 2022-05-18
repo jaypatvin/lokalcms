@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ReactLoading from 'react-loading'
-import { get, cloneDeep } from 'lodash'
+import { get, cloneDeep, debounce } from 'lodash'
 import { Button } from '../buttons'
 import Dropdown from '../Dropdown'
 import { MultiSelect, RadioSelectGroup } from '../inputs'
@@ -67,7 +67,7 @@ const DynamicTable = ({
     limit: 10,
     page: 0,
   })
-  // const [dataList, setDataList] = useState<Data>(data)
+  const [dataList, setDataList] = useState<Data>([])
   const [snapshot, setSnapshot] = useState<{ unsubscribe: () => void }>()
   const [firstDataOnList, setFirstDataOnList] =
     useState<firebase.default.firestore.QueryDocumentSnapshot<DocumentType>>()
@@ -84,20 +84,22 @@ const DynamicTable = ({
     checked: shownColumns.some((scol) => scol.key === col.key),
   }))
 
-  // useEffect(() => {
-  //   if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
-  //   const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
-  //     updateDataPagination(snapshot.docs)
-  //   })
-  //   setSnapshot({ unsubscribe: newUnsubscribe })
-  //   setIsLastPage(false)
-  // }, [dataRef])
+  useEffect(() => {
+    if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
+    if (dataRef && !data) {
+      const newUnsubscribe = dataRef.onSnapshot(async (snapshot) => {
+        updateDataPagination(snapshot.docs)
+      })
+      setSnapshot({ unsubscribe: newUnsubscribe })
+      setIsLastPage(false)
+    }
+  }, [dataRef])
 
-  const searchHandler = (value: string) => {
+  const searchHandler = debounce((value: string) => {
     const newConfig = { ...tableConfig, search: value }
     setTableConfig(newConfig)
     if (onChangeTableConfig) onChangeTableConfig(newConfig)
-  }
+  }, 300)
 
   const limitHandler = (value: TableConfig['limit']) => {
     const newConfig = { ...tableConfig, limit: value }
@@ -112,7 +114,7 @@ const DynamicTable = ({
     setShownColumns(newShownColumns)
   }
 
-  const rows = data?.data.reduce((acc, item) => {
+  const rows = (data?.data ?? dataList).reduce((acc, item) => {
     const row: Cell[] = shownColumns.map((col) => {
       let referenceLink = col.referenceLink
       const linkParams = referenceLink ? referenceLink.match(/:\w+/g) : undefined
@@ -152,59 +154,70 @@ const DynamicTable = ({
     return acc
   }, [] as Row[])
 
-  // const updateDataPagination = async (
-  //   docs: firebase.default.firestore.QueryDocumentSnapshot<DocumentType>[]
-  // ) => {
-  //   const newDataList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  //   setDataList(newDataList)
-  //   setLastDataOnList(docs[docs.length - 1])
-  //   setFirstDataOnList(docs[0])
-  // }
+  const updateDataPagination = async (
+    docs: firebase.default.firestore.QueryDocumentSnapshot<DocumentType>[]
+  ) => {
+    const newDataList = docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    setDataList(newDataList)
+    setLastDataOnList(docs[docs.length - 1])
+    setFirstDataOnList(docs[0])
+  }
 
   const onNextPage = () => {
-    const newPage = tableConfig.page + 1
-    const lastPage = data!.pages - 1
-    if (newPage > lastPage) return
-    setIsFirstPage(false)
-    setIsLastPage(newPage === lastPage)
+    if (dataRef && lastDataOnList && !isLastPage && !data) {
+      const newDataRef = dataRef.startAfter(lastDataOnList).limit(tableConfig.limit)
+      newDataRef.onSnapshot(async (snapshot: any) => {
+        if (snapshot.docs.length) {
+          setIsFirstPage(false)
+          updateDataPagination(snapshot.docs)
+          const newConfig = { ...tableConfig, page: tableConfig.page + 1 }
+          setTableConfig(newConfig)
+        } else if (!isLastPage) {
+          setIsLastPage(true)
+        }
+      })
+    }
 
-    const newConfig = { ...tableConfig, page: newPage }
-    setTableConfig(newConfig)
-    if (onChangeTableConfig) onChangeTableConfig(newConfig)
-    // if (dataRef && lastDataOnList && !isLastPage) {
-    //   const newDataRef = dataRef.startAfter(lastDataOnList).limit(tableConfig.limit)
-    //   newDataRef.onSnapshot(async (snapshot: any) => {
-    //     if (snapshot.docs.length) {
-    //       updateDataPagination(snapshot.docs)
-    //       const newConfig = { ...tableConfig, page: tableConfig.page + 1 }
-    //       setTableConfig(newConfig)
-    //     } else if (!isLastPage) {
-    //       setIsLastPage(true)
-    //     }
-    //   })
-    // }
+    if (data && !dataRef) {
+      const newPage = tableConfig.page + 1
+      const lastPage = data!.pages - 1
+      if (newPage > lastPage) return
+      setIsFirstPage(false)
+      setIsLastPage(newPage === lastPage)
+
+      const newConfig = { ...tableConfig, page: newPage }
+      setTableConfig(newConfig)
+      if (onChangeTableConfig) onChangeTableConfig(newConfig)
+    }
   }
 
   const onPreviousPage = () => {
-    if (tableConfig.page - 1 < 0) return
-    if (tableConfig.page - 1 === 0) {
-      setIsFirstPage(true)
-    }
-    const newConfig = { ...tableConfig, page: tableConfig.page - 1 }
-    setIsLastPage(false)
+    if (data && !dataRef) {
+      if (tableConfig.page - 1 < 0) return
+      if (tableConfig.page - 1 === 0) {
+        setIsFirstPage(true)
+      }
+      const newConfig = { ...tableConfig, page: tableConfig.page - 1 }
+      setIsLastPage(false)
 
-    setTableConfig(newConfig)
-    if (onChangeTableConfig) onChangeTableConfig(newConfig)
-    // const newPageNum = tableConfig.page - 1
-    // if (dataRef && firstDataOnList && newPageNum > 0) {
-    //   const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(tableConfig.limit)
-    //   newDataRef.onSnapshot(async (snapshot: any) => {
-    //     updateDataPagination(snapshot.docs)
-    //   })
-    // }
-    // setIsLastPage(false)
-    // const newConfig = { ...tableConfig, page: Math.max(1, newPageNum) }
-    // setTableConfig(newConfig)
+      setTableConfig(newConfig)
+      if (onChangeTableConfig) onChangeTableConfig(newConfig)
+    }
+    if (!data && dataRef) {
+      const newPageNum = tableConfig.page - 1
+      if (newPageNum === 0) {
+        setIsFirstPage(true)
+      }
+      if (dataRef && firstDataOnList && newPageNum > 0) {
+        const newDataRef = dataRef.endBefore(firstDataOnList).limitToLast(tableConfig.limit)
+        newDataRef.onSnapshot(async (snapshot: any) => {
+          updateDataPagination(snapshot.docs)
+        })
+      }
+      setIsLastPage(false)
+      const newConfig = { ...tableConfig, page: Math.max(1, newPageNum) }
+      setTableConfig(newConfig)
+    }
   }
 
   return (

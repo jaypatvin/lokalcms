@@ -27,6 +27,14 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: number
  *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: community
  *         schema:
  *           type: string
@@ -64,6 +72,8 @@ const getActivities: RequestHandler = async (req, res) => {
     community,
     status,
     user,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
@@ -71,6 +81,8 @@ const getActivities: RequestHandler = async (req, res) => {
     community?: string
     status?: string
     user?: string
+    sortBy: 'name' | 'created_at'
+    sortOrder: 'asc' | 'desc'
   }
 
   if (!searchKey) {
@@ -81,7 +93,12 @@ const getActivities: RequestHandler = async (req, res) => {
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const activitiesIndex = client.initIndex('activities')
+  let activitiesIndex
+  if (sortOrder === 'asc') {
+    activitiesIndex = client.initIndex('activities')
+  } else {
+    activitiesIndex = client.initIndex('activities_created_at_desc')
+  }
 
   const { hits, nbPages, nbHits } = await activitiesIndex.search(query, {
     page,
@@ -92,7 +109,16 @@ const getActivities: RequestHandler = async (req, res) => {
     attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getActivities
