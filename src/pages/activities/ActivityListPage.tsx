@@ -27,6 +27,12 @@ type ActivityData = Activity & {
 const allColumns: Column[] = [
   {
     type: 'string',
+    title: 'Id',
+    key: 'id',
+    referenceLink: '/activities/:id',
+  },
+  {
+    type: 'string',
     title: 'Message',
     key: 'message',
   },
@@ -71,7 +77,7 @@ const allColumns: Column[] = [
   },
 ]
 
-const columns = ['message', 'images', 'user_id', 'community_id', 'created_at', 'updated_at']
+const columns = ['id', 'message', 'images', 'user_id', 'community_id', 'created_at', 'updated_at']
 
 const filtersMenu: FiltersMenu = [
   {
