@@ -177,7 +177,8 @@ module.exports = (api: Express) => {
   api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
 
   // -- Comments routes
-  api.route('/v1/activities/:activityId/comments').get(searchMiddleware, wrapAsync(CommentsAPI.getComments))
+  api.route('/v1/comments').get(searchMiddleware, wrapAsync(CommentsAPI.getComments))
+  api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
   api.route('/v1/activities/:activityId/comments').post(validation.comment.create, wrapAsync(CommentsAPI.createComment))
   api.route('/v1/activities/:activityId/comments/:commentId').get(wrapAsync(CommentsAPI.getComment))
   api.route('/v1/activities/:activityId/comments/:commentId').put(validation.comment.update, wrapAsync(CommentsAPI.updateComment))

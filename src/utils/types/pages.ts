@@ -85,6 +85,7 @@ export type CategorySortByType = 'name'
 // --- Activity Types --- //
 export type ActivityFilterType = 'all' | 'enabled' | 'disabled' | 'archived'
 export type ActivitySortByType = 'created_at' | 'updated_at'
+export type CommentSortByType = 'created_at' | 'updated_at'
 
 // --- History Log Types --- //
 export type HistoryLogFilterType = 'all' | 'create' | 'update' | 'archive' | 'delete'
