@@ -1,13 +1,16 @@
 import dayjs from 'dayjs'
+import { debounce } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Avatar from '../../components/Avatar'
+import { TextField } from '../../components/inputs'
 import { useAuth } from '../../contexts/AuthContext'
-import { Activity, Comment, Like, User } from '../../models'
+import { Activity, Like, User } from '../../models'
 import { fetchActivityByID } from '../../services/activities'
 import { CommentsResponse, getActivityComments } from '../../services/comments'
 import { fetchCommunityByID } from '../../services/community'
 import { fetchUserByID } from '../../services/users'
+import { SortOrderType } from '../../utils/types'
 
 type Props = {
   [x: string]: any
@@ -20,7 +23,11 @@ type ActivityData = Activity & {
 }
 
 const ActivityPage = ({ match }: Props) => {
+  const limit = 2
   const { firebaseToken } = useAuth()
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const [sortOrder, setSortOrder] = useState<SortOrderType>('asc')
   const [activity, setActivity] = useState<ActivityData>()
   const [comments, setComments] = useState<(CommentsResponse['data'][0] & { user: User })[]>([])
   const [likes, setLikes] = useState<Like[]>([])
@@ -29,6 +36,60 @@ const ActivityPage = ({ match }: Props) => {
   useEffect(() => {
     setupData()
   }, [match.params])
+
+  useEffect(() => {
+    if (activity) {
+      fetchComments(activity.id).then(setComments)
+    }
+  }, [search, sortOrder])
+
+  useEffect(() => {
+    if (activity) {
+      if (page === 0) {
+        fetchComments(activity.id).then(setComments)
+      } else {
+        fetchComments(activity.id).then((data) => setComments([...comments, ...data]))
+      }
+    }
+  }, [page])
+
+  const fetchComments = async (activityId: string) => {
+    if (firebaseToken) {
+      const activityComments: any = await getActivityComments(
+        {
+          activity: activityId,
+          search,
+          sort: {
+            sortBy: 'created_at',
+            sortOrder: sortOrder,
+          },
+          page,
+          limit,
+        },
+        firebaseToken
+      )
+      for (const comment of activityComments?.data ?? []) {
+        comment.user = (await fetchUserByID(comment.user_id)).data()
+      }
+      return activityComments.data
+    }
+    return []
+  }
+
+  const showMore = () => {
+    if (comments.length < (activity?._meta?.comments_count ?? 0)) {
+      setPage(page + 1)
+    }
+  }
+
+  const sortHandler = (order: SortOrderType) => {
+    setSortOrder(order)
+    setPage(0)
+  }
+
+  const debouncedSearch = debounce((value: string) => {
+    setSearch(value)
+  }, 300)
 
   const setupData = async () => {
     await fetchActivity(match.params.id)
@@ -57,20 +118,7 @@ const ActivityPage = ({ match }: Props) => {
       }
       setActivity(activityData)
 
-      console.log('shit activityRefData', activityRefData)
-      if (firebaseToken) {
-        const activityComments: any = await getActivityComments(
-          {
-            activity: id,
-          },
-          firebaseToken
-        )
-        for (const comment of activityComments?.data ?? []) {
-          comment.user = (await fetchUserByID(comment.user_id)).data()
-        }
-        console.log('fucking activityComments', activityComments.data)
-        setComments(activityComments.data)
-      }
+      setComments(await fetchComments(activityData.id))
 
       if (activityRefData.likes) {
         const likesData = (await activityRefData.likes.get()).docs.map((doc) => doc.data())
@@ -114,12 +162,46 @@ const ActivityPage = ({ match }: Props) => {
           </p>
         </div>
       </div>
-      <div className="shadow p-2 mx-auto w-144 overflow-y-auto h-128">
-        <p className="mb-5 text-secondary-400 text-sm">
-          Comments {comments.length} of {activity?._meta?.comments_count ?? 0}
-        </p>
+      <div className="shadow mt-2 mx-auto w-144 overflow-y-auto h-128 relative">
+        <div className="p-2 sticky top-0 left-0 bg-white z-10 border-b">
+          <div className="flex justify-between">
+            <p className="mb-1 text-secondary-400 text-sm">
+              Comments {comments.length} of {activity?._meta?.comments_count ?? 0}
+            </p>
+            <div>
+              <button
+                className={`text-xs text-${sortOrder === 'asc' ? 'primary' : 'secondary'}-500`}
+                onClick={() => sortHandler('asc')}
+              >
+                Asc
+              </button>
+              <button
+                className={`text-xs text-${
+                  sortOrder === 'desc' ? 'primary' : 'secondary'
+                }-500 ml-2`}
+                onClick={() => sortHandler('desc')}
+              >
+                Desc
+              </button>
+            </div>
+          </div>
+          <TextField
+            type="text"
+            onChange={(e) => debouncedSearch(e.target.value)}
+            placeholder="Search"
+            size="small"
+            noMargin
+          />
+          {comments.length < (activity?._meta?.comments_count ?? 0) ? (
+            <button className="text-xs text-primary-500" onClick={showMore}>
+              Show more
+            </button>
+          ) : (
+            ''
+          )}
+        </div>
         {comments.map((comment) => (
-          <div key={comment.id} className="border-b mb-2 pb-2">
+          <div key={comment.id} className="border-b mb-2 p-2">
             <div className="flex gap-2 w-full my-2">
               <div className="w-16">
                 <Avatar
