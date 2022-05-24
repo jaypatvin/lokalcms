@@ -91,3 +91,5 @@ export type CommentSortByType = 'created_at' | 'updated_at'
 export type HistoryLogFilterType = 'all' | 'create' | 'update' | 'archive' | 'delete'
 export type HistoryLogSourceType = 'all_sources' | 'cms' | 'mobile_app' | 'api' | 'db'
 export type HistoryLogSortByType = 'created_at'
+
+export type ChatSortByType = 'created_at' | 'updated_at'

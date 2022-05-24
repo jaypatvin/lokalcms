@@ -1,6 +1,7 @@
-import React, { ChangeEventHandler, useRef, useState } from 'react'
+import React, { ChangeEventHandler, useEffect, useRef, useState } from 'react'
 import ReactLoading from 'react-loading'
 import InfiniteScroll from 'react-infinite-scroller'
+import { debounce } from 'lodash'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
 import { getChatConversation, getChats } from '../../services/chats'
@@ -22,6 +23,7 @@ type ConversationData = Conversation & {
 }
 
 const ChatsPage = () => {
+  const chatsLimit = 2
   const { firebaseToken } = useAuth()
   const [user, setUser] = useState<UserData>()
   const [showUserSearchResult, setShowUserSearchResult] = useState(false)
@@ -31,15 +33,19 @@ const ChatsPage = () => {
   const [userChats, setUserChats] = useState<ChatData[]>([])
   const [activeChat, setActiveChat] = useState<ChatData>()
   const [chatConversation, setChatConversation] = useState<ConversationData[]>([])
-  const [chatsSnapshot, setChatsSnapshot] = useState<{ unsubscribe: () => void }>()
   const [conversationSnapshot, setConversationSnapshot] = useState<{ unsubscribe: () => void }>()
   const [loading, setLoading] = useState(false)
   const [pageNum, setPageNum] = useState(1)
-  const [conversationRef, setConversationRef] = useState<firebase.default.firestore.Query<Conversation>>()
+  const [conversationRef, setConversationRef] =
+    useState<firebase.default.firestore.Query<Conversation>>()
   const [lastDataOnList, setLastDataOnList] =
     useState<firebase.default.firestore.QueryDocumentSnapshot<Conversation>>()
   const [isLastPage, setIsLastPage] = useState(false)
   const conversationScrollRef = useRef<any>()
+
+  const [chatSearch, setChatSearch] = useState('')
+  const [chatsPage, setChatsPage] = useState(0)
+  const [chatsCount, setChatsCount] = useState(0)
 
   const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setUserSearchText(e.target.value)
@@ -58,62 +64,111 @@ const ChatsPage = () => {
     setUserSearchResult([])
     setUser(user)
     setUserSearchText(user.email)
-    getUserChats(user)
+    getUserChats(user).then((data) => {
+      if (data) {
+        setUserChats(data)
+      }
+    })
   }
 
-  const getUserChats = async (user: UserData) => {
-    if (!user) return
-    setLoading(true)
-    const chatsRef = getChats({ userId: user.id })
-    if (chatsSnapshot && chatsSnapshot.unsubscribe) chatsSnapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = chatsRef.onSnapshot(async (snapshot) => {
-      const newUserChats = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        membersInfo: {} as MembersInfo,
-      }))
-      for (let i = 0; i < newUserChats.length; i++) {
-        const userChat = newUserChats[i]
-        const { product_id, shop_id, members } = userChat
-        const membersInfo: MembersInfo = {}
-        for (let j = 0; j < members.length; j++) {
-          const memberId = members[j]
-          if (product_id) {
-            const product = await fetchProductByID(memberId)
-            const data = product.data()
-            if (data) {
-              membersInfo[memberId] = { name: data.name }
-              membersInfo[data.user_id] = { name: data.name }
-            }
-          }
-          if (!membersInfo[memberId] && shop_id) {
-            const shop = await fetchShopByID(memberId)
-            const data = shop.data()
-            if (data) {
-              membersInfo[memberId] = { name: data.name }
-              membersInfo[data.user_id] = { name: data.name }
-            }
-          }
-          if (!membersInfo[memberId]) {
-            const user = await fetchUserByID(memberId)
-            const data = user.data()
-            if (data) membersInfo[memberId] = { name: data.display_name }
-          }
-          if (!membersInfo[memberId]) {
-            membersInfo[memberId] = { name: 'Unknown' }
+  useEffect(() => {
+    if (chatsPage !== 0) {
+      setChatsPage(0)
+    } else if (user) {
+      getUserChats(user).then((data) => {
+        if (data) {
+          setUserChats(data)
+        }
+      })
+    }
+  }, [chatSearch, user])
+
+  useEffect(() => {
+    if (user) {
+      getUserChats(user).then((data) => {
+        if (data) {
+          if (chatsPage === 0) {
+            setUserChats(data)
+          } else {
+            setUserChats([...userChats, ...data])
           }
         }
-        userChat.membersInfo = membersInfo
+      })
+    }
+  }, [chatsPage])
+
+  const getUserChats = async (user: UserData) => {
+    if (!user || !firebaseToken) return
+    // if (chatsPage === 0) {
+    //   setLoading(true)
+    // }
+    const chatsResponse = await getChats(
+      {
+        search: chatSearch,
+        filter: { chatType: 'all', archived: false },
+        sort: { sortBy: 'updated_at', sortOrder: 'desc' },
+        limit: chatsLimit,
+        page: chatsPage,
+        user: user.id,
+      },
+      firebaseToken
+    )
+    setChatsCount(chatsResponse!.totalItems)
+    const newUserChats = chatsResponse!.data.map((chat) => ({
+      ...chat,
+      membersInfo: {} as MembersInfo,
+    }))
+    for (let i = 0; i < newUserChats.length; i++) {
+      const userChat = newUserChats[i]
+      const { product_id, shop_id, members } = userChat
+      const membersInfo: MembersInfo = {}
+      for (let j = 0; j < members.length; j++) {
+        const memberId = members[j]
+        if (product_id) {
+          const product = await fetchProductByID(memberId)
+          const data = product.data()
+          if (data) {
+            membersInfo[memberId] = { name: data.name }
+            membersInfo[data.user_id] = { name: data.name }
+          }
+        }
+        if (!membersInfo[memberId] && shop_id) {
+          const shop = await fetchShopByID(memberId)
+          const data = shop.data()
+          if (data) {
+            membersInfo[memberId] = { name: data.name }
+            membersInfo[data.user_id] = { name: data.name }
+          }
+        }
+        if (!membersInfo[memberId]) {
+          const user = await fetchUserByID(memberId)
+          const data = user.data()
+          if (data) membersInfo[memberId] = { name: data.display_name }
+        }
+        if (!membersInfo[memberId]) {
+          membersInfo[memberId] = { name: 'Unknown' }
+        }
       }
-      if (newUserChats.length) {
-        const latestChat = newUserChats[0]
-        onSelectChat(latestChat)
-      }
-      setUserChats(newUserChats)
-    })
-    setChatsSnapshot({ unsubscribe: newUnsubscribe })
-    setLoading(false)
+      userChat.membersInfo = membersInfo
+    }
+    if (chatsPage === 0 && newUserChats.length) {
+      const latestChat = newUserChats[0]
+      onSelectChat(latestChat)
+    }
+    // setUserChats(newUserChats)
+    // setLoading(false)
+    return newUserChats
   }
+
+  const showMore = () => {
+    if (userChats.length < chatsCount) {
+      setChatsPage(chatsPage + 1)
+    }
+  }
+
+  const debouncedSearch = debounce((value: string) => {
+    setChatSearch(value)
+  }, 300)
 
   const setupConversation = async (
     docs: firebase.default.firestore.QueryDocumentSnapshot<Conversation>[],
@@ -196,7 +251,7 @@ const ChatsPage = () => {
             onFocus={() => setShowUserSearchResult(userSearchResult.length > 0)}
           />
           {showUserSearchResult && userSearchResult.length > 0 && (
-            <div className="absolute top-full left-0 w-72 bg-white shadow z-10">
+            <div className="absolute top-full left-0 w-72 bg-white shadow z-20">
               {userSearchResult.map((user) => (
                 <button
                   className="w-full p-1 hover:bg-gray-200 block text-left"
@@ -235,6 +290,26 @@ const ChatsPage = () => {
         ) : (
           <>
             <div className="w-1/3 h-full overflow-y-auto">
+              {userChats.length ? (
+                <div className="p-2 sticky top-0 left-0 z-10 bg-white">
+                  <TextField
+                    type="text"
+                    onChange={(e) => debouncedSearch(e.target.value)}
+                    placeholder="Search"
+                    size="small"
+                    noMargin
+                  />
+                  {userChats.length < chatsCount ? (
+                    <button className="text-xs text-primary-500" onClick={showMore}>
+                      Show more
+                    </button>
+                  ) : (
+                    ''
+                  )}
+                </div>
+              ) : (
+                ''
+              )}
               {userChats.map((chat) => (
                 <ChatItem
                   key={chat.id}

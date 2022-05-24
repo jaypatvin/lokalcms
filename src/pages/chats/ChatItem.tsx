@@ -10,7 +10,7 @@ type Props = {
 }
 
 const ChatItem = ({ chat, activeChat, onClick }: Props) => {
-  const lastMessage = dayjs(chat.last_message.created_at.toDate()).format()
+  const lastMessage = dayjs(chat.last_message.created_at as any).format()
   const lastMessageAgo = dayjs(lastMessage).fromNow()
   return (
     <div

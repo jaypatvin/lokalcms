@@ -1,9 +1,25 @@
+import { API_URL } from '../config/variables'
+import { Chat } from '../models'
 import { db } from '../utils'
+import { SortOrderType, ChatSortByType } from '../utils/types'
+
+export type ChatFilterType = {
+  chatType: 'all' | 'user' | 'shop' | 'product' | 'group'
+  archived?: boolean
+}
+
+export type ChatSort = {
+  sortBy: ChatSortByType
+  sortOrder: SortOrderType
+}
 
 type GetChatsParamTypes = {
-  userId: string
+  search?: string
+  filter?: ChatFilterType
+  sort?: ChatSort
   limit?: number
-  order?: 'asc' | 'desc'
+  page?: number
+  user: string
 }
 
 type GetChatConversationParamTypes = {
@@ -12,12 +28,10 @@ type GetChatConversationParamTypes = {
   limit?: number
 }
 
-export const getChats = ({ userId, limit = 10, order = 'desc' }: GetChatsParamTypes) => {
-  return db
-    .chats
-    .where('members', 'array-contains', userId)
-    .orderBy('last_message.created_at', order)
-    .limit(limit)
+export type ChatsResponse = {
+  pages: number
+  totalItems: number
+  data: (Chat & { id: string })[]
 }
 
 export const getChatConversation = ({
@@ -30,4 +44,45 @@ export const getChatConversation = ({
     .where('archived', '==', false)
     .orderBy('created_at', order)
     .limit(limit)
+}
+
+export const getChats = async (
+  {
+    search = '',
+    filter = { chatType: 'all', archived: false },
+    sort = { sortBy: 'updated_at', sortOrder: 'desc' },
+    limit = 10,
+    page = 0,
+    user,
+  }: GetChatsParamTypes,
+  firebaseToken: string
+): Promise<ChatsResponse | undefined> => {
+  let params: any = {
+    limit,
+    page,
+    sortBy: sort.sortBy,
+    sortOrder: sort.sortOrder,
+    user,
+  }
+  if (search) {
+    params.q = search
+  }
+  if (filter.chatType !== 'all') {
+    params.chatType = filter.chatType
+  }
+  const searchParams = new URLSearchParams(params)
+  if (API_URL) {
+    const res = await (
+      await fetch(`${API_URL}/chats?${searchParams}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'get',
+      })
+    ).json()
+    return res
+  }
+
+  console.error('environment variable for the api does not exist.')
 }
