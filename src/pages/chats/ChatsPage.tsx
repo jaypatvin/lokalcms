@@ -1,10 +1,9 @@
 import React, { ChangeEventHandler, useEffect, useRef, useState } from 'react'
-import ReactLoading from 'react-loading'
 import InfiniteScroll from 'react-infinite-scroller'
 import { debounce } from 'lodash'
 import { TextField } from '../../components/inputs'
 import useOuterClick from '../../customHooks/useOuterClick'
-import { getChatConversation, getChats } from '../../services/chats'
+import { getChatConversation, getChats, getConversationById } from '../../services/chats'
 import { fetchProductByID } from '../../services/products'
 import { fetchShopByID } from '../../services/shops'
 import { fetchUserByID, getUsers } from '../../services/users'
@@ -24,6 +23,7 @@ type ConversationData = Conversation & {
 
 const ChatsPage = () => {
   const chatsLimit = 2
+  const conversationsLimit = 2
   const { firebaseToken } = useAuth()
   const [user, setUser] = useState<UserData>()
   const [showUserSearchResult, setShowUserSearchResult] = useState(false)
@@ -33,19 +33,17 @@ const ChatsPage = () => {
   const [userChats, setUserChats] = useState<ChatData[]>([])
   const [activeChat, setActiveChat] = useState<ChatData>()
   const [chatConversation, setChatConversation] = useState<ConversationData[]>([])
-  const [conversationSnapshot, setConversationSnapshot] = useState<{ unsubscribe: () => void }>()
-  const [loading, setLoading] = useState(false)
-  const [pageNum, setPageNum] = useState(1)
-  const [conversationRef, setConversationRef] =
-    useState<firebase.default.firestore.Query<Conversation>>()
-  const [lastDataOnList, setLastDataOnList] =
-    useState<firebase.default.firestore.QueryDocumentSnapshot<Conversation>>()
-  const [isLastPage, setIsLastPage] = useState(false)
   const conversationScrollRef = useRef<any>()
 
   const [chatSearch, setChatSearch] = useState('')
   const [chatsPage, setChatsPage] = useState(0)
   const [chatsCount, setChatsCount] = useState(0)
+
+  const [conversationsLoading, setConversationsLoading] = useState(false)
+  const [conversationSearch, setConversationSearch] = useState('')
+  const [conversationsPage, setConversationsPage] = useState(0)
+  const [conversationsPages, setConversationsPages] = useState(0)
+  const [conversationsCount, setConversationsCount] = useState(0)
 
   const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setUserSearchText(e.target.value)
@@ -97,11 +95,34 @@ const ChatsPage = () => {
     }
   }, [chatsPage])
 
+  useEffect(() => {
+    if (conversationsPage !== 0) {
+      setConversationsPage(0)
+    } else if (activeChat) {
+      fetchConversations(activeChat).then((data) => {
+        if (data) {
+          setChatConversation(data)
+        }
+      })
+    }
+  }, [conversationSearch, activeChat])
+
+  useEffect(() => {
+    if (user && activeChat) {
+      fetchConversations(activeChat).then((data) => {
+        if (data) {
+          if (conversationsPage === 0) {
+            setChatConversation(data)
+          } else {
+            setChatConversation([...chatConversation, ...data])
+          }
+        }
+      })
+    }
+  }, [conversationsPage, activeChat])
+
   const getUserChats = async (user: UserData) => {
     if (!user || !firebaseToken) return
-    // if (chatsPage === 0) {
-    //   setLoading(true)
-    // }
     const chatsResponse = await getChats(
       {
         search: chatSearch,
@@ -153,10 +174,9 @@ const ChatsPage = () => {
     }
     if (chatsPage === 0 && newUserChats.length) {
       const latestChat = newUserChats[0]
-      onSelectChat(latestChat)
+      setActiveChat(latestChat)
+      fetchConversations(latestChat).then(setChatConversation)
     }
-    // setUserChats(newUserChats)
-    // setLoading(false)
     return newUserChats
   }
 
@@ -170,22 +190,19 @@ const ChatsPage = () => {
     setChatSearch(value)
   }, 300)
 
-  const setupConversation = async (
-    docs: firebase.default.firestore.QueryDocumentSnapshot<Conversation>[],
-    chat: ChatData
-  ) => {
-    const newChatConversation = docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as ConversationData[]
-    for (let i = 0; i < newChatConversation.length; i++) {
-      const message = newChatConversation[i]
+  const debouncedConversationSearch = debounce((value: string) => {
+    setConversationSearch(value)
+  }, 300)
+
+  const setupConversation = async (conversations: any, chat: ChatData) => {
+    for (let i = 0; i < conversations.length; i++) {
+      const message = conversations[i]
       const senderName = chat.membersInfo[message.sender_id]
         ? chat.membersInfo[message.sender_id].name
         : 'Unknown'
       message.sender_name = senderName
       if (message.reply_to) {
-        const replyTo = await message.reply_to.get()
+        const replyTo = await getConversationById(chat.id, message.reply_to._path.segments[3])
         const replyToData = replyTo.data()
         if (replyToData) {
           const sender_name = chat.membersInfo[replyToData.sender_id]
@@ -195,46 +212,50 @@ const ChatsPage = () => {
         }
       }
     }
+    return conversations
+  }
+
+  const fetchConversations = async (chat: ChatData) => {
+    setConversationsLoading(true)
+    const conversationResult = await getChatConversation(
+      {
+        chat: chat.id,
+        search: conversationSearch,
+        sort: { sortBy: 'created_at', sortOrder: 'desc' },
+        limit: conversationsLimit,
+        page: conversationsPage,
+      },
+      firebaseToken!
+    )
+    const newChatConversation = await setupConversation(conversationResult!.data, chat)
+    setConversationsLoading(false)
+    setConversationsCount(conversationResult?.totalItems!)
+    setConversationsPages(conversationResult?.pages!)
+
+    // setTimeout(() => {
+    //   if (conversationScrollRef.current) {
+    //     conversationScrollRef.current.scrollTop = conversationScrollRef.current.scrollHeight
+    //   }
+    // }, 500)
+
     return newChatConversation
   }
 
-  const onSelectChat = async (chat: ChatData) => {
+  const onSelectChat = (chat: ChatData) => {
     if (activeChat?.id === chat.id) return
-    setIsLastPage(false)
     setActiveChat(chat)
     setChatConversation([])
-    const conversationRef = getChatConversation({ chatId: chat.id })
-    if (conversationSnapshot && conversationSnapshot.unsubscribe) conversationSnapshot.unsubscribe() // unsubscribe current listener
-    const newUnsubscribe = conversationRef.onSnapshot(async (snapshot) => {
-      const newChatConversation = await setupConversation(snapshot.docs, chat)
-      setLastDataOnList(snapshot.docs[snapshot.docs.length - 1])
-      setChatConversation(newChatConversation)
-      setTimeout(() => {
-        if (conversationScrollRef.current) {
-          conversationScrollRef.current.scrollTop = conversationScrollRef.current.scrollHeight
-        }
-      }, 500)
-    })
-    setConversationSnapshot({ unsubscribe: newUnsubscribe })
-    setConversationRef(conversationRef)
+    setConversationsCount(0)
+    setConversationsPage(0)
+    setConversationsPages(0)
+    setConversationsLoading(true)
   }
 
-  const onNextPage = (p: number) => {
-    if (activeChat && conversationRef && lastDataOnList && !isLastPage) {
-      const newDataRef = conversationRef.startAfter(lastDataOnList).limit(10)
-      newDataRef.onSnapshot(async (snapshot) => {
-        if (snapshot.docs.length) {
-          const moreChatConversation = await setupConversation(snapshot.docs, activeChat)
-          const newChatConversation = [...chatConversation, ...moreChatConversation]
-          setChatConversation(newChatConversation)
-          setLastDataOnList(snapshot.docs[snapshot.docs.length - 1])
-          setPageNum(p + 1)
-        } else if (!isLastPage) {
-          setIsLastPage(true)
-        }
-      })
+  const onNextPage = debounce((p: number) => {
+    if (activeChat && !conversationsLoading && conversationsPage < conversationsPages) {
+      setConversationsPage(conversationsPage + 1)
     }
-  }
+  }, 500)
 
   return (
     <>
@@ -279,66 +300,63 @@ const ChatsPage = () => {
         </div>
       </div>
       <div className="flex h-2/3-screen">
-        {loading ? (
-          <div className="h-96 w-full relative">
-            <ReactLoading
-              type="spin"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-              color="gray"
-            />
-          </div>
-        ) : (
-          <>
-            <div className="w-1/3 h-full overflow-y-auto">
-              {userChats.length ? (
-                <div className="p-2 sticky top-0 left-0 z-10 bg-white">
-                  <TextField
-                    type="text"
-                    onChange={(e) => debouncedSearch(e.target.value)}
-                    placeholder="Search"
-                    size="small"
-                    noMargin
-                  />
-                  {userChats.length < chatsCount ? (
-                    <button className="text-xs text-primary-500" onClick={showMore}>
-                      Show more
-                    </button>
-                  ) : (
-                    ''
-                  )}
-                </div>
+        <div className="w-1/3 h-full overflow-y-auto">
+          {userChats.length ? (
+            <div className="p-2 sticky top-0 left-0 z-10 bg-white">
+              <TextField
+                type="text"
+                onChange={(e) => debouncedSearch(e.target.value)}
+                placeholder="Search"
+                size="small"
+                noMargin
+              />
+              {userChats.length < chatsCount ? (
+                <button className="text-xs text-primary-500" onClick={showMore}>
+                  Show more
+                </button>
               ) : (
                 ''
               )}
-              {userChats.map((chat) => (
-                <ChatItem
-                  key={chat.id}
-                  chat={chat}
-                  activeChat={activeChat?.id}
-                  onClick={onSelectChat}
-                />
-              ))}
             </div>
-            {chatConversation && chatConversation.length > 0 ? (
-              <div ref={conversationScrollRef} className="w-2/3 h-full overflow-y-auto">
-                <InfiniteScroll
-                  className="flex flex-col-reverse p-5 bg-secondary-50 ml-2"
-                  pageStart={pageNum}
-                  loadMore={onNextPage}
-                  hasMore={!isLastPage}
-                  useWindow={false}
-                  isReverse={true}
-                  threshold={10}
-                >
-                  {chatConversation.map((doc) => (
-                    <ConversationItem key={doc.id} doc={doc} currentUser={user!} />
-                  ))}
-                </InfiniteScroll>
-              </div>
-            ) : (
-              ''
-            )}
-          </>
+          ) : (
+            ''
+          )}
+          {userChats.map((chat) => (
+            <ChatItem
+              key={chat.id}
+              chat={chat}
+              activeChat={activeChat?.id}
+              onClick={onSelectChat}
+            />
+          ))}
+        </div>
+        {chatConversation && chatConversation.length > 0 ? (
+          <div ref={conversationScrollRef} className="w-2/3 h-full overflow-y-auto">
+            <div className="p-2 sticky top-0 left-0 z-10 bg-white">
+              <TextField
+                type="text"
+                onChange={(e) => debouncedConversationSearch(e.target.value)}
+                placeholder="Search conversation"
+                size="small"
+                noMargin
+              />
+            </div>
+            <InfiniteScroll
+              className="flex flex-col-reverse p-5 bg-secondary-50 ml-2"
+              pageStart={conversationsPage}
+              loadMore={onNextPage}
+              hasMore={chatConversation.length < conversationsCount}
+              useWindow={false}
+              isReverse={true}
+              threshold={10}
+            >
+              {chatConversation.map((doc) => (
+                <ConversationItem key={doc.id} doc={doc} currentUser={user!} />
+              ))}
+            </InfiniteScroll>
+          </div>
+        ) : (
+          ''
         )}
       </div>
     </>

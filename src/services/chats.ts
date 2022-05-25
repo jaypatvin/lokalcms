@@ -1,5 +1,5 @@
 import { API_URL } from '../config/variables'
-import { Chat } from '../models'
+import { Chat, Conversation } from '../models'
 import { db } from '../utils'
 import { SortOrderType, ChatSortByType } from '../utils/types'
 
@@ -13,6 +13,11 @@ export type ChatSort = {
   sortOrder: SortOrderType
 }
 
+export type ConversationSort = {
+  sortBy: 'created_at'
+  sortOrder: SortOrderType
+}
+
 type GetChatsParamTypes = {
   search?: string
   filter?: ChatFilterType
@@ -22,10 +27,12 @@ type GetChatsParamTypes = {
   user: string
 }
 
-type GetChatConversationParamTypes = {
-  chatId: string
-  order?: 'asc' | 'desc'
+type GetConversationsParamTypes = {
+  search?: string
+  sort?: ConversationSort
   limit?: number
+  page?: number
+  chat: string
 }
 
 export type ChatsResponse = {
@@ -34,16 +41,14 @@ export type ChatsResponse = {
   data: (Chat & { id: string })[]
 }
 
-export const getChatConversation = ({
-  chatId,
-  order = 'desc',
-  limit = 10,
-}: GetChatConversationParamTypes) => {
-  return db
-    .getChatConversations(`chats/${chatId}/conversation`)
-    .where('archived', '==', false)
-    .orderBy('created_at', order)
-    .limit(limit)
+export type ConversationsResponse = {
+  pages: number
+  totalItems: number
+  data: (Conversation & { id: string })[]
+}
+
+export const getConversationById = async (chatId: string, conversationId: string) => {
+  return db.getChatConversations(`chats/${chatId}/conversation`).doc(conversationId).get()
 }
 
 export const getChats = async (
@@ -74,6 +79,43 @@ export const getChats = async (
   if (API_URL) {
     const res = await (
       await fetch(`${API_URL}/chats?${searchParams}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'get',
+      })
+    ).json()
+    return res
+  }
+
+  console.error('environment variable for the api does not exist.')
+}
+
+export const getChatConversation = async (
+  {
+    search = '',
+    sort = { sortBy: 'created_at', sortOrder: 'desc' },
+    limit = 10,
+    page = 0,
+    chat,
+  }: GetConversationsParamTypes,
+  firebaseToken: string
+): Promise<ConversationsResponse | undefined> => {
+  let params: any = {
+    limit,
+    page,
+    sortBy: sort.sortBy,
+    sortOrder: sort.sortOrder,
+    chat,
+  }
+  if (search) {
+    params.q = search
+  }
+  const searchParams = new URLSearchParams(params)
+  if (API_URL) {
+    const res = await (
+      await fetch(`${API_URL}/conversations?${searchParams}`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${firebaseToken}`,

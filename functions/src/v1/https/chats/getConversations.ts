@@ -91,7 +91,16 @@ const getConversations: RequestHandler = async (req, res) => {
     ...(user ? { filters: `sender_id:${user}` } : {}),
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getConversations
