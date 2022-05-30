@@ -18,7 +18,7 @@ const Avatar = ({ url, name = '', statusColor, size = 12 }: Props) => {
   return (
     <div className={'relative w-' + size + ' h-' + size}>
       <img
-        className="rounded-full border border-gray-100 shadow-sm h-full w-auto"
+        className="rounded-full border border-gray-100 shadow-sm h-full w-full"
         src={_url}
         alt="avatar"
       />

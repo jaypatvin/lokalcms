@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../../config/variables'
-import { getActivities, ActivityFilterType, ActivitySort } from '../../services/activities'
+import {
+  getActivities,
+  ActivityFilterType,
+  ActivitySort,
+  ActivitiesResponse,
+} from '../../services/activities'
 import { useAuth } from '../../contexts/AuthContext'
 import { Activity } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
@@ -20,6 +25,12 @@ type ActivityData = Activity & {
 }
 
 const allColumns: Column[] = [
+  {
+    type: 'string',
+    title: 'Id',
+    key: 'id',
+    referenceLink: '/activities/:id',
+  },
   {
     type: 'string',
     title: 'Message',
@@ -66,7 +77,7 @@ const allColumns: Column[] = [
   },
 ]
 
-const columns = ['message', 'images', 'user_id', 'community_id', 'created_at', 'updated_at']
+const columns = ['id', 'message', 'images', 'user_id', 'community_id', 'created_at', 'updated_at']
 
 const filtersMenu: FiltersMenu = [
   {
@@ -136,7 +147,8 @@ type FormData = {
 const ActivityListPage = () => {
   const { firebaseToken } = useAuth()
   const community = useCommunity()
-  const [dataRef, setDataRef] = useState<firebase.default.firestore.Query<Activity>>()
+  const [data, setData] = useState<ActivitiesResponse>()
+  const [isLoading, setIsLoading] = useState(false)
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false)
   const [dataToUpdate, setDataToUpdate] = useState<FormData>()
@@ -151,7 +163,12 @@ const ActivityListPage = () => {
   const [isUnarchiveDialogOpen, setIsUnarchiveDialogOpen] = useState(false)
 
   useEffect(() => {
-    setDataRef(getActivities(queryOptions))
+    if (firebaseToken) {
+      setIsLoading(true)
+      getActivities(queryOptions, firebaseToken)
+        .then((data) => setData(data))
+        .finally(() => setIsLoading(false))
+    }
   }, [queryOptions])
 
   useEffect(() => {
@@ -281,26 +298,22 @@ const ActivityListPage = () => {
         acceptLabel="Unarchive"
         cancelLabel="Cancel"
       />
-      {dataRef ? (
-        <DynamicTable
-          name="Activity"
-          dataRef={dataRef}
-          allColumns={allColumns}
-          columnKeys={columns}
-          contextMenu={contextMenu}
-          filtersMenu={filtersMenu}
-          initialFilter={initialFilter}
-          showSearch={false}
-          sortMenu={sortMenu}
-          initialSort={initialSort}
-          onChangeSort={onChangeSort}
-          onChangeFilter={onChangeFilter}
-          onChangeTableConfig={onChangeTableConfig}
-          onClickCreate={() => setIsCreateFormOpen(true)}
-        />
-      ) : (
-        ''
-      )}
+      <DynamicTable
+        name="Activity"
+        data={data}
+        loading={isLoading}
+        allColumns={allColumns}
+        columnKeys={columns}
+        contextMenu={contextMenu}
+        filtersMenu={filtersMenu}
+        initialFilter={initialFilter}
+        sortMenu={sortMenu}
+        initialSort={initialSort}
+        onChangeSort={onChangeSort}
+        onChangeFilter={onChangeFilter}
+        onChangeTableConfig={onChangeTableConfig}
+        onClickCreate={() => setIsCreateFormOpen(true)}
+      />
     </>
   )
 }

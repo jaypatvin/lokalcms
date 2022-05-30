@@ -42,6 +42,18 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         name: user
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: chatType
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
  *     description: Returns chats
  *     responses:
  *       200:
@@ -69,6 +81,9 @@ const getChats: RequestHandler = async (req, res) => {
     shop,
     product,
     user,
+    chatType,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
@@ -77,6 +92,9 @@ const getChats: RequestHandler = async (req, res) => {
     shop?: string
     product?: string
     user?: string
+    chatType?: string
+    sortBy: 'updated_at' | 'created_at'
+    sortOrder: 'asc' | 'desc'
   }
 
   if (!searchKey) {
@@ -96,10 +114,26 @@ const getChats: RequestHandler = async (req, res) => {
     ...(shop ? { filters: `shop_id:${shop}` } : {}),
     ...(product ? { filters: `product_id:${product}` } : {}),
     ...(user ? { filters: `members:${user}` } : {}),
+    ...(chatType ? { filters: `chat_type:${chatType}` } : {}),
     attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+    last_message: {
+      // @ts-ignore
+      ...hit.last_message,
+      // @ts-ignore
+      created_at: new Date(hit.last_message.created_at._seconds * 1000),
+    }
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getChats

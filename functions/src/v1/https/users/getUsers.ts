@@ -30,6 +30,22 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         name: community
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
  *     description: Returns users
  *     responses:
  *       200:
@@ -54,7 +70,20 @@ const getUsers: RequestHandler = async (req, res) => {
     page = 0,
     limit: hitsPerPage,
     community,
-  } = req.query as unknown as { q: string; page: number; limit: number; community?: string }
+    status,
+    role,
+    sortBy,
+    sortOrder,
+  } = req.query as unknown as {
+    q: string
+    page: number
+    limit: number
+    community?: string
+    status: string
+    role: string
+    sortBy: 'display_name' | 'created_at'
+    sortOrder: 'asc' | 'desc'
+  }
 
   if (!searchKey) {
     throw generateError(ErrorCode.UserApiError, {
@@ -64,15 +93,40 @@ const getUsers: RequestHandler = async (req, res) => {
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const usersIndex = client.initIndex('users')
+  let usersIndex
+  if (sortBy === 'created_at') {
+    if (sortOrder === 'asc') {
+      usersIndex = client.initIndex('users_created_at_asc')
+    } else {
+      usersIndex = client.initIndex('users_created_at_desc')
+    }
+  } else {
+    if (sortOrder === 'asc') {
+      usersIndex = client.initIndex('users')
+    } else {
+      usersIndex = client.initIndex('users_name_desc')
+    }
+  }
 
   const { hits, nbPages, nbHits } = await usersIndex.search(query, {
     page,
     hitsPerPage,
     ...(community ? { filters: `community_id:${community}` } : {}),
+    ...(status ? { filters: `status:${status}` } : {}),
+    ...(role ? { filters: `roles.${role}:true` } : {}),
+    attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getUsers

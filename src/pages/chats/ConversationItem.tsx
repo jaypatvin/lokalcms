@@ -13,12 +13,12 @@ type Props = {
 }
 
 const ConversationItem = ({ doc, currentUser }: Props) => {
-  const sentAt = dayjs(doc.created_at.toDate()).format()
+  const sentAt = dayjs(doc.created_at as any).format()
   const sentAtAgo = dayjs(sentAt).fromNow()
   let replyToAt
   let replyToAtAgo
   if (doc.reply_to_data) {
-    replyToAt = dayjs(doc.reply_to_data.created_at.toDate()).format()
+    replyToAt = dayjs(doc.reply_to_data.created_at as any).format()
     replyToAtAgo = dayjs(replyToAt).fromNow()
   }
   return (

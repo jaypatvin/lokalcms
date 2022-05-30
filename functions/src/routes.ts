@@ -177,7 +177,8 @@ module.exports = (api: Express) => {
   api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
 
   // -- Comments routes
-  api.route('/v1/activities/:activityId/comments').get(searchMiddleware, wrapAsync(CommentsAPI.getComments))
+  api.route('/v1/comments').get(searchMiddleware, wrapAsync(CommentsAPI.getComments))
+  api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
   api.route('/v1/activities/:activityId/comments').post(validation.comment.create, wrapAsync(CommentsAPI.createComment))
   api.route('/v1/activities/:activityId/comments/:commentId').get(wrapAsync(CommentsAPI.getComment))
   api.route('/v1/activities/:activityId/comments/:commentId').put(validation.comment.update, wrapAsync(CommentsAPI.updateComment))
@@ -221,6 +222,7 @@ module.exports = (api: Express) => {
   api.route('/v1/orders/:orderId/cancel').put(validation.order.cancel, wrapAsync(OrdersAPI.cancel))
 
   // -- Product Subscription Plans routes
+  api.route('/v1/productSubscriptionPlans').get(orderSearchMiddleware, wrapAsync(ProductSubscriptionPlansAPI.getProductSubscriptionPlans))
   api.route('/v1/productSubscriptionPlans').post(validation.productSubscriptionPlan.create, wrapAsync(ProductSubscriptionPlansAPI.createProductSubscriptionPlan))
   api.route('/v1/productSubscriptionPlans/:planId/autoRescheduleConflicts').post(wrapAsync(ProductSubscriptionPlansAPI.autoRescheduleConflicts))
   api.route('/v1/productSubscriptionPlans/:planId/confirm').put(wrapAsync(ProductSubscriptionPlansAPI.confirm))

@@ -11,11 +11,12 @@ const conversationsIndex = client.initIndex('conversations')
 
 exports.addConversationIndex = functions.firestore
   .document('chats/{chatId}/conversations/{conversationId}')
-  .onCreate(async (snapshot) => {
+  .onCreate(async (snapshot, context) => {
     const data = snapshot.data()
 
     const chat = {
-      objectID: data.id,
+      objectID: snapshot.id,
+      chat_id: context.params.chatId,
       ...pick(data, conversationFields),
     }
 
@@ -23,11 +24,12 @@ exports.addConversationIndex = functions.firestore
   })
 exports.updateConversationIndex = functions.firestore
   .document('chats/{chatId}/conversations/{conversationId}')
-  .onUpdate(async (change) => {
+  .onUpdate(async (change, context) => {
     const data = change.after.data()
 
     const chat = {
-      objectID: data.id,
+      objectID: change.after.id,
+      chat_id: context.params.chatId,
       ...pick(data, conversationFields),
     }
 

@@ -3,11 +3,12 @@ import {
   getProductSubscriptionPlans,
   ProductSubscriptionPlanFilterType,
   ProductSubscriptionPlanSort,
+  ProductSubscriptionPlansResponse,
 } from '../../services/productSubscriptionPlans'
-import { ProductSubscriptionPlan } from '../../models'
 import DynamicTable from '../../components/DynamicTable/DynamicTable'
 import { Column, FiltersMenu, SortMenu, TableConfig } from '../../components/DynamicTable/types'
 import { useCommunity } from '../../components/BasePage'
+import { useAuth } from '../../contexts/AuthContext'
 
 const allColumns: Column[] = [
   {
@@ -179,10 +180,12 @@ const initialSort = {
 }
 
 const ProductSubscriptionPlanListPage = () => {
+  const { firebaseToken } = useAuth()
   const community = useCommunity()
-  const [dataRef, setDataRef] =
-    useState<firebase.default.firestore.Query<ProductSubscriptionPlan>>()
+  const [data, setData] = useState<ProductSubscriptionPlansResponse>()
+  const [isLoading, setIsLoading] = useState(false)
   const [queryOptions, setQueryOptions] = useState({
+    search: '',
     limit: 10 as TableConfig['limit'],
     filter: initialFilter as ProductSubscriptionPlanFilterType,
     communityId: community?.id,
@@ -191,7 +194,12 @@ const ProductSubscriptionPlanListPage = () => {
 
   useEffect(() => {
     if (!community || !community.id || !queryOptions.communityId) return
-    setDataRef(getProductSubscriptionPlans(queryOptions))
+    if (firebaseToken) {
+      setIsLoading(true)
+      getProductSubscriptionPlans(queryOptions, firebaseToken)
+        .then((data) => setData(data))
+        .finally(() => setIsLoading(false))
+    }
   }, [queryOptions])
 
   useEffect(() => {
@@ -213,15 +221,15 @@ const ProductSubscriptionPlanListPage = () => {
   return (
     <>
       {!community?.id ? <h2 className="text-xl ml-5">Select a community first</h2> : ''}
-      {dataRef && community?.id ? (
+      {community?.id ? (
         <DynamicTable
           name="Product Subscription Plan"
-          dataRef={dataRef}
+          data={data}
+          loading={isLoading}
           allColumns={allColumns}
           columnKeys={columns}
           filtersMenu={filtersMenu}
           initialFilter={initialFilter}
-          showSearch={false}
           sortMenu={sortMenu}
           initialSort={initialSort}
           onChangeSort={onChangeSort}

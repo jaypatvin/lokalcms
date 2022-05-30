@@ -23,7 +23,7 @@ export const getGroupChatByHash = async (group_hash: string) => {
 
 export const createChat = async (data: ChatCreateData) => {
   return await db.chats
-    .add({ ...data, created_at: firestore.Timestamp.now() })
+    .add({ ...data, created_at: firestore.Timestamp.now(), updated_at: firestore.Timestamp.now() })
     .then((res) => res.get())
     .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
@@ -31,7 +31,7 @@ export const createChat = async (data: ChatCreateData) => {
 export const createChatWithHashId = async (hash_id: string, data: ChatCreateData) => {
   return await db.chats
     .doc(hash_id)
-    .set({ ...data, created_at: firestore.Timestamp.now() })
+    .set({ ...data, created_at: firestore.Timestamp.now(), updated_at: firestore.Timestamp.now() })
     .then((res) => res)
     .then(() => db.chats.doc(hash_id).get())
     .then((doc) => ({ ...doc.data(), id: doc.id }))

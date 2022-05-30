@@ -139,7 +139,7 @@ const DynamicCell = ({ cell }: Props) => {
         </td>
       )
     case 'datepast':
-      let dateAt = cell.value ? dayjs((cell.value as any).toDate()).format() : null
+      let dateAt = cell.value ? dayjs(((cell.value as any).toDate ? (cell.value as any).toDate() : cell.value)).format() : null
       return (
         <td>
           <p className="text-gray-900 whitespace-no-wrap">
@@ -148,7 +148,7 @@ const DynamicCell = ({ cell }: Props) => {
         </td>
       )
     case 'datefuture':
-      let dateBy = cell.value ? dayjs(cell.value as any).fromNow() : null
+      let dateBy = cell.value ? dayjs(((cell.value as any).toDate ? (cell.value as any).toDate() : cell.value)).fromNow() : null
       return (
         <td>
           <p className="text-gray-900 whitespace-no-wrap">{dateBy ?? '--'}</p>

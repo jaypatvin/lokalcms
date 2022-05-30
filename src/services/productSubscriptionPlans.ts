@@ -1,5 +1,7 @@
 import { SortOrderType } from '../utils/types'
 import { db } from '../utils'
+import { API_URL } from '../config/variables'
+import { ProductSubscriptionPlan } from '../models'
 
 export type ProductSubscriptionPlanFilterType = {
   status: string
@@ -12,12 +14,14 @@ export type ProductSubscriptionPlanSort = {
 }
 
 type GetProductSubscriptionPlansParamTypes = {
+  search?: string
   communityId: string
   productId?: string
   shopId?: string
   buyerId?: string
   sellerId?: string
   limit?: number
+  page?: number
   filter?: ProductSubscriptionPlanFilterType
   sort?: ProductSubscriptionPlanSort
 }
@@ -50,39 +54,73 @@ export const getProductSubscriptionPlansByShop = (shop_id: string, limit = 10) =
     .limit(limit)
 }
 
-export const getProductSubscriptionPlans = ({
-  communityId,
-  productId,
-  shopId,
-  buyerId,
-  sellerId,
-  limit = 10,
-  filter = {
-    status: 'all',
-    paymentMethod: 'all',
-  },
-  sort = { sortBy: 'created_at', sortOrder: 'desc' },
-}: GetProductSubscriptionPlansParamTypes) => {
-  let ref = db.productSubscriptionPlans.where('community_id', '==', communityId)
+export type ProductSubscriptionPlansResponse = {
+  pages: number
+  totalItems: number
+  data: (ProductSubscriptionPlan & { id: string })[]
+}
+
+export const getProductSubscriptionPlans = async (
+  {
+    search = '',
+    filter = {
+      status: 'all',
+      paymentMethod: 'all',
+    },
+    sort = { sortBy: 'created_at', sortOrder: 'asc' },
+    limit = 10,
+    page = 0,
+    communityId,
+    productId,
+    shopId,
+    buyerId,
+    sellerId,
+  }: GetProductSubscriptionPlansParamTypes,
+  firebaseToken: string
+): Promise<ProductSubscriptionPlansResponse | undefined> => {
+  let params: any = {
+    limit,
+    page,
+    sortBy: sort.sortBy,
+    sortOrder: sort.sortOrder,
+  }
+  if (search) {
+    params.q = search
+  }
+  if (communityId) {
+    params.community = communityId
+  }
   if (filter.status !== 'all') {
-    ref = ref.where('status', '==', filter.status)
+    params.status = filter.status
   }
   if (filter.paymentMethod !== 'all') {
-    ref = ref.where('payment_method', '==', filter.paymentMethod)
+    params.paymentMethod = filter.paymentMethod
   }
   if (shopId) {
-    ref = ref.where('shop_id', '==', shopId)
+    params.shop = shopId
   }
   if (productId) {
-    ref = ref.where('product_id', '==', productId)
+    params.product = productId
   }
   if (buyerId) {
-    ref = ref.where('buyer_id', '==', buyerId)
+    params.buyer = buyerId
   }
   if (sellerId) {
-    ref = ref.where('seller_id', '==', sellerId)
+    params.seller = sellerId
   }
-  ref = ref.orderBy(sort.sortBy, sort.sortOrder).limit(limit)
+  const searchParams = new URLSearchParams(params)
+  if (API_URL) {
+    const res = await (
+      await fetch(`${API_URL}/productSubscriptionPlans?${searchParams}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'get',
+      })
+    ).json()
+    return res
+  }
 
-  return ref
+  console.error('environment variable for the api does not exist.')
 }

@@ -69,12 +69,7 @@ const OrderCreatePage = () => {
   const userSearchHandler: ChangeEventHandler<HTMLInputElement> = async (e) => {
     setUserSearchText(e.target.value)
     if (e.target.value.length > 2) {
-      const usersRef = getUsers({ search: e.target.value })
-      const result = await usersRef.get()
-      const users = result.docs.map((doc) => {
-        const data = doc.data()
-        return { ...data, id: doc.id }
-      })
+      const users = (await getUsers({ search: e.target.value }, firebaseToken!))!.data
       setUserSearchResult(users)
       setShowUserSearchResult(users.length > 0)
     } else {

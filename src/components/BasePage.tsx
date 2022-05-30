@@ -47,7 +47,7 @@ const BasePage = (props: Props) => {
   const [isAvatarOpen, setIsAvatarOpen] = useState(false)
   const rootEl = document.getElementById('root')
 
-  const { currentUserInfo, logout } = useAuth()
+  const { currentUserInfo, logout, firebaseToken } = useAuth()
 
   const [community, setCommunity] = useState<CommunityData>({} as CommunityData)
   const [communities, setCommunities] = useState<CommunityData[]>([])
@@ -91,13 +91,15 @@ const BasePage = (props: Props) => {
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClick)
-    getCommunities({})
-      .get()
-      .then((res) => {
-        const allCommunities = res.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-        setCommunities(allCommunities)
-        setCommunitySearchResult(allCommunities)
-      })
+    if (firebaseToken) {
+      getCommunities({}, firebaseToken)
+        .then((res) => {
+          if (res && res.data) {
+            setCommunities(res.data)
+            setCommunitySearchResult(res.data)
+          }
+        })
+    }
 
     return () => {
       document.removeEventListener('mousedown', handleClick)

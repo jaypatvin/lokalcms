@@ -15,7 +15,7 @@ exports.addProductSubscriptionPlanIndex = functions.firestore
     const data = snapshot.data()
 
     const plan = {
-      objectID: data.id,
+      objectID: snapshot.id,
       ...pick(data, productSubscriptionPlanFields),
     }
 
@@ -27,7 +27,7 @@ exports.updateProductSubscriptionPlanIndex = functions.firestore
     const data = change.after.data()
 
     const plan = {
-      objectID: data.id,
+      objectID: change.after.id,
       ...pick(data, productSubscriptionPlanFields),
     }
 

@@ -6,7 +6,7 @@ import { ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
- * /v1/activities/{activityId}/comments:
+ * /v1/comments:
  *   get:
  *     tags:
  *       - activity comments
@@ -26,6 +26,14 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         name: limit
  *         schema:
  *           type: number
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
  *       - in: query
  *         name: community
  *         schema:
@@ -69,6 +77,8 @@ const getComments: RequestHandler = async (req, res) => {
     activity,
     status,
     user,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
@@ -77,6 +87,8 @@ const getComments: RequestHandler = async (req, res) => {
     activity?: string
     status?: string
     user?: string
+    sortBy: 'name' | 'created_at'
+    sortOrder: 'asc' | 'desc'
   }
 
   if (!searchKey) {
@@ -87,7 +99,12 @@ const getComments: RequestHandler = async (req, res) => {
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const commentsIndex = client.initIndex('comments')
+  let commentsIndex
+  if (sortOrder === 'asc') {
+    commentsIndex = client.initIndex('comments')
+  } else {
+    commentsIndex = client.initIndex('comments_created_at_desc')
+  }
 
   const { hits, nbPages, nbHits } = await commentsIndex.search(query, {
     page,
@@ -96,9 +113,19 @@ const getComments: RequestHandler = async (req, res) => {
     ...(activity ? { filters: `activity_id:${activity}` } : {}),
     ...(user ? { filters: `user_id:${user}` } : {}),
     ...(status ? { filters: `status:${status}` } : {}),
+    attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getComments

@@ -27,6 +27,14 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: number
  *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: community
  *         schema:
  *           type: string
@@ -101,6 +109,8 @@ const getOrders: RequestHandler = async (req, res) => {
     payment_method,
     category,
     status,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
@@ -115,6 +125,8 @@ const getOrders: RequestHandler = async (req, res) => {
     payment_method?: 'cod' | 'bank'
     category?: string
     status?: number
+    sortBy: 'created_at'
+    sortOrder: 'asc' | 'desc'
   }
 
   if (!searchKey) {
@@ -125,7 +137,12 @@ const getOrders: RequestHandler = async (req, res) => {
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const ordersIndex = client.initIndex('orders')
+  let ordersIndex
+  if (sortOrder === 'asc') {
+    ordersIndex = client.initIndex('orders')
+  } else {
+    ordersIndex = client.initIndex('orders_created_at_desc')
+  }
 
   const { hits, nbPages, nbHits } = await ordersIndex.search(query, {
     page,
@@ -143,7 +160,16 @@ const getOrders: RequestHandler = async (req, res) => {
     attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getOrders

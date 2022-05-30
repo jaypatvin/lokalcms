@@ -27,6 +27,14 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: number
  *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: community
  *         schema:
  *           type: string
@@ -36,6 +44,10 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *           type: string
  *       - in: query
  *         name: shop
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
  *         schema:
  *           type: string
  *       - in: query
@@ -68,7 +80,10 @@ const getProducts: RequestHandler = async (req, res) => {
     community,
     category,
     shop,
+    status,
     user,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
@@ -76,7 +91,10 @@ const getProducts: RequestHandler = async (req, res) => {
     community?: string
     category?: string
     shop?: string
+    status?: string
     user?: string
+    sortBy: 'name' | 'created_at' | 'base_price'
+    sortOrder: 'asc' | 'desc'
   }
 
   if (!searchKey) {
@@ -87,7 +105,27 @@ const getProducts: RequestHandler = async (req, res) => {
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const productsIndex = client.initIndex('products')
+  let productsIndex
+  if (sortBy === 'created_at') {
+    if (sortOrder === 'asc') {
+      productsIndex = client.initIndex('products_created_at_asc')
+    } else {
+      productsIndex = client.initIndex('products_created_at_desc')
+    }
+  } else if (sortBy === 'base_price') {
+    if (sortOrder === 'asc') {
+      productsIndex = client.initIndex('products_price_asc')
+    } else {
+      productsIndex = client.initIndex('products_price_desc')
+    }
+  } else {
+    if (sortOrder === 'asc') {
+      productsIndex = client.initIndex('products')
+    } else {
+      productsIndex = client.initIndex('products_name_desc')
+    }
+  }
+
 
   const { hits, nbPages, nbHits } = await productsIndex.search(query, {
     page,
@@ -96,9 +134,20 @@ const getProducts: RequestHandler = async (req, res) => {
     ...(category ? { filters: `product_category:${category}` } : {}),
     ...(shop ? { filters: `shop_id:${shop}` } : {}),
     ...(user ? { filters: `user_id:${user}` } : {}),
+    ...(status ? { filters: `status:${status}` } : {}),
+    attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getProducts

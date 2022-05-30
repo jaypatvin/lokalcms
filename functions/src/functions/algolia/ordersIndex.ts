@@ -15,7 +15,7 @@ exports.addOrderIndex = functions.firestore
     const data = snapshot.data()
 
     const order = {
-      objectID: data.id,
+      objectID: snapshot.id,
       ...pick(data, orderFields),
     }
 
@@ -27,7 +27,7 @@ exports.updateOrderIndex = functions.firestore
     const data = change.after.data()
 
     const order = {
-      objectID: data.id,
+      objectID: change.after.id,
       ...pick(data, orderFields),
     }
 

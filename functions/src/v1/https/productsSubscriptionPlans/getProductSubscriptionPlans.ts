@@ -27,6 +27,14 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: number
  *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: community
  *         schema:
  *           type: string
@@ -85,6 +93,8 @@ const getProductSubscriptionPlans: RequestHandler = async (req, res) => {
     seller,
     payment_method,
     status,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
@@ -96,6 +106,8 @@ const getProductSubscriptionPlans: RequestHandler = async (req, res) => {
     seller?: string
     payment_method?: 'cod' | 'bank'
     status?: string
+    sortBy: 'created_at'
+    sortOrder: 'asc' | 'desc'
   }
 
   if (!searchKey) {
@@ -106,7 +118,12 @@ const getProductSubscriptionPlans: RequestHandler = async (req, res) => {
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const productSubscriptionPlansIndex = client.initIndex('product_subscription_plans')
+  let productSubscriptionPlansIndex
+  if (sortOrder === 'asc') {
+    productSubscriptionPlansIndex = client.initIndex('product_subscription_plans')
+  } else {
+    productSubscriptionPlansIndex = client.initIndex('product_subscription_plans_created_at_desc')
+  }
 
   const { hits, nbPages, nbHits } = await productSubscriptionPlansIndex.search(query, {
     page,
@@ -121,7 +138,16 @@ const getProductSubscriptionPlans: RequestHandler = async (req, res) => {
     attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getProductSubscriptionPlans

@@ -11,10 +11,11 @@ const commentsIndex = client.initIndex('comments')
 
 exports.addCommentIndex = functions.firestore
   .document('activities/{activityId}/comments/{commentId}')
-  .onCreate(async (snapshot) => {
+  .onCreate(async (snapshot, context) => {
     const data = snapshot.data()
     const product = {
       objectID: snapshot.id,
+      activity_id: context.params.activityId,
       ...pick(data, commentFields),
     }
 
@@ -22,10 +23,11 @@ exports.addCommentIndex = functions.firestore
   })
 exports.updateCommentIndex = functions.firestore
   .document('activities/{activityId}/comments/{commentId}')
-  .onUpdate(async (change) => {
+  .onUpdate(async (change, context) => {
     const newData = change.after.data()
     const comment = {
       objectID: change.after.id,
+      activity_id: context.params.activityId,
       ...pick(newData, commentFields),
     }
 

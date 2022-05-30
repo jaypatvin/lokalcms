@@ -1,5 +1,7 @@
 import { SortOrderType, ActivitySortByType } from '../utils/types'
 import { db } from '../utils'
+import { API_URL } from '../config/variables'
+import { Activity } from '../models'
 
 export type ActivityFilterType = {
   status: string
@@ -16,6 +18,7 @@ type GetActivitiesParamTypes = {
   filter?: ActivityFilterType
   sort?: ActivitySort
   limit?: number
+  page?: number
   community?: string
 }
 
@@ -39,23 +42,51 @@ export const getActivitiesByCommunity = (community_id: string, limit = 10) => {
     .limit(limit)
 }
 
-export const getActivities = ({
-  filter = { status: 'all', archived: false },
-  sort = { sortBy: 'created_at', sortOrder: 'desc' },
-  limit = 10,
-  community,
-}: GetActivitiesParamTypes) => {
-  let ref = db.activities.where('archived', '==', filter.archived)
+export type ActivitiesResponse = {
+  pages: number
+  totalItems: number
+  data: (Activity & { id: string })[]
+}
 
+export const getActivities = async (
+  {
+    search = '',
+    filter = { status: 'all', archived: false },
+    sort = { sortBy: 'created_at', sortOrder: 'asc' },
+    limit = 10,
+    page = 0,
+    community,
+  }: GetActivitiesParamTypes,
+  firebaseToken: string
+): Promise<ActivitiesResponse | undefined> => {
+  let params: any = {
+    limit,
+    page,
+    sortBy: sort.sortBy,
+    sortOrder: sort.sortOrder,
+  }
+  if (search) {
+    params.q = search
+  }
   if (community) {
-    ref = ref.where('community_id', '==', community)
+    params.community = community
   }
-
   if (filter.status !== 'all') {
-    ref = ref.where('status', '==', filter.status)
+    params.status = filter.status
+  }
+  const searchParams = new URLSearchParams(params)
+  if (API_URL) {
+    const res = await (
+      await fetch(`${API_URL}/activities?${searchParams}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${firebaseToken}`,
+        },
+        method: 'get',
+      })
+    ).json()
+    return res
   }
 
-  ref = ref.orderBy(sort.sortBy, sort.sortOrder).limit(limit)
-
-  return ref
+  console.error('environment variable for the api does not exist.')
 }

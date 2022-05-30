@@ -35,11 +35,23 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: string
  *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: shop
  *         schema:
  *           type: string
  *       - in: query
  *         name: user
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: status
  *         schema:
  *           type: string
  *     description: Returns shops
@@ -69,6 +81,9 @@ const getShops: RequestHandler = async (req, res) => {
     category,
     product,
     user,
+    status,
+    sortBy,
+    sortOrder,
   } = req.query as unknown as {
     q: string
     page: number
@@ -77,6 +92,9 @@ const getShops: RequestHandler = async (req, res) => {
     category?: string
     product?: string
     user?: string
+    status?: string
+    sortBy: 'name' | 'created_at'
+    sortOrder: 'asc' | 'desc'
   }
 
   if (!searchKey) {
@@ -87,7 +105,20 @@ const getShops: RequestHandler = async (req, res) => {
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  const shopsIndex = client.initIndex('shops')
+  let shopsIndex
+  if (sortBy === 'created_at') {
+    if (sortOrder === 'asc') {
+      shopsIndex = client.initIndex('shops_created_at_asc')
+    } else {
+      shopsIndex = client.initIndex('shops_created_at_desc')
+    }
+  } else {
+    if (sortOrder === 'asc') {
+      shopsIndex = client.initIndex('shops')
+    } else {
+      shopsIndex = client.initIndex('shops_name_desc')
+    }
+  }
 
   const { hits, nbPages, nbHits } = await shopsIndex.search(query, {
     page,
@@ -96,9 +127,20 @@ const getShops: RequestHandler = async (req, res) => {
     ...(category ? { filters: `categories:${category}` } : {}),
     ...(product ? { filters: `products:${product}` } : {}),
     ...(user ? { filters: `user_id:${user}` } : {}),
+    ...(status ? { filters: `status:${status}` } : {}),
+    attributesToHighlight: [],
   })
 
-  return res.json({ status: 'ok', data: hits, pages: nbPages, totalItems: nbHits })
+  const data = hits.map((hit) => ({
+    ...hit,
+    id: hit.objectID,
+    // @ts-ignore
+    created_at: new Date(hit.created_at._seconds * 1000),
+    // @ts-ignore
+    ...(hit.updated_at ? { updated_at: new Date(hit.updated_at._seconds * 1000) } : {}),
+  }))
+
+  return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
 export default getShops
