@@ -91,6 +91,7 @@ export const order = {
   cancel: validate({ body: OrdersSchema.cancel }),
   decline: validate({ body: OrdersSchema.decline }),
   pay: validate({ body: OrdersSchema.pay }),
+  review: validate({ body: OrdersSchema.review }),
 }
 
 export const productSubscriptionPlan = {

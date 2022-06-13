@@ -27,6 +27,7 @@ type Order = {
     name: string
     price: number
     quantity: number
+    review_id?: string
   }[]
   proof_of_payment?: string
   seller_id: string
@@ -77,6 +78,7 @@ export type OrderUpdateData = Partial<
     | 'proof_of_payment'
     | 'delivered_date'
     | 'payment_method'
+    | 'products'
   >
 >
 
