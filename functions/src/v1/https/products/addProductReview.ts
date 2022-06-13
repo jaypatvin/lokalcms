@@ -92,7 +92,16 @@ const addProductReview: RequestHandler = async (req, res) => {
       order_id,
       product_id: productId,
     }
-    await ProductReviewsService.createProductReview(productId, newReview)
+    const review = await ProductReviewsService.createProductReview(productId, newReview)
+    const updatedOrderProducts = order.products.map((product) => {
+      if (product.id === productId) {
+        product.review_id = review.id
+      }
+      return product
+    })
+    await OrdersService.updateOrder(order_id, {
+      products: updatedOrderProducts,
+    })
   }
 
   return res.status(200).json({ status: 'ok' })
