@@ -220,6 +220,7 @@ module.exports = (api: Express) => {
   api.route('/v1/orders/:orderId/receive').put(wrapAsync(OrdersAPI.receive))
   api.route('/v1/orders/:orderId/decline').put(validation.order.decline, wrapAsync(OrdersAPI.decline))
   api.route('/v1/orders/:orderId/cancel').put(validation.order.cancel, wrapAsync(OrdersAPI.cancel))
+  api.route('/v1/orders/:orderId/products/:productId/review').post(validation.order.review, wrapAsync(OrdersAPI.addOrderProductReview))
 
   // -- Product Subscription Plans routes
   api.route('/v1/productSubscriptionPlans').get(orderSearchMiddleware, wrapAsync(ProductSubscriptionPlansAPI.getProductSubscriptionPlans))
@@ -238,4 +239,5 @@ module.exports = (api: Express) => {
   // -- Reviews routes
   api.route('/v1/products/:productId/reviews').get(wrapAsync(ReviewsApi.getProductReviews))
   api.route('/v1/users/:userId/reviews').get(wrapAsync(ReviewsApi.getUserReviews))
+  api.route('/v1/orders/:orderId/reviews').get(wrapAsync(ReviewsApi.getOrderProductsReviews))
 }

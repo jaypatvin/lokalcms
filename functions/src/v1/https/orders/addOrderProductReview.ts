@@ -1,13 +1,13 @@
 import { RequestHandler } from 'express'
 import { OrdersService, ProductReviewsService } from '../../../service'
-import { generateError, ErrorCode } from '../../../utils/generators'
+import { generateError, ErrorCode, generateNotFoundError } from '../../../utils/generators'
 
 /**
  * @openapi
- * /v1/products/{productId}/reviews:
+ * /v1/orders/{orderId}/products/{productId}/review:
  *   post:
  *     tags:
- *       - products
+ *       - orders
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -17,12 +17,17 @@ import { generateError, ErrorCode } from '../../../utils/generators'
  *         description: document id of the product
  *         schema:
  *           type: string
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         description: document id of the order
+ *         schema:
+ *           type: string
  *     description: |
  *       ### This will add or update a product review
  *       # Example
  *       ```
  *       {
- *         "order_id": "id-of-order-that-have-this-product",
  *         "message": "The cake is so delicious! Will order again.",
  *         "rating": 5
  *       }
@@ -30,7 +35,6 @@ import { generateError, ErrorCode } from '../../../utils/generators'
  *
  *       ```
  *       {
- *         "order_id": "id-of-order-that-have-this-product",
  *         "rating": 3
  *       }
  *       ```
@@ -42,13 +46,10 @@ import { generateError, ErrorCode } from '../../../utils/generators'
  *           schema:
  *             type: object
  *             properties:
- *               mesage:
+ *               message:
  *                 type: string
- *               order_id:
- *                 type: string
- *                 required: true
  *               rating:
- *                 type: string
+ *                 type: number
  *                 required: true
  *     responses:
  *       200:
@@ -61,25 +62,29 @@ import { generateError, ErrorCode } from '../../../utils/generators'
  *                   type: string
  *                   example: ok
  */
-const addProductReview: RequestHandler = async (req, res) => {
-  const { productId } = req.params
-  const { message = '', order_id, rating } = req.body
-  const requestorDocId = res.locals.userDoc.id
+const addOrderProductReview: RequestHandler = async (req, res) => {
+  const { productId, orderId } = req.params
+  const { message = '', rating } = req.body
+  const requestorDocId = res.locals.userDoc.id ?? 'mNgwHg5gmWNSisyX8vpe'
 
-  const order = await OrdersService.getOrderByID(order_id)
+  const order = await OrdersService.getOrderByID(orderId)
+
+  if (!order) {
+    throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
+  }
 
   if (!order.product_ids.includes(productId)) {
-    throw generateError(ErrorCode.ProductApiError, {
-      message: `The product ${productId} is not included on the order ${order_id}`,
+    throw generateError(ErrorCode.OrderApiError, {
+      message: `The product ${productId} is not included on the order ${orderId}`,
     })
   }
 
-  const existingReview = await ProductReviewsService.getProductReviewByOrderId(productId, order_id)
+  const existingReview = await ProductReviewsService.getProductReviewByOrderId(productId, orderId)
 
   if (existingReview.length) {
     const review = existingReview[0]
     if (review.user_id !== requestorDocId) {
-      throw generateError(ErrorCode.ProductApiError, {
+      throw generateError(ErrorCode.OrderApiError, {
         message: 'The requestor id does not match the user id of the review.',
       })
     }
@@ -89,7 +94,7 @@ const addProductReview: RequestHandler = async (req, res) => {
       user_id: requestorDocId,
       message,
       rating,
-      order_id,
+      order_id: orderId,
       product_id: productId,
     }
     const review = await ProductReviewsService.createProductReview(productId, newReview)
@@ -99,7 +104,7 @@ const addProductReview: RequestHandler = async (req, res) => {
       }
       return product
     })
-    await OrdersService.updateOrder(order_id, {
+    await OrdersService.updateOrder(orderId, {
       products: updatedOrderProducts,
     })
   }
@@ -107,4 +112,4 @@ const addProductReview: RequestHandler = async (req, res) => {
   return res.status(200).json({ status: 'ok' })
 }
 
-export default addProductReview
+export default addOrderProductReview
