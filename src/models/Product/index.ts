@@ -1,4 +1,4 @@
-import { Like, Review, Wishlist } from '../'
+import { Like, Review, Wishlist, Report } from '../'
 
 type Product = {
   _meta?: {
@@ -6,10 +6,12 @@ type Product = {
     likes_count?: number
     wishlists_count?: number
     reviews_count?: number
+    reports_count?: number
   }
   likes?: firebase.default.firestore.CollectionReference<Like>
   wishlists?: firebase.default.firestore.CollectionReference<Wishlist>
   reviews?: firebase.default.firestore.CollectionReference<Review>
+  reports?: firebase.default.firestore.CollectionReference<Report>
   archived: boolean
   availability: {
     end_time: string

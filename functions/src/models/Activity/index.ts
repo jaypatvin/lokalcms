@@ -1,9 +1,10 @@
-import { Like, Comment } from '../'
+import { Like, Comment, Report } from '../'
 
 type Activity = {
   _meta?: {
     comments_count?: number
     likes_count?: number
+    reports_count?: number
   }
   archived: boolean
   comments?: FirebaseFirestore.CollectionGroup<Comment>
@@ -14,6 +15,7 @@ type Activity = {
     order: number
   }[]
   likes?: FirebaseFirestore.CollectionGroup<Like>
+  reports?: FirebaseFirestore.CollectionGroup<Report>
   message: string
   status: 'enabled' | 'disabled'
   updated_at?: FirebaseFirestore.Timestamp
