@@ -74,6 +74,8 @@ const reportProduct: RequestHandler = async (req, res) => {
     user_id: requestor.id,
     reported_user_id: product.user_id,
     product_id: productId,
+    shop_id: product.shop_id,
+    community_id: product.community_id,
   }
 
   const result = await ReportsService.createProductReport(productId, updateData)

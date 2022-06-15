@@ -120,6 +120,7 @@ module.exports = (api: Express) => {
   api.route('/v1/shops/:shopId/operatingHours').put(validation.shop.operatingHours, wrapAsync(ShopsAPI.addShopOperatingHours))
   api.route('/v1/shops/:shopId/getDates').get(wrapAsync(ShopsAPI.getDates))
   api.route('/v1/shops/:shopId/wishlist').get(wrapAsync(UsersAPI.getShopWishlistUsers))
+  api.route('/v1/shops/:shopId/report').post(validation.shop.report, wrapAsync(ShopsAPI.reportShop))
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
@@ -158,6 +159,7 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/wishlist').delete(wrapAsync(WishlistsApi.removeFromWishlist))
   api.route('/v1/products/:productId/wishlist').get(wrapAsync(UsersAPI.getProductWishlistUsers))
   api.route('/v1/products/:productId/reviews').post(validation.product.review, wrapAsync(ProductsAPI.addProductReview))
+  api.route('/v1/products/:productId/report').post(validation.product.report, wrapAsync(ProductsAPI.reportProduct))
 
   // -- Categories routes
   api.route('/v1/categories').get(wrapAsync(CategoriesAPI.getCategories))
@@ -175,6 +177,7 @@ module.exports = (api: Express) => {
   api.route('/v1/activities/:activityId').delete(wrapAsync(ActivitiesAPI.archiveActivity))
   api.route('/v1/activities/:activityId/unarchive').put(wrapAsync(ActivitiesAPI.unarchiveActivity))
   api.route('/v1/activities/:activityId/comments').get(wrapAsync(CommentsAPI.getActivityComments))
+  api.route('/v1/activities/:activityId/report').post(validation.activity.report, wrapAsync(ActivitiesAPI.reportActivity))
 
   // -- Comments routes
   api.route('/v1/comments').get(searchMiddleware, wrapAsync(CommentsAPI.getComments))

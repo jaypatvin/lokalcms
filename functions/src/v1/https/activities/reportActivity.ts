@@ -74,6 +74,7 @@ const reportActivity: RequestHandler = async (req, res) => {
     user_id: requestor.id,
     reported_user_id: activity.user_id,
     activity_id: activityId,
+    community_id: activity.community_id,
   }
 
   const result = await ReportsService.createActivityReport(activityId, updateData)

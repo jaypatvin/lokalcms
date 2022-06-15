@@ -11,6 +11,7 @@ import {
   ProductsSchema,
   ProductSubscriptionPlansSchema,
   ProductSubscriptionsSchema,
+  SharedSchema,
   ShopsSchema,
   UsersSchema,
 } from './schemas'
@@ -39,6 +40,7 @@ export const shop = {
   create: validate({ body: ShopsSchema.create }),
   update: validate({ body: ShopsSchema.update }),
   operatingHours: validate({ body: ShopsSchema.operatingHours }),
+  report: validate({ body: SharedSchema.report }),
 }
 
 export const product = {
@@ -46,6 +48,7 @@ export const product = {
   update: validate({ body: ProductsSchema.update }),
   availability: validate({ body: ProductsSchema.availability }),
   review: validate({ body: ProductsSchema.review }),
+  report: validate({ body: SharedSchema.report }),
 }
 
 export const community = {
@@ -67,6 +70,7 @@ export const category = {
 export const activity = {
   create: validate({ body: ActivitiesSchema.create }),
   update: validate({ body: ActivitiesSchema.update }),
+  report: validate({ body: SharedSchema.report }),
 }
 
 export const comment = {
