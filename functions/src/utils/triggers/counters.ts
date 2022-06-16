@@ -324,6 +324,33 @@ const runCounter = async (
             })
           }
           break
+        case 'reports':
+          user_id = data.user_id
+          if (['products', 'shops', 'activities'].includes(collection_name)) {
+            await updateCountsInDoc({
+              docId: user_id,
+              collection: 'users',
+              hasCollection: 'reports',
+              parentCollection: collection_name,
+              parentDocId,
+              foreignKey: 'user_id',
+              countName: 'reports_count',
+              count,
+              transaction,
+            })
+            await updateCountsInDoc({
+              docId: data.reported_user_id,
+              collection: 'users',
+              hasCollection: 'reports',
+              parentCollection: collection_name,
+              parentDocId,
+              foreignKey: 'reported_user_id',
+              countName: 'reported_count',
+              count,
+              transaction,
+            })
+          }
+          break
         default:
           break
       }

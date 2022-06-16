@@ -1,12 +1,14 @@
-import { Like } from '../'
+import { Like, Report } from '../'
 
 type Shop = {
   _meta?: {
     orders_count?: number
     products_count?: number
     product_subscription_plans_count?: number
+    reports_count?: number
   }
   likes?: firebase.default.firestore.CollectionReference<Like>
+  reports?: firebase.default.firestore.CollectionReference<Report>
   archived: boolean
   community_id: string
   cover_photo?: string
