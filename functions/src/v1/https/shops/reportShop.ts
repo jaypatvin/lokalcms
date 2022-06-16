@@ -8,7 +8,7 @@ import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/
  * /v1/shops/{shopId}/report:
  *   post:
  *     tags:
- *       - report
+ *       - reports
  *     security:
  *       - bearerAuth: []
  *     description: |
