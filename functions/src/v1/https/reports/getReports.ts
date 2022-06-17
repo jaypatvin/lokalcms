@@ -113,15 +113,30 @@ const getReports: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const reportsIndex = client.initIndex('reports')
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (reporter) {
+    filtersArray.push(`user_id:${reporter}`)
+  }
+  if (reported) {
+    filtersArray.push(`reported_user_id:${reported}`)
+  }
+  if (activity) {
+    filtersArray.push(`activity_id:${activity}`)
+  }
+  if (shop) {
+    filtersArray.push(`shop_id:${shop}`)
+  }
+  if (product) {
+    filtersArray.push(`product_id:${product}`)
+  }
+
   const { hits, nbPages, nbHits } = await reportsIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(reporter ? { filters: `user_id:${reporter}` } : {}),
-    ...(reported ? { filters: `reported_user_id:${reported}` } : {}),
-    ...(activity ? { filters: `activity_id:${activity}` } : {}),
-    ...(shop ? { filters: `shop_id:${shop}` } : {}),
-    ...(product ? { filters: `product_id:${product}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

@@ -79,6 +79,11 @@ const allColumns: Column[] = [
     key: '_meta.products_count',
   },
   {
+    type: 'number',
+    title: 'Reports',
+    key: '_meta.reports_count',
+  },
+  {
     type: 'boolean',
     title: 'Archived',
     key: 'archived',

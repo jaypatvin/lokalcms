@@ -104,9 +104,9 @@ const getOrders: RequestHandler = async (req, res) => {
     product,
     buyer,
     seller,
-    delivery_option,
+    deliveryOption,
     paid,
-    payment_method,
+    paymentMethod,
     category,
     status,
     sortBy,
@@ -120,9 +120,9 @@ const getOrders: RequestHandler = async (req, res) => {
     product?: string
     buyer?: string
     seller?: string
-    delivery_option?: 'pickup' | 'delivery'
+    deliveryOption?: 'pickup' | 'delivery'
     paid?: boolean
-    payment_method?: 'cod' | 'bank'
+    paymentMethod?: 'cod' | 'bank'
     category?: string
     status?: number
     sortBy: 'created_at'
@@ -144,19 +144,42 @@ const getOrders: RequestHandler = async (req, res) => {
     ordersIndex = client.initIndex('orders_created_at_desc')
   }
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (shop) {
+    filtersArray.push(`shop_id:${shop}`)
+  }
+  if (product) {
+    filtersArray.push(`product_ids:${product}`)
+  }
+  if (seller) {
+    filtersArray.push(`seller_id:${seller}`)
+  }
+  if (buyer) {
+    filtersArray.push(`buyer_id:${buyer}`)
+  }
+  if (deliveryOption) {
+    filtersArray.push(`delivery_option:${deliveryOption}`)
+  }
+  if (paid) {
+    filtersArray.push(`is_paid:${paid}`)
+  }
+  if (paymentMethod) {
+    filtersArray.push(`payment_method:${paymentMethod}`)
+  }
+  if (category) {
+    filtersArray.push(`products.category:${category}`)
+  }
+  if (status) {
+    filtersArray.push(`status_code:${status}`)
+  }
+
   const { hits, nbPages, nbHits } = await ordersIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(shop ? { filters: `shop_id:${shop}` } : {}),
-    ...(product ? { filters: `product_ids:${product}` } : {}),
-    ...(seller ? { filters: `seller_id:${seller}` } : {}),
-    ...(buyer ? { filters: `buyer_id:${buyer}` } : {}),
-    ...(delivery_option ? { filters: `delivery_option:${delivery_option}` } : {}),
-    ...(paid ? { filters: `is_paid:${paid}` } : {}),
-    ...(payment_method ? { filters: `payment_method:${payment_method}` } : {}),
-    ...(category ? { filters: `products.category:${category}` } : {}),
-    ...(status ? { filters: `status_code:${status}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

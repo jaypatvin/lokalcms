@@ -120,14 +120,27 @@ const getShops: RequestHandler = async (req, res) => {
     }
   }
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (category) {
+    filtersArray.push(`categories:${category}`)
+  }
+  if (product) {
+    filtersArray.push(`products:${product}`)
+  }
+  if (user) {
+    filtersArray.push(`user_id:${user}`)
+  }
+  if (status) {
+    filtersArray.push(`status:${status}`)
+  }
+
   const { hits, nbPages, nbHits } = await shopsIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(category ? { filters: `categories:${category}` } : {}),
-    ...(product ? { filters: `products:${product}` } : {}),
-    ...(user ? { filters: `user_id:${user}` } : {}),
-    ...(status ? { filters: `status:${status}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

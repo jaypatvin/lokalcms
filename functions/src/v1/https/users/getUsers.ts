@@ -108,12 +108,21 @@ const getUsers: RequestHandler = async (req, res) => {
     }
   }
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (status) {
+    filtersArray.push(`status:${status}`)
+  }
+  if (role) {
+    filtersArray.push(`role:${role}`)
+  }
+
   const { hits, nbPages, nbHits } = await usersIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(status ? { filters: `status:${status}` } : {}),
-    ...(role ? { filters: `roles.${role}:true` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

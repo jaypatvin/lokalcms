@@ -126,15 +126,27 @@ const getProducts: RequestHandler = async (req, res) => {
     }
   }
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (category) {
+    filtersArray.push(`product_category:${category}`)
+  }
+  if (shop) {
+    filtersArray.push(`shop_id:${shop}`)
+  }
+  if (user) {
+    filtersArray.push(`user_id:${user}`)
+  }
+  if (status) {
+    filtersArray.push(`status:${status}`)
+  }
 
   const { hits, nbPages, nbHits } = await productsIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(category ? { filters: `product_category:${category}` } : {}),
-    ...(shop ? { filters: `shop_id:${shop}` } : {}),
-    ...(user ? { filters: `user_id:${user}` } : {}),
-    ...(status ? { filters: `status:${status}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

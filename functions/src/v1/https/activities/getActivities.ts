@@ -100,12 +100,21 @@ const getActivities: RequestHandler = async (req, res) => {
     activitiesIndex = client.initIndex('activities_created_at_desc')
   }
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (user) {
+    filtersArray.push(`user_id:${user}`)
+  }
+  if (status) {
+    filtersArray.push(`status:${status}`)
+  }
+
   const { hits, nbPages, nbHits } = await activitiesIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(user ? { filters: `user_id:${user}` } : {}),
-    ...(status ? { filters: `status:${status}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 
