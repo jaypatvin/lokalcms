@@ -8,6 +8,7 @@ export type ReportFilterType = {
   activity?: string
   shop?: string
   product?: string
+  reportType?: 'all' | 'activity' | 'shop' | 'product'
 }
 
 export type ReportSort = {
@@ -41,6 +42,9 @@ export const getReports = async (
   }: GetReportsParamTypes,
   firebaseToken: string
 ): Promise<ReportsResponse | undefined> => {
+  if (filter.reportType === 'all') {
+    delete filter.reportType
+  }
   let params: any = {
     limit,
     page,

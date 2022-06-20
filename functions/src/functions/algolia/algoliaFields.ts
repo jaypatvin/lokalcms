@@ -172,4 +172,5 @@ export const reportFields = [
   'updated_at',
   'reporter_email',
   'reported_email',
+  'report_type',
 ]

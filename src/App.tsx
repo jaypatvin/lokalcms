@@ -31,6 +31,7 @@ import ProfilePage from './pages/profile/ProfilePage'
 import CommunityPage from './pages/community/CommunityPage'
 import ShopPage from './pages/shop/ShopPage'
 import ActivityPage from './pages/activity/ActivityPage'
+import ReportListPage from './pages/reports/ReportListPage'
 
 class App extends React.Component {
   render() {
@@ -68,6 +69,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/history" component={HistoryListPage} />
             <PrivateRoute exact path="/applicationLogs" component={ApplicationLogsPage} />
             <PrivateRoute exact path="/discover" component={DiscoverPage} />
+            <PrivateRoute exact path="/reports" component={ReportListPage} />
             <PrivateRoute exact path="/myaccount" component={UserEditPage} useCurrentUser={true} />
           </Switch>
         </Router>

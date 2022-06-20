@@ -58,6 +58,10 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         name: product
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: reportType
+ *         schema:
+ *           type: string
  *     description: Returns reports
  *     responses:
  *       200:
@@ -89,6 +93,7 @@ const getReports: RequestHandler = async (req, res) => {
     activity,
     shop,
     product,
+    reportType,
   } = req.query as unknown as {
     q: string
     page: number
@@ -101,6 +106,7 @@ const getReports: RequestHandler = async (req, res) => {
     product?: string
     sortBy: 'created_at'
     sortOrder: 'asc' | 'desc'
+    reportType?: 'activity' | 'shop' | 'product'
   }
 
   if (!searchKey) {
@@ -131,6 +137,9 @@ const getReports: RequestHandler = async (req, res) => {
   }
   if (product) {
     filtersArray.push(`product_id:${product}`)
+  }
+  if (reportType) {
+    filtersArray.push(`report_type:${reportType}`)
   }
 
   const { hits, nbPages, nbHits } = await reportsIndex.search(query, {
