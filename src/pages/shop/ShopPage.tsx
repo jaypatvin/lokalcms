@@ -20,7 +20,9 @@ import ShopSubscriptionPlansTable from './ShopSubscriptionPlansTable'
 import useOuterClick from '../../customHooks/useOuterClick'
 import getAvailabilitySummary from '../../utils/dates/getAvailabilitySummary'
 import getCalendarTileClassFn from '../../utils/dates/getCalendarTileClassFn'
-import { Like, Order, Product, ProductSubscriptionPlan, Shop } from '../../models'
+import { Like, Order, Product, ProductSubscriptionPlan, Report, Shop } from '../../models'
+import { getReportsByShop } from '../../services/reports'
+import ShopReportsTable from './ShopReportsTable'
 
 type Props = {
   [x: string]: any
@@ -33,12 +35,14 @@ type ShopData = Shop & {
 }
 type OrderData = Order & { id: string; buyer_email?: string; seller_email?: string }
 type LikeData = Like & { id: string; user_email?: string }
-type DataRefType = firebase.default.firestore.Query<Product | Order | Like | ProductSubscriptionPlan>
+type DataRefType = firebase.default.firestore.Query<
+  Product | Order | Like | ProductSubscriptionPlan | Report
+>
 type DataDocType = firebase.default.firestore.QueryDocumentSnapshot<
-  Product | Order | Like | ProductSubscriptionPlan
+  Product | Order | Like | ProductSubscriptionPlan | Report
 >
 
-type DataType = 'likes' | 'orders' | 'products' | 'product_subscription_plans'
+type DataType = 'likes' | 'orders' | 'products' | 'product_subscription_plans' | 'reports'
 
 const ShopPage = ({ match }: Props) => {
   const [shop, setShop] = useState<ShopData>()
@@ -78,6 +82,11 @@ const ShopPage = ({ match }: Props) => {
       name: 'Subscription Plans',
       onClick: () => onChangeDataToShow('product_subscription_plans'),
     },
+    {
+      key: 'reports',
+      name: 'Reports',
+      onClick: () => onChangeDataToShow('reports'),
+    },
   ]
 
   const fetchShop = async (id: string) => {
@@ -111,6 +120,8 @@ const ShopPage = ({ match }: Props) => {
       newDataRef = getProductSubscriptionPlansByShop(shopId, limit)
     } else if (dataName === 'likes') {
       newDataRef = getLikesByShop({ shopId, limit })
+    } else if (dataName === 'reports') {
+      newDataRef = getReportsByShop({ shopId, limit })
     }
     if (snapshot && snapshot.unsubscribe) snapshot.unsubscribe() // unsubscribe current listener
     if (newDataRef) {
@@ -156,7 +167,7 @@ const ShopPage = ({ match }: Props) => {
           data.buyer_email = buyerData.email
         }
       }
-    } else if (dataToShow === 'likes') {
+    } else if (dataToShow === 'likes' || dataToShow === 'reports') {
       for (let i = 0; i < newData.length; i++) {
         const data = newData[i] as LikeData
         const user = await fetchUserByID(data.user_id)
@@ -280,6 +291,7 @@ const ShopPage = ({ match }: Props) => {
               {dataToShow === 'product_subscription_plans' && (
                 <ShopSubscriptionPlansTable data={data} />
               )}
+              {dataToShow === 'reports' && <ShopReportsTable data={data} />}
             </>
           )}
         </div>

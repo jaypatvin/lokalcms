@@ -77,6 +77,7 @@ const reportProduct: RequestHandler = async (req, res) => {
     shop_id: product.shop_id,
     community_id: product.community_id,
     report_type: 'product',
+    document_snapshot: product,
   }
 
   const result = await ReportsService.createProductReport(productId, updateData)

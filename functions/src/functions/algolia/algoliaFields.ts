@@ -173,4 +173,5 @@ export const reportFields = [
   'reporter_email',
   'reported_email',
   'report_type',
+  'document_snapshot',
 ]

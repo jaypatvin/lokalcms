@@ -1,6 +1,7 @@
 import { SortOrderType } from '../utils/types'
 import { API_URL } from '../config/variables'
 import { Report } from '../models'
+import { db } from '../utils'
 
 export type ReportFilterType = {
   reporter?: string
@@ -29,6 +30,15 @@ export type ReportsResponse = {
   pages: number
   totalItems: number
   data: (Report & { id: string })[]
+}
+
+type GetReportsByShopParamTypes = {
+  shopId: string
+  limit?: number
+}
+
+export const getReportsByShop = ({ shopId, limit = 10 }: GetReportsByShopParamTypes) => {
+  return db.getShopReports(`shops/${shopId}/reports`).orderBy('created_at', 'desc').limit(limit)
 }
 
 export const getReports = async (
