@@ -1,3 +1,5 @@
+import { Activity, Shop, Product } from "../index"
+
 type Report = {
   user_id: string
   reported_user_id: string
@@ -8,6 +10,7 @@ type Report = {
   report_type: 'activity' | 'shop' | 'product'
   created_at: firebase.default.firestore.Timestamp
   updated_at?: firebase.default.firestore.Timestamp
+  document_snapshot: Activity | Shop | Product
 }
 
 export type ReportCreateData = Pick<
@@ -19,6 +22,7 @@ export type ReportCreateData = Pick<
   | 'product_id'
   | 'shop_id'
   | 'report_type'
+  | 'document_snapshot'
 >
 
 export default Report

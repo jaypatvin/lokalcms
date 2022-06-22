@@ -27,6 +27,29 @@ const allColumns: Column[] = [
   },
   {
     type: 'reference',
+    title: 'Community',
+    key: 'community_id',
+    collection: 'community',
+    referenceField: 'name',
+  },
+  {
+    type: 'string',
+    title: 'Type',
+    key: 'report_type',
+  },
+  {
+    type: 'string',
+    title: 'Description',
+    key: 'description',
+  },
+  {
+    type: 'document',
+    title: 'Document',
+    key: 'document_snapshot',
+    getDocType: (data: any) => data.report_type,
+  },
+  {
+    type: 'reference',
     title: 'Activity',
     key: 'activity_id',
     collection: 'activities',
@@ -43,19 +66,8 @@ const allColumns: Column[] = [
     type: 'reference',
     title: 'Product',
     key: 'product_id',
+    collection: 'products',
     referenceField: 'name',
-  },
-  {
-    type: 'reference',
-    title: 'Community',
-    key: 'community_id',
-    collection: 'community',
-    referenceField: 'name',
-  },
-  {
-    type: 'string',
-    title: 'Description',
-    key: 'description',
   },
   {
     type: 'datepast',
@@ -72,8 +84,9 @@ const allColumns: Column[] = [
 const columns = [
   'user_id',
   'reported_user_id',
-  'community_id',
+  'report_type',
   'description',
+  'document_snapshot',
   'created_at',
 ]
 
