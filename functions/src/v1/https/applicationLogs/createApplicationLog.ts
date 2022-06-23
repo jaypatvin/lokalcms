@@ -71,7 +71,7 @@ const createApplicationLog: RequestHandler = async (req, res) => {
   const { community_id, action_type, device_id, associated_document = '', metadata = {} } = data
 
   const community = await CommunityService.getCommunityByID(community_id)
-  if (!community) {
+  if (!community && action_type !== 'user_login_failed') {
     throw generateNotFoundError(ErrorCode.ApplicationLogApiError, 'Community', community_id)
   }
 
