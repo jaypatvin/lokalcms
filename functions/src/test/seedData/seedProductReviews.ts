@@ -23,6 +23,8 @@ export const seedProductReviews = async ({ admin }: { admin: AdminType }) => {
             message: chance.sentence(),
             order_id: order.id,
             product_id: product.id,
+            shop_id: product.shop_id,
+            community_id: product.community_id,
             // @ts-ignore
             rating: chance.integer({ min: 1, max: 5 }),
             created_at: admin.firestore.Timestamp.now(),
