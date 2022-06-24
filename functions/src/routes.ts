@@ -243,4 +243,5 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/reviews').get(wrapAsync(ReviewsApi.getProductReviews))
   api.route('/v1/users/:userId/reviews').get(wrapAsync(ReviewsApi.getUserReviews))
   api.route('/v1/orders/:orderId/reviews').get(wrapAsync(ReviewsApi.getOrderProductsReviews))
+  api.route('/v1/reviews').get(searchMiddleware, wrapAsync(ReviewsApi.getReviews))
 }
