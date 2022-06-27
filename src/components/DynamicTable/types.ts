@@ -19,7 +19,7 @@ export type DynamicType =
 export type Cell = {
   type: DynamicType
   value?: unknown
-  collection?: 'community' | 'users' | 'shops'
+  collection?: 'community' | 'users' | 'shops' | 'products' | 'orders'
   referenceField?: string
   referenceLink?: string
 }
@@ -30,7 +30,7 @@ export type Column = {
   title: string
   key: string
   type: DynamicType
-  collection?: 'community' | 'users' | 'shops'
+  collection?: 'community' | 'users' | 'shops' | 'products' | 'orders'
   referenceField?: string
   referenceLink?: string
 }

@@ -122,16 +122,31 @@ const getReviews: RequestHandler = async (req, res) => {
     }
   }
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (shop) {
+    filtersArray.push(`shop_id:${shop}`)
+  }
+  if (product) {
+    filtersArray.push(`product_id:${product}`)
+  }
+  if (order) {
+    filtersArray.push(`order_id:${order}`)
+  }
+  if (user) {
+    filtersArray.push(`user_id:${user}`)
+  }
+  if (rating) {
+    filtersArray.push(`rating:${rating}`)
+  }
+
 
   const { hits, nbPages, nbHits } = await reviewsIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(shop ? { filters: `shop_id:${shop}` } : {}),
-    ...(product ? { filters: `product_id:${product}` } : {}),
-    ...(order ? { filters: `order_id:${order}` } : {}),
-    ...(user ? { filters: `user_id:${user}` } : {}),
-    ...(rating ? { filters: `rating:${rating}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

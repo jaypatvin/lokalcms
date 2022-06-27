@@ -24,3 +24,5 @@ export type ReviewCreateData = Pick<
 >
 
 export type ReviewUpdateData = Partial<Pick<Review, 'rating' | 'message'>>
+
+export default Review

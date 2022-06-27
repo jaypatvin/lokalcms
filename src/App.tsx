@@ -31,6 +31,7 @@ import ProfilePage from './pages/profile/ProfilePage'
 import CommunityPage from './pages/community/CommunityPage'
 import ShopPage from './pages/shop/ShopPage'
 import ActivityPage from './pages/activity/ActivityPage'
+import ReviewListPage from './pages/reviews/ReviewsListPage'
 
 class App extends React.Component {
   render() {
@@ -51,6 +52,7 @@ class App extends React.Component {
             <PrivateRoute exact path="/shops" component={ShopListPage} />
             <PrivateRoute exact path="/shops/:id" component={ShopPage} />
             <PrivateRoute exact path="/products" component={ProductListPage} />
+            <PrivateRoute exact path="/reviews" component={ReviewListPage} />
             <PrivateRoute
               exact
               path="/productSubscriptionPlans"
