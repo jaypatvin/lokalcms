@@ -8,7 +8,7 @@ import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/
  * /v1/products/{productId}/report:
  *   post:
  *     tags:
- *       - report
+ *       - reports
  *     security:
  *       - bearerAuth: []
  *     description: |
@@ -76,6 +76,8 @@ const reportProduct: RequestHandler = async (req, res) => {
     product_id: productId,
     shop_id: product.shop_id,
     community_id: product.community_id,
+    report_type: 'product',
+    document_snapshot: product,
   }
 
   const result = await ReportsService.createProductReport(productId, updateData)

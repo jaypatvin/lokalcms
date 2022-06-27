@@ -15,11 +15,13 @@ export type DynamicType =
   | 'metadata'
   | 'product'
   | 'products'
+  | 'document'
 
 export type Cell = {
   type: DynamicType
   value?: unknown
-  collection?: 'community' | 'users' | 'shops' | 'products' | 'orders'
+  documentType?: 'activity' | 'shop' | 'product'
+  collection?: 'community' | 'users' | 'shops' | 'activities' | 'products' | 'orders'
   referenceField?: string
   referenceLink?: string
 }
@@ -30,7 +32,8 @@ export type Column = {
   title: string
   key: string
   type: DynamicType
-  collection?: 'community' | 'users' | 'shops' | 'products' | 'orders'
+  getDocType?: (data: any) => 'activity' | 'shop' | 'product'
+  collection?: 'community' | 'users' | 'shops' | 'activities' | 'products' | 'orders'
   referenceField?: string
   referenceLink?: string
 }

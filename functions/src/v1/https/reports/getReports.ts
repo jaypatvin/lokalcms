@@ -6,10 +6,10 @@ import { ErrorCode, generateError } from '../../../utils/generators'
 
 /**
  * @openapi
- * /v1/orders:
+ * /v1/reports:
  *   get:
  *     tags:
- *       - orders
+ *       - reports
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -39,6 +39,18 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: string
  *       - in: query
+ *         name: reporter
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: reported
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: activity
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: shop
  *         schema:
  *           type: string
@@ -47,39 +59,13 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: string
  *       - in: query
- *         name: buyer
+ *         name: reportType
  *         schema:
  *           type: string
- *       - in: query
- *         name: seller
- *         schema:
- *           type: string
- *       - in: query
- *         name: delivery_option
- *         schema:
- *           type: string
- *           enum: [pickup, delivery]
- *       - in: query
- *         name: paid
- *         schema:
- *           type: boolean
- *       - in: query
- *         name: payment_method
- *         schema:
- *           type: string
- *           enum: [bank, cod]
- *       - in: query
- *         name: category
- *         schema:
- *           type: string
- *       - in: query
- *         name: status
- *         schema:
- *           type: number
- *     description: Returns orders
+ *     description: Returns reports
  *     responses:
  *       200:
- *         description: List of orders
+ *         description: List of reports
  *         content:
  *           application/json:
  *             schema:
@@ -91,92 +77,72 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Order'
+ *                     $ref: '#/components/schemas/Report'
  */
-const getOrders: RequestHandler = async (req, res) => {
+const getReports: RequestHandler = async (req, res) => {
   const { searchKey } = res.locals
   const {
     q: query = '',
     page = 0,
-    limit: hitsPerPage = 100,
+    limit: hitsPerPage,
     community,
-    shop,
-    product,
-    buyer,
-    seller,
-    deliveryOption,
-    paid,
-    paymentMethod,
-    category,
-    status,
     sortBy,
     sortOrder,
+    reporter,
+    reported,
+    activity,
+    shop,
+    product,
+    reportType,
   } = req.query as unknown as {
     q: string
     page: number
     limit: number
     community?: string
+    reporter?: string
+    reported?: string
+    activity?: string
     shop?: string
     product?: string
-    buyer?: string
-    seller?: string
-    deliveryOption?: 'pickup' | 'delivery'
-    paid?: boolean
-    paymentMethod?: 'cod' | 'bank'
-    category?: string
-    status?: number
     sortBy: 'created_at'
     sortOrder: 'asc' | 'desc'
+    reportType?: 'activity' | 'shop' | 'product'
   }
 
   if (!searchKey) {
-    throw generateError(ErrorCode.OrderApiError, {
+    throw generateError(ErrorCode.ActivityApiError, {
       message: 'invalid searchKey',
     })
   }
 
   const appId = get(functions.config(), 'algolia_config.app_id')
   const client = algoliasearch(appId, searchKey)
-  let ordersIndex
-  if (sortOrder === 'asc') {
-    ordersIndex = client.initIndex('orders')
-  } else {
-    ordersIndex = client.initIndex('orders_created_at_desc')
-  }
+  const reportsIndex = client.initIndex('reports')
 
   const filtersArray = []
   if (community) {
     filtersArray.push(`community_id:${community}`)
   }
+  if (reporter) {
+    filtersArray.push(`user_id:${reporter}`)
+  }
+  if (reported) {
+    filtersArray.push(`reported_user_id:${reported}`)
+  }
+  if (activity) {
+    filtersArray.push(`activity_id:${activity}`)
+  }
   if (shop) {
     filtersArray.push(`shop_id:${shop}`)
   }
   if (product) {
-    filtersArray.push(`product_ids:${product}`)
+    filtersArray.push(`product_id:${product}`)
   }
-  if (seller) {
-    filtersArray.push(`seller_id:${seller}`)
-  }
-  if (buyer) {
-    filtersArray.push(`buyer_id:${buyer}`)
-  }
-  if (deliveryOption) {
-    filtersArray.push(`delivery_option:${deliveryOption}`)
-  }
-  if (paid) {
-    filtersArray.push(`is_paid:${paid}`)
-  }
-  if (paymentMethod) {
-    filtersArray.push(`payment_method:${paymentMethod}`)
-  }
-  if (category) {
-    filtersArray.push(`products.category:${category}`)
-  }
-  if (status) {
-    filtersArray.push(`status_code:${status}`)
+  if (reportType) {
+    filtersArray.push(`report_type:${reportType}`)
   }
 
-  const { hits, nbPages, nbHits } = await ordersIndex.search(query, {
+  const { hits, nbPages, nbHits } = await reportsIndex.search(query, {
     page,
     hitsPerPage,
     ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
@@ -195,4 +161,4 @@ const getOrders: RequestHandler = async (req, res) => {
   return res.json({ status: 'ok', data, pages: nbPages, totalItems: nbHits })
 }
 
-export default getOrders
+export default getReports

@@ -131,6 +131,7 @@ const DynamicTable = ({
         collection: col.collection,
         referenceField: col.referenceField,
         referenceLink: referenceLink,
+        ...(col.getDocType ? { documentType: col.getDocType(item) } : {}),
       }
     })
     if (contextMenu) {

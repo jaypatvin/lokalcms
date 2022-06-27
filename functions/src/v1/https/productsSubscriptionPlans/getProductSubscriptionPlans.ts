@@ -55,7 +55,7 @@ import { ErrorCode, generateError } from '../../../utils/generators'
  *         schema:
  *           type: string
  *       - in: query
- *         name: payment_method
+ *         name: paymentMethod
  *         schema:
  *           type: string
  *           enum: [bank, cod]
@@ -91,7 +91,7 @@ const getProductSubscriptionPlans: RequestHandler = async (req, res) => {
     product,
     buyer,
     seller,
-    payment_method,
+    paymentMethod,
     status,
     sortBy,
     sortOrder,
@@ -104,7 +104,7 @@ const getProductSubscriptionPlans: RequestHandler = async (req, res) => {
     product?: string
     buyer?: string
     seller?: string
-    payment_method?: 'cod' | 'bank'
+    paymentMethod?: 'cod' | 'bank'
     status?: string
     sortBy: 'created_at'
     sortOrder: 'asc' | 'desc'
@@ -125,16 +125,33 @@ const getProductSubscriptionPlans: RequestHandler = async (req, res) => {
     productSubscriptionPlansIndex = client.initIndex('product_subscription_plans_created_at_desc')
   }
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (shop) {
+    filtersArray.push(`shop_id:${shop}`)
+  }
+  if (product) {
+    filtersArray.push(`product_id:${product}`)
+  }
+  if (seller) {
+    filtersArray.push(`seller_id:${seller}`)
+  }
+  if (buyer) {
+    filtersArray.push(`buyer_id:${buyer}`)
+  }
+  if (paymentMethod) {
+    filtersArray.push(`payment_method:${paymentMethod}`)
+  }
+  if (status) {
+    filtersArray.push(`status_code:${status}`)
+  }
+
   const { hits, nbPages, nbHits } = await productSubscriptionPlansIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(shop ? { filters: `shop_id:${shop}` } : {}),
-    ...(product ? { filters: `product_id:${product}` } : {}),
-    ...(seller ? { filters: `seller_id:${seller}` } : {}),
-    ...(buyer ? { filters: `buyer_id:${buyer}` } : {}),
-    ...(payment_method ? { filters: `payment_method:${payment_method}` } : {}),
-    ...(status ? { filters: `status_code:${status}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

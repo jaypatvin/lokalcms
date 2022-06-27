@@ -106,13 +106,24 @@ const getComments: RequestHandler = async (req, res) => {
     commentsIndex = client.initIndex('comments_created_at_desc')
   }
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (activity) {
+    filtersArray.push(`activity_id:${activity}`)
+  }
+  if (user) {
+    filtersArray.push(`user_id:${user}`)
+  }
+  if (status) {
+    filtersArray.push(`status:${status}`)
+  }
+
   const { hits, nbPages, nbHits } = await commentsIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(activity ? { filters: `activity_id:${activity}` } : {}),
-    ...(user ? { filters: `user_id:${user}` } : {}),
-    ...(status ? { filters: `status:${status}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

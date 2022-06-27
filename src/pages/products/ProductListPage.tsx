@@ -108,6 +108,11 @@ const allColumns: Column[] = [
   },
   {
     type: 'number',
+    title: 'Reports',
+    key: '_meta.reports_count',
+  },
+  {
+    type: 'number',
     title: 'Wishlists',
     key: '_meta.wishlists_count',
   },

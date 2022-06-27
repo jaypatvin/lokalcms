@@ -61,6 +61,19 @@ const allColumns: Column[] = [
     key: 'status',
   },
   {
+    type: 'number',
+    title: 'Comments',
+    key: '_meta.comments_count',
+  },{
+    type: 'number',
+    title: 'Likes',
+    key: '_meta.likes_count',
+  },{
+    type: 'number',
+    title: 'Reports',
+    key: '_meta.reports_count',
+  },
+  {
     type: 'boolean',
     title: 'Archived',
     key: 'archived',
