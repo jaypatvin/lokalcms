@@ -15,6 +15,7 @@ const reviewFields = [
   'community_id',
   'created_at',
   'updated_at',
+  'seller_id'
 ]
 
 const importReviews = async (client: SearchClient) => {

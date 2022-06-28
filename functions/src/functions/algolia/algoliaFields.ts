@@ -175,3 +175,17 @@ export const reportFields = [
   'report_type',
   'document_snapshot',
 ]
+
+export const reviewFields = [
+  'user_id',
+  'user_email',
+  'message',
+  'rating',
+  'order_id',
+  'product_id',
+  'shop_id',
+  'community_id',
+  'created_at',
+  'updated_at',
+  'seller_id'
+]

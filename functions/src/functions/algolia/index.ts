@@ -9,6 +9,7 @@ const activitiesIndex = require('./activitiesIndex')
 const commentsIndex = require('./commentsIndex')
 const communitiesIndex = require('./communitiesIndex')
 const reportsIndex = require('./reportsIndex')
+const reviewsIndex = require('./reviewsIndex')
 
 exports.addUserIndex = usersIndex.addUserIndex
 exports.updateUserIndex = usersIndex.updateUserIndex
@@ -53,3 +54,7 @@ exports.deleteCommunityIndex = communitiesIndex.deleteCommunityIndex
 exports.addReportIndex = reportsIndex.addReportIndex
 exports.updateReportIndex = reportsIndex.updateReportIndex
 exports.deleteReportIndex = reportsIndex.deleteReportIndex
+
+exports.addReviewIndex = reviewsIndex.addReviewIndex
+exports.updateReviewIndex = reviewsIndex.updateReviewIndex
+exports.deleteReviewIndex = reviewsIndex.deleteReviewIndex
