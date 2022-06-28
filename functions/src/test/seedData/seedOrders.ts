@@ -33,6 +33,22 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
             chance.integer({ min: -10, max: 10 }),
             'day'
           )
+          const orderProducts = randomProducts.map((product) => ({
+            instruction: chance.bool()
+              ? chance.sentence({ words: chance.integer({ min: 3, max: 10 }) })
+              : '',
+            category: product.product_category,
+            description: product.description,
+            id: product.id,
+            image: product.gallery[0].url,
+            name: product.name,
+            price: product.base_price,
+            quantity: chance.integer({ min: 1, max: 5 }),
+          }))
+          const totalPrice = orderProducts.reduce((acc, product) => {
+            acc += product.price * product.quantity
+            return acc
+          }, 0)
           const deliveryDate = admin.firestore.Timestamp.fromDate(deliveryDateInDayJs.toDate())
           const paymentMethod = chance.pickone(['bank', 'cod'])
           const isDeliveryDatePast = deliveryDateInDayJs.isAfter(dayjs(new Date()))
@@ -55,18 +71,7 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
             // @ts-ignore
             payment_method: paymentMethod,
             product_ids: randomProducts.map((product) => product.id),
-            products: randomProducts.map((product) => ({
-              instruction: chance.bool()
-                ? chance.sentence({ words: chance.integer({ min: 3, max: 10 }) })
-                : '',
-              category: product.product_category,
-              description: product.description,
-              id: product.id,
-              image: product.gallery[0].url,
-              name: product.name,
-              price: product.base_price,
-              quantity: chance.integer({ min: 1, max: 5 }),
-            })),
+            products: orderProducts,
             seller_id: shop.user_id,
             shop_id: shop.id,
             shop: {
@@ -76,6 +81,7 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
             },
             status_code: statusCode,
             created_at: admin.firestore.Timestamp.now(),
+            total_price: totalPrice,
           }
           if (statusCode === 300) {
             newOrder.proof_of_payment = proofOfPayment
