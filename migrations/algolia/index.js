@@ -44,19 +44,7 @@ var lodash_1 = require("lodash");
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
 process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
 admin.initializeApp({ projectId: 'lokal-1baac' });
-// lokal-app
-// const appId = get(functions.config(), 'algolia_config.app_id', '4TDTSDE7AK')
-// const apiKey = get(functions.config(), 'algolia_config.api_key', '0b4862933a12e4f86d0dbc45a2e53e9d')
-// lokal-app-jet
-var reviews_1 = require("./reviews");
-var users_1 = require("./users");
-var communities_1 = require("./communities");
-var shopsAndProducts_1 = require("./shopsAndProducts");
-var chatsAndConversations_1 = require("./chatsAndConversations");
 var orders_1 = require("./orders");
-var productSubscriptionPlans_1 = require("./productSubscriptionPlans");
-var activitiesAndComments_1 = require("./activitiesAndComments");
-var reports_1 = require("./reports");
 var appId = lodash_1.get(functions.config(), 'algolia_config.app_id', '4DS4A9V4EM');
 var apiKey = lodash_1.get(functions.config(), 'algolia_config.api_key', 'de79c046fa3f1680f68a74fd7cc5df42');
 var client = algoliasearch_1["default"](appId, apiKey);
@@ -94,33 +82,22 @@ var importToAlgolia = function () { return __awaiter(void 0, void 0, void 0, fun
         switch (_a.label) {
             case 0: 
             // await clearAlgoliaIndex()
-            return [4 /*yield*/, users_1["default"](client)];
+            // await importUsers(client)
+            // await importCommunities(client)
+            // await importShopsAndProducts(client)
+            // await importChatsAndConversations(client)
+            return [4 /*yield*/, orders_1["default"](client)
+                // await importProductSubscriptionPlans(client)
+                // await importActivitiesAndComments(client)
+                // await importReviews(client)
+                // await importReports(client)
+            ];
             case 1:
                 // await clearAlgoliaIndex()
-                _a.sent();
-                return [4 /*yield*/, communities_1["default"](client)];
-            case 2:
-                _a.sent();
-                return [4 /*yield*/, shopsAndProducts_1["default"](client)];
-            case 3:
-                _a.sent();
-                return [4 /*yield*/, chatsAndConversations_1["default"](client)];
-            case 4:
-                _a.sent();
-                return [4 /*yield*/, orders_1["default"](client)];
-            case 5:
-                _a.sent();
-                return [4 /*yield*/, productSubscriptionPlans_1["default"](client)];
-            case 6:
-                _a.sent();
-                return [4 /*yield*/, activitiesAndComments_1["default"](client)];
-            case 7:
-                _a.sent();
-                return [4 /*yield*/, reviews_1["default"](client)];
-            case 8:
-                _a.sent();
-                return [4 /*yield*/, reports_1["default"](client)];
-            case 9:
+                // await importUsers(client)
+                // await importCommunities(client)
+                // await importShopsAndProducts(client)
+                // await importChatsAndConversations(client)
                 _a.sent();
                 return [2 /*return*/];
         }

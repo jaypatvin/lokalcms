@@ -128,6 +128,7 @@ module.exports = (api: Express) => {
   api.route('/v1/shops/:shopId/getDates').get(wrapAsync(ShopsAPI.getDates))
   api.route('/v1/shops/:shopId/wishlist').get(wrapAsync(UsersAPI.getShopWishlistUsers))
   api.route('/v1/shops/:shopId/report').post(validation.shop.report, wrapAsync(ShopsAPI.reportShop))
+  api.route('/v1/shops/:shopId/earnings').post(orderSearchMiddleware, wrapAsync(ShopsAPI.getEarnings))
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
