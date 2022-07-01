@@ -4,7 +4,13 @@ import swaggerJsdoc from 'swagger-jsdoc'
 import wrapAsync from './utils/wrapAsync'
 import { postStreamFeedCredentials } from './v1/https/streamFeedCredentials'
 import { validation } from './middlewares/validation'
-import { chatSearchMiddleware, conversationSearchMiddleware, orderSearchMiddleware, searchMiddleware } from './middlewares'
+import {
+  chatSearchMiddleware,
+  conversationSearchMiddleware,
+  orderSearchMiddleware,
+  reportSearchMiddleware,
+  searchMiddleware,
+} from './middlewares'
 
 import {
   UsersAPI,
@@ -26,6 +32,7 @@ import {
   ApplicationLogsApi,
   WishlistsApi,
   ReviewsApi,
+  ReportsApi,
 } from './v1/https'
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -243,4 +250,9 @@ module.exports = (api: Express) => {
   api.route('/v1/products/:productId/reviews').get(wrapAsync(ReviewsApi.getProductReviews))
   api.route('/v1/users/:userId/reviews').get(wrapAsync(ReviewsApi.getUserReviews))
   api.route('/v1/orders/:orderId/reviews').get(wrapAsync(ReviewsApi.getOrderProductsReviews))
+  api.route('/v1/reviews').get(searchMiddleware, wrapAsync(ReviewsApi.getReviews))
+
+
+  // -- Reports routes
+  api.route('/v1/reports').get(reportSearchMiddleware, wrapAsync(ReportsApi.getReports))
 }

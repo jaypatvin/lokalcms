@@ -159,3 +159,33 @@ export const communityFields = [
   'profile_photo',
   'updated_at',
 ]
+
+export const reportFields = [
+  'user_id',
+  'reported_user_id',
+  'description',
+  'community_id',
+  'activity_id',
+  'shop_id',
+  'product_id',
+  'created_at',
+  'updated_at',
+  'reporter_email',
+  'reported_email',
+  'report_type',
+  'document_snapshot',
+]
+
+export const reviewFields = [
+  'user_id',
+  'user_email',
+  'message',
+  'rating',
+  'order_id',
+  'product_id',
+  'shop_id',
+  'community_id',
+  'created_at',
+  'updated_at',
+  'seller_id'
+]

@@ -107,14 +107,27 @@ const getChats: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const chatsIndex = client.initIndex('chats')
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (shop) {
+    filtersArray.push(`shop_id:${shop}`)
+  }
+  if (product) {
+    filtersArray.push(`product_id:${product}`)
+  }
+  if (user) {
+    filtersArray.push(`members:${user}`)
+  }
+  if (chatType) {
+    filtersArray.push(`chat_type:${chatType}`)
+  }
+
   const { hits, nbPages, nbHits } = await chatsIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(shop ? { filters: `shop_id:${shop}` } : {}),
-    ...(product ? { filters: `product_id:${product}` } : {}),
-    ...(user ? { filters: `members:${user}` } : {}),
-    ...(chatType ? { filters: `chat_type:${chatType}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
     attributesToHighlight: [],
   })
 

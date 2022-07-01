@@ -91,6 +91,9 @@ const addProductReview: RequestHandler = async (req, res) => {
       rating,
       order_id,
       product_id: productId,
+      shop_id: order.shop_id,
+      community_id: order.community_id,
+      seller_id: order.seller_id,
     }
     const review = await ProductReviewsService.createProductReview(productId, newReview)
     const updatedOrderProducts = order.products.map((product) => {

@@ -8,7 +8,7 @@ import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/
  * /v1/activities/{activityId}/report:
  *   post:
  *     tags:
- *       - report
+ *       - reports
  *     security:
  *       - bearerAuth: []
  *     description: |
@@ -75,6 +75,8 @@ const reportActivity: RequestHandler = async (req, res) => {
     reported_user_id: activity.user_id,
     activity_id: activityId,
     community_id: activity.community_id,
+    report_type: 'activity',
+    document_snapshot: activity,
   }
 
   const result = await ReportsService.createActivityReport(activityId, updateData)

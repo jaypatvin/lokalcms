@@ -83,12 +83,22 @@ const getConversations: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const conversationsIndex = client.initIndex('conversations')
 
+  const filtersArray = []
+  if (community) {
+    filtersArray.push(`community_id:${community}`)
+  }
+  if (chat) {
+    filtersArray.push(`chat_id:${chat}`)
+  }
+  if (user) {
+    filtersArray.push(`sender_id:${user}`)
+  }
+
   const { hits, nbPages, nbHits } = await conversationsIndex.search(query, {
     page,
     hitsPerPage,
-    ...(community ? { filters: `community_id:${community}` } : {}),
-    ...(chat ? { filters: `chat_id:${chat}` } : {}),
-    ...(user ? { filters: `sender_id:${user}` } : {}),
+    ...(filtersArray.length ? { filters: filtersArray.join(' AND ') } : {}),
+    attributesToHighlight: [],
   })
 
   const data = hits.map((hit) => ({

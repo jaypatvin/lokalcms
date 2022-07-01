@@ -22,3 +22,4 @@
 export { default as getProductReviews } from './getProductReviews'
 export { default as getUserReviews } from './getUserReviews'
 export { default as getOrderProductsReviews } from './getOrderProductsReviews'
+export { default as getReviews } from './getReviews'

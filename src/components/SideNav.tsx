@@ -77,9 +77,19 @@ const menus = [
     icon: <IoIosBasket size={23} />,
   },
   {
+    key: 'reviews',
+    label: 'Reviews',
+    icon: <IoIosBasket size={23} />,
+  },
+  {
     key: 'settings',
     label: 'Setting',
     icon: <IoMdSettings size={23} />,
+  },
+  {
+    key: 'reports',
+    label: 'Reports',
+    icon: <IoIosPeople size={23} />,
   },
   {
     key: 'shops',

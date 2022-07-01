@@ -8,7 +8,7 @@ import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/
  * /v1/shops/{shopId}/report:
  *   post:
  *     tags:
- *       - report
+ *       - reports
  *     security:
  *       - bearerAuth: []
  *     description: |
@@ -75,6 +75,8 @@ const reportShop: RequestHandler = async (req, res) => {
     reported_user_id: shop.user_id,
     shop_id: shopId,
     community_id: shop.community_id,
+    report_type: 'shop',
+    document_snapshot: shop,
   }
 
   const result = await ReportsService.createShopReport(shopId, updateData)
