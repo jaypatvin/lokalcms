@@ -146,13 +146,13 @@ const archiveActivityBy = async (status: boolean, idType: string, id: string) =>
 
 export const incrementActivityCommentCount = async (id: string) => {
   return await db.activities.doc(id).update({
-    '_meta.comment_count': admin.firestore.FieldValue.increment(1),
+    '_meta.comments_count': admin.firestore.FieldValue.increment(1),
   })
 }
 
 export const deccrementActivityCommentCount = async (id: string) => {
   return await db.activities.doc(id).update({
-    '_meta.comment_count': admin.firestore.FieldValue.increment(-1),
+    '_meta.comments_count': admin.firestore.FieldValue.increment(-1),
   })
 }
 

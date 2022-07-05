@@ -11,6 +11,9 @@ const webhook = new IncomingWebhook(get(functions.config(), 'slack_config.alerts
 })
 
 const errorAlert: ErrorRequestHandler = async (err, req, res, next) => {
+  if (process.env.FUNCTIONS_EMULATOR) {
+    next(err)
+  }
   const requestorDocEmail = get(res.locals, 'userDoc.email', '--')
   console.log('sending alert to slack')
   try {

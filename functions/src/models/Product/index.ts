@@ -61,7 +61,7 @@ type Product = {
           unavailable?: boolean
           start_time?: string
           end_time?: string
-        }
+        } | any
       }
       mon?: {
         start_date: string

@@ -26,8 +26,8 @@ import {
   Wishlist,
 } from '../models'
 
-const converter = <T>() => ({
-  toFirestore: (data: Partial<T>) => data,
+const converter = <T>(): FirebaseFirestore.FirestoreDataConverter<T> => ({
+  toFirestore: (data: FirebaseFirestore.PartialWithFieldValue<T>) => data,
   fromFirestore: (snap: FirebaseFirestore.QueryDocumentSnapshot) => snap.data() as T,
 })
 

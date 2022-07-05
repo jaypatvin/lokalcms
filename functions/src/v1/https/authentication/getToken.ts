@@ -1,8 +1,14 @@
 import { RequestHandler } from 'express'
-import firebase from 'firebase'
+import { initializeApp } from 'firebase/app'
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { generateError, ErrorCode } from '../../../utils/generators'
 import { config } from './firebase-config.json'
-firebase.initializeApp(config)
+process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080'
+process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099'
+// const firebaseApp = initializeApp({ projectId: 'lokal-1baac' })
+const firebaseApp = initializeApp(config)
+
+const auth = getAuth(firebaseApp)
 
 /**
  * @openapi
@@ -49,7 +55,7 @@ const login: RequestHandler = async (req, res) => {
     })
   }
 
-  const result = await firebase.auth().signInWithEmailAndPassword(email, password)
+  const result = await signInWithEmailAndPassword(auth, email, password)
 
   const accessToken = await result.user.getIdToken()
   return res.json({ status: 'ok', accessToken })

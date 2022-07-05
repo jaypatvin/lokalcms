@@ -45,19 +45,3 @@ export const updateProductSubscription = async (id, data) => {
     .doc(id)
     .update({ ...data, updated_at: firestore.Timestamp.now() })
 }
-
-export const archiveProductSubscription = async (id: string, data?: any) => {
-  let updateData = {
-    archived: true,
-    archived_at: firestore.Timestamp.now(),
-    updated_at: firestore.Timestamp.now(),
-  }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.productSubscriptions.doc(id).update(updateData)
-}
-
-export const unarchiveProductSubscription = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.productSubscriptions.doc(id).update(updateData)
-}

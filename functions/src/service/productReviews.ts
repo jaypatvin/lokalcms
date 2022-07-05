@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin'
-import { ReviewCreateData } from '../models/Review'
+import Review, { ReviewCreateData } from '../models/Review'
 import db from '../utils/db'
 
 export const getReviewsByUser = async (user_id: string) => {
@@ -55,7 +55,7 @@ export const createProductReview = async (id: string, data: ReviewCreateData) =>
 export const updateProductReview = async (
   productId: string,
   reviewId: string,
-  rating: number,
+  rating: Review['rating'],
   message: string = ''
 ) => {
   return await db

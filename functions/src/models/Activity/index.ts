@@ -19,6 +19,7 @@ type Activity = {
   message: string
   status: 'enabled' | 'disabled'
   updated_at?: FirebaseFirestore.Timestamp
+  updated_content_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

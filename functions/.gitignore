@@ -15,3 +15,5 @@ node_modules/
 lib/
 
 firebase-config.json
+
+firebase-export-*

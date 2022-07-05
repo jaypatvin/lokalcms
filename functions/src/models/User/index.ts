@@ -10,6 +10,7 @@ type User = {
     product_subscription_plans_as_seller_count?: number
     reviews_count?: number
     likes_count?: number
+    wishlists_count?: number
   }
   address: {
     barangay: string

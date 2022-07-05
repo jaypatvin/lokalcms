@@ -6,6 +6,7 @@ type Shop = {
     products_count?: number
     product_subscription_plans_count?: number
     reports_count?: number
+    likes_count?: number
   }
   likes?: FirebaseFirestore.CollectionGroup<Like>
   reports?: FirebaseFirestore.CollectionGroup<Report>
@@ -65,7 +66,7 @@ type Shop = {
           unavailable?: boolean
           start_time?: string
           end_time?: string
-        }
+        } | any
       }
       mon?: {
         start_date: string

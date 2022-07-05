@@ -33,3 +33,6 @@ yarn-error.log*
 .firebase/
 *.eslintcache
 .env
+
+# migrations compilations
+/migrations/**/*.js
