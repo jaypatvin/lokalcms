@@ -1,4 +1,4 @@
-import { firestore } from 'firebase-admin'
+import { serverTimestamp } from 'firebase/firestore'
 import { OrderCreateData, OrderUpdateData } from '../models/Order'
 import db from '../utils/db'
 
@@ -37,7 +37,7 @@ export const getOrdersByProductSubscriptionIdAndDate = async (id: string, date: 
 }
 
 export const createOrder = async (data: OrderCreateData) => {
-  return await db.orders.add({ ...data, created_at: firestore.Timestamp.now() }).then((res) => {
+  return await db.orders.add({ ...data, created_at:serverTimestamp() }).then((res) => {
     return res
   })
 }

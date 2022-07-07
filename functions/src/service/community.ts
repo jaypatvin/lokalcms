@@ -1,4 +1,4 @@
-import { firestore } from 'firebase-admin'
+import { serverTimestamp } from 'firebase/firestore'
 import { CommunityCreateData, CommunityUpdateData } from '../models/Community'
 import db from '../utils/db'
 
@@ -42,27 +42,27 @@ export const getCommunitiesByNameAndAddress = async (options: NameAndAddressArgs
 }
 
 export const createCommunity = async (data: CommunityCreateData) => {
-  return await db.community.add({ ...data, created_at: firestore.Timestamp.now() })
+  return await db.community.add({ ...data, created_at:serverTimestamp() })
 }
 
 export const updateCommunity = async (id, data: CommunityUpdateData) => {
   return await db.community
     .doc(id)
-    .update({ ...data, updated_at: firestore.Timestamp.now() })
+    .update({ ...data, updated_at:serverTimestamp() })
 }
 
 export const archiveCommunity = async (id: string, data?: CommunityUpdateData) => {
   let updateData = {
     archived: true,
-    archived_at: firestore.Timestamp.now(),
-    updated_at: firestore.Timestamp.now(),
+    archived_at:serverTimestamp(),
+    updated_at:serverTimestamp(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.community.doc(id).update(updateData)
 }
 
 export const unarchiveCommunity = async (id: string, data?: CommunityUpdateData) => {
-  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at:serverTimestamp() }
   if (data) updateData = { ...updateData, ...data }
   return await db.community.doc(id).update(updateData)
 }

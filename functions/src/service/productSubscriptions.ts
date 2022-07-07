@@ -1,4 +1,4 @@
-import { firestore } from 'firebase-admin'
+import { serverTimestamp } from 'firebase/firestore'
 import { ProductSubscriptionCreateData } from '../models/ProductSubscription'
 import db from '../utils/db'
 
@@ -34,7 +34,7 @@ export const getProductSubscriptionByDateAndPlanId = async (planId: string, date
 
 export const createProductSubscription = async (data: ProductSubscriptionCreateData) => {
   return await db.productSubscriptions
-    .add({ ...data, created_at: firestore.Timestamp.now() })
+    .add({ ...data, created_at:serverTimestamp() })
     .then((res) => {
       return res
     })
@@ -43,5 +43,5 @@ export const createProductSubscription = async (data: ProductSubscriptionCreateD
 export const updateProductSubscription = async (id, data) => {
   return await db.productSubscriptions
     .doc(id)
-    .update({ ...data, updated_at: firestore.Timestamp.now() })
+    .update({ ...data, updated_at:serverTimestamp() })
 }

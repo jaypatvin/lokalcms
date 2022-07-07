@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { firestore } from 'firebase-admin'
+import { serverTimestamp } from 'firebase/firestore'
 import {
   UsersService,
   ShopsService,
@@ -279,7 +279,7 @@ const createChat: RequestHandler = async (req, res) => {
 
   const chatMessage: ConversationCreateData = {
     sender_id: requestorDocId,
-    sent_at: firestore.Timestamp.now(),
+    sent_at:serverTimestamp(),
     archived: false,
     community_id: chat.community_id,
     chat_id: chat.id,

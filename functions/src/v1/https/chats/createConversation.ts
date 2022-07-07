@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { firestore } from 'firebase-admin'
+import { serverTimestamp } from 'firebase/firestore'
 import { ConversationCreateData } from '../../../models/Conversation'
 import {
   UsersService,
@@ -156,7 +156,7 @@ const createConversation: RequestHandler = async (req, res) => {
 
   const chatMessage: ConversationCreateData = {
     sender_id: requestorDocId,
-    sent_at: firestore.Timestamp.now(),
+    sent_at:serverTimestamp(),
     archived: false,
     chat_id: chat.id,
     community_id: chat.community_id,
@@ -189,7 +189,7 @@ const createConversation: RequestHandler = async (req, res) => {
   last_message.content = content
   last_message.sender = requestorName
   last_message.sender_id = requestorDocId
-  last_message.created_at = firestore.Timestamp.now()
+  last_message.created_at =serverTimestamp()
 
   await ChatsService.updateChat(chatId, { last_message })
 

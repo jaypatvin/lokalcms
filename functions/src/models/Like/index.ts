@@ -3,7 +3,7 @@ type Like = {
   comment_id?: string
   shop_id?: string
   product_id?: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
   parent_collection_name: string
   parent_collection_path: string
   user_id: string

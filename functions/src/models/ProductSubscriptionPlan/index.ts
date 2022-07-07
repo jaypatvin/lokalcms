@@ -2,7 +2,7 @@ type ProductSubscriptionPlan = {
   archived: boolean
   buyer_id: string
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
   instruction: string
   payment_method: 'bank' | 'cod'
   plan: {
@@ -92,7 +92,7 @@ type ProductSubscriptionPlan = {
   }
   shop_id: string
   status: 'enabled' | 'disabled' | 'cancelled' | 'unsubscribed'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
 }

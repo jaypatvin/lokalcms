@@ -3,7 +3,7 @@ type ApplicationLog = {
   archived: boolean
   associated_document: string
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
   device_id: string
   is_authenticated: boolean
   metadata: {

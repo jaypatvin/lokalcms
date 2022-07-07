@@ -28,7 +28,7 @@ type User = {
   }
   community: FirebaseFirestore.DocumentReference<Community>
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
   display_name: string
   email: string
   first_name: string
@@ -58,7 +58,7 @@ type User = {
     editor?: boolean
   }
   status: 'active' | 'suspended' | 'pending' | 'locked'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_uids: string[]

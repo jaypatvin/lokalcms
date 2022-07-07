@@ -1,4 +1,4 @@
-import { firestore } from 'firebase-admin'
+import { serverTimestamp } from 'firebase/firestore'
 import { ConversationCreateData } from '../models/Conversation'
 import db from '../utils/db'
 
@@ -20,7 +20,7 @@ export const getChatMessageById = async (chat_id: string, id: string) => {
 export const createChatMessage = async (chat_id: string, data: ConversationCreateData) => {
   return await db
     .getChatConversations(`chats/${chat_id}/conversation`)
-    .add({ ...data, created_at: firestore.Timestamp.now() })
+    .add({ ...data, created_at:serverTimestamp() })
     .then((res) => {
       return res.get()
     })
@@ -31,21 +31,21 @@ export const updateChatMessage = async (chat_id: string, id: string, data: any) 
   return await db
     .getChatConversations(`chats/${chat_id}/conversation`)
     .doc(id)
-    .update({ ...data, updated_at: firestore.Timestamp.now() })
+    .update({ ...data, updated_at:serverTimestamp() })
 }
 
 export const archiveChatMessage = async (chat_id: string, id: string, data?: any) => {
   let updateData = {
     archived: true,
-    archived_at: firestore.Timestamp.now(),
-    updated_at: firestore.Timestamp.now(),
+    archived_at:serverTimestamp(),
+    updated_at:serverTimestamp(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.getChatConversations(`chats/${chat_id}/conversation`).doc(id).update(updateData)
 }
 
 export const unarchiveChatMessage = async (chat_id: string, id: string, data?: any) => {
-  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at:serverTimestamp() }
   if (data) updateData = { ...updateData, ...data }
   return await db.getChatConversations(`chats/${chat_id}/conversation`).doc(id).update(updateData)
 }

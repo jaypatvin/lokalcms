@@ -1,4 +1,4 @@
-import { firestore } from 'firebase-admin'
+import { serverTimestamp } from 'firebase/firestore'
 import { BankCodeCreateData } from '../models/BankCode'
 import db from '../utils/db'
 
@@ -19,7 +19,7 @@ export const getBankCodeById = async (id) => {
 export const createBankCode = async (data: BankCodeCreateData) => {
   return await db.bankCodes
     .doc(data.name)
-    .set({ ...data, created_at: firestore.Timestamp.now() })
+    .set({ ...data, created_at:serverTimestamp() })
     .then((res) => res)
     .then(() => db.bankCodes.doc(data.name).get())
     .then((doc) => ({ ...doc.data(), id: doc.id }))
@@ -28,21 +28,21 @@ export const createBankCode = async (data: BankCodeCreateData) => {
 export const updateBankCode = async (id, data) => {
   return await db.bankCodes
     .doc(id)
-    .update({ ...data, updated_at: firestore.Timestamp.now() })
+    .update({ ...data, updated_at:serverTimestamp() })
 }
 
 export const archiveBankCode = async (id: string, data?: any) => {
   let updateData = {
     archived: true,
-    archived_at: firestore.Timestamp.now(),
-    updated_at: firestore.Timestamp.now(),
+    archived_at:serverTimestamp(),
+    updated_at:serverTimestamp(),
   }
   if (data) updateData = { ...updateData, ...data }
   return await db.bankCodes.doc(id).update(updateData)
 }
 
 export const unarchiveBankCode = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at: firestore.Timestamp.now() }
+  let updateData = { archived: false, updated_at:serverTimestamp() }
   if (data) updateData = { ...updateData, ...data }
   return await db.bankCodes.doc(id).update(updateData)
 }
