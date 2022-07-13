@@ -10,6 +10,7 @@ type RolesType = {
 const roles = ['admin', 'editor', 'member']
 
 const role: RequestHandler = async (req, res, next) => {
+  // @ts-ignore
   const authUser = req.user
   let userRoles: RolesType = {}
   res.locals.userDoc = {}
@@ -18,6 +19,7 @@ const role: RequestHandler = async (req, res, next) => {
     if (userDocs.length) {
       const user = userDocs[0]
       res.locals.userDoc = user
+      // @ts-ignore
       userRoles = user.roles
       if (userRoles && userRoles.admin) {
         // if admin, all roles should be true

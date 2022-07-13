@@ -1,58 +1,30 @@
-import { serverTimestamp } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import { ChatCreateData, ChatUpdateData } from '../models/Chat'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getAllChats = async () => {
-  return await db.chats.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+const {
+  findAll,
+  findById,
+  findByCommunityId,
+  create: baseCreate,
+  createById: baseCreateById,
+  update: baseUpdate,
+  archive: baseArchive,
+  unarchive: baseUnarchive,
+} = createBaseMethods(db.chats)
+
+export { findAll, findByCommunityId, findById }
+
+export const create = (data: ChatCreateData) => baseCreate(data)
+export const update = (id: string, data: ChatUpdateData) => baseUpdate(id, data)
+export const archive = (id: string, data: ChatUpdateData) => baseArchive(id, data)
+export const unarchive = (id: string, data: ChatUpdateData) => baseUnarchive(id, data)
+
+export const findGroupChatByHash = async (group_hash: string) => {
+  return await findAll({
+    wheres: [where('group_hash', '==', group_hash)],
+  })
 }
 
-export const getChatById = async (id: string) => {
-  const chat = await db.chats.doc(id).get()
-
-  const data = chat.data()
-  if (data) return { id: chat.id, ...data }
-  return null
-}
-
-export const getGroupChatByHash = async (group_hash: string) => {
-  const chat = await db.chats.where('group_hash', '==', group_hash).limit(1).get()
-
-  const data = !chat.empty ? { id: chat.docs[0].id, ...chat.docs[0].data() } : null
-  return null
-}
-
-export const createChat = async (data: ChatCreateData) => {
-  return await db.chats
-    .add({ ...data, created_at:serverTimestamp(), updated_at:serverTimestamp() })
-    .then((res) => res.get())
-    .then((doc) => ({ id: doc.id, ...doc.data() }))
-}
-
-export const createChatWithHashId = async (hash_id: string, data: ChatCreateData) => {
-  return await db.chats
-    .doc(hash_id)
-    .set({ ...data, created_at:serverTimestamp(), updated_at:serverTimestamp() })
-    .then((res) => res)
-    .then(() => db.chats.doc(hash_id).get())
-    .then((doc) => ({ ...doc.data(), id: doc.id }))
-}
-
-export const updateChat = async (id: string, data: ChatUpdateData) => {
-  return await db.chats.doc(id).update({ ...data, updated_at:serverTimestamp() })
-}
-
-export const archiveChat = async (id: string, data?: ChatUpdateData) => {
-  let updateData = {
-    archived: true,
-    archived_at:serverTimestamp(),
-    updated_at:serverTimestamp(),
-  }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.chats.doc(id).update(updateData)
-}
-
-export const unarchiveChat = async (id: string, data?: ChatUpdateData) => {
-  let updateData = { archived: false, updated_at:serverTimestamp() }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.chats.doc(id).update(updateData)
-}
+export const createChatWithHashId = (id: string, data: ChatCreateData) => baseCreateById(id, data)

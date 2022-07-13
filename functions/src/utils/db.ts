@@ -1,4 +1,13 @@
-import { firestore } from 'firebase-admin'
+import {
+  collection,
+  collectionGroup,
+  FirestoreDataConverter,
+  getFirestore,
+  PartialWithFieldValue,
+  QueryDocumentSnapshot,
+  connectFirestoreEmulator,
+} from 'firebase/firestore'
+import { getApp } from 'firebase/app'
 import {
   ActionType,
   Activity,
@@ -26,17 +35,21 @@ import {
   Wishlist,
 } from '../models'
 
-const converter = <T>(): FirebaseFirestore.FirestoreDataConverter<T> => ({
-  toFirestore: (data: FirebaseFirestore.PartialWithFieldValue<T>) => data,
-  fromFirestore: (snap: FirebaseFirestore.QueryDocumentSnapshot) => snap.data() as T,
+const firebaseApp = getApp()
+const firestore = getFirestore(firebaseApp)
+// connectFirestoreEmulator(firestore, 'localhost', 8080)
+
+const converter = <T>(): FirestoreDataConverter<T> => ({
+  toFirestore: (data: PartialWithFieldValue<T>) => data,
+  fromFirestore: (snap: QueryDocumentSnapshot) => snap.data() as T,
 })
 
 const dataPoint = <T>(collectionPath: string) => {
-  return firestore().collection(collectionPath).withConverter(converter<T>())
+  return collection(firestore, collectionPath).withConverter(converter<T>())
 }
 
 const groupDataPoint = <T>(subCollectionPath: string) => {
-  return firestore().collectionGroup(subCollectionPath).withConverter(converter<T>())
+  return collectionGroup(firestore, subCollectionPath).withConverter(converter<T>())
 }
 
 const db = {
@@ -48,6 +61,7 @@ const db = {
   chats: dataPoint<Chat>('chats'),
   comments: groupDataPoint<Comment>('comments'),
   community: dataPoint<Community>('community'),
+  conversation: groupDataPoint<Conversation>('conversation'),
   getActivityComments: (subCollectionPath: string) => dataPoint<Comment>(subCollectionPath),
   getActivityReports: (subCollectionPath: string) => dataPoint<Report>(subCollectionPath),
   getChatConversations: (subCollectionPath: string) => dataPoint<Conversation>(subCollectionPath),

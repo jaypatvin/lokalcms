@@ -3,8 +3,10 @@
 */
 
 import { RequestHandler } from 'express'
-import admin from 'firebase-admin'
+import { initializeApp } from 'firebase-admin'
+import { getAuth } from 'firebase-admin/auth'
 import { ErrorCode, generateError } from '../utils/generators'
+initializeApp()
 
 const nonSecureAPIs = [
   {
@@ -74,8 +76,9 @@ const validateFirebaseIdToken: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    const decodedIdToken = await admin.auth().verifyIdToken(idToken)
+    const decodedIdToken = await getAuth().verifyIdToken(idToken)
     console.log('ID Token correctly decoded', decodedIdToken)
+    // @ts-ignore
     req.user = decodedIdToken
     return next()
   } catch (err) {

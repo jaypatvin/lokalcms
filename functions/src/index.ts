@@ -1,12 +1,13 @@
 /* eslint-disable import/first */
 import * as functions from 'firebase-functions'
-import * as admin from 'firebase-admin'
+import { initializeApp } from 'firebase/app'
 import * as bodyParser from 'body-parser'
 import helmet from 'helmet'
 import compression from 'compression'
 import cors from 'cors'
 import express from 'express'
-admin.initializeApp()
+import { config } from './firebase-config.json'
+initializeApp(config)
 
 import { authMiddleware, roleMiddleware, errorAlert, errorResponder } from './middlewares'
 

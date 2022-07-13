@@ -84,7 +84,7 @@ const createInvite: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await InvitesService.createInvite(new_invite)
+  const result = await InvitesService.create(new_invite)
 
   console.log(`sending invite to ${email}`)
   const msg = {

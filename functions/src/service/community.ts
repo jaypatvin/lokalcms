@@ -1,24 +1,29 @@
-import { serverTimestamp } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import { CommunityCreateData, CommunityUpdateData } from '../models/Community'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getCommunities = () => {
-  return db.community.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
+const {
+  findAll,
+  findById,
+  findByCommunityId,
+  create: baseCreate,
+  update: baseUpdate,
+  archive: baseArchive,
+  unarchive: baseUnarchive,
+} = createBaseMethods(db.community)
 
-export const getCommunityByID = async (id) => {
-  const community = await db.community.doc(id).get()
+export { findAll, findByCommunityId, findById }
 
-  const data = community.data()
-  if (data) return { id: community.id, ...data }
-  return null
-}
+export const create = (data: CommunityCreateData) => baseCreate(data)
+export const update = (id: string, data: CommunityUpdateData) => baseUpdate(id, data)
+export const archive = (id: string, data: CommunityUpdateData) => baseArchive(id, data)
+export const unarchive = (id: string, data: CommunityUpdateData) => baseUnarchive(id, data)
 
-export const getCommunitiesByName = async (name: string) => {
-  return await db.community
-    .where('name', '==', name)
-    .get()
-    .then((res) => res.docs.map((doc) => doc.data()))
+export const findCommunitiesByName = async (name: string) => {
+  return await findAll({
+    wheres: [where('name', '==', name)],
+  })
 }
 
 type NameAndAddressArgs = {
@@ -29,44 +34,15 @@ type NameAndAddressArgs = {
   zip_code: string
 }
 
-export const getCommunitiesByNameAndAddress = async (options: NameAndAddressArgs) => {
+export const findCommunitiesByNameAndAddress = async (options: NameAndAddressArgs) => {
   const { name, subdivision, city, barangay, zip_code } = options
-  return await db.community
-    .where('name', '==', name)
-    .where('address.subdivision', '==', subdivision)
-    .where('address.city', '==', city)
-    .where('address.barangay', '==', barangay)
-    .where('address.zip_code', '==', zip_code)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const createCommunity = async (data: CommunityCreateData) => {
-  return await db.community.add({ ...data, created_at:serverTimestamp() })
-}
-
-export const updateCommunity = async (id, data: CommunityUpdateData) => {
-  return await db.community
-    .doc(id)
-    .update({ ...data, updated_at:serverTimestamp() })
-}
-
-export const archiveCommunity = async (id: string, data?: CommunityUpdateData) => {
-  let updateData = {
-    archived: true,
-    archived_at:serverTimestamp(),
-    updated_at:serverTimestamp(),
-  }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.community.doc(id).update(updateData)
-}
-
-export const unarchiveCommunity = async (id: string, data?: CommunityUpdateData) => {
-  let updateData = { archived: false, updated_at:serverTimestamp() }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.community.doc(id).update(updateData)
-}
-
-export const deleteCommunity = async (id) => {
-  return await db.community.doc(id).delete()
+  return await findAll({
+    wheres: [
+      where('name', '==', name),
+      where('address.subdivision', '==', subdivision),
+      where('address.city', '==', city),
+      where('address.barangay', '==', barangay),
+      where('address.zip_code', '==', zip_code),
+    ],
+  })
 }

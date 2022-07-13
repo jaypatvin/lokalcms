@@ -1,25 +1,9 @@
 import { ActionType } from '../models'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getAllActionTypes = async () => {
-  return await db.actionTypes
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
+const { findAll, findById, createById: baseCreateById } = createBaseMethods(db.actionTypes)
 
-export const getActionTypeById = async (id: string) => {
-  const actionType = await db.actionTypes.doc(id).get()
+export { findAll, findById }
 
-  const data = actionType.data()
-  if (data) return { id: actionType.id, ...data }
-  return null
-}
-
-export const createActionType = async (id: string, data: ActionType) => {
-  return await db.actionTypes
-    .doc(id)
-    .set({ ...data })
-    .then((res) => res)
-    .then(() => db.actionTypes.doc(id).get())
-    .then((doc) => ({ ...doc.data(), id: doc.id }))
-}
+export const create = (id: string, data: ActionType) => baseCreateById(id, data)

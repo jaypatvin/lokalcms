@@ -12,6 +12,7 @@ const webhook = new IncomingWebhook(get(functions.config(), 'slack_config.alerts
 
 const errorAlert: ErrorRequestHandler = async (err, req, res, next) => {
   if (process.env.FUNCTIONS_EMULATOR) {
+    console.error(err)
     next(err)
     return
   }

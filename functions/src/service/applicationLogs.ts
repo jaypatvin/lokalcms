@@ -1,59 +1,43 @@
-import { serverTimestamp } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import { ApplicationLogCreateData } from '../models/ApplicationLog'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getCommunityApplicationLogs = async (community_id: string) => {
-  return await db.applicationLogs
-    .where('community_id', '==', community_id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+const {
+  findAll,
+  findById,
+  findByCommunityId,
+  create: baseCreate,
+  archive: baseArchive,
+  unarchive: baseUnarchive,
+} = createBaseMethods(db.applicationLogs)
+
+export { findAll, findByCommunityId, findById }
+
+export const create = (data: ApplicationLogCreateData) => baseCreate(data)
+export const archive = (id: string) => baseArchive(id)
+export const unarchive = (id: string) => baseUnarchive(id)
+
+export const findUserApplicationLogs = async (user_id: string) => {
+  return await findAll({
+    wheres: [where('user_id', '==', user_id)],
+  })
 }
 
-export const getUserApplicationLogs = async (user_id: string) => {
-  return await db.applicationLogs
-    .where('user_id', '==', user_id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+export const findApplicationLogsByAssociatedDocument = async (document_id: string) => {
+  return await findAll({
+    wheres: [where('associated_document', '==', document_id)],
+  })
 }
 
-export const getApplicationLogsByAssociatedDocument = async (document_id: string) => {
-  return await db.applicationLogs
-    .where('associated_document', '==', document_id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const getApplicationLogsByAssociatedDocumentAndActionType = async (
+export const findApplicationLogsByAssociatedDocumentAndActionType = async (
   document_id: string,
   action_type: string
 ) => {
-  return await db.applicationLogs
-    .where('associated_document', '==', document_id)
-    .where('action_type', '==', action_type)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const createApplicationLog = async (data: ApplicationLogCreateData) => {
-  return await db.applicationLogs
-    .add({ ...data, created_at:serverTimestamp(), archived: false })
-    .then((res) => {
-      return res
-    })
-}
-
-export const archiveApplicationLog = async (id: string, data?: any) => {
-  let updateData = {
-    archived: true,
-    archived_at:serverTimestamp(),
-    updated_at:serverTimestamp(),
-  }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.applicationLogs.doc(id).update(updateData)
-}
-
-export const unarchiveApplicationLog = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at:serverTimestamp() }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.applicationLogs.doc(id).update(updateData)
+  return await findAll({
+    wheres: [
+      where('associated_document', '==', document_id),
+      where('action_type', '==', action_type),
+    ],
+  })
 }

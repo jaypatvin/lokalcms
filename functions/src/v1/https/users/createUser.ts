@@ -1,7 +1,8 @@
 import { RequestHandler } from 'express'
+import { getAuth } from 'firebase-admin/auth'
+import { doc } from 'firebase/firestore'
 import { UsersService, CommunityService } from '../../../service'
 import { generateUserKeywords } from '../../../utils/generators'
-import { auth } from '../index'
 import { UserCreateData } from '../../../models/User'
 import db from '../../../utils/db'
 import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
@@ -93,7 +94,7 @@ const createUser: RequestHandler = async (req, res) => {
   let authUser
 
   try {
-    authUser = await auth.getUserByEmail(data.email)
+    authUser = await getAuth().getUserByEmail(data.email)
   } catch (e) {
     throw generateError(ErrorCode.UserApiError, {
       message: `Auth user with email "${data.email}" does not exist`,
@@ -113,12 +114,12 @@ const createUser: RequestHandler = async (req, res) => {
     }
   }
 
-  const community = await CommunityService.getCommunityByID(data.community_id)
+  const community = await CommunityService.findById(data.community_id)
   if (!community) {
     throw generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id)
   }
 
-  const existingUsers = await UsersService.getUserByUID(authUser.uid)
+  const existingUsers = await UsersService.findUserByUid(authUser.uid)
 
   if (existingUsers.length > 0) {
     throw generateError(ErrorCode.UserApiError, {
@@ -154,7 +155,7 @@ const createUser: RequestHandler = async (req, res) => {
       verified: false,
     },
     community_id: data.community_id,
-    community: db.community.doc(data.community_id),
+    community: doc(db.community, data.community_id),
     address: {
       barangay: community.address.barangay,
       street: data.street,
@@ -173,12 +174,9 @@ const createUser: RequestHandler = async (req, res) => {
     newData.profile_photo = data.profile_photo
   }
 
-  const newUser = await UsersService.createUser(newData)
+  const newUser = await UsersService.create(newData)
 
-  // get the created user's data
-  const result = await newUser.get().then((doc) => ({ ...doc.data(), id: doc.id }))
-
-  return res.json({ status: 'ok', data: result })
+  return res.json({ status: 'ok', data: newUser })
 }
 
 export default createUser

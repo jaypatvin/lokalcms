@@ -1,46 +1,20 @@
-import { serverTimestamp } from 'firebase/firestore'
 import { CategoryCreateData, CategoryUpdateData } from '../models/Category'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getAllCategories = async () => {
-  return await db.categories
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
+const {
+  findAll,
+  findById,
+  findByCommunityId,
+  createById: baseCreateById,
+  update: baseUpdate,
+  archive: baseArchive,
+  unarchive: baseUnarchive,
+} = createBaseMethods(db.categories)
 
-export const getCategoryById = async (id) => {
-  const product = await db.categories.doc(id).get()
+export { findAll, findByCommunityId, findById }
 
-  const data = product.data()
-  if (data) return { id: product.id, ...data }
-  return null
-}
-
-export const createCategory = async (data: CategoryCreateData) => {
-  return await db.categories
-    .doc(data.name)
-    .set({ ...data, created_at:serverTimestamp() })
-    .then((res) => res)
-    .then(() => db.categories.doc(data.name).get())
-    .then((doc) => ({ ...doc.data(), id: doc.id }))
-}
-
-export const updateCategory = async (id, data: CategoryUpdateData) => {
-  return await db.categories.doc(id).update({ ...data, updated_at:serverTimestamp() })
-}
-
-export const archiveCategory = async (id: string, data?: any) => {
-  let updateData = {
-    archived: true,
-    archived_at:serverTimestamp(),
-    updated_at:serverTimestamp(),
-  }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.categories.doc(id).update(updateData)
-}
-
-export const unarchiveCategory = async (id: string, data?: any) => {
-  let updateData = { archived: false, updated_at:serverTimestamp() }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.categories.doc(id).update(updateData)
-}
+export const create = (id: string, data: CategoryCreateData) => baseCreateById(id, data)
+export const update = (id: string, data: CategoryUpdateData) => baseUpdate(id, data)
+export const archive = (id: string) => baseArchive(id)
+export const unarchive = (id: string) => baseUnarchive(id)
