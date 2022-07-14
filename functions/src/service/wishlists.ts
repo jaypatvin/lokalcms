@@ -1,53 +1,39 @@
-import * as admin from 'firebase-admin'
+import { getDocs, query, where } from 'firebase/firestore'
 import { WishlistCreateData } from '../models/Wishlist'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getWishlistsByUser = async (user_id: string) => {
-  return db.wishlists
-    .where('user_id', '==', user_id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+export const create = (productId: string, userId: string, data: WishlistCreateData) => {
+  return createBaseMethods(db.getProductWishlists(`products/${productId}/wishlists`)).createById(
+    `${productId}_${userId}_wishlist`,
+    data
+  )
 }
 
-export const getWishlistsByShop = async (shop_id: string) => {
-  return db.wishlists
-    .where('shop_id', '==', shop_id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+export const findWishlistsByUser = async (userId: string) => {
+  const wishlistsQuery = query(db.wishlists, where('user_id', '==', userId))
+  const snapshot = await getDocs(wishlistsQuery)
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 }
 
-export const getProductWishlist = async (product_id: string, user_id: string) => {
-  const wishlist = await db
-    .getProductWishlists(`products/${product_id}/wishlists`)
-    .doc(`${product_id}_${user_id}_wishlist`)
-    .get()
-  return wishlist.data()
+export const findWishlistsByShop = async (shopId: string) => {
+  const wishlistsQuery = query(db.wishlists, where('shop_id', '==', shopId))
+  const snapshot = await getDocs(wishlistsQuery)
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 }
 
-export const getProductWishlists = async (product_id: string) => {
-  const wishlists = await db.getProductWishlists(`products/${product_id}/wishlists`).get()
-  return wishlists.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+export const findProductWishlist = async (productId: string, userId: string) => {
+  return createBaseMethods(db.getProductWishlists(`products/${productId}/wishlists`)).findById(
+    `${productId}_${userId}_wishlist`
+  )
 }
 
-export const addProductWishlist = async (
-  product_id: string,
-  user_id: string,
-  data: WishlistCreateData
-) => {
-  const wishlistRef = db
-    .getProductWishlists(`products/${product_id}/wishlists`)
-    .doc(`${product_id}_${user_id}_wishlist`)
-  return await wishlistRef.set({
-    ...data,
-    user_id,
-    product_id,
-    created_at: admin.firestore.Timestamp.now(),
-  })
+export const findAllProductWishlists = async (productId: string) => {
+  return createBaseMethods(db.getProductWishlists(`products/${productId}/wishlists`)).findAll()
 }
 
-export const removeProductWishlist = async (product_id: string, user_id: string) => {
-  return await db
-    .getProductWishlists(`products/${product_id}/wishlists`)
-    .doc(`${product_id}_${user_id}_wishlist`)
-    .delete()
+export const remove = (productId: string, userId: string) => {
+  return createBaseMethods(db.getProductWishlists(`products/${productId}/wishlists`)).remove(
+    `${productId}_${userId}_wishlist`
+  )
 }

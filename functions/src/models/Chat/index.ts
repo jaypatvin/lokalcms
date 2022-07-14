@@ -5,12 +5,12 @@ type Chat = {
   chat_type: 'user' | 'shop' | 'product' | 'group'
   community_id: string
   conversation?: FirebaseFirestore.CollectionGroup<Conversation>
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
   group_hash?: string
   last_message: {
     content: string
     conversation_id?: string
-    created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+    created_at: FirebaseFirestore.Timestamp
     ref?: FirebaseFirestore.DocumentReference<Conversation>
     sender: string
     sender_id: string
@@ -20,7 +20,7 @@ type Chat = {
   product_id?: string
   customer_name?: string
   title: string
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
 }

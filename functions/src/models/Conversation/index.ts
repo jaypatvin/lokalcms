@@ -2,7 +2,7 @@ type Conversation = {
   archived: boolean
   chat_id: string
   community_id: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
   media?: {
     order: number
     type: 'image' | 'video'
@@ -10,7 +10,7 @@ type Conversation = {
   }[]
   message?: string
   sender_id: string
-  sent_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  sent_at: FirebaseFirestore.Timestamp
   reply_to?: FirebaseFirestore.DocumentReference<Conversation>
 }
 

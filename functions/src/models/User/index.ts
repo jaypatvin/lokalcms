@@ -1,3 +1,4 @@
+import { DocumentReference, Timestamp, CollectionReference } from 'firebase/firestore'
 import { Community, Notification } from '../index'
 
 type User = {
@@ -26,15 +27,15 @@ type User = {
   chat_settings?: {
     show_read_receipts?: boolean
   }
-  community: FirebaseFirestore.DocumentReference<Community>
+  community: DocumentReference<Community>
   community_id: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: Timestamp
   display_name: string
   email: string
   first_name: string
   keywords: string[]
   last_name: string
-  notifications?: FirebaseFirestore.CollectionGroup<Notification>
+  notifications?: CollectionReference<Notification>
   notification_settings?: {
     likes?: boolean
     comments?: boolean
@@ -58,7 +59,7 @@ type User = {
     editor?: boolean
   }
   status: 'active' | 'suspended' | 'pending' | 'locked'
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  updated_at?: Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_uids: string[]

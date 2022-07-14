@@ -91,7 +91,7 @@ type Product = {
   base_price: number
   can_subscribe: boolean
   community_id: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
   description: string
   gallery?: {
     order: number
@@ -103,7 +103,7 @@ type Product = {
   quantity: number
   shop_id: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

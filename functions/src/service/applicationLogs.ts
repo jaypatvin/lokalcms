@@ -18,25 +18,25 @@ export const create = (data: ApplicationLogCreateData) => baseCreate(data)
 export const archive = (id: string) => baseArchive(id)
 export const unarchive = (id: string) => baseUnarchive(id)
 
-export const findUserApplicationLogs = async (user_id: string) => {
+export const findUserApplicationLogs = async (userId: string) => {
   return await findAll({
-    wheres: [where('user_id', '==', user_id)],
+    wheres: [where('user_id', '==', userId)],
   })
 }
 
-export const findApplicationLogsByAssociatedDocument = async (document_id: string) => {
+export const findApplicationLogsByAssociatedDocument = async (documentId: string) => {
   return await findAll({
-    wheres: [where('associated_document', '==', document_id)],
+    wheres: [where('associated_document', '==', documentId)],
   })
 }
 
 export const findApplicationLogsByAssociatedDocumentAndActionType = async (
-  document_id: string,
+  documentId: string,
   action_type: string
 ) => {
   return await findAll({
     wheres: [
-      where('associated_document', '==', document_id),
+      where('associated_document', '==', documentId),
       where('action_type', '==', action_type),
     ],
   })

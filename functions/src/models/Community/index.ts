@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore'
+
 type Community = {
   _meta?: {
     orders_count?: number
@@ -17,11 +19,11 @@ type Community = {
   admin?: string[]
   archived: boolean
   cover_photo?: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: Timestamp
   keywords: string[]
   name: string
   profile_photo?: string
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  updated_at?: Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
 }

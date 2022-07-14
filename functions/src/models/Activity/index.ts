@@ -9,7 +9,7 @@ type Activity = {
   archived: boolean
   comments?: FirebaseFirestore.CollectionGroup<Comment>
   community_id: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
   images?: {
     url: string
     order: number
@@ -18,8 +18,8 @@ type Activity = {
   reports?: FirebaseFirestore.CollectionGroup<Report>
   message: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
-  updated_content_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  updated_at?: FirebaseFirestore.Timestamp
+  updated_content_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

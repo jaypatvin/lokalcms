@@ -1,7 +1,7 @@
 type Order = {
   buyer_id: string
   community_id: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
   delivery_address: {
     barangay: string
     city: string
@@ -11,8 +11,8 @@ type Order = {
     subdivision: string
     zip_code: string
   }
-  delivery_date: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
-  delivered_date?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  delivery_date: FirebaseFirestore.Timestamp
+  delivered_date?: FirebaseFirestore.Timestamp
   delivery_option: 'delivery' | 'pickup'
   instruction: string
   is_paid: boolean
@@ -38,7 +38,7 @@ type Order = {
     name: string
   }
   status_code: number | string
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   cancellation_reason?: string

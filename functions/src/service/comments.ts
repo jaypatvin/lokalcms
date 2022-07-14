@@ -1,32 +1,66 @@
-import * as admin from 'firebase-admin'
+import { getDoc, doc, Timestamp } from 'firebase/firestore'
 import { UsersService } from '.'
 import { CommentCreateData, CommentUpdateData } from '../models/Comment'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-const firestoreDb = admin.firestore()
+export const create = (activityId: string, data: CommentCreateData) => {
+  return createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).create(data)
+}
 
-export const getActivityComments = async (activityId: string, userId = '') => {
-  const commentsRef = db.getActivityComments(`activities/${activityId}/comments`)
-  const comments = await commentsRef.get()
+export const update = (activityId: string, id: string, data: CommentUpdateData) => {
+  return createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).update(id, data)
+}
+
+export const archive = (activityId: string, id: string, data) => {
+  return createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).archive(
+    id,
+    data
+  )
+}
+
+export const unarchive = (activityId: string, id: string, data) => {
+  return createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).unarchive(
+    id,
+    data
+  )
+}
+
+export const findAllActivityComments = async (activityId: string, userId = '') => {
+  const comments = await createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).findAll()
 
   return await Promise.all(
-    comments.docs.map(async (commentDoc) => {
+    comments.map(async (comment) => {
       let liked = false
       if (userId) {
-        const likeDoc = await commentsRef
-          .doc(commentDoc.id)
-          .collection('likes')
-          .doc(`${commentDoc.id}_${userId}_like`)
-          .get()
-        liked = likeDoc.exists
+        const likeDoc = await getDoc(
+          doc(db.getLikes(`activities/${activityId}/comments/${comment.id}/likes`), `${comment.id}_${userId}_like`)
+        )
+        liked = likeDoc.exists()
       }
       return {
-        id: commentDoc.id,
-        ...commentDoc.data(),
+        ...comment,
         liked,
       }
     })
   )
+}
+
+export const findActivityComment = async (activityId: string, commentId: string, userId: '') => {
+  const comment = await createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).findById(commentId)
+
+  if (!comment) return null
+
+  let liked = false
+  if (userId) {
+    const likeDoc = await getDoc(doc(db.getLikes(`activities/${activityId}/comments/${comment.id}/likes`), `${comment.id}_${userId}_like`))
+    liked = likeDoc.exists()
+  }
+
+  return {
+    ...comment,
+    liked,
+  }
 }
 
 // this method is expected to be slow since we're checking each activity
@@ -68,118 +102,4 @@ export const getUserComments = async (userId: string) => {
       return undefined
     })
   )
-}
-
-export const getAllComments = async () => {
-  return await db.comments
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const getCommentById = async (activityId: string, commentId: string, userId = '') => {
-  // alternatively, we can use db.collectionGroup to query from all subcollections of 'comments'
-  // however, we need to add a field for 'id' inside of 'comments' documents for querying
-  const commentRef = db.getActivityComments(`activities/${activityId}/comments`).doc(commentId)
-  const comment = await commentRef.get()
-  let liked = false
-  if (userId) {
-    const likeDoc = await commentRef.collection('likes').doc(`${commentId}_${userId}_like`).get()
-    liked = likeDoc.exists
-  }
-  const data = comment.data()
-
-  if (data)
-    return {
-      id: comment.id,
-      ...data,
-      liked,
-    }
-
-  return null
-}
-
-export const addActivityComment = async (activityId: string, data: CommentCreateData) => {
-  const commentRef = db.getActivityComments(`activities/${activityId}/comments`).doc()
-  const batch = firestoreDb.batch()
-
-  batch.set(commentRef, { ...data, created_at: admin.firestore.Timestamp.now() })
-  await batch.commit()
-  return commentRef
-}
-
-export const updateActivityComment = async (
-  activityId: string,
-  commentId: string,
-  data: CommentUpdateData
-) => {
-  return await db
-    .getActivityComments(`activities/${activityId}/comments`)
-    .doc(commentId)
-    .update({
-      ...data,
-      updated_at: admin.firestore.Timestamp.now(),
-      updated_content_at: admin.firestore.Timestamp.now(),
-    })
-}
-
-export const archiveActivityComments = async (activityId: string) => {
-  const commentsSnapshot = await db.getActivityComments(`activities/${activityId}/comments`).get()
-
-  const batch = firestoreDb.batch()
-  commentsSnapshot.forEach((comment) => {
-    const commentRef = comment.ref
-    batch.update(commentRef, { archived: true, updated_at: admin.firestore.Timestamp.now() })
-  })
-
-  return await batch.commit()
-}
-
-export const unarchiveActivityComments = async (activityId: string) => {
-  const commentsSnapshot = await db.getActivityComments(`activities/${activityId}/comments`).get()
-
-  const batch = firestoreDb.batch()
-  commentsSnapshot.forEach(async (comment) => {
-    // we should not unarchive user comments when user is archived since
-    // we don't want the users to retrieve and see archived users in the activity comments
-    const userId = comment.data().user_id
-    const _user = await UsersService.getUserByID(userId)
-    if (_user.archived) return
-
-    const commentRef = comment.ref
-    batch.update(commentRef, { archived: false, updated_at: admin.firestore.Timestamp.now() })
-  })
-
-  return await batch.commit()
-}
-
-export const archiveUserComments = async (userId: string) => _archiveUserComments(userId, true)
-
-// we can still unarchive comments from archived activities unlike
-// in unarchiveAtivityComments since
-// we will only access comments in the activity
-export const unarchiveUserComments = async (userId: string) => _archiveUserComments(userId, false)
-
-export const archiveComment = async (activityId: string, commentId: string) => {
-  return await db
-    .getActivityComments(`activities/${activityId}/comments`)
-    .doc(commentId)
-    .update({ archived: true, updated_at: admin.firestore.Timestamp.now() })
-}
-
-export const unarchiveComment = async (activityId: string, commentId: string) => {
-  return await db
-    .getActivityComments(`activities/${activityId}/comments`)
-    .doc(commentId)
-    .update({ archived: false, updated_at: admin.firestore.Timestamp.now() })
-}
-
-const _archiveUserComments = async (userId: string, state: boolean) => {
-  const commentsSnapshot = await db.comments.where('user_id', '==', userId).get()
-
-  const batch = firestoreDb.batch()
-  commentsSnapshot.forEach((comment) =>
-    batch.update(comment.ref, { archived: state, updated_at: admin.firestore.Timestamp.now() })
-  )
-
-  return await batch.commit()
 }

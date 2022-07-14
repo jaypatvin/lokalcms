@@ -62,15 +62,29 @@ const db = {
   comments: groupDataPoint<Comment>('comments'),
   community: dataPoint<Community>('community'),
   conversation: groupDataPoint<Conversation>('conversation'),
-  getActivityComments: (subCollectionPath: string) => dataPoint<Comment>(subCollectionPath),
-  getActivityReports: (subCollectionPath: string) => dataPoint<Report>(subCollectionPath),
-  getChatConversations: (subCollectionPath: string) => dataPoint<Conversation>(subCollectionPath),
-  getLikes: (subCollectionPath: string) => dataPoint<Like>(subCollectionPath),
-  getNotifications: (subCollectionPath: string) => dataPoint<Notification>(subCollectionPath),
-  getProductReports: (subCollectionPath: string) => dataPoint<Report>(subCollectionPath),
-  getProductReviews: (subCollectionPath: string) => dataPoint<Review>(subCollectionPath),
-  getProductWishlists: (subCollectionPath: string) => dataPoint<Wishlist>(subCollectionPath),
-  getShopReports: (subCollectionPath: string) => dataPoint<Report>(subCollectionPath),
+  getActivityComments: (subCollectionPath: `activities/${string}/comments`) =>
+    dataPoint<Comment>(subCollectionPath),
+  getActivityReports: (subCollectionPath: `activities/${string}/reports`) =>
+    dataPoint<Report>(subCollectionPath),
+  getChatConversations: (subCollectionPath: `chats/${string}/conversation`) =>
+    dataPoint<Conversation>(subCollectionPath),
+  getLikes: (
+    subCollectionPath:
+      | `shops/${string}/likes`
+      | `products/${string}/likes`
+      | `activities/${string}/likes`
+      | `activities/${string}/comments/${string}/likes`
+  ) => dataPoint<Like>(subCollectionPath),
+  getNotifications: (subCollectionPath: `users/${string}/notifications`) =>
+    dataPoint<Notification>(subCollectionPath),
+  getProductReports: (subCollectionPath: `products/${string}/reports`) =>
+    dataPoint<Report>(subCollectionPath),
+  getProductReviews: (subCollectionPath: `products/${string}/reviews`) =>
+    dataPoint<Review>(subCollectionPath),
+  getProductWishlists: (subCollectionPath: `products/${string}/wishlists`) =>
+    dataPoint<Wishlist>(subCollectionPath),
+  getShopReports: (subCollectionPath: `shops/${string}/reports`) =>
+    dataPoint<Report>(subCollectionPath),
   historyLogs: dataPoint<HistoryLog>('history_logs'),
   invites: dataPoint<Invite>('invites'),
   likes: groupDataPoint<Like>('likes'),

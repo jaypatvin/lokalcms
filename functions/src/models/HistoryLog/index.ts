@@ -20,7 +20,7 @@ type HistoryLog = {
     | 'shops'
     | 'users'
   document_id: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
   keywords: string[]
   method?: 'create' | 'update' | 'archive' | 'delete'
   before?: any

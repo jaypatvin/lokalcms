@@ -1,143 +1,93 @@
-import * as admin from 'firebase-admin'
-import Shop, { ShopCreateData, ShopUpdateData } from '../models/Shop'
+import {
+  doc,
+  documentId,
+  increment,
+  orderBy as firestoreOrderBy,
+  OrderByDirection,
+  QueryConstraint,
+  updateDoc,
+  where,
+} from 'firebase/firestore'
+import { ShopCreateData, ShopUpdateData } from '../models/Shop'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-const firestoreDb = admin.firestore()
+const {
+  findAll,
+  findById,
+  findByCommunityId,
+  create: baseCreate,
+  update: baseUpdate,
+  archive: baseArchive,
+  unarchive: baseUnarchive,
+} = createBaseMethods(db.shops)
 
-export const getShopsByUserID = async (id: string) => {
-  return await db.shops
-    .where('user_id', '==', id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+export { findAll, findByCommunityId, findById }
+
+export const create = (data: ShopCreateData) => baseCreate(data)
+export const update = (id: string, data: ShopUpdateData) => baseUpdate(id, data)
+export const archive = (id: string, data: ShopUpdateData) => baseArchive(id, data)
+export const unarchive = (id: string, data: ShopUpdateData) => baseUnarchive(id, data)
+
+export const findShopsByUserId = async (id: string) => {
+  return await findAll({
+    wheres: [where('user_id', '==', id)],
+  })
 }
 
-export const getShopsByCommunityID = async (id: string) => {
-  return await db.shops
-    .where('community_id', '==', id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+export const findShopsByCommunityId = async (id: string) => {
+  return await findAll({
+    wheres: [where('community_id', '==', id)],
+  })
 }
 
-export const getCommunityShopsWithFilter = async ({
+export const findCommunityShopsWithFilter = async ({
   community_id,
   wheres = [],
   orderBy,
   sortOrder = 'asc',
 }: {
   community_id: string
-  wheres?: [string, FirebaseFirestore.WhereFilterOp, unknown][]
+  wheres?: QueryConstraint[]
   orderBy?: string
-  sortOrder?: FirebaseFirestore.OrderByDirection
+  sortOrder?: OrderByDirection
 }) => {
-  let res = db.shops.where('community_id', '==', community_id).where('archived', '==', false)
-  wheres.forEach((where) => {
-    let key = where[0] === 'id' ? admin.firestore.FieldPath.documentId() : where[0]
-    res = res.where(key, where[1], where[2])
+  const otherWheres = wheres.map((w) => {
+    let key = w[0] === 'id' ? documentId() : w[0]
+    return where(key, w[1], w[2])
   })
-
-  if (orderBy) {
-    res = res.orderBy(orderBy, sortOrder)
-  }
-
-  return await res.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const getCustomAvailableShopsByDate = async (date: string) => {
-  let res = db.shops.orderBy(`operating_hours.schedule.custom.${date}.start_time`)
-
-  return await res.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const getCustomUnavailableShopsByDate = async (date: string) => {
-  let res = db.shops.orderBy(`operating_hours.schedule.custom.${date}.unavailable`)
-
-  return await res.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const getShopByID = async (id: string) => {
-  const shop = await db.shops.doc(id).get()
-
-  const data = shop.data()
-  if (data) return { id: shop.id, ...data }
-  return null
-}
-
-export const createShop = async (data: ShopCreateData) => {
-  return await db.shops
-    .add({ ...data, created_at: admin.firestore.Timestamp.now() })
-    .then((res) => res.get())
-    .then((doc) => ({ id: doc.id, ...doc.data() }))
-}
-
-export const updateShop = async (id: string, data: ShopUpdateData) => {
-  return await db.shops.doc(id).update({ ...data, updated_at: admin.firestore.Timestamp.now() })
-}
-
-export const archiveShop = async (id: string, data?: ShopUpdateData) => {
-  let updateData = {
-    archived: true,
-    archived_at: admin.firestore.Timestamp.now(),
-    updated_at: admin.firestore.Timestamp.now(),
-  }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.shops.doc(id).update(updateData)
-}
-
-export const unarchiveShop = async (id: string, data?: ShopUpdateData) => {
-  let updateData = { archived: false, updated_at: admin.firestore.Timestamp.now() }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.shops.doc(id).update(updateData)
-}
-
-export const archiveUserShops = async (user_id: string, data?: ShopUpdateData) => {
-  let updateData = {
-    archived: true,
-    archived_at: admin.firestore.Timestamp.now(),
-    updated_at: admin.firestore.Timestamp.now(),
-  }
-  if (data) updateData = { ...updateData, ...data }
-  const shopsRef = await db.shops.where('user_id', '==', user_id).get()
-
-  const batch = firestoreDb.batch()
-  shopsRef.forEach((shop) => {
-    const shopRef = shop.ref
-    batch.update(shopRef, updateData)
+  return await findAll({
+    wheres: [
+      where('community_id', '==', community_id),
+      where('archived', '==', false),
+      ...otherWheres,
+      ...(orderBy ? [firestoreOrderBy(orderBy, sortOrder)] : []),
+    ],
   })
-  const result = await batch.commit()
-  return result
 }
 
-export const unarchiveUserShops = async (user_id: string) => {
-  const shopsRef = await db.shops.where('user_id', '==', user_id).get()
-
-  const batch = firestoreDb.batch()
-  shopsRef.forEach((shop) => {
-    const shopRef = shop.ref
-    const updateData: any = {
-      archived: false,
-      updated_at: admin.firestore.Timestamp.now(),
-    }
-    batch.update(shopRef, updateData)
+export const findCustomAvailableShopsByDate = async (date: string) => {
+  return await findAll({
+    wheres: [firestoreOrderBy(`operating_hours.schedule.custom.${date}.start_time`)],
   })
-  const result = await batch.commit()
-  return result
 }
 
-export const searchShops = async ({ search, community_id }) => {
-  let ref: admin.firestore.Query<Shop> = db.shops
-  if (search) ref = ref.where('keywords', 'array-contains', search)
-  if (community_id) ref = ref.where('community_id', '==', community_id)
-  return await ref.get()
+export const findCustomUnavailableShopsByDate = async (date: string) => {
+  return await findAll({
+    wheres: [firestoreOrderBy(`operating_hours.schedule.custom.${date}.unavailable`)],
+  })
 }
 
 export const incrementShopLikeCount = async (id: string) => {
-  return await db.shops.doc(id).update({
-    '_meta.likes_count': admin.firestore.FieldValue.increment(1),
+  const docRef = doc(db.shops, id)
+  return await updateDoc(docRef, {
+    '_meta.likes_count': increment(1),
   })
 }
 
 export const decrementShopLikeCount = async (id: string) => {
-  return await db.shops.doc(id).update({
-    '_meta.likes_count': admin.firestore.FieldValue.increment(-1),
+  const docRef = doc(db.shops, id)
+  return await updateDoc(docRef, {
+    '_meta.likes_count': increment(-1),
   })
 }

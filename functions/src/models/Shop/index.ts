@@ -13,7 +13,7 @@ type Shop = {
   archived: boolean
   community_id: string
   cover_photo?: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
   description: string
   is_close: boolean
   keywords: string[]
@@ -105,7 +105,7 @@ type Shop = {
   }
   profile_photo?: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  updated_at?: FirebaseFirestore.Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

@@ -1,51 +1,38 @@
-import { serverTimestamp } from 'firebase/firestore'
 import { ConversationCreateData } from '../models/Conversation'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getAllChatMessages = async (chat_id: string) => {
-  return await db
-    .getChatConversations(`chats/${chat_id}/conversation`)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+export const create = (chatId: string, data: ConversationCreateData) => {
+  return createBaseMethods(db.getChatConversations(`chats/${chatId}/conversation`)).create({
+    ...data,
+    viewed: false,
+    opened: false,
+    unread: true,
+  })
 }
 
-export const getChatMessageById = async (chat_id: string, id: string) => {
-  const message = await db.getChatConversations(`chats/${chat_id}/conversation`).doc(id).get()
-
-  const data = message.data()
-  if (data) return { id: message.id, ...data }
-  return null
+export const update = (chatId: string, id: string, data) => {
+  return createBaseMethods(db.getChatConversations(`chats/${chatId}/conversation`)).update(id, data)
 }
 
-export const createChatMessage = async (chat_id: string, data: ConversationCreateData) => {
-  return await db
-    .getChatConversations(`chats/${chat_id}/conversation`)
-    .add({ ...data, created_at:serverTimestamp() })
-    .then((res) => {
-      return res.get()
-    })
-    .then((doc) => ({ ...doc.data(), id: doc.id }))
+export const archive = (chatId: string, id: string, data) => {
+  return createBaseMethods(db.getChatConversations(`chats/${chatId}/conversation`)).archive(
+    id,
+    data
+  )
 }
 
-export const updateChatMessage = async (chat_id: string, id: string, data: any) => {
-  return await db
-    .getChatConversations(`chats/${chat_id}/conversation`)
-    .doc(id)
-    .update({ ...data, updated_at:serverTimestamp() })
+export const unarchive = (chatId: string, id: string, data) => {
+  return createBaseMethods(db.getChatConversations(`chats/${chatId}/conversation`)).unarchive(
+    id,
+    data
+  )
 }
 
-export const archiveChatMessage = async (chat_id: string, id: string, data?: any) => {
-  let updateData = {
-    archived: true,
-    archived_at:serverTimestamp(),
-    updated_at:serverTimestamp(),
-  }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.getChatConversations(`chats/${chat_id}/conversation`).doc(id).update(updateData)
+export const findAllChatMessages = async (chatId: string) => {
+  return createBaseMethods(db.getChatConversations(`chats/${chatId}/conversation`)).findAll()
 }
 
-export const unarchiveChatMessage = async (chat_id: string, id: string, data?: any) => {
-  let updateData = { archived: false, updated_at:serverTimestamp() }
-  if (data) updateData = { ...updateData, ...data }
-  return await db.getChatConversations(`chats/${chat_id}/conversation`).doc(id).update(updateData)
+export const findChatMessage = async (chatId: string, id: string) => {
+  return createBaseMethods(db.getChatConversations(`chats/${chatId}/conversation`)).findById(id)
 }

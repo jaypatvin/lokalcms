@@ -1,58 +1,32 @@
-import { serverTimestamp } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import { OrderCreateData, OrderUpdateData } from '../models/Order'
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getOrders = () => {
-  return db.orders.get().then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
+const {
+  findAll,
+  findById,
+  findByCommunityId,
+  create: baseCreate,
+  update: baseUpdate,
+} = createBaseMethods(db.orders)
 
-export const getOrderByID = async (id) => {
-  const doc = await db.orders.doc(id).get()
+export { findAll, findByCommunityId, findById }
 
-  const data = doc.data()
-  if (data) return { id: doc.id, ...data }
-  return null
-}
-
-export const getOrdersByCommunityId = async (id: string) => {
-  return await db.orders
-    .where('community_id', '==', id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
+export const create = (data: OrderCreateData) => baseCreate(data)
+export const update = (id: string, data: OrderUpdateData) => baseUpdate(id, data)
 
 export const getOrdersByBuyerId = async (id: string) => {
-  return await db.orders
-    .where('buyer_id', '==', id)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const getOrdersByProductSubscriptionIdAndDate = async (id: string, date: string) => {
-  return await db.orders
-    .where('product_subscription_id', '==', id)
-    .where('product_subscription_date', '==', date)
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
-
-export const createOrder = async (data: OrderCreateData) => {
-  return await db.orders.add({ ...data, created_at:serverTimestamp() }).then((res) => {
-    return res
+  return await findAll({
+    wheres: [where('buyer_id', '==', id)],
   })
 }
 
-export const updateOrder = async (id: string, data: OrderUpdateData) => {
-  return await db.orders.doc(id).update({ ...data, updated_at: new Date() })
-}
-
-export const createOrderStatusHistory = async (order_id, data) => {
-  return await db.orders
-    .doc(order_id)
-    .collection('status_history')
-    .add({ ...data, updated_at: new Date() })
-    .then((res) => {
-      return res.get()
-    })
-    .then((doc) => doc.data())
+export const getOrdersByProductSubscriptionIdAndDate = async (id: string, date: string) => {
+  return await findAll({
+    wheres: [
+      where('product_subscription_id', '==', id),
+      where('product_subscription_date', '==', date),
+    ],
+  })
 }

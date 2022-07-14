@@ -6,8 +6,8 @@ type Review = {
   shop_id: string
   community_id: string
   seller_id: string
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
+  updated_at?: FirebaseFirestore.Timestamp
   rating: 1 | 2 | 3 | 4 | 5
 }
 

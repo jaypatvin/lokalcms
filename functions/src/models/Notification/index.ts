@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore'
+
 type Notification = {
   type: string
   title: string
@@ -11,13 +13,13 @@ type Notification = {
   }
   image?: string
   viewed: boolean
-  date_viewed?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  date_viewed?: Timestamp
   opened: boolean
-  date_opened?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  date_opened?: Timestamp
   unread: boolean
   archived: boolean
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: Timestamp
+  updated_at?: Timestamp
 }
 
 export type NotificationCreateData = Pick<

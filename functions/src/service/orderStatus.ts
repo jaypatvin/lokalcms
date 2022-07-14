@@ -1,15 +1,15 @@
 import db from '../utils/db'
+import { createBaseMethods } from './base'
 
-export const getAllOrderStatus = async () => {
-  return await db.orderStatus
-    .get()
-    .then((res) => res.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-}
+const {
+  findAll,
+  findById,
+  findByCommunityId,
+  createById: baseCreateById,
+  update: baseUpdate,
+} = createBaseMethods(db.orderStatus)
 
-export const getOrderStatusById = async (id) => {
-  const status = await db.orderStatus.doc(id).get()
+export { findAll, findByCommunityId, findById }
 
-  const data = status.data()
-  if (data) return { id: status.id, ...data }
-  return null
-}
+export const create = (id: string, data) => baseCreateById(id, data)
+export const update = (id: string, data) => baseUpdate(id, data)

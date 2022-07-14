@@ -9,8 +9,8 @@ type Report = {
   shop_id?: string
   product_id?: string
   report_type: 'activity' | 'shop' | 'product'
-  created_at: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
-  updated_at?: FirebaseFirestore.Timestamp | FirebaseFirestore.FieldValue
+  created_at: FirebaseFirestore.Timestamp
+  updated_at?: FirebaseFirestore.Timestamp
   document_snapshot: Activity | Shop | Product
 }
 

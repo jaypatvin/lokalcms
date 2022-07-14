@@ -1,6 +1,7 @@
 import {
   addDoc,
   CollectionReference,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -63,11 +64,14 @@ export const findByCommunityId = async <T>(ref: CollectionReference<T>, id: stri
 
 export const create = async <T, U>(ref: CollectionReference<T>, data: U) => {
   const docRef = await addDoc(
-    ref as CollectionReference<T & { created_at: Timestamp; updated_at: Timestamp }>,
+    ref as CollectionReference<
+      T & { created_at: Timestamp; updated_at: Timestamp; archived: boolean }
+    >,
     {
       ...(data as Partial<T>),
       created_at: Timestamp.now(),
       updated_at: Timestamp.now(),
+      archived: false as boolean, // typescript bug?
     }
   )
 
@@ -77,11 +81,17 @@ export const create = async <T, U>(ref: CollectionReference<T>, data: U) => {
 
 export const createById = async <T, U>(ref: CollectionReference<T>, id: string, data: U) => {
   await setDoc(
-    doc(ref as CollectionReference<T & { created_at: Timestamp; updated_at: Timestamp }>, id),
+    doc(
+      ref as CollectionReference<
+        T & { created_at: Timestamp; updated_at: Timestamp; archived: boolean }
+      >,
+      id
+    ),
     {
       ...(data as Partial<T>),
       created_at: Timestamp.now(),
       updated_at: Timestamp.now(),
+      archived: false as boolean, // typescript bug?
     }
   )
 
@@ -145,6 +155,19 @@ export const unarchive = async <T, U>(ref: CollectionReference<T>, id: string, d
   return { id: updatedDoc.id, ...updatedDoc.data() }
 }
 
+export const remove = async <T>(ref: CollectionReference<T>, id: string) => {
+  if (!id) return null
+
+  const docRef = doc(
+    ref as CollectionReference<T & { updated_at: Timestamp; archived: boolean }>,
+    id
+  )
+
+  await deleteDoc(docRef)
+
+  return true
+}
+
 export const createBaseMethods = <T>(ref: CollectionReference<T>) => ({
   findAll: (option?: Option) => findAll(ref, option),
   findOne: (option?: Option) => findOne(ref, option),
@@ -155,4 +178,5 @@ export const createBaseMethods = <T>(ref: CollectionReference<T>) => ({
   update: <U>(id: string, data: U) => update(ref, id, data),
   archive: <U>(id: string, data?: U) => archive(ref, id, data),
   unarchive: <U>(id: string, data?: U) => unarchive(ref, id, data),
+  remove: (id: string) => remove(ref, id),
 })

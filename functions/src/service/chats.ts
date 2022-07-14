@@ -21,9 +21,9 @@ export const update = (id: string, data: ChatUpdateData) => baseUpdate(id, data)
 export const archive = (id: string, data: ChatUpdateData) => baseArchive(id, data)
 export const unarchive = (id: string, data: ChatUpdateData) => baseUnarchive(id, data)
 
-export const findGroupChatByHash = async (group_hash: string) => {
+export const findGroupChatByHash = async (groupHash: string) => {
   return await findAll({
-    wheres: [where('group_hash', '==', group_hash)],
+    wheres: [where('group_hash', '==', groupHash)],
   })
 }
 
