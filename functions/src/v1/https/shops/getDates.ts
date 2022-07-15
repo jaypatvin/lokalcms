@@ -99,7 +99,7 @@ const getDates: RequestHandler = async (req, res) => {
   }
 
   // check if shop exists
-  const shop = await ShopsService.getShopByID(shopId)
+  const shop = await ShopsService.findById(shopId)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }

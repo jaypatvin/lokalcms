@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express'
+import { omit } from 'lodash'
 import { UsersService } from '../../../service'
 
 /**
@@ -36,12 +37,9 @@ import { UsersService } from '../../../service'
 const getUsersByCommunityId: RequestHandler = async (req, res) => {
   const { communityId } = req.params
 
-  const result = await UsersService.getUsersByCommunityId(communityId)
+  const users = await UsersService.findByCommunityId(communityId)
 
-  result.forEach((user) => {
-    delete user.keywords
-    delete user.community
-  })
+  const result = users.map((user) => omit(result, ['keywords', 'community']))
 
   return res.json({ status: 'ok', data: result })
 }

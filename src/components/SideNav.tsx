@@ -186,7 +186,7 @@ const Item = (props: Props) => {
 const SideNav = () => {
   return (
     <>
-      <div className="mx-2 my-4 py-4 flex-grow">
+      <div className="mx-2 my-4 py-4 flex-grow overflow-auto h-2/3-screen">
         <nav>
           <ul>
             {menus.map((menu) => {

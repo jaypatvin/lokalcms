@@ -84,8 +84,8 @@ const createOrderFromSubscription: RequestHandler = async (req, res) => {
     })
   }
 
-  const subscriptionOrder = await ProductSubscriptionsService.getProductSubscriptionById(id)
-  if (!subscriptionOrder) {
+  const subscription = await ProductSubscriptionsService.findById(id)
+  if (!subscription) {
     throw generateNotFoundError(ErrorCode.ProductSubscriptionApiError, 'Product Subscription', id)
   }
 
@@ -95,11 +95,9 @@ const createOrderFromSubscription: RequestHandler = async (req, res) => {
     quantity,
     date_string,
     date: orderDate,
-  } = subscriptionOrder
+  } = subscription
 
-  const plan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
-    product_subscription_plan_id
-  )
+  const plan = await ProductSubscriptionPlansService.findById(product_subscription_plan_id)
 
   if (!plan) {
     throw generateNotFoundError(
@@ -116,8 +114,8 @@ const createOrderFromSubscription: RequestHandler = async (req, res) => {
     })
   }
 
-  const existingOrder = await OrdersService.getOrdersByProductSubscriptionIdAndDate(
-    subscriptionOrder.id,
+  const existingOrder = await OrdersService.findOrdersByProductSubscriptionIdAndDate(
+    subscription.id,
     date_string
   )
 
@@ -128,7 +126,10 @@ const createOrderFromSubscription: RequestHandler = async (req, res) => {
   }
 
   const { seller_id, community_id, product_id, product, shop_id, shop } = plan
-  const buyer = await UsersService.getUserByID(buyer_id)
+  const buyer = await UsersService.findById(buyer_id)
+  if (!buyer) {
+    throw generateNotFoundError(ErrorCode.ProductSubscriptionApiError, 'User', buyer_id)
+  }
   const statusCode = ORDER_STATUS.PENDING_CONFIRM_PAYMENT
   const orderData: OrderCreateData = {
     buyer_id,
@@ -158,13 +159,12 @@ const createOrderFromSubscription: RequestHandler = async (req, res) => {
     },
     status_code: statusCode,
     delivery_address: buyer.address,
-    product_subscription_id: subscriptionOrder.id,
-    product_subscription_date: subscriptionOrder.date_string,
+    product_subscription_id: subscription.id,
+    product_subscription_date: subscription.date_string,
     payment_method,
   }
 
-  const order = await OrdersService.createOrder(orderData)
-  const result = await order.get().then((doc) => ({ id: order.id, ...doc.data() }))
+  const result = await OrdersService.create(orderData)
 
   return res.json({ status: 'ok', data: result })
 }

@@ -61,7 +61,7 @@ const unverifyUser: RequestHandler = async (req, res) => {
   }
 
   // check if user id is valid
-  const existing_user = await UsersService.getUserByID(userId)
+  const existing_user = await UsersService.findById(userId)
   if (!existing_user) {
     throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
@@ -74,7 +74,7 @@ const unverifyUser: RequestHandler = async (req, res) => {
     'registration.verified': false,
   }
 
-  const result = await UsersService.updateUser(userId, updateData)
+  const result = await UsersService.update(userId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

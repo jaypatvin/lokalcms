@@ -34,7 +34,7 @@ const removeFromWishlist: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.WishlistApiError, 'Product', productId)
   }
@@ -44,9 +44,9 @@ const removeFromWishlist: RequestHandler = async (req, res) => {
     })
   }
 
-  const exists = await WishlistsService.getProductWishlist(productId, requestorDocId)
+  const exists = await WishlistsService.findProductWishlist(productId, requestorDocId)
   if (exists) {
-    await WishlistsService.removeProductWishlist(productId, requestorDocId)
+    await WishlistsService.remove(productId, requestorDocId)
   }
 
   return res.status(200).json({ status: 'ok' })

@@ -107,7 +107,7 @@ const getChats: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const chatsIndex = client.initIndex('chats')
 
-  const filtersArray = []
+  const filtersArray: string[] = []
   if (community) {
     filtersArray.push(`community_id:${community}`)
   }

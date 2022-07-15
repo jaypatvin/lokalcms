@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express'
+import { omit } from 'lodash'
 import { ProductsService } from '../../../service'
 
 /**
@@ -36,14 +37,9 @@ import { ProductsService } from '../../../service'
 const getUserProducts: RequestHandler = async (req, res) => {
   const { userId } = req.params
 
-  const products = await ProductsService.getProductsByUserId(userId)
+  const products = await ProductsService.findProductsByUserId(userId)
 
-  // reduce return data
-  products.forEach((product) => {
-    delete product.keywords
-  })
-
-  return res.json({ status: 'ok', data: products })
+  return res.json({ status: 'ok', data: omit(products, ['keywords']) })
 }
 
 export default getUserProducts

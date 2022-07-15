@@ -13,10 +13,10 @@ export const update = (
   rating: Review['rating'],
   message: string = ''
 ) => {
-  return createBaseMethods(db.getProductReviews(`products/${productId}/reviews`)).update(
-    reviewId,
-    { rating, message }
-  )
+  return createBaseMethods(db.getProductReviews(`products/${productId}/reviews`)).update(reviewId, {
+    rating,
+    message,
+  })
 }
 
 export const findReviewsByUser = async (userId: string) => {
@@ -25,8 +25,20 @@ export const findReviewsByUser = async (userId: string) => {
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 }
 
+export const findReviewsByOrder = async (orderId: string) => {
+  const reviewsQuery = query(db.reviews, where('order_id', '==', orderId))
+  const snapshot = await getDocs(reviewsQuery)
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+}
+
 export const findAllProductReviews = async (id: string) => {
   return createBaseMethods(db.getProductReviews(`products/${id}/reviews`)).findAll()
+}
+
+export const findProductReviewByOrder = async (productId: string, orderId: string) => {
+  return createBaseMethods(db.getProductReviews(`products/${productId}/reviews`)).findOne({
+    wheres: [where('order_id', '==', orderId)],
+  })
 }
 
 export const findProductReview = async (productId: string, reviewId: string) => {

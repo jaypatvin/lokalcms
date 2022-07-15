@@ -90,7 +90,7 @@ const updateProduct: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const data = req.body
 
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
   }
@@ -128,13 +128,13 @@ const updateProduct: RequestHandler = async (req, res) => {
     if (product.gallery) {
       updateData.gallery = product.gallery
       data.gallery.forEach((new_photo: any) => {
-        const currentPhoto = updateData.gallery.find(
+        const currentPhoto = updateData.gallery?.find(
           (photo: any) => photo.order === new_photo.order
         )
         if (currentPhoto) {
           currentPhoto.url = new_photo.url
         } else {
-          updateData.gallery.push(new_photo)
+          updateData.gallery?.push(new_photo)
         }
       })
     } else {
@@ -145,7 +145,7 @@ const updateProduct: RequestHandler = async (req, res) => {
   if (data.status) updateData.status = data.status
   if (isBoolean(data.can_subscribe)) updateData.can_subscribe = data.can_subscribe
 
-  const result = await ProductsService.updateProduct(productId, updateData)
+  const result = await ProductsService.update(productId, updateData)
 
   if (!product.quantity && updateData.quantity) {
     // notify users who wishlisted the product if theres new stock
@@ -157,10 +157,11 @@ const updateProduct: RequestHandler = async (req, res) => {
       associated_document: product.id,
     }
 
-    const wishlistUsers = (await product.wishlists.get()).docs.map((doc) => doc.data().user_id)
+    const wishlistUsers =
+      (await product.wishlists?.get())?.docs.map((doc) => doc.data().user_id) ?? []
 
     for (const userId of wishlistUsers) {
-      await NotificationsService.createUserNotification(userId, notificationData)
+      await NotificationsService.create(userId, notificationData)
     }
   }
 

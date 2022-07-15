@@ -47,7 +47,7 @@ const updateChatTitle: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  const chat = await ChatsService.getChatById(chatId)
+  const chat = await ChatsService.findById(chatId)
   if (!chat) {
     throw generateNotFoundError(ErrorCode.ChatApiError, 'Chat', chatId)
   }
@@ -70,7 +70,7 @@ const updateChatTitle: RequestHandler = async (req, res) => {
     title,
   }
 
-  const result = await ChatsService.updateChat(chat.id, { ...requestData })
+  const result = await ChatsService.update(chat.id, { ...requestData })
   return res.json({ status: 'ok', data: result })
 }
 

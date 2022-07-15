@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express'
+import { where } from 'firebase/firestore'
 import { LikesService, OrdersService, ProductsService } from '../../../service'
 import { generateError, ErrorCode } from '../../../utils/generators'
 import getScheduledAvailableItems from '../../../utils/getScheduledAvailableItems'
@@ -52,13 +53,13 @@ const getRecommendedProducts: RequestHandler = async (req, res) => {
   }
 
   // get all product likes
-  const productLikes = await LikesService.getLikesByUser(buyer_id, 'products')
+  const productLikes = await LikesService.findProductLikesByUser(buyer_id)
 
-  const likesCategories = {}
+  const likesCategories: { [x: string]: number } = {}
   for (const like of productLikes) {
     if (like.product_id) {
-      const product = await ProductsService.getProductByID(like.product_id)
-      const category = product.product_category
+      const product = await ProductsService.findById(like.product_id)
+      const category = product!.product_category
       if (category) {
         if (!likesCategories[category]) likesCategories[category] = 0
         likesCategories[category]++
@@ -66,10 +67,10 @@ const getRecommendedProducts: RequestHandler = async (req, res) => {
     }
   }
 
-  const allUserOrders = await OrdersService.getOrdersByBuyerId(buyer_id)
+  const allUserOrders = await OrdersService.findOrdersByBuyerId(buyer_id)
 
   // get product categories from all the orders
-  const ordersCategories = allUserOrders.reduce((acc, order) => {
+  const ordersCategories = allUserOrders.reduce<{ [x: string]: number }>((acc, order) => {
     for (const orderProduct of order.products) {
       const category = orderProduct.category
       if (category) {
@@ -81,7 +82,7 @@ const getRecommendedProducts: RequestHandler = async (req, res) => {
   }, {})
 
   // combine the categories lists
-  const allCategoriesCounts = { ...likesCategories }
+  const allCategoriesCounts: { [x: string]: number } = { ...likesCategories }
   Object.entries(ordersCategories).forEach(([key, val]) => {
     if (allCategoriesCounts[key]) {
       allCategoriesCounts[key] = allCategoriesCounts[key] + val
@@ -96,33 +97,33 @@ const getRecommendedProducts: RequestHandler = async (req, res) => {
     return 1
   })
 
-  const topCategories = []
+  const topCategories: string[] = []
   for (let i = 0; i < Math.min(sortedCategories.length, 3); i++) {
     topCategories.push(sortedCategories[i][0])
   }
 
-  let products = []
-  let moreProducts = []
+  let products: any[] = []
+  let moreProducts: any[] = []
   if (topCategories.length) {
     // filter the products based on the top categories
-    const recommendedProducts = await ProductsService.getCommunityProductsWithFilter({
+    const recommendedProducts = await ProductsService.findCommunityProductsWithFilter({
       community_id,
-      wheres: [['product_category', 'in', topCategories]],
+      wheres: [where('product_category', 'in', topCategories)],
     })
 
     // get more recommended products based on liked shops
     const recommendedProductsIds = recommendedProducts.map((p) => p.id)
-    let recommendedShopProducts = []
+    let recommendedShopProducts: any = []
     if (sortedCategories.length > 3) {
       const otherCategories = sortedCategories.slice(3, 10).map((category) => category[0])
-      const shopLikes = await LikesService.getLikesByUser(buyer_id, 'shops')
+      const shopLikes = await LikesService.findShopLikesByUser(buyer_id)
       for (const like of shopLikes) {
         if (like.shop_id) {
-          const shopProducts = await ProductsService.getCommunityProductsWithFilter({
+          const shopProducts = await ProductsService.findCommunityProductsWithFilter({
             community_id,
             wheres: [
-              ['product_category', 'in', otherCategories],
-              ['shop_id', '==', like.shop_id],
+              where('product_category', 'in', otherCategories),
+              where('shop_id', '==', like.shop_id),
             ],
           })
           recommendedShopProducts.push(...shopProducts)

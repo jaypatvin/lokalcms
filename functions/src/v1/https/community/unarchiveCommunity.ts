@@ -46,7 +46,7 @@ const unarchiveCommunity: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await CommunityService.unarchiveCommunity(communityId, requestData)
+  const result = await CommunityService.unarchive(communityId, requestData)
 
   return res.json({
     status: 'ok',

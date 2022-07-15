@@ -1,5 +1,4 @@
-import { getDoc, doc, Timestamp } from 'firebase/firestore'
-import { UsersService } from '.'
+import { getDoc, doc, query, where, getDocs } from 'firebase/firestore'
 import { CommentCreateData, CommentUpdateData } from '../models/Comment'
 import db from '../utils/db'
 import { createBaseMethods } from './base'
@@ -9,17 +8,20 @@ export const create = (activityId: string, data: CommentCreateData) => {
 }
 
 export const update = (activityId: string, id: string, data: CommentUpdateData) => {
-  return createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).update(id, data)
+  return createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).update(
+    id,
+    data
+  )
 }
 
-export const archive = (activityId: string, id: string, data) => {
+export const archive = (activityId: string, id: string, data?) => {
   return createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).archive(
     id,
     data
   )
 }
 
-export const unarchive = (activityId: string, id: string, data) => {
+export const unarchive = (activityId: string, id: string, data?) => {
   return createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).unarchive(
     id,
     data
@@ -27,14 +29,19 @@ export const unarchive = (activityId: string, id: string, data) => {
 }
 
 export const findAllActivityComments = async (activityId: string, userId = '') => {
-  const comments = await createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).findAll()
+  const comments = await createBaseMethods(
+    db.getActivityComments(`activities/${activityId}/comments`)
+  ).findAll()
 
   return await Promise.all(
     comments.map(async (comment) => {
       let liked = false
       if (userId) {
         const likeDoc = await getDoc(
-          doc(db.getLikes(`activities/${activityId}/comments/${comment.id}/likes`), `${comment.id}_${userId}_like`)
+          doc(
+            db.getLikes(`activities/${activityId}/comments/${comment.id}/likes`),
+            `${comment.id}_${userId}_like`
+          )
         )
         liked = likeDoc.exists()
       }
@@ -46,14 +53,21 @@ export const findAllActivityComments = async (activityId: string, userId = '') =
   )
 }
 
-export const findActivityComment = async (activityId: string, commentId: string, userId: '') => {
-  const comment = await createBaseMethods(db.getActivityComments(`activities/${activityId}/comments`)).findById(commentId)
+export const findActivityComment = async (activityId: string, commentId: string, userId = '') => {
+  const comment = await createBaseMethods(
+    db.getActivityComments(`activities/${activityId}/comments`)
+  ).findById(commentId)
 
   if (!comment) return null
 
   let liked = false
   if (userId) {
-    const likeDoc = await getDoc(doc(db.getLikes(`activities/${activityId}/comments/${comment.id}/likes`), `${comment.id}_${userId}_like`))
+    const likeDoc = await getDoc(
+      doc(
+        db.getLikes(`activities/${activityId}/comments/${comment.id}/likes`),
+        `${comment.id}_${userId}_like`
+      )
+    )
     liked = likeDoc.exists()
   }
 
@@ -63,43 +77,27 @@ export const findActivityComment = async (activityId: string, commentId: string,
   }
 }
 
-// this method is expected to be slow since we're checking each activity
-// if they contain the comment document
-// additional optimizations are required
-export const getUserComments = async (userId: string) => {
-  const comments = await db.comments.where('user_id', '==', userId).get()
+export const findCommentsByUser = async (userId: string) => {
+  const commentsQuery = query(db.comments, where('user_id', '==', userId))
+  const snapshot = await getDocs(commentsQuery)
+  const comments = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
   return await Promise.all(
-    comments.docs.map(async (commentDoc) => {
-      console.log('comment id: ' + commentDoc.id)
-      const activities = await db.activities.get()
-      for (let activity of activities.docs) {
-        const data = await db
-          .getActivityComments(`activities/${activity.id}/comments`)
-          .doc(commentDoc.id)
-          .get()
-
-        if (data) {
-          let liked = false
-          if (userId) {
-            const likeDoc = await db
-              .getActivityComments(`activities/${activity.id}/comments`)
-              .doc(commentDoc.id)
-              .collection('likes')
-              .doc(`${commentDoc.id}_${userId}_like`)
-              .get()
-            liked = likeDoc.exists
-          }
-
-          return {
-            activityId: activity.id,
-            commentId: commentDoc.id,
-            ...commentDoc.data(),
-            liked,
-          }
-        }
+    comments.map(async (comment) => {
+      let liked = false
+      if (userId) {
+        const likeDoc = await getDoc(
+          doc(
+            db.getLikes(`activities/${comment.activity_id}/comments/${comment.id}/likes`),
+            `${comment.id}_${userId}_like`
+          )
+        )
+        liked = likeDoc.exists()
       }
-      return undefined
+      return {
+        ...comment,
+        liked,
+      }
     })
   )
 }

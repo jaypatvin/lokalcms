@@ -36,7 +36,7 @@ const archiveInvite: RequestHandler = async (req, res) => {
   const { inviteId } = req.params
   const roles = res.locals.userRoles
 
-  const invite = await InvitesService.getInviteByID(inviteId)
+  const invite = await InvitesService.findById(inviteId)
   if (!invite) {
     throw generateNotFoundError(ErrorCode.InviteApiError, 'Invite', inviteId)
   }
@@ -52,7 +52,7 @@ const archiveInvite: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await InvitesService.archiveInvite(inviteId, requestData)
+  const result = await InvitesService.archive(inviteId, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

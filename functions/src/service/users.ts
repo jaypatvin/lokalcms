@@ -5,6 +5,7 @@ import { createBaseMethods } from './base'
 
 const {
   findAll,
+  findOne,
   findById,
   findByCommunityId,
   create: baseCreate,
@@ -21,7 +22,7 @@ export const archive = (id: string, data: UserUpdateData) => baseArchive(id, dat
 export const unarchive = (id: string, data: UserUpdateData) => baseUnarchive(id, data)
 
 export const findUserByUid = async (uid: string) => {
-  return await findAll({
+  return await findOne({
     wheres: [where('user_uids', 'array-contains', uid)],
   })
 }

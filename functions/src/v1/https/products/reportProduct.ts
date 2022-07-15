@@ -53,7 +53,7 @@ const reportProduct: RequestHandler = async (req, res) => {
   const { description } = req.body
   const requestor = res.locals.userDoc
 
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
   }

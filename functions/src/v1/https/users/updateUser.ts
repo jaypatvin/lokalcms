@@ -5,6 +5,7 @@ import { generateUserKeywords } from '../../../utils/generators'
 import { UserUpdateData } from '../../../models/User'
 import db from '../../../utils/db'
 import { ErrorCode, generateError, generateNotFoundError } from '../../../utils/generators'
+import { doc } from 'firebase/firestore'
 
 /**
  * @openapi
@@ -108,14 +109,14 @@ const updateUser: RequestHandler = async (req, res) => {
   let newCommunity
 
   // check if user id is valid
-  const existingUser = await UsersService.getUserByID(userId)
+  const existingUser = await UsersService.findById(userId)
   if (!existingUser) {
     throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
 
   // check if community id is valid
   if (data.community_id) {
-    newCommunity = await CommunityService.getCommunityByID(data.community_id)
+    newCommunity = await CommunityService.findById(data.community_id)
     if (!newCommunity) {
       throw generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id)
     }
@@ -151,7 +152,7 @@ const updateUser: RequestHandler = async (req, res) => {
   if (data.community_id && newCommunity) {
     // TODO: if user is admin of previous community, remove the user from admin array of community
     updateData.community_id = data.community_id
-    updateData.community = db.community.doc(data.community_id)
+    updateData.community = doc(db.community, data.community_id)
     updateData['address.barangay'] = newCommunity.address.barangay
     updateData['address.city'] = newCommunity.address.city
     updateData['address.state'] = newCommunity.address.state
@@ -162,7 +163,7 @@ const updateUser: RequestHandler = async (req, res) => {
 
   if (data.street) updateData['address.street'] = data.street
 
-  const result = await UsersService.updateUser(userId, updateData)
+  const result = await UsersService.update(userId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

@@ -1,4 +1,6 @@
 import { RequestHandler } from 'express'
+import { omit } from 'lodash'
+import { User } from '../../../models'
 import { UsersService, WishlistsService } from '../../../service'
 
 /**
@@ -36,22 +38,19 @@ import { UsersService, WishlistsService } from '../../../service'
 const getProductWishlistUsers: RequestHandler = async (req, res) => {
   const { productId } = req.params
 
-  const wishlist = await WishlistsService.getProductWishlists(productId)
-  const wishlistUsers = []
+  const wishlist = await WishlistsService.findAllProductWishlists(productId)
+  const wishlistUsers: ({
+    id: string
+  } & User)[] = []
 
   for (const { user_id } of wishlist) {
-    const user = await UsersService.getUserByID(user_id)
+    const user = await UsersService.findById(user_id)
     if (user) {
       wishlistUsers.push(user)
     }
   }
 
-  // reduce return data
-  wishlistUsers.forEach((user) => {
-    delete user.keywords
-  })
-
-  return res.json({ status: 'ok', data: wishlistUsers })
+  return res.json({ status: 'ok', data: wishlistUsers.map((user) => omit(user, ['keywords'])) })
 }
 
 export default getProductWishlistUsers

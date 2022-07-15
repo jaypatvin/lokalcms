@@ -157,7 +157,7 @@ const addShopOperatingHours: RequestHandler = async (req, res) => {
   const { shopId } = req.params
   const data = req.body
 
-  const shop = await ShopsService.getShopByID(shopId)
+  const shop = await ShopsService.findById(shopId)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
@@ -202,12 +202,12 @@ const addShopOperatingHours: RequestHandler = async (req, res) => {
     }),
   }
 
-  const result = await ShopsService.updateShop(shopId, updateData)
+  const result = await ShopsService.update(shopId, updateData)
 
-  const shopProducts = await ProductsService.getProductsByShopID(shopId)
+  const shopProducts = await ProductsService.findProductsByShopId(shopId)
   for (const product of shopProducts) {
     const productId = product.id
-    await ProductsService.updateProduct(productId, { availability: updateData.operating_hours })
+    await ProductsService.update(productId, { availability: updateData.operating_hours })
   }
 
   return res.json({ status: 'ok', data: result })

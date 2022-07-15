@@ -1,17 +1,18 @@
+import { DocumentReference, Timestamp, CollectionReference } from 'firebase/firestore'
 import Conversation from '../Conversation'
 
 type Chat = {
   archived: boolean
   chat_type: 'user' | 'shop' | 'product' | 'group'
   community_id: string
-  conversation?: FirebaseFirestore.CollectionGroup<Conversation>
-  created_at: FirebaseFirestore.Timestamp
+  conversation?: CollectionReference<Conversation>
+  created_at: Timestamp
   group_hash?: string
   last_message: {
     content: string
     conversation_id?: string
-    created_at: FirebaseFirestore.Timestamp
-    ref?: FirebaseFirestore.DocumentReference<Conversation>
+    created_at: Timestamp
+    ref?: DocumentReference<Conversation>
     sender: string
     sender_id: string
   }
@@ -20,7 +21,7 @@ type Chat = {
   product_id?: string
   customer_name?: string
   title: string
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
 }

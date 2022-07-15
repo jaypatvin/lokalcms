@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express'
+import { omit } from 'lodash'
 import { ProductsService } from '../../../service'
 import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
@@ -36,15 +37,12 @@ const getProduct: RequestHandler = async (req, res) => {
   const { productId } = req.params
 
   // check if product exists
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
   }
 
-  // reduce return data
-  delete product.keywords
-
-  return res.status(200).json({ status: 'ok', data: product })
+  return res.status(200).json({ status: 'ok', data: omit(product, ['keywords']) })
 }
 
 export default getProduct

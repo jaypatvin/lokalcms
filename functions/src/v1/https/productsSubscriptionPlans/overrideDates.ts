@@ -92,7 +92,7 @@ const overrideDates: RequestHandler = async (req, res) => {
     overrideDatesUpdates[`plan.override_dates.${original_date}`] = new_date
   }
 
-  const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
+  const subscriptionPlan = await ProductSubscriptionPlansService.findById(
     planId
   )
 
@@ -113,7 +113,7 @@ const overrideDates: RequestHandler = async (req, res) => {
     ...overrideDatesUpdates,
   }
 
-  await ProductSubscriptionPlansService.updateProductSubscriptionPlan(planId, updateData)
+  await ProductSubscriptionPlansService.update(planId, updateData)
 
   return res.json({ status: 'ok' })
 }

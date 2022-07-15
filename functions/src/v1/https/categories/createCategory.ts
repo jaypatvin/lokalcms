@@ -84,7 +84,7 @@ const createCategory: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await CategoriesService.createCategory(categoryData)
+  const result = await CategoriesService.create(data.name, categoryData)
 
   return res.status(200).json({ status: 'ok', data: result })
 }

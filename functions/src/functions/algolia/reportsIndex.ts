@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions'
 import algoliasearch from 'algoliasearch'
 import { get, pick } from 'lodash'
 import { reportFields } from './algoliaFields'
-import db from '../../utils/db'
+import { UsersService } from '../../service'
 
 const appId = get(functions.config(), 'algolia_config.app_id')
 const apiKey = get(functions.config(), 'algolia_config.api_key')
@@ -15,10 +15,8 @@ exports.addReportIndex = functions.firestore
   .onCreate(async (snapshot) => {
     const data = snapshot.data()
 
-    const userRef = await db.users.doc(data.user_id).get()
-    const reportedUserRef = await db.users.doc(data.reported_user_id).get()
-    const userEmail = userRef.data().email
-    const reportedUserEmail = reportedUserRef.data().email
+    const { email: userEmail } = (await UsersService.findById(data.user_id))!
+    const { email: reportedUserEmail } = (await UsersService.findById(data.reported_user_id))!
 
     const report = {
       objectID: snapshot.id,
@@ -38,14 +36,12 @@ exports.updateReportIndex = functions.firestore
     const extraFields: any = {}
 
     if (!newData.reporter_email) {
-      const userRef = await db.users.doc(newData.user_id).get()
-      const userEmail = userRef.data().email
+      const { email: userEmail } = (await UsersService.findById(newData.user_id))!
       extraFields.reporter_email = userEmail
     }
 
     if (!newData.reported_email) {
-      const reportedUserRef = await db.users.doc(newData.reported_user_id).get()
-      const reportedUserEmail = reportedUserRef.data().email
+      const { email: reportedUserEmail } = (await UsersService.findById(newData.reported_user_id))!
       extraFields.reported_email = reportedUserEmail
     }
 

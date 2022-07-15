@@ -7,13 +7,13 @@ const generateProductSubscriptions = async (planId?: string) => {
   const maxRangeDays = 14
   let subscriptions = []
   if (planId) {
-    const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)
+    const subscriptionPlan = await ProductSubscriptionPlansService.findById(planId)
     if (subscriptionPlan.archived || subscriptionPlan.status !== 'enabled') {
       return null
     }
     subscriptions = [subscriptionPlan]
   } else {
-    subscriptions = await ProductSubscriptionPlansService.getAllSubscriptionPlans()
+    subscriptions = await ProductSubscriptionPlansService.findAllEnabledSubscriptionPlans()
   }
   const totalSubscriptionsMade = []
   for (let subscription of subscriptions) {
@@ -48,7 +48,7 @@ const generateProductSubscriptions = async (planId?: string) => {
     if (nextSubscriptionDates.length) {
       for (let subscriptionDate of nextSubscriptionDates) {
         const existingActiveSubscription =
-          await ProductSubscriptionsService.getProductSubscriptionByDateAndPlanId(
+          await ProductSubscriptionsService.findProductSubscriptionByDateAndPlanId(
             subscription.id,
             subscriptionDate
           )
@@ -68,7 +68,7 @@ const generateProductSubscriptions = async (planId?: string) => {
             date_string: subscriptionDate,
             original_date: originalDate,
           }
-          const newSubscription = await ProductSubscriptionsService.createProductSubscription(data)
+          const newSubscription = await ProductSubscriptionsService.create(data)
           totalSubscriptionsMade.push(newSubscription.id)
         }
       }

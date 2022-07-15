@@ -3,11 +3,13 @@ import { LikeCreateData } from '../models/Like'
 import db from '../utils/db'
 import { createBaseMethods } from './base'
 
-export const addProductLike = (productId: string, userId: string, data: LikeCreateData) => {
+export const addProductLike = (productId: string, userId: string, data?: LikeCreateData) => {
   return createBaseMethods(db.getLikes(`products/${productId}/likes`)).createById(
     `${productId}_${userId}_like`,
     {
       ...data,
+      product_id: productId,
+      user_id: userId,
       parent_collection_path: 'products',
       parent_collection_name: 'products',
     }
@@ -40,11 +42,13 @@ export const findAllProductLikes = async (productId: string) => {
   return createBaseMethods(db.getLikes(`products/${productId}/likes`)).findAll()
 }
 
-export const addShopLike = (shopId: string, userId: string, data: LikeCreateData) => {
+export const addShopLike = (shopId: string, userId: string, data?: LikeCreateData) => {
   return createBaseMethods(db.getLikes(`shops/${shopId}/likes`)).createById(
     `${shopId}_${userId}_like`,
     {
       ...data,
+      shop_id: shopId,
+      user_id: userId,
       parent_collection_path: 'shops',
       parent_collection_name: 'shops',
     }
@@ -52,9 +56,7 @@ export const addShopLike = (shopId: string, userId: string, data: LikeCreateData
 }
 
 export const removeShopLike = (shopId: string, userId: string) => {
-  return createBaseMethods(db.getLikes(`shops/${shopId}/likes`)).remove(
-    `${shopId}_${userId}_like`
-  )
+  return createBaseMethods(db.getLikes(`shops/${shopId}/likes`)).remove(`${shopId}_${userId}_like`)
 }
 
 export const findShopLikesByUser = async (userId: string) => {
@@ -77,11 +79,13 @@ export const findAllShopLikes = async (shopId: string) => {
   return createBaseMethods(db.getLikes(`shops/${shopId}/likes`)).findAll()
 }
 
-export const addActivityLike = (activityId: string, userId: string, data: LikeCreateData) => {
+export const addActivityLike = (activityId: string, userId: string, data?: LikeCreateData) => {
   return createBaseMethods(db.getLikes(`activities/${activityId}/likes`)).createById(
     `${activityId}_${userId}_like`,
     {
       ...data,
+      activity_id: activityId,
+      user_id: userId,
       parent_collection_path: 'activities',
       parent_collection_name: 'activities',
     }
@@ -114,15 +118,31 @@ export const findAllActivityLikes = async (activityId: string) => {
   return createBaseMethods(db.getLikes(`activities/${activityId}/likes`)).findAll()
 }
 
-export const addCommentLike = (activityId: string, commentId: string, userId: string) => {
+export const addCommentLike = (
+  activityId: string,
+  commentId: string,
+  userId: string,
+  data?: LikeCreateData
+) => {
   return createBaseMethods(
     db.getLikes(`activities/${activityId}/comments/${commentId}/likes`)
   ).createById(`${commentId}_${userId}_like`, {
+    ...data,
     userId,
     commentId,
     parent_collection_path: `activities/${activityId}/comments`,
     parent_collection_name: `activities/${activityId}/comments`,
   })
+}
+
+export const findActivityCommentLike = async (
+  activityId: string,
+  commentId: string,
+  userId: string
+) => {
+  return createBaseMethods(
+    db.getLikes(`activities/${activityId}/comments/${commentId}/likes`)
+  ).findById(`${commentId}_${userId}_like`)
 }
 
 export const removeCommentLike = (activityId: string, commentId: string, userId: string) => {

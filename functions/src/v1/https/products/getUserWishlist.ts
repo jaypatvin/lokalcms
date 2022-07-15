@@ -36,11 +36,11 @@ import { ProductsService, WishlistsService } from '../../../service'
 const getUserWishlist: RequestHandler = async (req, res) => {
   const { userId } = req.params
 
-  const wishlist = await WishlistsService.getWishlistsByUser(userId)
-  const wishlistProducts = []
+  const wishlist = await WishlistsService.findWishlistsByUser(userId)
+  const wishlistProducts: any = []
 
   for (const { product_id } of wishlist) {
-    const product = await ProductsService.getProductByID(product_id)
+    const product = await ProductsService.findById(product_id)
     if (product) {
       wishlistProducts.push(product)
     }

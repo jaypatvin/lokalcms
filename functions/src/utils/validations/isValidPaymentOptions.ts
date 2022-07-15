@@ -8,7 +8,7 @@ const isPaymentOptionsValid = async (paymentOptions) => {
       return false
     }
 
-    const bankCode = await BankCodesService.getBankCodeById(bank_code)
+    const bankCode = await BankCodesService.findById(bank_code)
     if (!bankCode) return false
   }
 

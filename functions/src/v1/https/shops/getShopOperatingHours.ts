@@ -35,7 +35,7 @@ import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 const getShopOperatingHours: RequestHandler = async (req, res) => {
   const { shopId } = req.params
 
-  const shop = await ShopsService.getShopByID(shopId)
+  const shop = await ShopsService.findById(shopId)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
@@ -54,8 +54,12 @@ const getShopOperatingHours: RequestHandler = async (req, res) => {
 
     if (schedule && schedule.custom) {
       output.schedule = schedule
-      const unavailable_dates = []
-      const custom_dates = []
+      const unavailable_dates: string[] = []
+      const custom_dates: {
+        date: string
+        start_time: string
+        end_time: string
+      }[] = []
       Object.entries(schedule.custom).forEach(([key, val]) => {
         if (val.unavailable) unavailable_dates.push(key)
         if (val.start_time || val.end_time)

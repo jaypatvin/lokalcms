@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import { RequestHandler } from 'express'
+import { QueryConstraint, where } from 'firebase/firestore'
 import { ShopsService } from '../../../service'
 import { generateError, ErrorCode } from '../../../utils/generators'
 import getScheduledAvailableItems from '../../../utils/getScheduledAvailableItems'
@@ -68,10 +69,10 @@ const getAvailableShops: RequestHandler = async (req, res) => {
     })
   }
 
-  const initialWheres = []
-  if (q) initialWheres.push(['keywords', 'array-contains', q])
+  const initialWheres: QueryConstraint[] = []
+  if (q) initialWheres.push(where('keywords', 'array-contains', q))
 
-  const allShops = await ShopsService.getCommunityShopsWithFilter({
+  const allShops = await ShopsService.findCommunityShopsWithFilter({
     community_id,
     wheres: initialWheres,
   })

@@ -89,6 +89,7 @@ const createUser: RequestHandler = async (req, res) => {
   const data = req.body
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
+  // @ts-ignore
   const tokenUser = req.user
 
   let authUser
@@ -119,9 +120,9 @@ const createUser: RequestHandler = async (req, res) => {
     throw generateNotFoundError(ErrorCode.UserApiError, 'Community', data.community_id)
   }
 
-  const existingUsers = await UsersService.findUserByUid(authUser.uid)
+  const existingUser = await UsersService.findUserByUid(authUser.uid)
 
-  if (existingUsers.length > 0) {
+  if (existingUser) {
     throw generateError(ErrorCode.UserApiError, {
       message: `User with email "${authUser.email}" already exists`,
     })

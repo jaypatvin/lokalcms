@@ -122,7 +122,7 @@ const getReviews: RequestHandler = async (req, res) => {
     }
   }
 
-  const filtersArray = []
+  const filtersArray: string[] = []
   if (community) {
     filtersArray.push(`community_id:${community}`)
   }

@@ -15,12 +15,10 @@ const role: RequestHandler = async (req, res, next) => {
   let userRoles: RolesType = {}
   res.locals.userDoc = {}
   if (authUser && authUser.uid) {
-    const userDocs = await UsersService.getUserByUID(authUser.uid)
-    if (userDocs.length) {
-      const user = userDocs[0]
-      res.locals.userDoc = user
-      // @ts-ignore
-      userRoles = user.roles
+    const userDoc = await UsersService.findUserByUid(authUser.uid)
+    if (userDoc) {
+      res.locals.userDoc = userDoc
+      userRoles = userDoc.roles
       if (userRoles && userRoles.admin) {
         // if admin, all roles should be true
         roles.forEach((role) => (userRoles[role] = true))

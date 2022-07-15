@@ -67,7 +67,7 @@ const addOrderProductReview: RequestHandler = async (req, res) => {
   const { message = '', rating } = req.body
   const requestorDocId = res.locals.userDoc.id ?? 'mNgwHg5gmWNSisyX8vpe'
 
-  const order = await OrdersService.getOrderByID(orderId)
+  const order = await OrdersService.findById(orderId)
 
   if (!order) {
     throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
@@ -79,16 +79,15 @@ const addOrderProductReview: RequestHandler = async (req, res) => {
     })
   }
 
-  const existingReview = await ProductReviewsService.getProductReviewByOrderId(productId, orderId)
+  const existingReview = await ProductReviewsService.findProductReviewByOrder(productId, orderId)
 
-  if (existingReview.length) {
-    const review = existingReview[0]
-    if (review.user_id !== requestorDocId) {
+  if (existingReview) {
+    if (existingReview.user_id !== requestorDocId) {
       throw generateError(ErrorCode.OrderApiError, {
         message: 'The requestor id does not match the user id of the review.',
       })
     }
-    await ProductReviewsService.updateProductReview(productId, review.id, rating, message)
+    await ProductReviewsService.update(productId, existingReview.id, rating, message)
   } else {
     const newReview = {
       user_id: requestorDocId,
@@ -100,14 +99,14 @@ const addOrderProductReview: RequestHandler = async (req, res) => {
       community_id: order.community_id,
       seller_id: order.seller_id,
     }
-    const review = await ProductReviewsService.createProductReview(productId, newReview)
+    const review = await ProductReviewsService.create(productId, newReview)
     const updatedOrderProducts = order.products.map((product) => {
       if (product.id === productId) {
         product.review_id = review.id
       }
       return product
     })
-    await OrdersService.updateOrder(orderId, {
+    await OrdersService.update(orderId, {
       products: updatedOrderProducts,
     })
   }

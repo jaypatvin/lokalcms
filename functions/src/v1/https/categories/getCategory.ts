@@ -35,7 +35,7 @@ import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 const getCategory: RequestHandler = async (req, res) => {
   const { categoryId } = req.params
 
-  const category = await CategoriesService.getCategoryById(categoryId)
+  const category = await CategoriesService.findById(categoryId)
   if (!category) {
     throw generateNotFoundError(ErrorCode.CategoryApiError, 'Category', categoryId)
   }

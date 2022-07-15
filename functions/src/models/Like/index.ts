@@ -3,6 +3,7 @@ type Like = {
   comment_id?: string
   shop_id?: string
   product_id?: string
+  community_id: string
   created_at: FirebaseFirestore.Timestamp
   parent_collection_name: string
   parent_collection_path: string
@@ -15,8 +16,8 @@ export type LikeCreateData = Pick<
   | 'comment_id'
   | 'shop_id'
   | 'product_id'
-  | 'parent_collection_name'
-  | 'parent_collection_path'
+  | 'user_id'
+  | 'community_id'
 >
 
 export default Like

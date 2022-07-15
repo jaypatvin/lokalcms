@@ -125,7 +125,7 @@ const getProductSubscriptionPlans: RequestHandler = async (req, res) => {
     productSubscriptionPlansIndex = client.initIndex('product_subscription_plans_created_at_desc')
   }
 
-  const filtersArray = []
+  const filtersArray: string[] = []
   if (community) {
     filtersArray.push(`community_id:${community}`)
   }

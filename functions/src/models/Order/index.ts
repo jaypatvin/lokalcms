@@ -23,7 +23,7 @@ type Order = {
     category?: string
     description: string
     id: string
-    image: string
+    image?: string
     name: string
     price: number
     quantity: number

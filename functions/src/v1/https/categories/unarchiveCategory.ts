@@ -41,7 +41,7 @@ const unarchiveCategory: RequestHandler = async (req, res) => {
   }
 
   const { categoryId } = req.params
-  const category = await CategoriesService.getCategoryById(categoryId)
+  const category = await CategoriesService.findById(categoryId)
   if (!category) {
     throw generateNotFoundError(ErrorCode.CategoryApiError, 'Category', categoryId)
   }
@@ -51,7 +51,7 @@ const unarchiveCategory: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await CategoriesService.unarchiveCategory(categoryId, requestData)
+  const result = await CategoriesService.unarchive(categoryId, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

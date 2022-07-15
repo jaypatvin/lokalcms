@@ -27,7 +27,7 @@ import { generateError, ErrorCode } from '../../../utils/generators'
  *                   $ref: '#/components/schemas/Category'
  */
 const getCategories: RequestHandler = async (req, res) => {
-  const categories = await CategoriesService.getAllCategories()
+  const categories = await CategoriesService.findAll()
 
   if (!categories.length) {
     throw generateError(ErrorCode.CategoryApiError, {

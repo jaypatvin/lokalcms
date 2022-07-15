@@ -172,12 +172,12 @@ const createProduct: RequestHandler = async (req, res) => {
   const requestorDocId = res.locals.userDoc.id
   const userArchived = res.locals.userDoc.archived
 
-  const category = await CategoriesService.getCategoryById(data.product_category)
+  const category = await CategoriesService.findById(data.product_category)
   if (!category) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Category', data.product_category)
   }
 
-  const shop = await ShopsService.getShopByID(data.shop_id)
+  const shop = await ShopsService.findById(data.shop_id)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Shop', data.shop_id)
   }
@@ -261,7 +261,7 @@ const createProduct: RequestHandler = async (req, res) => {
 
   if (data.gallery) productData.gallery = data.gallery
 
-  const result = await ProductsService.createProduct(productData)
+  const result = await ProductsService.create(productData)
 
   return res.status(200).json({ status: 'ok', data: result })
 }

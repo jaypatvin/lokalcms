@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express'
-import { ProductsService } from '../../../service'
-import { getProductLikes } from '../../../service/likes'
+import { omit } from 'lodash'
+import { ProductsService, LikesService } from '../../../service'
 
 /**
  * @openapi
@@ -37,14 +37,15 @@ import { getProductLikes } from '../../../service/likes'
 const getCommunityProducts: RequestHandler = async (req, res) => {
   const { communityId } = req.params
 
-  const products = await ProductsService.getProductsByCommunityID(communityId)
+  const products = await ProductsService.findByCommunityId(communityId)
 
-  const result = []
+  const result: (typeof products[0] & { likes: string[] })[] = []
 
-  for (const product of products) {
-    delete product.keywords
-    const likes = await getProductLikes(product.id)
+  for (const rawProduct of products) {
+    const product = omit(rawProduct, ['keywords'])
+    const likes = await LikesService.findAllProductLikes(product.id)
     const likeUsers = likes.map((like) => like.user_id)
+    // @ts-ignore: ts bug?
     result.push({ ...product, likes: likeUsers })
   }
 

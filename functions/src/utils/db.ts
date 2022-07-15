@@ -37,7 +37,7 @@ import {
 
 const firebaseApp = getApp()
 const firestore = getFirestore(firebaseApp)
-// connectFirestoreEmulator(firestore, 'localhost', 8080)
+connectFirestoreEmulator(firestore, 'localhost', 8080)
 
 const converter = <T>(): FirestoreDataConverter<T> => ({
   toFirestore: (data: PartialWithFieldValue<T>) => data,
@@ -62,28 +62,22 @@ const db = {
   comments: groupDataPoint<Comment>('comments'),
   community: dataPoint<Community>('community'),
   conversation: groupDataPoint<Conversation>('conversation'),
-  getActivityComments: (subCollectionPath: `activities/${string}/comments`) =>
+  getActivityComments: (subCollectionPath) =>
     dataPoint<Comment>(subCollectionPath),
-  getActivityReports: (subCollectionPath: `activities/${string}/reports`) =>
+  getActivityReports: (subCollectionPath) =>
     dataPoint<Report>(subCollectionPath),
-  getChatConversations: (subCollectionPath: `chats/${string}/conversation`) =>
+  getChatConversations: (subCollectionPath) =>
     dataPoint<Conversation>(subCollectionPath),
-  getLikes: (
-    subCollectionPath:
-      | `shops/${string}/likes`
-      | `products/${string}/likes`
-      | `activities/${string}/likes`
-      | `activities/${string}/comments/${string}/likes`
-  ) => dataPoint<Like>(subCollectionPath),
-  getNotifications: (subCollectionPath: `users/${string}/notifications`) =>
+  getLikes: (subCollectionPath) => dataPoint<Like>(subCollectionPath),
+  getNotifications: (subCollectionPath) =>
     dataPoint<Notification>(subCollectionPath),
-  getProductReports: (subCollectionPath: `products/${string}/reports`) =>
+  getProductReports: (subCollectionPath) =>
     dataPoint<Report>(subCollectionPath),
-  getProductReviews: (subCollectionPath: `products/${string}/reviews`) =>
+  getProductReviews: (subCollectionPath) =>
     dataPoint<Review>(subCollectionPath),
-  getProductWishlists: (subCollectionPath: `products/${string}/wishlists`) =>
+  getProductWishlists: (subCollectionPath) =>
     dataPoint<Wishlist>(subCollectionPath),
-  getShopReports: (subCollectionPath: `shops/${string}/reports`) =>
+  getShopReports: (subCollectionPath) =>
     dataPoint<Report>(subCollectionPath),
   historyLogs: dataPoint<HistoryLog>('history_logs'),
   invites: dataPoint<Invite>('invites'),

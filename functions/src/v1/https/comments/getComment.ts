@@ -42,12 +42,12 @@ const getComment: RequestHandler = async (req, res) => {
   const { activityId, commentId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
   }
 
-  const comment = await CommentsService.getCommentById(activityId, commentId, requestorDocId)
+  const comment = await CommentsService.findActivityComment(activityId, commentId, requestorDocId)
   if (!comment) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'Comment', commentId)
   }

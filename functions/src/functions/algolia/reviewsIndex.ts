@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions'
 import algoliasearch from 'algoliasearch'
 import { get, pick } from 'lodash'
 import { reviewFields } from './algoliaFields'
-import db from '../../utils/db'
+import { UsersService } from '../../service'
 
 const appId = get(functions.config(), 'algolia_config.app_id')
 const apiKey = get(functions.config(), 'algolia_config.api_key')
@@ -15,13 +15,12 @@ exports.addReviewIndex = functions.firestore
   .onCreate(async (snapshot) => {
     const data = snapshot.data()
 
-    const userRef = await db.users.doc(data.user_id).get()
-    const userEmail = userRef.data().email
+    const { email } = (await UsersService.findById(data.user_id))!
 
     const review = {
       objectID: snapshot.id,
       ...pick(data, reviewFields),
-      user_email: userEmail,
+      user_email: email,
     }
 
     return reviewsIndex.saveObject(review)
@@ -35,9 +34,8 @@ exports.updateReviewIndex = functions.firestore
     const extraFields: any = {}
 
     if (!newData.user_email) {
-      const userRef = await db.users.doc(newData.user_id).get()
-      const userEmail = userRef.data().email
-      extraFields.user_email = userEmail
+      const { email } = (await UsersService.findById(newData.user_id))!
+      extraFields.user_email = email
     }
 
     const review = {

@@ -69,7 +69,7 @@ const registerUser: RequestHandler = async (req, res) => {
     'registration.step': 1,
   }
 
-  const result = await UsersService.updateUser(userId, updateData)
+  const result = await UsersService.update(userId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

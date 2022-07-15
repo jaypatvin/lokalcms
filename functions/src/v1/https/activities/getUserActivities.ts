@@ -37,7 +37,7 @@ const getUserActivities: RequestHandler = async (req, res) => {
   const { userId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const activities = await ActivitiesService.getActivitiesByUserID(userId, requestorDocId)
+  const activities = await ActivitiesService.findActivitiesByUserId(userId, requestorDocId)
 
   return res.status(200).json({ status: 'ok', data: activities })
 }

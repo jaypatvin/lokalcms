@@ -55,7 +55,7 @@ export const findById = async <T>(ref: CollectionReference<T>, id: string) => {
 }
 
 export const findByCommunityId = async <T>(ref: CollectionReference<T>, id: string) => {
-  if (!id) return null
+  if (!id) return []
 
   const q = await query(ref, where('community_id', '==', id))
   const docsRef = await getDocs(q)

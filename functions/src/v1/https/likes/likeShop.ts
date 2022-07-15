@@ -33,7 +33,7 @@ const likeShop: RequestHandler = async (req, res) => {
   const { shopId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const shop = await ShopsService.getShopByID(shopId)
+  const shop = await ShopsService.findById(shopId)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.LikeApiError, 'Shop', shopId)
   }
@@ -43,12 +43,14 @@ const likeShop: RequestHandler = async (req, res) => {
     })
   }
 
-  const exists = await LikesService.getShopLike(shopId, requestorDocId)
+  const exists = await LikesService.findShopLike(shopId, requestorDocId)
   if (!exists) {
     const likeData = {
       community_id: shop.community_id,
       parent_collection_path: 'shops',
       parent_collection_name: 'shops',
+      shop_id: shopId,
+      user_id: requestorDocId,
     }
     await LikesService.addShopLike(shopId, requestorDocId, likeData)
   }

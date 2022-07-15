@@ -85,7 +85,7 @@ const createCommunity: RequestHandler = async (req, res) => {
   }
 
   // check if community name already exist
-  const existing_communities = await CommunityService.getCommunitiesByNameAndAddress({
+  const sameCommunities = await CommunityService.findCommunitiesByNameAndAddress({
     name: data.name,
     subdivision: data.subdivision,
     barangay: data.barangay,
@@ -93,7 +93,7 @@ const createCommunity: RequestHandler = async (req, res) => {
     zip_code: data.zip_code,
   })
 
-  if (existing_communities.length) {
+  if (sameCommunities.length) {
     throw generateError(ErrorCode.CommunityApiError, {
       message: `Community "${data.name}" already exists with the same address`,
     })
@@ -132,8 +132,7 @@ const createCommunity: RequestHandler = async (req, res) => {
     newData.cover_photo = data.cover_photo
   }
 
-  const new_community = await CommunityService.createCommunity(newData)
-  const result = await new_community.get().then((doc) => ({ ...doc.data(), id: doc.id }))
+  const result = await CommunityService.create(newData)
 
   return res.json({ status: 'ok', data: result })
 }

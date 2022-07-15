@@ -42,7 +42,7 @@ const archiveChatMessage: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  const chatMessage = await ChatMessageService.getChatMessageById(chatId, messageId)
+  const chatMessage = await ChatMessageService.findChatMessage(chatId, messageId)
   if (!chatMessage) {
     throw generateNotFoundError(ErrorCode.ChatApiError, 'Chat Message', messageId)
   }
@@ -53,9 +53,9 @@ const archiveChatMessage: RequestHandler = async (req, res) => {
     })
   }
 
-  const chat = await ChatsService.getChatById(chatId)
+  const chat = await ChatsService.findById(chatId)
 
-  if (chat.last_message.conversation_id === messageId) {
+  if (chat?.last_message.conversation_id === messageId) {
     // @ts-ignore
     await ChatsService.updateChat(chatId, { 'last_message.content': 'Message deleted' })
   }
@@ -65,7 +65,7 @@ const archiveChatMessage: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await ChatMessageService.archiveChatMessage(chatId, messageId, requestData)
+  const result = await ChatMessageService.archive(chatId, messageId, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

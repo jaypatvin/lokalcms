@@ -58,8 +58,8 @@ const getChatByMemberIds: RequestHandler = async (req, res) => {
   }
 
   const hashId = hashArrayOfStrings(memberIds as string[])
-  let chat = await ChatsService.getGroupChatByHash(hashId)
-  if (!chat) chat = await ChatsService.getChatById(hashId)
+  const chat =
+    (await ChatsService.findGroupChatByHash(hashId)) ?? (await ChatsService.findById(hashId))
   if (!chat) {
     throw generateError(ErrorCode.ChatApiError, {
       message: `chat for members ${memberIds} does not exist`,
@@ -69,7 +69,7 @@ const getChatByMemberIds: RequestHandler = async (req, res) => {
   const chatMembers = [...chat.members]
 
   if (chat.shop_id) {
-    shop = await ShopsService.getShopByID(chat.shop_id)
+    shop = await ShopsService.findById(chat.shop_id)
     if (!shop) {
       throw generateNotFoundError(ErrorCode.ChatApiError, 'Shop', chat.shop_id)
     }
@@ -77,7 +77,7 @@ const getChatByMemberIds: RequestHandler = async (req, res) => {
   }
 
   if (chat.product_id) {
-    product = await ProductsService.getProductByID(chat.product_id)
+    product = await ProductsService.findById(chat.product_id)
     if (!product) {
       throw generateNotFoundError(ErrorCode.ChatApiError, 'Product', chat.product_id)
     }

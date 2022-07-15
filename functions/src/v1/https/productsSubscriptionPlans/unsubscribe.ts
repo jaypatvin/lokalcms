@@ -39,7 +39,7 @@ const unsubscribeProductSubscriptionPlan: RequestHandler = async (req, res) => {
   const { planId } = req.params
   let requestorDocId = res.locals.userDoc.id
 
-  const plan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(planId)
+  const plan = await ProductSubscriptionPlansService.findById(planId)
   if (!plan) {
     throw generateNotFoundError(
       ErrorCode.ProductSubscriptionPlanApiError,
@@ -60,7 +60,7 @@ const unsubscribeProductSubscriptionPlan: RequestHandler = async (req, res) => {
     status: 'unsubscribed' as ProductSubscriptionPlanUpdateData['status'],
   }
 
-  const result = await ProductSubscriptionPlansService.updateProductSubscriptionPlan(
+  const result = await ProductSubscriptionPlansService.update(
     planId,
     updateData
   )

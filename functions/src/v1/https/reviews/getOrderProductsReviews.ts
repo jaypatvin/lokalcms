@@ -38,18 +38,18 @@ import { ErrorCode, generateNotFoundError } from '../../../utils/generators'
 const getOrderProductsWithReviews: RequestHandler = async (req, res) => {
   const { orderId } = req.params
 
-  const order = await OrdersService.getOrderByID(orderId)
+  const order = await OrdersService.findById(orderId)
 
   if (!order) {
     throw generateNotFoundError(ErrorCode.ReviewApiError, 'Order', orderId)
   }
 
-  const products = []
+  const products: any = []
 
   for (const product of order.products) {
-    let review: Review
+    let review: (Review & { id: string }) | null = null
     if (product.review_id) {
-      review = await ProductReviewsService.getProductReview(product.id, product.review_id)
+      review = await ProductReviewsService.findProductReview(product.id, product.review_id)
     }
     products.push({
       ...product,

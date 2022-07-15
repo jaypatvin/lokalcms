@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { OrderCreateData } from '../../../models/Order'
+import Order, { OrderCreateData } from '../../../models/Order'
 import {
   NotificationsService,
   OrdersService,
@@ -132,22 +132,22 @@ const createOrder: RequestHandler = async (req, res) => {
   let buyer = res.locals.userDoc
 
   if (roles.admin && buyer_id) {
-    buyer = await UsersService.getUserByID(buyer_id)
+    buyer = await UsersService.findById(buyer_id)
     if (!buyer) {
       throw generateNotFoundError(ErrorCode.OrderApiError, 'User', buyer_id)
     }
     requestorDocId = buyer_id
   }
 
-  const shop = await ShopsService.getShopByID(shop_id)
+  const shop = await ShopsService.findById(shop_id)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.OrderApiError, 'Shop', shop_id)
   }
 
-  const orderProducts = []
+  const orderProducts: Order['products'] = []
   for (const rawOrderProduct of products) {
     const { id, quantity, instruction = '' } = rawOrderProduct
-    const product = await ProductsService.getProductByID(id)
+    const product = await ProductsService.findById(id)
     if (!product) {
       throw generateNotFoundError(ErrorCode.OrderApiError, 'Product', id)
     }
@@ -161,7 +161,7 @@ const createOrder: RequestHandler = async (req, res) => {
         message: `Product "${product.name}" only has ${product.quantity} left.`,
       })
     }
-    const orderProduct: any = {
+    const orderProduct: Order['products'][0] = {
       id,
       quantity,
       name: product.name,
@@ -206,28 +206,20 @@ const createOrder: RequestHandler = async (req, res) => {
     newOrder.delivery_address = buyer.address
   }
 
-  const order = await OrdersService.createOrder(newOrder)
-  const result = await order.get().then((doc) => ({ id: order.id, ...doc.data() }))
-
-  // 100 - Waiting for Confirmation - this is the first status of the order
-  const initialStatusHistory = {
-    before: 0,
-    after: 100,
-  }
-
-  const statusHistory = await OrdersService.createOrderStatusHistory(order.id, initialStatusHistory)
+  const result = await OrdersService.create(newOrder)
 
   const notificationData = {
     type: 'order_status',
     title: 'New order has been made for confirmation',
+    // @ts-ignore: ts bug?
     message: `New order (${result.products.length} products) is ready for your confirmation.`,
     associated_collection: 'orders',
     associated_document: result.id,
   }
 
-  await NotificationsService.createUserNotification(shop.user_id, notificationData)
+  await NotificationsService.create(shop.user_id, notificationData)
 
-  return res.status(200).json({ status: 'ok', data: { ...result, status_history: statusHistory } })
+  return res.status(200).json({ status: 'ok', data: result })
 }
 
 export default createOrder

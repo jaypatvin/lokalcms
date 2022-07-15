@@ -33,7 +33,7 @@ import { ErrorCode, generateError } from '../../../utils/generators'
 const checkInvite: RequestHandler = async (req, res) => {
   const { inviteCode } = req.params
 
-  const invite = await InvitesService.getInviteByCode(inviteCode)
+  const invite = await InvitesService.findInviteByCode(inviteCode)
   if (!invite) {
     throw generateError(ErrorCode.InviteApiError, {
       message: `Invite with code "${inviteCode} was not found"`,

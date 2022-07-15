@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { serverTimestamp } from 'firebase/firestore'
+import { doc, Timestamp } from 'firebase/firestore'
 import { ConversationCreateData } from '../../../models/Conversation'
 import {
   UsersService,
@@ -113,14 +113,14 @@ const createConversation: RequestHandler = async (req, res) => {
   let shop
   let product
 
-  let chat = await ChatsService.getChatById(chatId)
+  let chat = await ChatsService.findById(chatId)
   if (!chat) {
     throw generateNotFoundError(ErrorCode.ChatApiError, 'Chat', chatId)
   }
 
   if (!requestorDocId || !requestorCommunityId) {
     if (user_id) {
-      const user = await UsersService.getUserByID(user_id)
+      const user = await UsersService.findById(user_id)
       if (!user) {
         throw generateNotFoundError(ErrorCode.ChatApiError, 'User', user_id)
       }
@@ -135,14 +135,14 @@ const createConversation: RequestHandler = async (req, res) => {
   }
 
   if (chat.shop_id) {
-    shop = await ShopsService.getShopByID(chat.shop_id)
+    shop = await ShopsService.findById(chat.shop_id)
     if (!shop) {
       throw generateNotFoundError(ErrorCode.ChatApiError, 'Shop', chat.shop_id)
     }
   }
 
   if (chat.product_id) {
-    product = await ProductsService.getProductByID(chat.product_id)
+    product = await ProductsService.findById(chat.product_id)
     if (!product) {
       throw generateNotFoundError(ErrorCode.ChatApiError, 'Product', chat.product_id)
     }
@@ -156,7 +156,7 @@ const createConversation: RequestHandler = async (req, res) => {
 
   const chatMessage: ConversationCreateData = {
     sender_id: requestorDocId,
-    sent_at:serverTimestamp(),
+    sent_at: Timestamp.now(),
     archived: false,
     chat_id: chat.id,
     community_id: chat.community_id,
@@ -165,10 +165,10 @@ const createConversation: RequestHandler = async (req, res) => {
   if (message) chatMessage.message = message
   if (media) chatMessage.media = media
   if (reply_to) {
-    chatMessage.reply_to = db.getChatConversations(`chats/${chatId}/conversation`).doc(reply_to)
+    chatMessage.reply_to = doc(db.getChatConversations(`chats/${chatId}/conversation`), reply_to)
   }
 
-  const result = await ChatMessageService.createChatMessage(chatId, chatMessage)
+  const result = await ChatMessageService.create(chatId, chatMessage)
 
   const last_message: any = {}
   let content = message
@@ -184,14 +184,14 @@ const createConversation: RequestHandler = async (req, res) => {
       content = 'sent a message'
     }
   }
-  last_message.ref = db.getChatConversations(`chats/${chatId}/conversation`).doc(result.id)
+  last_message.ref = doc(db.getChatConversations(`chats/${chatId}/conversation`), result.id)
   last_message.conversation_id = result.id
   last_message.content = content
   last_message.sender = requestorName
   last_message.sender_id = requestorDocId
-  last_message.created_at =serverTimestamp()
+  last_message.created_at = Timestamp.now()
 
-  await ChatsService.updateChat(chatId, { last_message })
+  await ChatsService.update(chatId, { last_message })
 
   return res.json({ status: 'ok', data: { chatId, ...result } })
 }

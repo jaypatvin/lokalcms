@@ -2,7 +2,8 @@ import * as functions from 'firebase-functions'
 import algoliasearch from 'algoliasearch'
 import { get, pick } from 'lodash'
 import { shopFields, productFields } from './algoliaFields'
-import db from '../../utils/db'
+import { ProductsService } from '../../service'
+import { Product } from '../../models'
 
 const appId = get(functions.config(), 'algolia_config.app_id')
 const apiKey = get(functions.config(), 'algolia_config.api_key')
@@ -32,13 +33,12 @@ exports.updateShopIndex = functions.firestore
     }
 
     if (oldData.name !== newData.name) {
-      const productObjects = []
-      const productsRef = await db.products.where('shop_id', '==', newData.id).get()
-      for (const doc of productsRef.docs) {
-        const productData = doc.data()
+      const productObjects: (Product & { shop_name: string; objectID: string })[] = []
+      const products = await ProductsService.findProductsByShopId(newData.id)
+      for (const product of products) {
         productObjects.push({
-          objectID: doc.id,
-          ...pick(productData, productFields),
+          objectID: product.id,
+          ...(pick(product, productFields) as Product),
           shop_name: newData.name,
         })
       }

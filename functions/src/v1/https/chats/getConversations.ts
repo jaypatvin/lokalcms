@@ -83,7 +83,7 @@ const getConversations: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const conversationsIndex = client.initIndex('conversations')
 
-  const filtersArray = []
+  const filtersArray: string[] = []
   if (community) {
     filtersArray.push(`community_id:${community}`)
   }

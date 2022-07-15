@@ -1,3 +1,5 @@
+import { DocumentReference } from "firebase/firestore"
+
 type Conversation = {
   archived: boolean
   chat_id: string
@@ -11,7 +13,7 @@ type Conversation = {
   message?: string
   sender_id: string
   sent_at: FirebaseFirestore.Timestamp
-  reply_to?: FirebaseFirestore.DocumentReference<Conversation>
+  reply_to?: DocumentReference<Conversation>
 }
 
 export type ConversationCreateData = Pick<

@@ -47,13 +47,7 @@ const archiveUser: RequestHandler = async (req, res) => {
   }
 
   // archive the user
-  const result = await UsersService.archiveUser(userId, requestData)
-
-  // archive the shops of the user
-  await ShopsService.archiveUserShops(userId, requestData)
-
-  // archive the products of the user
-  await ProductsService.archiveUserProducts(userId, requestData)
+  const result = await UsersService.archive(userId, requestData)
 
   return res.json({
     status: 'ok',

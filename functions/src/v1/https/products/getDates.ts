@@ -99,7 +99,7 @@ const getDates: RequestHandler = async (req, res) => {
   }
 
   // check if product exists
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
   }

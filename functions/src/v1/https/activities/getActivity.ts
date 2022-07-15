@@ -36,7 +36,7 @@ const getActivity: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const activity = await ActivitiesService.getActivityById(activityId, requestorDocId)
+  const activity = await ActivitiesService.findActivityById(activityId, requestorDocId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.ActivityApiError, 'Activity', activityId)
   }

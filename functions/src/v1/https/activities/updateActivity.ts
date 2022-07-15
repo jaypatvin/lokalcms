@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express'
 import { ActivityUpdateData } from '../../../models/Activity'
-import { UsersService, CommunityService, ActivitiesService } from '../../../service'
+import { ActivitiesService } from '../../../service'
 import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
@@ -55,7 +55,7 @@ const updateActivity: RequestHandler = async (req, res) => {
   const requestorDocId = res.locals.userDoc.id
   const requestorDoc = res.locals.userDoc
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.ActivityApiError, 'Acitivity', activityId)
   }
@@ -85,7 +85,7 @@ const updateActivity: RequestHandler = async (req, res) => {
 
   if (status) updateData.status = status
 
-  const result = await ActivitiesService.updateActivity(activityId, updateData)
+  const result = await ActivitiesService.update(activityId, updateData)
 
   return res.status(200).json({ status: 'ok', data: result })
 }

@@ -35,12 +35,12 @@ import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 const getUserComments: RequestHandler = async (req, res) => {
   const { userId } = req.params
 
-  const user = await UsersService.getUserByID(userId)
+  const user = await UsersService.findById(userId)
   if (!user) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'User', userId)
   }
 
-  const comments = await CommentsService.getUserComments(userId)
+  const comments = await CommentsService.findCommentsByUser(userId)
 
   return res.status(200).json({ status: 'ok', data: comments })
 }

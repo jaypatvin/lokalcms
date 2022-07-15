@@ -112,7 +112,7 @@ const updateShop: RequestHandler = async (req, res) => {
     delivery_options,
   } = data
 
-  const currentShop = await ShopsService.getShopByID(shopId)
+  const currentShop = await ShopsService.findById(shopId)
   if (!currentShop) {
     throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
@@ -145,7 +145,7 @@ const updateShop: RequestHandler = async (req, res) => {
   if (!isNil(cover_photo)) updateData.cover_photo = cover_photo
   if (payment_options) {
     for (const paymentOption of payment_options) {
-      const bankCode = await BankCodesService.getBankCodeById(paymentOption.bank_code)
+      const bankCode = await BankCodesService.findById(paymentOption.bank_code)
       if (bankCode) {
         paymentOption.type = bankCode.type
       }
@@ -156,7 +156,7 @@ const updateShop: RequestHandler = async (req, res) => {
     updateData.delivery_options = delivery_options
   }
 
-  const result = await ShopsService.updateShop(shopId, updateData)
+  const result = await ShopsService.update(shopId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

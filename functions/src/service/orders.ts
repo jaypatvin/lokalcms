@@ -16,13 +16,13 @@ export { findAll, findByCommunityId, findById }
 export const create = (data: OrderCreateData) => baseCreate(data)
 export const update = (id: string, data: OrderUpdateData) => baseUpdate(id, data)
 
-export const getOrdersByBuyerId = async (id: string) => {
+export const findOrdersByBuyerId = async (id: string) => {
   return await findAll({
     wheres: [where('buyer_id', '==', id)],
   })
 }
 
-export const getOrdersByProductSubscriptionIdAndDate = async (id: string, date: string) => {
+export const findOrdersByProductSubscriptionIdAndDate = async (id: string, date: string) => {
   return await findAll({
     wheres: [
       where('product_subscription_id', '==', id),

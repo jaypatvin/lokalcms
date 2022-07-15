@@ -144,7 +144,7 @@ const getOrders: RequestHandler = async (req, res) => {
     ordersIndex = client.initIndex('orders_created_at_desc')
   }
 
-  const filtersArray = []
+  const filtersArray: string[] = []
   if (community) {
     filtersArray.push(`community_id:${community}`)
   }

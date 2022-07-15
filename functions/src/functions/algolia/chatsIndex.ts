@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions'
 import algoliasearch from 'algoliasearch'
 import { get, isEqual, pick, sortBy, uniq } from 'lodash'
 import { chatFields } from './algoliaFields'
-import db from '../../utils/db'
+import { ProductsService, ShopsService, UsersService } from '../../service'
 
 const appId = get(functions.config(), 'algolia_config.app_id')
 const apiKey = get(functions.config(), 'algolia_config.api_key')
@@ -13,7 +13,9 @@ const chatsIndex = client.initIndex('chats')
 exports.addChatIndex = functions.firestore.document('chats/{chatId}').onCreate(async (snapshot) => {
   const data = snapshot.data()
 
-  const moreInfo = {
+  const moreInfo: {
+    member_emails: string[]
+  } = {
     member_emails: [],
   }
 
@@ -21,13 +23,13 @@ exports.addChatIndex = functions.firestore.document('chats/{chatId}').onCreate(a
     let user
 
     if (data.shop_id === member) {
-      const shop = await (await db.shops.doc(data.shop_id).get()).data()
-      user = await (await db.users.doc(shop.user_id).get()).data()
+      const shop = await ShopsService.findById(data.shop_id)
+      user = await UsersService.findById(shop!.user_id)
     } else if (data.product_id === member) {
-      const product = await (await db.products.doc(data.product_id).get()).data()
-      user = await (await db.users.doc(product.user_id).get()).data()
+      const product = await ProductsService.findById(data.product_id)
+      user = await UsersService.findById(product!.user_id)
     } else {
-      user = await (await db.users.doc(member).get()).data()
+      user = await UsersService.findById(member)
     }
 
     if (user) {
@@ -58,13 +60,13 @@ exports.updateChatIndex = functions.firestore
         let user
 
         if (newData.shop_id === member) {
-          const shop = await (await db.shops.doc(newData.shop_id).get()).data()
-          user = await (await db.users.doc(shop.user_id).get()).data()
+          const shop = await ShopsService.findById(newData.shop_id)
+          user = await UsersService.findById(shop!.user_id)
         } else if (newData.product_id === member) {
-          const product = await (await db.products.doc(newData.product_id).get()).data()
-          user = await (await db.users.doc(product.user_id).get()).data()
+          const product = await ProductsService.findById(newData.product_id)
+          user = await UsersService.findById(product!.user_id)
         } else {
-          user = await (await db.users.doc(member).get()).data()
+          user = await UsersService.findById(member)
         }
 
         if (user) {

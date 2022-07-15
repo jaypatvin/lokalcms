@@ -92,7 +92,7 @@ const toggleNotificationSetting: RequestHandler = async (req, res) => {
     products,
   } = data
 
-  const user = await UsersService.getUserByID(userId)
+  const user = await UsersService.findById(userId)
   if (!user) {
     throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
@@ -112,7 +112,7 @@ const toggleNotificationSetting: RequestHandler = async (req, res) => {
   if (isBoolean(subscriptions)) updateData['notification_settings.subscriptions'] = subscriptions
   if (isBoolean(products)) updateData['notification_settings.products'] = products
 
-  const result = await UsersService.updateUser(userId, updateData)
+  const result = await UsersService.update(userId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

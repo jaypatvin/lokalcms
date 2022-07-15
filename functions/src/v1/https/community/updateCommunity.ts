@@ -91,13 +91,13 @@ export const updateCommunity: RequestHandler = async (req, res) => {
     })
   }
 
-  const existing_community = await CommunityService.getCommunityByID(communityId)
+  const existing_community = await CommunityService.findById(communityId)
   if (!existing_community) {
     throw generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId)
   }
 
   if (data.name || data.subdivision || data.barangay || data.city || data.zip_code) {
-    const existing_communities = await CommunityService.getCommunitiesByNameAndAddress({
+    const existing_communities = await CommunityService.findCommunitiesByNameAndAddress({
       name: data.name || existing_community.name,
       subdivision: data.subdivision || existing_community.address.subdivision,
       barangay: data.barangay || existing_community.address.barangay,
@@ -113,11 +113,11 @@ export const updateCommunity: RequestHandler = async (req, res) => {
   }
 
   if (data.admin) {
-    const notExistingUsers = []
-    const differentCommunityUsers = []
+    const notExistingUsers: string[] = []
+    const differentCommunityUsers: string[] = []
     for (let i = 0; i < data.admin.length; i++) {
       const user_id = data.admin[i]
-      const user = await UsersService.getUserByID(user_id)
+      const user = await UsersService.findById(user_id)
       if (!user) notExistingUsers.push(user_id)
       if (user && user.community_id !== communityId) differentCommunityUsers.push(user_id)
     }
@@ -168,7 +168,7 @@ export const updateCommunity: RequestHandler = async (req, res) => {
   if (data.zip_code) updateData['address.zip_code'] = data.zip_code
   if (data.admin) updateData.admin = data.admin
 
-  const result = await CommunityService.updateCommunity(communityId, updateData)
+  const result = await CommunityService.update(communityId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

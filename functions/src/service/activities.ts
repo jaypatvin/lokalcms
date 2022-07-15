@@ -42,7 +42,7 @@ export const findActivityById = async (id: string, userId = '') => {
   }
 }
 
-export const getAllActivities = async (userId = '') => {
+export const findAllActivities = async (userId = '') => {
   const allActivities = await findAll({
     wheres: [orderBy('created_at', 'desc')],
   })

@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { serverTimestamp } from 'firebase/firestore'
+import { Timestamp } from 'firebase/firestore'
 import {
   UsersService,
   ShopsService,
@@ -166,7 +166,7 @@ const createChat: RequestHandler = async (req, res) => {
 
   if (!requestorDocId || !requestorCommunityId) {
     if (user_id) {
-      const user = await UsersService.getUserByID(user_id)
+      const user = await UsersService.findById(user_id)
       if (!user) {
         throw generateNotFoundError(ErrorCode.ChatApiError, 'User', user_id)
       }
@@ -181,14 +181,14 @@ const createChat: RequestHandler = async (req, res) => {
   }
 
   if (shop_id) {
-    shop = await ShopsService.getShopByID(shop_id)
+    shop = await ShopsService.findById(shop_id)
     if (!shop) {
       throw generateNotFoundError(ErrorCode.ChatApiError, 'Shop', shop_id)
     }
   }
 
   if (product_id) {
-    product = await ProductsService.getProductByID(product_id)
+    product = await ProductsService.findById(product_id)
     if (!product) {
       throw generateNotFoundError(ErrorCode.ChatApiError, 'Product', product_id)
     }
@@ -220,8 +220,8 @@ const createChat: RequestHandler = async (req, res) => {
   last_message.created_at = new Date()
 
   const hashId = hashArrayOfStrings(members)
-  chat = await ChatsService.getGroupChatByHash(hashId)
-  if (!chat) chat = await ChatsService.getChatById(hashId)
+  chat = await ChatsService.findGroupChatByHash(hashId)
+  if (!chat) chat = await ChatsService.findById(hashId)
   if (!chat) {
     let chatType = 'user'
     let newChatTitle = title
@@ -242,9 +242,9 @@ const createChat: RequestHandler = async (req, res) => {
         chatType = 'group'
         groupHash = hashId
       }
-      const member_names = []
+      const member_names: string[] = []
       for (let i = 0; i < members.length; i++) {
-        const user = await UsersService.getUserByID(members[i])
+        const user = await UsersService.findById(members[i])
         if (!user) {
           throw generateNotFoundError(ErrorCode.ChatApiError, 'User', members[i])
         }
@@ -265,7 +265,7 @@ const createChat: RequestHandler = async (req, res) => {
     if (customerName) newChat.customer_name = customerName
     if (groupHash && chatType === 'group') {
       newChat.group_hash = groupHash
-      chat = await ChatsService.createChat(newChat)
+      chat = await ChatsService.create(newChat)
       chatId = chat.id
     } else {
       chat = await ChatsService.createChatWithHashId(hashId, newChat)
@@ -279,7 +279,7 @@ const createChat: RequestHandler = async (req, res) => {
 
   const chatMessage: ConversationCreateData = {
     sender_id: requestorDocId,
-    sent_at:serverTimestamp(),
+    sent_at: Timestamp.now(),
     archived: false,
     community_id: chat.community_id,
     chat_id: chat.id,
@@ -288,7 +288,7 @@ const createChat: RequestHandler = async (req, res) => {
   if (message) chatMessage.message = message
   if (media) chatMessage.media = media
 
-  await ChatMessageService.createChatMessage(chatId, chatMessage)
+  await ChatMessageService.create(chatId, chatMessage)
 
   return res.json({ status: 'ok', data: chat })
 }

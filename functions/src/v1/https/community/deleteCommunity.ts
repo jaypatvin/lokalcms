@@ -46,7 +46,7 @@ const deleteCommunity: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await CommunityService.archiveCommunity(communityId, requestData)
+  const result = await CommunityService.archive(communityId, requestData)
 
   return res.json({
     status: 'ok',

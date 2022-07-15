@@ -34,7 +34,7 @@ const unlikeProduct: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.LikeApiError, 'Product', productId)
   }
@@ -44,7 +44,7 @@ const unlikeProduct: RequestHandler = async (req, res) => {
     })
   }
 
-  const exists = await LikesService.getProductLike(productId, requestorDocId)
+  const exists = await LikesService.findProductLike(productId, requestorDocId)
   if (exists) {
     await LikesService.removeProductLike(productId, requestorDocId)
   }

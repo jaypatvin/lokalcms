@@ -61,7 +61,7 @@ const confirmOrder: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   let requestorDocId = res.locals.userDoc.id || seller_id
 
-  const order = await OrdersService.getOrderByID(orderId)
+  const order = await OrdersService.findById(orderId)
   if (!order) {
     throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
   }
@@ -93,14 +93,7 @@ const confirmOrder: RequestHandler = async (req, res) => {
     status_code: ORDER_STATUS.PENDING_PAYMENT,
   }
 
-  const statusChange = {
-    before: order.status_code,
-    after: ORDER_STATUS.PENDING_PAYMENT,
-  }
-
-  const result = await OrdersService.updateOrder(orderId, updateData)
-
-  await OrdersService.createOrderStatusHistory(orderId, statusChange)
+  const result = await OrdersService.update(orderId, updateData)
 
   const notificationData = {
     type: 'order_status',
@@ -110,7 +103,7 @@ const confirmOrder: RequestHandler = async (req, res) => {
     associated_document: orderId,
   }
 
-  await NotificationsService.createUserNotification(order.buyer_id, notificationData)
+  await NotificationsService.create(order.buyer_id, notificationData)
 
   return res.json({ status: 'ok', data: result })
 }

@@ -34,7 +34,7 @@ const unlikeShop: RequestHandler = async (req, res) => {
   const { shopId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const shop = await ShopsService.getShopByID(shopId)
+  const shop = await ShopsService.findById(shopId)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.LikeApiError, 'Shop', shopId)
   }
@@ -44,7 +44,7 @@ const unlikeShop: RequestHandler = async (req, res) => {
     })
   }
 
-  const exists = await LikesService.getShopLike(shopId, requestorDocId)
+  const exists = await LikesService.findShopLike(shopId, requestorDocId)
   if (exists) {
     await LikesService.removeShopLike(shopId, requestorDocId)
   }

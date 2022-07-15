@@ -36,14 +36,17 @@ const getProductAvailability: RequestHandler = async (req, res) => {
   const { productId } = req.params
 
   // check if product exists
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
   }
 
   let availability = product.availability
   if (!availability) {
-    const shop = await ShopsService.getShopByID(product.shop_id)
+    const shop = await ShopsService.findById(product.shop_id)
+    if (!shop) {
+      throw generateNotFoundError(ErrorCode.ProductApiError, 'Shop', product.shop_id)
+    }
     availability = shop.operating_hours
   }
 
@@ -58,8 +61,12 @@ const getProductAvailability: RequestHandler = async (req, res) => {
 
     if (schedule && schedule.custom) {
       output.schedule = schedule
-      const unavailable_dates = []
-      const custom_dates = []
+      const unavailable_dates: string[] = []
+      const custom_dates: {
+        date: string
+        start_time: string
+        end_time: string
+      }[] = []
       Object.entries(schedule.custom).forEach(([key, val]: any) => {
         if (val.unavailable) unavailable_dates.push(key)
         if (val.start_time || val.end_time)

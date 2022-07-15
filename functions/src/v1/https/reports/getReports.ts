@@ -119,7 +119,7 @@ const getReports: RequestHandler = async (req, res) => {
   const client = algoliasearch(appId, searchKey)
   const reportsIndex = client.initIndex('reports')
 
-  const filtersArray = []
+  const filtersArray: string[] = []
   if (community) {
     filtersArray.push(`community_id:${community}`)
   }

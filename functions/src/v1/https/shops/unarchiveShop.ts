@@ -36,7 +36,7 @@ const unarchiveShop: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  const shop = await ShopsService.getShopByID(shopId)
+  const shop = await ShopsService.findById(shopId)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
@@ -52,7 +52,7 @@ const unarchiveShop: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await ShopsService.unarchiveShop(shopId, requestData)
+  const result = await ShopsService.unarchive(shopId, requestData)
 
   return res.json({ status: 'ok', data: result })
 }

@@ -91,7 +91,7 @@ const createComment: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const data = req.body
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
   }
@@ -101,7 +101,7 @@ const createComment: RequestHandler = async (req, res) => {
     })
   }
 
-  const user = await UsersService.getUserByID(data.user_id)
+  const user = await UsersService.findById(data.user_id)
   if (!user) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'User', data.user_id)
   }
@@ -120,8 +120,7 @@ const createComment: RequestHandler = async (req, res) => {
   }
   if (data.images) commentData.images = data.images
 
-  const newComment = await CommentsService.addActivityComment(activityId, commentData)
-  const result = await newComment.get().then((doc) => ({ ...doc.data(), id: doc.id }))
+  const result = await CommentsService.create(activityId, commentData)
   await ActivitiesService.incrementActivityCommentCount(activityId)
   return res.status(200).json({ status: 'ok', data: result })
 }

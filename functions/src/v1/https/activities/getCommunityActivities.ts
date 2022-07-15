@@ -37,7 +37,10 @@ const getCommunityActivities: RequestHandler = async (req, res) => {
   const { communityId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const activities = await ActivitiesService.getActivitiesByCommunityID(communityId, requestorDocId)
+  const activities = await ActivitiesService.findActivitiesByCommunityId(
+    communityId,
+    requestorDocId
+  )
 
   return res.status(200).json({ status: 'ok', data: activities })
 }

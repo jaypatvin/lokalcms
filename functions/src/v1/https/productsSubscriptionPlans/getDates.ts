@@ -99,7 +99,7 @@ const getDates: RequestHandler = async (req, res) => {
   }
 
   // check if product subscription plan exists
-  const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
+  const subscriptionPlan = await ProductSubscriptionPlansService.findById(
     planId
   )
   if (!subscriptionPlan) {

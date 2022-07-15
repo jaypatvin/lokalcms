@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express'
+import { omit } from 'lodash'
 import { Product, Shop } from '../../../models'
-import { searchProducts } from '../../../service/products'
-import { searchShops } from '../../../service/shops'
+import { ProductsService, ShopsService } from '../../../service'
 import { generateError, ErrorCode } from '../../../utils/generators'
 
 /**
@@ -69,7 +69,17 @@ import { generateError, ErrorCode } from '../../../utils/generators'
  *                         $ref: '#/components/schemas/Shop'
  */
 const mainSearch: RequestHandler = async (req, res) => {
-  const { q, criteria = 'products', category, community_id } = req.query
+  const {
+    q,
+    criteria = 'products',
+    category,
+    community_id,
+  } = req.query as {
+    q: string
+    criteria: string
+    category: string
+    community_id: string
+  }
 
   if (!community_id) {
     throw generateError(ErrorCode.SearchApiError, {
@@ -78,20 +88,16 @@ const mainSearch: RequestHandler = async (req, res) => {
   }
 
   const result: {
-    products?: (Product & { id: string })[]
-    shops?: (Shop & { id: string })[]
+    products?: (Omit<Product, 'keywords'> & { id: string })[]
+    shops?: (Omit<Shop, 'keywords'> & { id: string })[]
   } = {}
 
   if (
     (typeof criteria === 'string' && criteria === 'products') ||
     (Array.isArray(criteria) && [...criteria].includes('products'))
   ) {
-    const searchResult = await searchProducts({ search: q, category, community_id })
-    const products = searchResult.docs.map((doc) => {
-      const data = { ...doc.data(), id: doc.id }
-      delete data.keywords
-      return data
-    })
+    const searchResult = await ProductsService.searchProducts({ search: q, category, community_id })
+    const products = searchResult.map((product) => omit(product, ['keywords']))
     result.products = products
   }
 
@@ -99,12 +105,8 @@ const mainSearch: RequestHandler = async (req, res) => {
     (typeof criteria === 'string' && criteria === 'shops') ||
     (Array.isArray(criteria) && [...criteria].includes('shops'))
   ) {
-    const searchResult = await searchShops({ search: q, community_id })
-    const shops = searchResult.docs.map((doc) => {
-      const data = { ...doc.data(), id: doc.id }
-      delete data.keywords
-      return data
-    })
+    const searchResult = await ShopsService.searchShops({ search: q, community_id })
+    const shops = searchResult.map((shop) => omit(shop, ['keywords']))
     result.shops = shops
   }
 

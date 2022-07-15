@@ -58,7 +58,7 @@ const chatRemoveUser: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  const chat = await ChatsService.getChatById(chatId)
+  const chat = await ChatsService.findById(chatId)
   if (!chat) {
     throw generateNotFoundError(ErrorCode.ChatApiError, 'Chat', chatId)
   }
@@ -96,9 +96,9 @@ const chatRemoveUser: RequestHandler = async (req, res) => {
   const members = chat.members.filter((m) => m !== user_id)
   const group_hash = hashArrayOfStrings(members)
   let title = chat.title
-  const member_names = []
+  const member_names: string[] = []
   for (const member of members) {
-    const user = await UsersService.getUserByID(member)
+    const user = await UsersService.findById(member)
     if (!user) {
       throw generateNotFoundError(ErrorCode.ChatApiError, 'User', member)
     }
@@ -114,7 +114,7 @@ const chatRemoveUser: RequestHandler = async (req, res) => {
     title,
   }
 
-  const result = await ChatsService.updateChat(chat.id, requestData)
+  const result = await ChatsService.update(chat.id, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

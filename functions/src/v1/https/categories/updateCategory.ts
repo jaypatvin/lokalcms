@@ -72,7 +72,7 @@ const updateCategory: RequestHandler = async (req, res) => {
   }
 
   // check if category exists
-  const product = await CategoriesService.getCategoryById(categoryId)
+  const product = await CategoriesService.findById(categoryId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.CategoryApiError, 'Category', categoryId)
   }
@@ -86,7 +86,7 @@ const updateCategory: RequestHandler = async (req, res) => {
   if (!isNil(data.cover_url)) updateData.cover_url = data.cover_url
   if (data.status) updateData.status = data.status
 
-  const result = await CategoriesService.updateCategory(categoryId, updateData)
+  const result = await CategoriesService.update(categoryId, updateData)
 
   return res.status(200).json({ status: 'ok', data: result })
 }

@@ -78,6 +78,21 @@ export const findCustomUnavailableShopsByDate = async (date: string) => {
   })
 }
 
+export const searchShops = async ({
+  search,
+  community_id,
+}: {
+  search: string
+  community_id: string
+}) => {
+  return await findAll({
+    wheres: [
+      where('keywords', 'array-contains', search),
+      where('community_id', '==', community_id),
+    ],
+  })
+}
+
 export const incrementShopLikeCount = async (id: string) => {
   const docRef = doc(db.shops, id)
   return await updateDoc(docRef, {

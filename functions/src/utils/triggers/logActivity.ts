@@ -1,11 +1,10 @@
-import * as admin from 'firebase-admin'
-import { Change } from 'firebase-functions'
-import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
+import { addDoc, Timestamp } from 'firebase/firestore'
+import { Change, firestore } from 'firebase-functions'
 import { HistoryLog } from '../../models'
 import { db } from '../db'
 import { generateHistoryKeywords } from '../generators'
 
-const logActivity = async (change: Change<DocumentSnapshot>) => {
+const logActivity = async (change: Change<firestore.DocumentSnapshot>) => {
   const isCreate = !change.before.exists && change.after.exists
   const isUpdate = change.before.exists && change.after.exists
   const isDelete = change.before.exists && !change.after.exists
@@ -35,7 +34,7 @@ const logActivity = async (change: Change<DocumentSnapshot>) => {
     community_id,
     collection_name,
     document_id,
-    created_at: admin.firestore.Timestamp.now(),
+    created_at: Timestamp.now(),
     keywords,
   }
   if (beforeData) {
@@ -59,7 +58,7 @@ const logActivity = async (change: Change<DocumentSnapshot>) => {
     history.before = data
   }
 
-  return db.historyLogs.add(history)
+  return addDoc(db.historyLogs, history)
 }
 
 export default logActivity

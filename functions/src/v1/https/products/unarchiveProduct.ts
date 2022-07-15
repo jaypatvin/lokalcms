@@ -36,7 +36,7 @@ const unarchiveProduct: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
 
   if (!product) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
@@ -53,7 +53,7 @@ const unarchiveProduct: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await ProductsService.unarchiveProduct(productId, requestData)
+  const result = await ProductsService.unarchive(productId, requestData)
   return res.json({ status: 'ok', data: result })
 }
 

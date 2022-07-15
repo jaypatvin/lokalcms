@@ -36,7 +36,7 @@ const unarchiveActivity: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.ActivityApiError, 'Acitivity', activityId)
   }
@@ -52,10 +52,7 @@ const unarchiveActivity: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await ActivitiesService.unarchiveActivity(activityId, requestData)
-
-  // unarchive the comments of the activity
-  await CommentsService.unarchiveActivityComments(activityId)
+  const result = await ActivitiesService.unarchive(activityId, requestData)
 
   return res.json({ status: 'ok', data: result })
 }

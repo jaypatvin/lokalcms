@@ -1,5 +1,4 @@
 import { RequestHandler } from 'express'
-import _ from 'lodash'
 import { ProductUpdateData } from '../../../models/Product'
 import { ProductsService, ShopsService } from '../../../service'
 import {
@@ -166,7 +165,7 @@ const addProductAvailability: RequestHandler = async (req, res) => {
   const data = req.body
 
   // check if product exists
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.ProductApiError, 'Product', productId)
   }
@@ -212,7 +211,11 @@ const addProductAvailability: RequestHandler = async (req, res) => {
   }
 
   // check if product availability is derived correctly from the shop's operating hours
-  const shop = await ShopsService.getShopByID(product.shop_id)
+  const shop = await ShopsService.findById(product.shop_id)
+  if (!shop) {
+    throw generateNotFoundError(ErrorCode.ProductApiError, 'Shop', product.shop_id)
+  }
+
   const productAvailability = updateData.availability
   const shopOperatingHours = shop.operating_hours
   if (!isScheduleDerived(productAvailability, shopOperatingHours)) {
@@ -221,7 +224,7 @@ const addProductAvailability: RequestHandler = async (req, res) => {
     })
   }
 
-  const result = await ProductsService.updateProduct(productId, updateData)
+  const result = await ProductsService.update(productId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

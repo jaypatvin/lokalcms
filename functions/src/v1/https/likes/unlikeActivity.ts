@@ -34,7 +34,7 @@ const unlikeActivity: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.LikeApiError, 'Activity', activityId)
   }
@@ -44,8 +44,12 @@ const unlikeActivity: RequestHandler = async (req, res) => {
     })
   }
 
-  const result = await LikesService.removeActivityLike(activityId, requestorDocId)
-  return res.status(200).json({ status: 'ok', data: result })
+  const exists = await LikesService.findActivityLike(activityId, requestorDocId)
+  if (exists) {
+    await LikesService.removeActivityLike(activityId, requestorDocId)
+  }
+
+  return res.status(200).json({ status: 'ok' })
 }
 
 export default unlikeActivity

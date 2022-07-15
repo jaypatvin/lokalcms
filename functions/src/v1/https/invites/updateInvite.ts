@@ -55,7 +55,7 @@ const updateInvite: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
 
-  const invite = await InvitesService.getInviteByID(inviteId)
+  const invite = await InvitesService.findById(inviteId)
   if (!invite) {
     throw generateNotFoundError(ErrorCode.InviteApiError, 'Invite', inviteId)
   }
@@ -77,7 +77,7 @@ const updateInvite: RequestHandler = async (req, res) => {
     updateData.claimed = data.claimed
   }
 
-  const result = await InvitesService.updateInvite(inviteId, updateData)
+  const result = await InvitesService.update(inviteId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

@@ -169,7 +169,7 @@ const createShop: RequestHandler = async (req, res) => {
 
   const userId = user_id ?? requestorDocId
 
-  const user = await UsersService.getUserByID(userId)
+  const user = await UsersService.findById(userId)
   if (!user) {
     throw generateNotFoundError(ErrorCode.ShopApiError, 'User', userId)
   }
@@ -227,7 +227,7 @@ const createShop: RequestHandler = async (req, res) => {
   if (cover_photo) shopData.cover_photo = cover_photo
   if (payment_options) {
     for (const paymentOption of payment_options) {
-      const bankCode = await BankCodesService.getBankCodeById(paymentOption.bank_code)
+      const bankCode = await BankCodesService.findById(paymentOption.bank_code)
       if (bankCode) {
         paymentOption.type = bankCode.type
       }
@@ -235,7 +235,7 @@ const createShop: RequestHandler = async (req, res) => {
     shopData.payment_options = payment_options
   }
 
-  const result = await ShopsService.createShop(shopData)
+  const result = await ShopsService.create(shopData)
 
   return res.json({ status: 'ok', data: result })
 }

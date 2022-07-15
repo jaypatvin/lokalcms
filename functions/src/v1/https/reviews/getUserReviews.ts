@@ -36,7 +36,7 @@ import { ProductReviewsService } from '../../../service'
 const getUserReviews: RequestHandler = async (req, res) => {
   const { userId } = req.params
 
-  const reviews = await ProductReviewsService.getReviewsByUser(userId)
+  const reviews = await ProductReviewsService.findReviewsByUser(userId)
 
   return res.json({ status: 'ok', data: reviews })
 }

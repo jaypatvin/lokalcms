@@ -33,7 +33,7 @@ const addToWishlist: RequestHandler = async (req, res) => {
   const { productId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const product = await ProductsService.getProductByID(productId)
+  const product = await ProductsService.findById(productId)
   if (!product) {
     throw generateNotFoundError(ErrorCode.WishlistApiError, 'Product', productId)
   }
@@ -43,13 +43,15 @@ const addToWishlist: RequestHandler = async (req, res) => {
     })
   }
 
-  const exists = await WishlistsService.getProductWishlist(productId, requestorDocId)
+  const exists = await WishlistsService.findProductWishlist(productId, requestorDocId)
   if (!exists) {
     const wishlistData = {
       shop_id: product.shop_id,
       community_id: product.community_id,
+      user_id: requestorDocId,
+      product_id: productId,
     }
-    await WishlistsService.addProductWishlist(productId, requestorDocId, wishlistData)
+    await WishlistsService.create(productId, requestorDocId, wishlistData)
   }
 
   return res.status(200).json({ status: 'ok' })

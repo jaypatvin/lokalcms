@@ -1,8 +1,3 @@
-import * as admin from 'firebase-admin'
-
-export const db = admin.firestore()
-export const auth = admin.auth()
-
 export * as ActivitiesAPI from './activities'
 export * as ApplicationLogsApi from './applicationLogs'
 export * as AuthAPI from './authentication'

@@ -63,7 +63,7 @@ const declineOrder: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   let requestorDocId = res.locals.userDoc.id || seller_id
 
-  const order = await OrdersService.getOrderByID(orderId)
+  const order = await OrdersService.findById(orderId)
   if (!order) {
     throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
   }
@@ -93,17 +93,10 @@ const declineOrder: RequestHandler = async (req, res) => {
     decline_reason: reason,
   }
 
-  const statusChange = {
-    before: order.status_code,
-    after: ORDER_STATUS.DECLINED,
-  }
-
   for (const orderProduct of order.products) {
     await ProductsService.incrementProductQuantity(orderProduct.id, orderProduct.quantity)
   }
-  const result = await OrdersService.updateOrder(orderId, updateData)
-
-  await OrdersService.createOrderStatusHistory(orderId, statusChange)
+  const result = await OrdersService.update(orderId, updateData)
 
   const notificationData = {
     type: 'order_status',
@@ -113,7 +106,7 @@ const declineOrder: RequestHandler = async (req, res) => {
     associated_document: orderId,
   }
 
-  await NotificationsService.createUserNotification(order.buyer_id, notificationData)
+  await NotificationsService.create(order.buyer_id, notificationData)
 
   return res.json({ status: 'ok', data: result })
 }

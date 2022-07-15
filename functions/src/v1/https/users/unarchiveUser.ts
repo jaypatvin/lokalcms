@@ -46,7 +46,7 @@ const unarchiveUser: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await UsersService.unarchiveUser(userId, requestData)
+  const result = await UsersService.unarchive(userId, requestData)
 
   return res.json({
     status: 'ok',

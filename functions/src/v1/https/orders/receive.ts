@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { serverTimestamp } from 'firebase/firestore'
+import { Timestamp } from 'firebase/firestore'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { OrderUpdateData } from '../../../models/Order'
@@ -64,7 +64,7 @@ const received: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   let requestorDocId = res.locals.userDoc.id || buyer_id
 
-  const order = await OrdersService.getOrderByID(orderId)
+  const order = await OrdersService.findById(orderId)
   if (!order) {
     throw generateNotFoundError(ErrorCode.OrderApiError, 'Order', orderId)
   }
@@ -97,17 +97,10 @@ const received: RequestHandler = async (req, res) => {
     updateData.is_paid = true
   }
   if (!order.delivered_date) {
-    updateData.delivered_date =serverTimestamp()
+    updateData.delivered_date = Timestamp.now()
   }
 
-  const statusChange = {
-    before: order.status_code,
-    after: ORDER_STATUS.FINISHED,
-  }
-
-  const result = await OrdersService.updateOrder(orderId, updateData)
-
-  await OrdersService.createOrderStatusHistory(orderId, statusChange)
+  const result = await OrdersService.update(orderId, updateData)
 
   const notificationData = {
     type: 'order_status',
@@ -117,7 +110,7 @@ const received: RequestHandler = async (req, res) => {
     associated_document: orderId,
   }
 
-  await NotificationsService.createUserNotification(order.seller_id, notificationData)
+  await NotificationsService.create(order.seller_id, notificationData)
 
   return res.json({ status: 'ok', data: result })
 }

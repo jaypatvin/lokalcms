@@ -41,12 +41,12 @@ const archiveComment: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
   }
 
-  const comment = await CommentsService.getCommentById(activityId, commentId)
+  const comment = await CommentsService.findActivityComment(activityId, commentId)
   if (!comment) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'Comment', commentId)
   }
@@ -57,7 +57,7 @@ const archiveComment: RequestHandler = async (req, res) => {
     })
   }
 
-  const result = await CommentsService.archiveComment(activityId, commentId)
+  const result = await CommentsService.archive(activityId, commentId)
   await ActivitiesService.deccrementActivityCommentCount(activityId)
   return res.json({ status: 'ok', data: result })
 }

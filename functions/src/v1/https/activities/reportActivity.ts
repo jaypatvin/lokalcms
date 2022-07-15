@@ -53,7 +53,7 @@ const reportActivity: RequestHandler = async (req, res) => {
   const { description } = req.body
   const requestor = res.locals.userDoc
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.ActivityApiError, 'Acitivity', activityId)
   }

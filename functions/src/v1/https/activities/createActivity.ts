@@ -85,7 +85,7 @@ const createActivity: RequestHandler = async (req, res) => {
   const { user_id, images, message = '', status = 'enabled', source = '' } = req.body
   const requestorDocId = res.locals.userDoc.id || ''
 
-  const user = await UsersService.getUserByID(user_id)
+  const user = await UsersService.findById(user_id)
   if (!user) {
     throw generateNotFoundError(ErrorCode.ActivityApiError, 'User', user_id)
   }
@@ -106,7 +106,7 @@ const createActivity: RequestHandler = async (req, res) => {
   }
 
   if (images) activityData.images = images
-  const result = await ActivitiesService.createActivity(activityData)
+  const result = await ActivitiesService.create(activityData)
 
   return res.status(200).json({ status: 'ok', data: result })
 }

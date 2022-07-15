@@ -70,12 +70,12 @@ const createApplicationLog: RequestHandler = async (req, res) => {
 
   const { community_id, action_type, device_id, associated_document = '', metadata = {} } = data
 
-  const community = await CommunityService.getCommunityByID(community_id)
+  const community = await CommunityService.findByCommunityId(community_id)
   if (!community && action_type !== 'user_login_failed') {
     throw generateNotFoundError(ErrorCode.ApplicationLogApiError, 'Community', community_id)
   }
 
-  const actionType = await ActionTypesService.getActionTypeById(action_type)
+  const actionType = await ActionTypesService.findById(action_type)
   if (!actionType) {
     throw generateNotFoundError(ErrorCode.ApplicationLogApiError, 'Action Type', action_type)
   }
@@ -90,10 +90,9 @@ const createApplicationLog: RequestHandler = async (req, res) => {
     metadata,
   }
 
-  const result = await ApplicationLogService.createApplicationLog(logData)
-  const resultData = (await result.get()).data()
+  const result = await ApplicationLogService.create(logData)
 
-  return res.status(200).json({ status: 'ok', data: { id: result.id, ...resultData } })
+  return res.status(200).json({ status: 'ok', data: result })
 }
 
 export default createApplicationLog

@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { UsersService, ActivitiesService, CommentsService } from '../../../service'
+import { ActivitiesService, CommentsService } from '../../../service'
 import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
@@ -61,7 +61,7 @@ const updateComment: RequestHandler = async (req, res) => {
   const requestorDocId = res.locals.userDoc.id
   const requestorDoc = res.locals.userDoc
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
   }
@@ -72,7 +72,7 @@ const updateComment: RequestHandler = async (req, res) => {
     })
   }
 
-  const comment = await CommentsService.getCommentById(activityId, commentId)
+  const comment = await CommentsService.findActivityComment(activityId, commentId)
   if (!comment) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'Comment', commentId)
   }
@@ -89,7 +89,7 @@ const updateComment: RequestHandler = async (req, res) => {
     })
   }
 
-  const result = await CommentsService.updateActivityComment(activityId, commentId, {
+  const result = await CommentsService.update(activityId, commentId, {
     message: data.message,
   })
 

@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { ActivitiesService, CommentsService } from '../../../service'
+import { ActivitiesService } from '../../../service'
 import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
@@ -36,7 +36,7 @@ const archiveActivity: RequestHandler = async (req, res) => {
   const roles = res.locals.userRoles
   const requestorDocId = res.locals.userDoc.id
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.ActivityApiError, 'Acitivity', activityId)
   }
@@ -52,10 +52,7 @@ const archiveActivity: RequestHandler = async (req, res) => {
     updated_from: data.source || '',
   }
 
-  const result = await ActivitiesService.archiveActivity(activityId, requestData)
-
-  // archive the comments of the activity
-  await CommentsService.archiveActivityComments(activityId)
+  const result = await ActivitiesService.archive(activityId, requestData)
 
   return res.json({ status: 'ok', data: result })
 }

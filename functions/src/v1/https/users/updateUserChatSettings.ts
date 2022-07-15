@@ -56,7 +56,7 @@ const updateUserChatSettings: RequestHandler = async (req, res) => {
     })
   }
 
-  const user = await UsersService.getUserByID(userId)
+  const user = await UsersService.findById(userId)
   if (!user) {
     throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
@@ -72,7 +72,7 @@ const updateUserChatSettings: RequestHandler = async (req, res) => {
 
   updateData.chat_settings = newChatSettings
 
-  const result = await UsersService.updateUser(userId, updateData)
+  const result = await UsersService.update(userId, updateData)
 
   return res.json({ status: 'ok', data: result })
 }

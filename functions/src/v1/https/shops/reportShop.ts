@@ -53,7 +53,7 @@ const reportShop: RequestHandler = async (req, res) => {
   const { description } = req.body
   const requestor = res.locals.userDoc
 
-  const shop = await ShopsService.getShopByID(shopId)
+  const shop = await ShopsService.findById(shopId)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }

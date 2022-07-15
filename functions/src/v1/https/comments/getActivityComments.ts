@@ -36,12 +36,12 @@ const getActivityComments: RequestHandler = async (req, res) => {
   const { activityId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.CommentApiError, 'Activity', activityId)
   }
 
-  const comments = await CommentsService.getActivityComments(activityId, requestorDocId)
+  const comments = await CommentsService.findAllActivityComments(activityId, requestorDocId)
 
   return res.status(200).json({ status: 'ok', data: comments })
 }

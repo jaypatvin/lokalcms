@@ -42,7 +42,7 @@ const unlikeComment: RequestHandler = async (req, res) => {
   const { activityId, commentId } = req.params
   const requestorDocId = res.locals.userDoc.id
 
-  const activity = await ActivitiesService.getActivityById(activityId)
+  const activity = await ActivitiesService.findById(activityId)
   if (!activity) {
     throw generateNotFoundError(ErrorCode.LikeApiError, 'Activity', activityId)
   }
@@ -52,7 +52,7 @@ const unlikeComment: RequestHandler = async (req, res) => {
     })
   }
 
-  const comment = await CommentsService.getCommentById(activityId, commentId)
+  const comment = await CommentsService.findActivityComment(activityId, commentId)
   if (!comment) {
     throw generateNotFoundError(ErrorCode.LikeApiError, 'Activity', activityId)
   }
@@ -62,8 +62,12 @@ const unlikeComment: RequestHandler = async (req, res) => {
     })
   }
 
-  const result = await LikesService.removeCommentLike(activityId, commentId, requestorDocId)
-  return res.status(200).json({ status: 'ok', data: result })
+  const exists = await LikesService.findActivityCommentLike(activityId, commentId, requestorDocId)
+  if (exists) {
+    await LikesService.removeCommentLike(activityId, commentId, requestorDocId)
+  }
+
+  return res.status(200).json({ status: 'ok' })
 }
 
 export default unlikeComment

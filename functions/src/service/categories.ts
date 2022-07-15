@@ -16,5 +16,5 @@ export { findAll, findByCommunityId, findById }
 
 export const create = (id: string, data: CategoryCreateData) => baseCreateById(id, data)
 export const update = (id: string, data: CategoryUpdateData) => baseUpdate(id, data)
-export const archive = (id: string) => baseArchive(id)
-export const unarchive = (id: string) => baseUnarchive(id)
+export const archive = (id: string, data) => baseArchive(id, data)
+export const unarchive = (id: string, data) => baseUnarchive(id, data)

@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express'
+import { omit } from 'lodash'
 import { UsersService } from '../../../service'
 import { ErrorCode, generateNotFoundError } from '../../../utils/generators/generateError'
 
@@ -35,17 +36,13 @@ import { ErrorCode, generateNotFoundError } from '../../../utils/generators/gene
 const getUser: RequestHandler = async (req, res) => {
   const { userId } = req.params
 
-  const result = await UsersService.getUserByID(userId)
+  const result = await UsersService.findById(userId)
 
   if (!result) {
     throw generateNotFoundError(ErrorCode.UserApiError, 'User', userId)
   }
 
-  // reduce return data
-  delete result.keywords
-  delete result.community
-
-  return res.json({ status: 'ok', data: result })
+  return res.json({ status: 'ok', data: omit(result, ['keywords', 'community']) })
 }
 
 export default getUser

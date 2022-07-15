@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express'
+import { omit } from 'lodash'
 import { CommunityService } from '../../../service'
 import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
@@ -35,15 +36,12 @@ import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 const getCommunity: RequestHandler = async (req, res) => {
   const { communityId } = req.params
 
-  const result = await CommunityService.getCommunityByID(communityId)
+  const result = await CommunityService.findById(communityId)
   if (!result) {
     throw generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId)
   }
 
-  // reduce return data
-  delete result.keywords
-
-  return res.json({ status: 'ok', data: result })
+  return res.json({ status: 'ok', data: omit(result, ['keywords']) })
 }
 
 export default getCommunity

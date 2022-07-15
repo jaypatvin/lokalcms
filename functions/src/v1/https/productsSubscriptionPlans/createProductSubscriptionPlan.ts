@@ -143,7 +143,7 @@ const createProductSubscriptionPlan: RequestHandler = async (req, res) => {
           'User does not have a permission to create a product subscription plan for another user',
       })
     } else {
-      buyer = await UsersService.getUserByID(buyer_id)
+      buyer = await UsersService.findById(buyer_id)
       if (!buyer) {
         throw generateNotFoundError(ErrorCode.ProductSubscriptionPlanApiError, 'User', buyer_id)
       }
@@ -152,7 +152,7 @@ const createProductSubscriptionPlan: RequestHandler = async (req, res) => {
     }
   }
 
-  const product = await ProductsService.getProductByID(product_id)
+  const product = await ProductsService.findById(product_id)
   if (!product) {
     throw generateNotFoundError(ErrorCode.ProductSubscriptionPlanApiError, 'Product', product_id)
   }
@@ -162,7 +162,7 @@ const createProductSubscriptionPlan: RequestHandler = async (req, res) => {
     })
   }
 
-  const shop = await ShopsService.getShopByID(shop_id)
+  const shop = await ShopsService.findById(shop_id)
   if (!shop) {
     throw generateNotFoundError(ErrorCode.ProductSubscriptionPlanApiError, 'Shop', shop_id)
   }
@@ -215,7 +215,7 @@ const createProductSubscriptionPlan: RequestHandler = async (req, res) => {
     })
   }
 
-  let result: any = await ProductSubscriptionPlansService.createProductSubscriptionPlan(newPlan)
+  let result: any = await ProductSubscriptionPlansService.create(newPlan)
   result = await result.get().then((doc) => ({ ...doc.data(), id: doc.id }))
 
   return res.json({ status: 'ok', data: result })

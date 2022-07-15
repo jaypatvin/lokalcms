@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express'
+import { omit } from 'lodash'
 import { ShopsService, ProductsService } from '../../../service'
 import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 
@@ -35,18 +36,17 @@ import { generateNotFoundError, ErrorCode } from '../../../utils/generators'
 const getShop: RequestHandler = async (req, res) => {
   const { shopId } = req.params
 
-  const shop = await ShopsService.getShopByID(shopId)
+  const shop = await ShopsService.findById(shopId)
 
   if (!shop) {
     throw generateNotFoundError(ErrorCode.ShopApiError, 'Shop', shopId)
   }
 
-  const products = await ProductsService.getProductsByShopID(shopId)
+  const products = (await ProductsService.findProductsByShopId(shopId)).map((product) =>
+    omit(product, ['keywords'])
+  )
 
-  // reduce return data
-  delete shop.keywords
-  products.forEach((product) => delete product.keywords)
-  const result = { ...shop, products }
+  const result = { ...omit(shop, ['keywords']), products }
 
   return res.json({ status: 'ok', data: result })
 }

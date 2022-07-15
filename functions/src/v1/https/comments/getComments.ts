@@ -106,7 +106,7 @@ const getComments: RequestHandler = async (req, res) => {
     commentsIndex = client.initIndex('comments_created_at_desc')
   }
 
-  const filtersArray = []
+  const filtersArray: string[] = []
   if (community) {
     filtersArray.push(`community_id:${community}`)
   }

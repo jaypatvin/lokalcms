@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions'
 import algoliasearch from 'algoliasearch'
 import { get, pick } from 'lodash'
 import { productFields } from './algoliaFields'
-import db from '../../utils/db'
+import { ShopsService } from '../../service'
 
 const appId = get(functions.config(), 'algolia_config.app_id')
 const apiKey = get(functions.config(), 'algolia_config.api_key')
@@ -15,11 +15,11 @@ exports.addProductIndex = functions.firestore
   .document('products/{productId}')
   .onCreate(async (snapshot) => {
     const data = snapshot.data()
-    const shop = await (await db.shops.doc(data.shop_id).get()).data()
+    const shop = await ShopsService.findById(data.shop_id)
     const product = {
       objectID: snapshot.id,
       ...pick(data, productFields),
-      shop_name: shop.name,
+      shop_name: shop!.name,
     }
 
     await shopsIndex.partialUpdateObject({

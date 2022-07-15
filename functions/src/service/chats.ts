@@ -5,6 +5,7 @@ import { createBaseMethods } from './base'
 
 const {
   findAll,
+  findOne,
   findById,
   findByCommunityId,
   create: baseCreate,
@@ -14,7 +15,7 @@ const {
   unarchive: baseUnarchive,
 } = createBaseMethods(db.chats)
 
-export { findAll, findByCommunityId, findById }
+export { findAll, findByCommunityId, findById, findOne }
 
 export const create = (data: ChatCreateData) => baseCreate(data)
 export const update = (id: string, data: ChatUpdateData) => baseUpdate(id, data)
@@ -22,7 +23,7 @@ export const archive = (id: string, data: ChatUpdateData) => baseArchive(id, dat
 export const unarchive = (id: string, data: ChatUpdateData) => baseUnarchive(id, data)
 
 export const findGroupChatByHash = async (groupHash: string) => {
-  return await findAll({
+  return await findOne({
     wheres: [where('group_hash', '==', groupHash)],
   })
 }

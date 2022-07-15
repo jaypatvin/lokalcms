@@ -2,9 +2,6 @@ import { RequestHandler } from 'express'
 import { getApp } from 'firebase/app'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { generateError, ErrorCode } from '../../../utils/generators'
-// process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080'
-// process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099'
-// const firebaseApp = initializeApp({ projectId: 'lokal-1baac' })
 
 const auth = getAuth(getApp())
 

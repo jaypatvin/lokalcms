@@ -50,7 +50,7 @@ const claimInvite: RequestHandler = async (req, res) => {
   const data = req.body
   const requestorDocId = res.locals.userDoc.id
 
-  const invite = await InvitesService.getInviteByCode(data.code)
+  const invite = await InvitesService.findInviteByCode(data.code)
   if (!invite) {
     throw generateError(ErrorCode.InviteApiError, {
       message: `Invite with code "${data.code} was not found"`,
@@ -63,7 +63,7 @@ const claimInvite: RequestHandler = async (req, res) => {
     })
   }
 
-  const user = await UsersService.getUserByID(data.user_id)
+  const user = await UsersService.findById(data.user_id)
   if (!user) {
     throw generateNotFoundError(ErrorCode.InviteApiError, 'User', data.user_id)
   }
@@ -75,7 +75,7 @@ const claimInvite: RequestHandler = async (req, res) => {
   }
 
   // update and claim the invite to the user
-  InvitesService.updateInvite(invite.id, {
+  InvitesService.update(invite.id, {
     claimed: true,
     invitee: data.user_id,
     updated_by: requestorDocId,

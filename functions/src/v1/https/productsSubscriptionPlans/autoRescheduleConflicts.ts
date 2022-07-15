@@ -42,9 +42,7 @@ const autoRescheduleConflicts: RequestHandler = async (req, res) => {
   const { planId } = req.params
   let requestorDocId = res.locals.userDoc.id
 
-  const subscriptionPlan = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
-    planId
-  )
+  const subscriptionPlan = await ProductSubscriptionPlansService.findById(planId)
   if (!subscriptionPlan) {
     throw generateNotFoundError(
       ErrorCode.ProductSubscriptionPlanApiError,
@@ -59,7 +57,7 @@ const autoRescheduleConflicts: RequestHandler = async (req, res) => {
     })
   }
 
-  const shop = await ShopsService.getShopByID(subscriptionPlan.shop_id)
+  const shop = await ShopsService.findById(subscriptionPlan.shop_id)
   if (!shop) {
     throw generateNotFoundError(
       ErrorCode.ProductSubscriptionPlanApiError,
@@ -68,7 +66,7 @@ const autoRescheduleConflicts: RequestHandler = async (req, res) => {
     )
   }
 
-  const product = await ProductsService.getProductByID(subscriptionPlan.product_id)
+  const product = await ProductsService.findById(subscriptionPlan.product_id)
   if (!product) {
     throw generateNotFoundError(
       ErrorCode.ProductSubscriptionPlanApiError,
@@ -99,7 +97,7 @@ const autoRescheduleConflicts: RequestHandler = async (req, res) => {
     availableProductDates.length > conflicts.length
   ) {
     const existingOverrideDates = subscriptionPlan.plan.override_dates ?? {}
-    overrideDates = conflicts.reduce((acc, conflict) => {
+    overrideDates = conflicts.reduce<{ [x: string]: string }>((acc, conflict) => {
       const datesTaken = [...Object.values(acc), ...Object.values(existingOverrideDates)]
       const availableDates = availableProductDates.filter((d) => !datesTaken.includes(d))
       const sortedNearestDates = availableDates.sort((a, b) => {
@@ -121,7 +119,7 @@ const autoRescheduleConflicts: RequestHandler = async (req, res) => {
     ...overrideDates,
   }
 
-  await ProductSubscriptionPlansService.updateProductSubscriptionPlan(planId, updateData)
+  await ProductSubscriptionPlansService.update(planId, updateData)
 
   return res.json({ status: 'ok' })
 }

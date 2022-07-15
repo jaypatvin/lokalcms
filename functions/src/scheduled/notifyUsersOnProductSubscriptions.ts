@@ -9,7 +9,7 @@ import {
   UsersService,
 } from '../service'
 import { ORDER_STATUS } from '../v1/https/orders'
-import { OrderCreateData } from '../models/Order'
+import Order, { OrderCreateData } from '../models/Order'
 import { ProductSubscription, ProductSubscriptionPlan } from '../models'
 
 sgMail.setApiKey(functions.config().mail_service.key)
@@ -21,31 +21,29 @@ type Subscriptions = ProductSubscription & { plan?: ProductSubscriptionPlan; id:
 const notifyUsersOnproductSubscriptions = async () => {
   const orderDate = dayjs(new Date()).add(notifyDays, 'days').format('YYYY-MM-DD')
   const upcomingSubscriptions: Subscriptions[] =
-    await ProductSubscriptionsService.getProductSubscriptionsByDate(orderDate)
+    await ProductSubscriptionsService.findProductSubscriptionsByDate(orderDate)
   if (!upcomingSubscriptions.length) {
     console.log('There are no upcoming subscription orders 3 days from now.')
   }
 
   const sellersSubscriptionsMap = {}
   const buyersSubscriptionsMap = {}
-  const createdOrders = []
+  const createdOrders: (Order & { id: string })[] = []
 
   for (let subscription of upcomingSubscriptions) {
     const { product_subscription_plan_id, instruction, quantity, date_string } = subscription
-    const planInfo = await ProductSubscriptionPlansService.getProductSubscriptionPlanById(
-      product_subscription_plan_id
-    )
-    const seller_id = planInfo.seller_id
+    const planInfo = await ProductSubscriptionPlansService.findById(product_subscription_plan_id)
+    const seller_id = planInfo!.seller_id
     if (!sellersSubscriptionsMap[seller_id]) sellersSubscriptionsMap[seller_id] = []
-    subscription.plan = planInfo
+    subscription.plan = planInfo!
     sellersSubscriptionsMap[seller_id].push(subscription)
 
-    const buyer_id = planInfo.buyer_id
+    const buyer_id = planInfo!.buyer_id
     if (!buyersSubscriptionsMap[buyer_id]) buyersSubscriptionsMap[buyer_id] = []
-    subscription.plan = planInfo
+    subscription.plan = planInfo!
     buyersSubscriptionsMap[buyer_id].push(subscription)
 
-    const existingOrder = await OrdersService.getOrdersByProductSubscriptionIdAndDate(
+    const existingOrder = await OrdersService.findOrdersByProductSubscriptionIdAndDate(
       subscription.id,
       date_string
     )
@@ -62,7 +60,7 @@ const notifyUsersOnproductSubscriptions = async () => {
         shop,
         payment_method,
       } = planInfo
-      const buyer = await UsersService.getUserByID(buyer_id)
+      const buyer = await UsersService.findById(buyer_id)
       const isCod = payment_method === 'cod'
       const statusCode = isCod ? ORDER_STATUS.PENDING_SHIPMENT : ORDER_STATUS.PENDING_PAYMENT
       const orderData: OrderCreateData = {
@@ -93,15 +91,15 @@ const notifyUsersOnproductSubscriptions = async () => {
           image: shop.image || '',
         },
         status_code: statusCode,
-        delivery_address: buyer.address,
+        delivery_address: buyer!.address,
         product_subscription_id: subscription.id,
         product_subscription_date: date_string,
         payment_method,
       }
 
-      const order = await OrdersService.createOrder(orderData)
-      const result = await order.get().then((doc) => ({ id: order.id, ...doc.data() }))
-      createdOrders.push(result)
+      const order = await OrdersService.create(orderData)
+      // @ts-ignore: ts bug?
+      createdOrders.push(order)
     }
   }
 
@@ -110,7 +108,7 @@ const notifyUsersOnproductSubscriptions = async () => {
 
   // emailing the sellers
   for (let [seller_id, subscriptions] of Object.entries<any>(sellersSubscriptionsMap)) {
-    const user = await UsersService.getUserByID(seller_id)
+    const user = await UsersService.findById(seller_id)
     const title = `You have ${subscriptions.length} subscription orders on ${orderDate}`
     const notificationMessage = `Review your ${subscriptions.length} subscription orders on ${orderDate}`
     if (user) {
@@ -139,13 +137,13 @@ const notifyUsersOnproductSubscriptions = async () => {
         associated_documents: subscriptions.map((s) => s.id),
       }
 
-      await NotificationsService.createUserNotification(seller_id, notificationData)
+      await NotificationsService.create(seller_id, notificationData)
     }
   }
 
   // emailing the buyers
   for (let [buyer_id, subscriptions] of Object.entries<any>(buyersSubscriptionsMap)) {
-    const user = await UsersService.getUserByID(buyer_id)
+    const user = await UsersService.findById(buyer_id)
     const title = `You have ${subscriptions.length} subscription orders on ${orderDate}`
     const notificationMessage = `Review your ${subscriptions.length} subscription orders on ${orderDate}`
     if (user) {
@@ -173,7 +171,7 @@ const notifyUsersOnproductSubscriptions = async () => {
         associated_documents: subscriptions.map((s) => s.id),
       }
 
-      await NotificationsService.createUserNotification(buyer_id, notificationData)
+      await NotificationsService.create(buyer_id, notificationData)
     }
   }
 
