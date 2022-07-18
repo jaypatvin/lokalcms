@@ -1,4 +1,4 @@
-import { addDoc, Timestamp } from 'firebase/firestore'
+import { addDoc, getDoc, Timestamp, getFirestore, doc } from 'firebase/firestore'
 import { Change, firestore } from 'firebase-functions'
 import { HistoryLog } from '../../models'
 import { db } from '../db'
@@ -13,11 +13,11 @@ const logActivity = async (change: Change<firestore.DocumentSnapshot>) => {
     change.after.exists ? change.after.ref.parent.path : change.before.ref.parent.path
   ) as HistoryLog['collection_name']
   const document_id = change.after.exists ? change.after.id : change.before.id
-  const beforeData: any = change.before.data()
-  const afterData: any = change.after.data()
+  const beforeData = (await getDoc(doc(getFirestore(), collection_name, change.before.id))).data()
+  const afterData = (await getDoc(doc(getFirestore(), collection_name, change.after.id))).data()
   const data = afterData || beforeData
 
-  const isArchive = beforeData && afterData && !beforeData.isArchived && afterData.isArchived
+  const isArchive = beforeData && afterData && !beforeData.archived && afterData.archived
   const actor_id = afterData && afterData.updated_by ? afterData.updated_by : ''
   const source = afterData && afterData.updated_from ? afterData.updated_from : 'api'
   const community_id = collection_name === 'community' ? document_id : data.community_id || ''
@@ -40,10 +40,12 @@ const logActivity = async (change: Change<firestore.DocumentSnapshot>) => {
   if (beforeData) {
     delete beforeData.updated_from
     delete beforeData.updated_by
+    delete beforeData.keywords
   }
   if (afterData) {
     delete afterData.updated_from
     delete afterData.updated_by
+    delete afterData.keywords
   }
 
   if (isCreate) {

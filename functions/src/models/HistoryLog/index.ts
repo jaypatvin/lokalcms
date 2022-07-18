@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore'
+
 type HistoryLog = {
   actor_id: string
   source?: 'cms' | 'api' | ''
@@ -20,11 +22,11 @@ type HistoryLog = {
     | 'shops'
     | 'users'
   document_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: Timestamp
   keywords: string[]
   method?: 'create' | 'update' | 'archive' | 'delete'
-  before?: any
-  after?: any
+  before?: Record<string, unknown>
+  after?: Record<string, unknown>
 }
 
 export default HistoryLog

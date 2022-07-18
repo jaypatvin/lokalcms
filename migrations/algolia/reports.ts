@@ -24,15 +24,15 @@ const importReports = async (client: SearchClient) => {
   const reportsIndex = client.initIndex('reports')
 
   const reportsRef = await db.collectionGroup('reports').get()
-  const reportDocs = []
+  const reportDocs: any = []
 
   for (const report of reportsRef.docs) {
     const reportData = report.data()
 
     const userRef = await db.collection('users').doc(reportData.user_id).get()
     const reportedUserRef = await db.collection('users').doc(reportData.reported_user_id).get()
-    const userEmail = userRef.data().email
-    const reportedUserEmail = reportedUserRef.data().email
+    const userEmail = userRef.data()!.email
+    const reportedUserEmail = reportedUserRef.data()!.email
 
     reportDocs.push({
       objectID: report.id,

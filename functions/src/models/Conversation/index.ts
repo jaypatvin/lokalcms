@@ -1,10 +1,10 @@
-import { DocumentReference } from "firebase/firestore"
+import { DocumentReference, Timestamp } from "firebase/firestore"
 
 type Conversation = {
   archived: boolean
   chat_id: string
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: Timestamp
   media?: {
     order: number
     type: 'image' | 'video'
@@ -12,7 +12,7 @@ type Conversation = {
   }[]
   message?: string
   sender_id: string
-  sent_at: FirebaseFirestore.Timestamp
+  sent_at: Timestamp
   reply_to?: DocumentReference<Conversation>
 }
 

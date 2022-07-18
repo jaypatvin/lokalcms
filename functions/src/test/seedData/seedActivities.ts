@@ -1,39 +1,34 @@
 import Chance from 'chance'
+import { getDocs, Timestamp, where, query, doc, setDoc, addDoc, getDoc } from 'firebase/firestore'
 import { Activity } from '../../models'
 import db from '../../utils/db'
 import sleep from '../../utils/sleep'
-import { AdminType } from '../dbseed'
 import * as samples from '../sampleImages'
 
 const chance = new Chance()
 
-const seedActivityLikes = async ({
-  activity,
-  admin,
-}: {
-  activity: Activity & { id: string }
-  admin: AdminType
-}) => {
-  const users = (await db.users.where('community_id', '==', activity.community_id).get()).docs.map(
-    (doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })
-  )
+const seedActivityLikes = async ({ activity }: { activity: Activity & { id: string } }) => {
+  const users = (
+    await getDocs(query(db.users, where('community_id', '==', activity.community_id)))
+  ).docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
   for (const user of users) {
     if (chance.bool()) {
       await sleep(100)
       try {
-        await db
-          .getLikes(`activities/${activity.id}/likes`)
-          .doc(`${activity.id}_${user.id}_like`)
-          .set({
+        await setDoc(
+          doc(db.getLikes(`activities/${activity.id}/likes`), `${activity.id}_${user.id}_like`),
+          {
             parent_collection_path: 'activities',
             parent_collection_name: 'activities',
             user_id: user.id,
+            community_id: user.community_id,
             activity_id: activity.id,
-            created_at: admin.firestore.Timestamp.now(),
-          })
+            created_at: Timestamp.now(),
+          }
+        )
       } catch (error) {
         console.error('Error creating activity like:', error)
       }
@@ -41,19 +36,13 @@ const seedActivityLikes = async ({
   }
 }
 
-const seedActivityComments = async ({
-  activity,
-  admin,
-}: {
-  activity: Activity & { id: string }
-  admin: AdminType
-}) => {
-  const users = (await db.users.where('community_id', '==', activity.community_id).get()).docs.map(
-    (doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })
-  )
+const seedActivityComments = async ({ activity }: { activity: Activity & { id: string } }) => {
+  const users = (
+    await getDocs(query(db.users, where('community_id', '==', activity.community_id)))
+  ).docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
   for (const user of users) {
     if (chance.bool()) {
       await sleep(100)
@@ -63,9 +52,9 @@ const seedActivityComments = async ({
           order,
           url: chance.pickone(samples.comments),
         }))
-        await db.getActivityComments(`activities/${activity.id}/comments`).add({
+        await addDoc(db.getActivityComments(`activities/${activity.id}/comments`), {
           archived: false,
-          created_at: admin.firestore.Timestamp.now(),
+          created_at: Timestamp.now(),
           images,
           message: chance.sentence(),
           status: chance.pickone(['enabled', 'disabled']),
@@ -79,8 +68,11 @@ const seedActivityComments = async ({
   }
 }
 
-export const seedActivities = async ({ admin }: { admin: AdminType }) => {
-  const users = (await db.users.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+export const seedActivities = async () => {
+  const users = (await getDocs(db.users)).docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
   const randomUsers = chance.pickset(users, 15)
   for (const user of randomUsers) {
     const numOfImages = chance.integer({ min: 0, max: 5 })
@@ -92,21 +84,24 @@ export const seedActivities = async ({ admin }: { admin: AdminType }) => {
     try {
       for (let i = 1; i <= numOfActivities; i++) {
         await sleep(100)
-        const activity = await db.activities
-          .add({
+
+        const activityDoc = await getDoc(
+          await addDoc(db.activities, {
             archived: false,
             community_id: user.community_id,
             images,
             message: chance.sentence(),
             status: chance.pickone(['enabled', 'disabled']),
             user_id: user.id,
-            created_at: admin.firestore.Timestamp.now(),
+            created_at: Timestamp.now(),
           })
-          .then((res) => res.get())
-          .then((doc) => ({ id: doc.id, ...doc.data() }))
+        )
+        const activity = { id: activityDoc.id, ...activityDoc.data() }
 
-        await seedActivityLikes({ activity, admin })
-        await seedActivityComments({ activity, admin })
+        // @ts-ignore
+        await seedActivityLikes({ activity })
+        // @ts-ignore
+        await seedActivityComments({ activity })
       }
     } catch (error) {
       console.error('Error creating activity:', error)

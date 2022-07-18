@@ -1,13 +1,13 @@
 import Chance from 'chance'
+import { doc, setDoc, Timestamp } from 'firebase/firestore'
 import db from '../../utils/db'
 import { generateCategoryKeywords } from '../../utils/generators'
 import sleep from '../../utils/sleep'
-import { AdminType } from '../dbseed'
 import { categories } from './mockData/categories'
 
 const chance = new Chance()
 
-export const seedCategories = async ({ admin }: { admin: AdminType }) => {
+export const seedCategories = async () => {
   for (const category of categories) {
     await sleep(100)
     try {
@@ -23,7 +23,7 @@ export const seedCategories = async ({ admin }: { admin: AdminType }) => {
       const keywords = generateCategoryKeywords({
         name,
       })
-      await db.categories.doc(id).set({
+      await setDoc(doc(db.categories, id), {
         name,
         archived,
         cover_url,
@@ -32,7 +32,7 @@ export const seedCategories = async ({ admin }: { admin: AdminType }) => {
         // @ts-ignore
         status,
         keywords,
-        created_at: admin.firestore.Timestamp.now(),
+        created_at: Timestamp.now(),
       })
     } catch (error) {
       console.error('Error creating category:', error)

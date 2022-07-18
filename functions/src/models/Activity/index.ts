@@ -1,3 +1,4 @@
+import { Timestamp, CollectionReference } from 'firebase/firestore'
 import { Like, Comment, Report } from '../'
 
 type Activity = {
@@ -7,19 +8,19 @@ type Activity = {
     reports_count?: number
   }
   archived: boolean
-  comments?: FirebaseFirestore.CollectionGroup<Comment>
+  comments?: CollectionReference<Comment>
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: Timestamp
   images?: {
     url: string
     order: number
   }[]
-  likes?: FirebaseFirestore.CollectionGroup<Like>
-  reports?: FirebaseFirestore.CollectionGroup<Report>
+  likes?: CollectionReference<Like>
+  reports?: CollectionReference<Report>
   message: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
-  updated_content_at?: FirebaseFirestore.Timestamp
+  updated_at?: Timestamp
+  updated_content_at?: Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

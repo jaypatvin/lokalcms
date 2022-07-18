@@ -36,5 +36,4 @@ exports.api = functions.https.onRequest(app)
 
 exports.algolia = require('./functions/algolia')
 exports.counter = require('./functions/counters')
-exports.ratings = require('./functions/ratings')
 exports.subscriptions = require('./functions/subscriptions')

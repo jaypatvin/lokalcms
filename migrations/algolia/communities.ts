@@ -23,7 +23,7 @@ const importCommunities = async (client: SearchClient) => {
   const communitiesCreatedAtDescIndex = client.initIndex('communities_created_at_desc')
 
   const communitiesRef = await db.collection('community').get()
-  const communityDocs = []
+  const communityDocs: any = []
 
   for (const community of communitiesRef.docs) {
     const communityData = community.data()

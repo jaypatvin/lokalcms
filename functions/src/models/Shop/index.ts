@@ -1,3 +1,4 @@
+import { Timestamp } from 'firebase/firestore'
 import { Like, Report } from '../'
 
 type Shop = {
@@ -13,7 +14,7 @@ type Shop = {
   archived: boolean
   community_id: string
   cover_photo?: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: Timestamp
   description: string
   is_close: boolean
   keywords: string[]
@@ -105,7 +106,7 @@ type Shop = {
   }
   profile_photo?: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

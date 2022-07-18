@@ -1,3 +1,4 @@
+import { Timestamp } from 'firebase/firestore'
 import { Activity, Shop, Product } from '../index'
 
 type Report = {
@@ -9,8 +10,8 @@ type Report = {
   shop_id?: string
   product_id?: string
   report_type: 'activity' | 'shop' | 'product'
-  created_at: FirebaseFirestore.Timestamp
-  updated_at?: FirebaseFirestore.Timestamp
+  created_at: Timestamp
+  updated_at?: Timestamp
   document_snapshot: Activity | Shop | Product
 }
 

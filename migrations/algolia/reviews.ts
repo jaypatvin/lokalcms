@@ -24,13 +24,13 @@ const importReviews = async (client: SearchClient) => {
   const reviewsRatingAscIndex = client.initIndex('reviews_rating_asc')
   const reviewsRatingDescIndex = client.initIndex('reviews_rating_desc')
   const reviewsRef = await db.collectionGroup('reviews').get()
-  const reviewDocs = []
+  const reviewDocs: any = []
 
   for (const review of reviewsRef.docs) {
     const reviewData = review.data()
 
     const userRef = await db.collection('users').doc(reviewData.user_id).get()
-    const userEmail = userRef.data().email
+    const userEmail = userRef.data()!.email
 
     const productRef = await db.collection('products').doc(reviewData.product_id).get()
     const product = productRef.data()
@@ -39,9 +39,9 @@ const importReviews = async (client: SearchClient) => {
       objectID: review.id,
       ...pick(reviewData, reviewFields),
       user_email: userEmail,
-      shop_id: product.shop_id,
-      community_id: product.community_id,
-      seller_id: product.user_id,
+      shop_id: product!.shop_id,
+      community_id: product!.community_id,
+      seller_id: product!.user_id,
     })
   }
 

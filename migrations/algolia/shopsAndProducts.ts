@@ -54,14 +54,17 @@ const importShopsAndProducts = async (client: SearchClient) => {
   const productsPriceDescIndex = client.initIndex('products_price_desc')
 
   const shopsRef = await db.collection('shops').get()
-  const shopDocs = []
-  const productDocs = []
+  const shopDocs: any = []
+  const productDocs: any = []
 
   for (const shop of shopsRef.docs) {
     const shopData = shop.data()
 
     // extract info from each products of shop
-    const moreInfo = {
+    const moreInfo: {
+      categories: string[]
+      products: string[]
+    } = {
       categories: [],
       products: [],
     }

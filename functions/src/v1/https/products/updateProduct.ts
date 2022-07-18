@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express'
 import { isBoolean } from 'lodash'
 import { ProductUpdateData } from '../../../models/Product'
-import { NotificationsService, ProductsService } from '../../../service'
+import { NotificationsService, ProductsService, WishlistsService } from '../../../service'
 import {
   ErrorCode,
   generateError,
@@ -158,7 +158,7 @@ const updateProduct: RequestHandler = async (req, res) => {
     }
 
     const wishlistUsers =
-      (await product.wishlists?.get())?.docs.map((doc) => doc.data().user_id) ?? []
+      (await WishlistsService.findAllProductWishlists(product.id)).map((w) => w.user_id) ?? []
 
     for (const userId of wishlistUsers) {
       await NotificationsService.create(userId, notificationData)

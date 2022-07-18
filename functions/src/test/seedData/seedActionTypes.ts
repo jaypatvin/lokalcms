@@ -1,3 +1,4 @@
+import { doc, setDoc } from 'firebase/firestore'
 import db from '../../utils/db'
 import sleep from '../../utils/sleep'
 import { actionTypes } from './mockData/actionTypes'
@@ -15,7 +16,7 @@ export const seedActionTypes = async () => {
         name,
         user_visible,
       } = actionType
-      await db.actionTypes.doc(id).set({
+      await setDoc(doc(db.actionTypes, id), {
         associated_collection,
         can_archive,
         community_admin_visible,

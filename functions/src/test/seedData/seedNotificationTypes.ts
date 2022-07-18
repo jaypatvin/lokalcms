@@ -1,3 +1,4 @@
+import { setDoc, doc } from 'firebase/firestore'
 import db from '../../utils/db'
 import sleep from '../../utils/sleep'
 import { notificationTypes } from './mockData/notificationTypes'
@@ -7,7 +8,7 @@ export const seedNotificationTypes = async () => {
     try {
       await sleep(100)
       const { id, description, name } = notificationType
-      await db.notificationTypes.doc(id).set({
+      await setDoc(doc(db.notificationTypes, id), {
         description,
         name,
       })

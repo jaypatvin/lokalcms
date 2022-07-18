@@ -27,7 +27,7 @@ const importProductSubscriptionPlans = async (client: SearchClient) => {
   const plansCreatedAtDescIndex = client.initIndex('product_subscription_plans_created_at_desc')
 
   const subscriptionPlansRef = await db.collection('product_subscription_plans').get()
-  const subscriptionPlanDocs = []
+  const subscriptionPlanDocs: any = []
 
   for (const subscriptionPlan of subscriptionPlansRef.docs) {
     const subscriptionPlanData = subscriptionPlan.data()

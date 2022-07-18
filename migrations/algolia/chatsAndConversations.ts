@@ -36,13 +36,13 @@ const importChatsAndConversations = async (client: SearchClient) => {
   const conversationsIndex = client.initIndex('conversations')
 
   const chatsRef = await db.collection('chats').get()
-  const chatDocs = []
-  const conversationDocs = []
+  const chatDocs: any = []
+  const conversationDocs: any = []
 
   for (const chat of chatsRef.docs) {
     const chatData = chat.data()
 
-    const moreInfo = {
+    const moreInfo: { member_emails: string[] } = {
       member_emails: [],
     }
 
@@ -50,15 +50,15 @@ const importChatsAndConversations = async (client: SearchClient) => {
       let user
 
       if (chatData.shop_id === member) {
-        const shop = await (await db.collection('shops').doc(chatData.shop_id).get()).data()
-        user = await (await db.collection('users').doc(shop.user_id).get()).data()
+        const shop = (await db.collection('shops').doc(chatData.shop_id).get()).data()
+        user = (await db.collection('users').doc(shop!.user_id).get()).data()
       } else if (chatData.product_id === member) {
         const product = await (
           await db.collection('products').doc(chatData.product_id).get()
         ).data()
-        user = await (await db.collection('users').doc(product.user_id).get()).data()
+        user = (await db.collection('users').doc(product!.user_id).get()).data()
       } else {
-        user = await (await db.collection('users').doc(member).get()).data()
+        user = (await db.collection('users').doc(member).get()).data()
       }
 
       if (user) {

@@ -1,3 +1,4 @@
+import { setDoc, doc } from 'firebase/firestore'
 import db from '../../utils/db'
 import sleep from '../../utils/sleep'
 import { bankCodes } from './mockData/bankCodes'
@@ -7,7 +8,7 @@ export const seedBankCodes = async () => {
     try {
       await sleep(100)
       const { id, icon_url, name, type } = bankCode
-      await db.bankCodes.doc(id).set({
+      await setDoc(doc(db.bankCodes, id), {
         name,
         icon_url,
         // @ts-ignore

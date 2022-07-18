@@ -1,16 +1,20 @@
 import dayjs from 'dayjs'
 import Chance from 'chance'
+import { addDoc, doc, getDocs, Timestamp } from 'firebase/firestore'
 import db from '../../utils/db'
 import { generateUserKeywords } from '../../utils/generators'
 import sleep from '../../utils/sleep'
 import * as samples from '../sampleImages'
 import { seedShopsAndProductsOfUser } from './seedUserShopsAndProducts'
-import { AdminType, AuthType } from '../dbseed'
+import { AuthType } from '../dbseed'
 
 const chance = new Chance()
 
-export const seedUsers = async ({ admin, auth }: { admin: AdminType; auth: AuthType }) => {
-  const communities = (await db.community.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+export const seedUsers = async ({ auth }: { auth: AuthType }) => {
+  const communities = (await getDocs(db.community)).docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
   for (let i = 1; i <= 20; i++) {
     await sleep(100)
     try {
@@ -33,7 +37,7 @@ export const seedUsers = async ({ admin, auth }: { admin: AdminType; auth: AuthT
         displayName,
         disabled: false,
       })
-      const { id: userId } = await db.users.add({
+      const { id: userId } = await addDoc(db.users, {
         user_uids: [uid],
         first_name: firstName,
         last_name: lastName,
@@ -54,7 +58,7 @@ export const seedUsers = async ({ admin, auth }: { admin: AdminType; auth: AuthT
           verified: false,
         },
         community_id: community.id,
-        community: db.community.doc(community.id),
+        community: doc(db.community, community.id),
         address: {
           barangay: community.address.barangay,
           street: chance.street(),
@@ -67,14 +71,13 @@ export const seedUsers = async ({ admin, auth }: { admin: AdminType; auth: AuthT
         profile_photo: chance.pickone(samples.users),
         keywords,
         archived: false,
-        created_at: admin.firestore.Timestamp.now(),
+        created_at: Timestamp.now(),
       })
 
       await seedShopsAndProductsOfUser({
         userId,
         communityId: community.id,
         displayName,
-        admin,
       })
     } catch (error) {
       console.error('Error creating user:', error)

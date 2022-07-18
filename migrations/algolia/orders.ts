@@ -34,7 +34,7 @@ const importOrders = async (client: SearchClient) => {
   const ordersCreatedAtDescIndex = client.initIndex('orders_created_at_desc')
 
   const ordersRef = await db.collection('orders').get()
-  const orderDocs = []
+  const orderDocs: any = []
 
   for (const order of ordersRef.docs) {
     const orderData = order.data()

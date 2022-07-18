@@ -1,9 +1,11 @@
+import { Timestamp } from 'firebase/firestore'
+
 type ApplicationLog = {
   action_type: string
   archived: boolean
   associated_document: string
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: Timestamp
   device_id: string
   is_authenticated: boolean
   metadata: {

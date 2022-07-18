@@ -40,6 +40,8 @@ export const findOne = async <T>(ref: CollectionReference<T>, option?: Option) =
     docsRef = await getDocs(ref)
   }
 
+  if (docsRef.empty) return null
+
   const firstDoc = docsRef.docs[0]
   return { id: firstDoc.id, ...firstDoc.data() }
 }

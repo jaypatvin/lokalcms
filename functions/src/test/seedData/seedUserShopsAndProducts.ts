@@ -1,4 +1,5 @@
 import Chance from 'chance'
+import { addDoc, Timestamp } from 'firebase/firestore'
 import db from '../../utils/db'
 import {
   generateProductKeywords,
@@ -6,7 +7,6 @@ import {
   generateShopKeywords,
 } from '../../utils/generators'
 import sleep from '../../utils/sleep'
-import { AdminType } from '../dbseed'
 import { categories } from './mockData/categories'
 import * as samples from '../sampleImages'
 
@@ -117,12 +117,10 @@ export const seedShopsAndProductsOfUser = async ({
   userId,
   communityId,
   displayName,
-  admin,
 }: {
   userId: string
   communityId: string
   displayName: string
-  admin: AdminType
 }) => {
   const shopCount = chance.integer({ min: 0, max: 3 })
   for (let i = 1; i <= shopCount; i++) {
@@ -147,7 +145,7 @@ export const seedShopsAndProductsOfUser = async ({
           repeat_type: repeat_type as any,
         }),
       }
-      const { id: shopId } = await db.shops.add({
+      const { id: shopId } = await addDoc(db.shops, {
         name,
         description: chance.sentence(),
         user_id: userId,
@@ -172,7 +170,7 @@ export const seedShopsAndProductsOfUser = async ({
             account_name: displayName,
           },
         ],
-        created_at: admin.firestore.Timestamp.now(),
+        created_at: Timestamp.now(),
         // @ts-ignore
         operating_hours: operatingHours,
         delivery_options: {
@@ -191,12 +189,12 @@ export const seedShopsAndProductsOfUser = async ({
             name: productName,
             product_category: productCategory.id,
           })
-          await db.products.add({
+          await addDoc(db.products, {
             archived: false,
             base_price: chance.integer({ min: 10, max: 1000 }),
             can_subscribe: chance.bool(),
             community_id: communityId,
-            created_at: admin.firestore.Timestamp.now(),
+            created_at: Timestamp.now(),
             description: chance.sentence(),
             gallery: [
               {

@@ -1,16 +1,16 @@
 import Chance from 'chance'
+import { getDocs, Timestamp, where, query, addDoc } from 'firebase/firestore'
 import db from '../../utils/db'
 import sleep from '../../utils/sleep'
-import { AdminType } from '../dbseed'
 
 const chance = new Chance()
 
-export const seedProductReviews = async ({ admin }: { admin: AdminType }) => {
-  const users = (await db.users.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  const products = (await db.products.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  const completedOrders = (await db.orders.where('status_code', '==', 600).get()).docs.map(
-    (doc) => ({ id: doc.id, ...doc.data() })
-  )
+export const seedProductReviews = async () => {
+  const users = (await getDocs(db.users)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const products = (await getDocs(db.products)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const completedOrders = (
+    await getDocs(query(db.orders, where('status_code', '==', 600)))
+  ).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   for (const order of completedOrders) {
     const buyer = users.find((user) => user.id === order.buyer_id)
     const orderProducts = products.filter((product) => order.product_ids.includes(product.id))
@@ -18,8 +18,8 @@ export const seedProductReviews = async ({ admin }: { admin: AdminType }) => {
       if (chance.bool()) {
         await sleep(100)
         try {
-          await db.getProductReviews(`products/${product.id}/reviews`).add({
-            user_id: buyer.id,
+          await addDoc(db.getProductReviews(`products/${product.id}/reviews`), {
+            user_id: buyer!.id,
             message: chance.sentence(),
             order_id: order.id,
             product_id: product.id,
@@ -27,7 +27,7 @@ export const seedProductReviews = async ({ admin }: { admin: AdminType }) => {
             community_id: product.community_id,
             // @ts-ignore
             rating: chance.integer({ min: 1, max: 5 }),
-            created_at: admin.firestore.Timestamp.now(),
+            created_at: Timestamp.now(),
           })
         } catch (error) {
           console.error('Error creating product review:', error)

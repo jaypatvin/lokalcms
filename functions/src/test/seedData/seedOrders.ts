@@ -1,17 +1,17 @@
 import Chance from 'chance'
 import dayjs from 'dayjs'
+import { addDoc, getDocs, Timestamp } from 'firebase/firestore'
 import db from '../../utils/db'
 import sleep from '../../utils/sleep'
-import { AdminType } from '../dbseed'
 import { proofOfPayments } from '../sampleImages'
 
 const chance = new Chance()
 
-export const seedOrders = async ({ admin }: { admin: AdminType }) => {
-  const users = (await db.users.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+export const seedOrders = async () => {
+  const users = (await getDocs(db.users)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   const randomUsers = chance.pickset(users, 15)
-  const products = (await db.products.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  const shops = (await db.shops.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const products = (await getDocs(db.products)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const shops = (await getDocs(db.shops)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   for (const buyer of randomUsers) {
     const communityShops = shops.filter(
       (shop) => shop.community_id === buyer.community_id && shop.user_id !== buyer.id
@@ -33,12 +33,12 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
             chance.integer({ min: -10, max: 10 }),
             'day'
           )
-          const deliveryDate = admin.firestore.Timestamp.fromDate(deliveryDateInDayJs.toDate())
+          const deliveryDate = Timestamp.fromDate(deliveryDateInDayJs.toDate())
           const paymentMethod = chance.pickone(['bank', 'cod'])
           const isDeliveryDatePast = deliveryDateInDayJs.isAfter(dayjs(new Date()))
           const statusCode = isDeliveryDatePast ? 600 : chance.pickone([100, 200, 300, 400, 500])
           const isPaid = isDeliveryDatePast || statusCode === 400
-          const deliveryOptions = []
+          const deliveryOptions: string[] = []
           if (shop.delivery_options.delivery) deliveryOptions.push('delivery')
           if (shop.delivery_options.pickup) deliveryOptions.push('pickup')
           const proofOfPayment = chance.pickone(proofOfPayments)
@@ -62,7 +62,7 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
               category: product.product_category,
               description: product.description,
               id: product.id,
-              image: product.gallery[0].url,
+              image: product.gallery![0].url,
               name: product.name,
               price: product.base_price,
               quantity: chance.integer({ min: 1, max: 5 }),
@@ -75,7 +75,7 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
               name: shop.name,
             },
             status_code: statusCode,
-            created_at: admin.firestore.Timestamp.now(),
+            created_at: Timestamp.now(),
           }
           if (statusCode === 300) {
             newOrder.proof_of_payment = proofOfPayment
@@ -83,7 +83,7 @@ export const seedOrders = async ({ admin }: { admin: AdminType }) => {
           if (isDeliveryDatePast) {
             newOrder.delivered_date = deliveryDate
           }
-          await db.orders.add(newOrder)
+          await addDoc(db.orders, newOrder)
         }
       }
     } catch (error) {

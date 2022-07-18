@@ -1,13 +1,13 @@
 import Chance from 'chance'
+import { addDoc, Timestamp } from 'firebase/firestore'
 import db from '../../utils/db'
 import { generateCommunityKeywords } from '../../utils/generators'
 import sleep from '../../utils/sleep'
-import { AdminType } from '../dbseed'
 import * as samples from '../sampleImages'
 
 const chance = new Chance()
 
-export const seedCommunities = async ({ admin }: { admin: AdminType }) => {
+export const seedCommunities = async () => {
   for (let i = 1; i <= 2; i++) {
     try {
       await sleep(100)
@@ -27,7 +27,7 @@ export const seedCommunities = async ({ admin }: { admin: AdminType }) => {
         country,
         zip_code: zipCode,
       })
-      await db.community.add({
+      await addDoc(db.community, {
         name,
         address: {
           barangay,
@@ -42,7 +42,7 @@ export const seedCommunities = async ({ admin }: { admin: AdminType }) => {
         archived: false,
         profile_photo: chance.pickone(samples.communities),
         cover_photo: chance.pickone(samples.communities),
-        created_at: admin.firestore.Timestamp.now(),
+        created_at: Timestamp.now(),
       })
     } catch (error) {
       console.error('Error creating community:', error)

@@ -215,8 +215,7 @@ const createProductSubscriptionPlan: RequestHandler = async (req, res) => {
     })
   }
 
-  let result: any = await ProductSubscriptionPlansService.create(newPlan)
-  result = await result.get().then((doc) => ({ ...doc.data(), id: doc.id }))
+  const result = await ProductSubscriptionPlansService.create(newPlan)
 
   return res.json({ status: 'ok', data: result })
 }

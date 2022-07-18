@@ -1,13 +1,15 @@
+import { Timestamp } from 'firebase/firestore'
+
 type Category = {
   archived: boolean
   cover_url: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: Timestamp
   description: string
   icon_url: string
   keywords?: string[]
   name: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
 }

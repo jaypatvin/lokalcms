@@ -1,3 +1,4 @@
+import { Timestamp } from 'firebase/firestore'
 type Review = {
   user_id: string
   message: string
@@ -6,8 +7,8 @@ type Review = {
   shop_id: string
   community_id: string
   seller_id: string
-  created_at: FirebaseFirestore.Timestamp
-  updated_at?: FirebaseFirestore.Timestamp
+  created_at: Timestamp
+  updated_at?: Timestamp
   rating: 1 | 2 | 3 | 4 | 5
 }
 

@@ -1,3 +1,4 @@
+import { Timestamp, CollectionReference } from 'firebase/firestore'
 import { Like, Review, Wishlist, Report } from '../'
 
 type Product = {
@@ -8,10 +9,10 @@ type Product = {
     reviews_count?: number
     reports_count?: number
   }
-  likes?: FirebaseFirestore.CollectionGroup<Like>
-  wishlists?: FirebaseFirestore.CollectionGroup<Wishlist>
-  reviews?: FirebaseFirestore.CollectionGroup<Review>
-  reports?: FirebaseFirestore.CollectionGroup<Report>
+  likes?: CollectionReference<Like>
+  wishlists?: CollectionReference<Wishlist>
+  reviews?: CollectionReference<Review>
+  reports?: CollectionReference<Report>
   archived: boolean
   availability: {
     end_time: string
@@ -91,7 +92,7 @@ type Product = {
   base_price: number
   can_subscribe: boolean
   community_id: string
-  created_at: FirebaseFirestore.Timestamp
+  created_at: Timestamp
   description: string
   gallery?: {
     order: number
@@ -103,7 +104,7 @@ type Product = {
   quantity: number
   shop_id: string
   status: 'enabled' | 'disabled'
-  updated_at?: FirebaseFirestore.Timestamp
+  updated_at?: Timestamp
   updated_by?: string
   updated_from?: '' | 'cms' | 'app'
   user_id: string

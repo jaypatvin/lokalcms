@@ -38,8 +38,8 @@ const importActivitiesAndComments = async (client: SearchClient) => {
   const commentsCreatedAtDescIndex = client.initIndex('comments_created_at_desc')
 
   const activitiesRef = await db.collection('activities').get()
-  const activityDocs = []
-  const commentDocs = []
+  const activityDocs: any = []
+  const commentDocs: any = []
 
   for (const activity of activitiesRef.docs) {
     const activityData = activity.data()

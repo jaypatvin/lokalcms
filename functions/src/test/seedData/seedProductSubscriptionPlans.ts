@@ -1,18 +1,18 @@
 import Chance from 'chance'
 import dayjs from 'dayjs'
+import { addDoc, getDocs, Timestamp } from 'firebase/firestore'
 import generateProductSubscriptions from '../../scheduled/generateProductSubscriptions'
 import db from '../../utils/db'
 import sleep from '../../utils/sleep'
-import { AdminType } from '../dbseed'
 import { generateRandomSubscriptionSchedule } from '../generateRandomSubscriptionSchedule'
 
 const chance = new Chance()
 
-export const seedProductSubscriptionPlans = async ({ admin }: { admin: AdminType }) => {
-  const users = (await db.users.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+export const seedProductSubscriptionPlans = async () => {
+  const users = (await getDocs(db.users)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   const randomUsers = chance.pickset(users, 5)
-  const products = (await db.products.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  const shops = (await db.shops.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const products = (await getDocs(db.products)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const shops = (await getDocs(db.shops)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   for (const buyer of randomUsers) {
     const communityProducts = products.filter((product) => {
       return product.community_id === buyer.community_id && product.user_id !== buyer.id
@@ -29,18 +29,18 @@ export const seedProductSubscriptionPlans = async ({ admin }: { admin: AdminType
           .add(chance.integer({ min: 1, max: 11 }), chance.pickone(['month', 'year']))
           .format('YYYY-MM-DD')
         const randomSchedule = generateRandomSubscriptionSchedule()
-        await db.productSubscriptionPlans.add({
+        await addDoc(db.productSubscriptionPlans, {
           archived: false,
           buyer_id: buyer.id,
           community_id: buyer.community_id,
-          created_at: admin.firestore.Timestamp.now(),
+          created_at: Timestamp.now(),
           instruction: chance.bool()
             ? chance.sentence({ words: chance.integer({ min: 3, max: 10 }) })
             : '',
           payment_method: chance.pickone(['bank', 'cod']),
           product: {
             description: product.description,
-            image: product.gallery[0].url,
+            image: product.gallery![0].url,
             name: product.name,
             price: product.base_price,
           },
@@ -48,11 +48,12 @@ export const seedProductSubscriptionPlans = async ({ admin }: { admin: AdminType
           quantity: chance.integer({ min: 1, max: 5 }),
           seller_id: product.user_id,
           shop: {
-            description: shop.description,
-            image: shop.profile_photo,
-            name: shop.name,
+            description: shop!.description,
+            // @ts-ignore: ts bug?
+            image: shop!.profile_photo,
+            name: shop!.name,
           },
-          shop_id: shop.id,
+          shop_id: shop!.id,
           status: 'enabled',
           plan: {
             auto_reschedule: chance.bool(),

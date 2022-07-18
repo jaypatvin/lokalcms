@@ -1,10 +1,20 @@
 import Chance from 'chance'
 import dayjs from 'dayjs'
+import {
+  setDoc,
+  doc,
+  addDoc,
+  updateDoc,
+  getDoc,
+  query,
+  where,
+  getDocs,
+  Timestamp,
+} from 'firebase/firestore'
 import { Product, Shop, User } from '../../models'
 import db from '../../utils/db'
 import hashArrayOfStrings from '../../utils/hashArrayOfStrings'
 import sleep from '../../utils/sleep'
-import { AdminType } from '../dbseed'
 
 const chance = new Chance()
 
@@ -13,13 +23,11 @@ const seedProductChatsByUser = async ({
   shops,
   users,
   user,
-  admin,
 }: {
   products: (Product & { id: string })[]
   shops: (Shop & { id: string })[]
   users: (User & { id: string })[]
   user: User & { id: string }
-  admin: AdminType
 }) => {
   const randomProducts = chance.pickset(products, chance.integer({ min: 1, max: 5 }))
   for (const product of randomProducts) {
@@ -30,7 +38,7 @@ const seedProductChatsByUser = async ({
         chance.integer({ min: 10, max: 20 }),
         'day'
       )
-      const chatDate = admin.firestore.Timestamp.fromDate(chatDateInDayJs.toDate())
+      const chatDate = Timestamp.fromDate(chatDateInDayJs.toDate())
       const members = [user.id, product.id, product.shop_id]
       const messageContent = chance.sentence({ words: chance.integer({ min: 1, max: 20 }) })
       const lastMessage = {
@@ -41,8 +49,8 @@ const seedProductChatsByUser = async ({
       }
       const hashId = hashArrayOfStrings(members)
       await sleep(100)
-      await db.chats.doc(hashId).set({
-        title: `${shop.name}: ${product.name}`,
+      await setDoc(doc(db.chats, hashId), {
+        title: `${shop!.name}: ${product.name}`,
         members,
         community_id: user.community_id,
         archived: false,
@@ -54,7 +62,7 @@ const seedProductChatsByUser = async ({
       })
 
       await sleep(100)
-      await db.getChatConversations(`chats/${hashId}/conversation`).add({
+      await addDoc(db.getChatConversations(`chats/${hashId}/conversation`), {
         sender_id: user.id,
         sent_at: chatDate,
         archived: false,
@@ -77,33 +85,38 @@ const seedProductChatsByUser = async ({
         const replyToPrevious = chance.bool()
         await sleep(100)
         const messageData = {
-          sender_id: sender.id,
-          sent_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+          sender_id: sender!.id,
+          sent_at: Timestamp.fromDate(nextReplyDate.toDate()),
           archived: false,
           message,
-          created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
-          community_id: sender.community_id,
+          created_at: Timestamp.fromDate(nextReplyDate.toDate()),
+          community_id: sender!.community_id,
           chat_id: hashId,
         }
         if (replyToPrevious && lastMessageRef) {
           // @ts-ignore
           messageData.reply_to = lastMessageRef
         }
-        const chatMessage = await db
-          .getChatConversations(`chats/${hashId}/conversation`)
-          .add(messageData)
+
+        const chatMessage = await addDoc(
+          db.getChatConversations(`chats/${hashId}/conversation`),
+          messageData
+        )
         await sleep(100)
-        await db.chats.doc(hashId).update({
+        await updateDoc(doc(db.chats, hashId), {
           last_message: {
-            ref: db.getChatConversations(`chats/${hashId}/conversation`).doc(chatMessage.id),
+            ref: doc(db.getChatConversations(`chats/${hashId}/conversation`), chatMessage.id),
             conversation_id: chatMessage.id,
             content: message,
-            sender: sender.display_name,
-            sender_id: sender.id,
-            created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+            sender: sender!.display_name,
+            sender_id: sender!.id,
+            created_at: Timestamp.fromDate(nextReplyDate.toDate()),
           },
         })
-        lastMessageRef = db.getChatConversations(`chats/${hashId}/conversation`).doc(chatMessage.id)
+        lastMessageRef = doc(
+          db.getChatConversations(`chats/${hashId}/conversation`),
+          chatMessage.id
+        )
       }
     } catch (error) {
       console.error('Error creating product chat:', error)
@@ -115,12 +128,10 @@ const seedShopChatsByUser = async ({
   shops,
   users,
   user,
-  admin,
 }: {
   shops: (Shop & { id: string })[]
   users: (User & { id: string })[]
   user: User & { id: string }
-  admin: AdminType
 }) => {
   const randomShops = chance.pickset(shops, chance.integer({ min: 1, max: 3 }))
   for (const shop of randomShops) {
@@ -130,7 +141,7 @@ const seedShopChatsByUser = async ({
         chance.integer({ min: 10, max: 20 }),
         'day'
       )
-      const chatDate = admin.firestore.Timestamp.fromDate(chatDateInDayJs.toDate())
+      const chatDate = Timestamp.fromDate(chatDateInDayJs.toDate())
       const members = [user.id, shop.id]
       const messageContent = chance.sentence({ words: chance.integer({ min: 1, max: 20 }) })
       const lastMessage = {
@@ -141,7 +152,7 @@ const seedShopChatsByUser = async ({
       }
       const hashId = hashArrayOfStrings(members)
       await sleep(100)
-      await db.chats.doc(hashId).set({
+      await setDoc(doc(db.chats, hashId), {
         title: shop.name,
         members,
         community_id: user.community_id,
@@ -153,7 +164,7 @@ const seedShopChatsByUser = async ({
       })
 
       await sleep(100)
-      await db.getChatConversations(`chats/${hashId}/conversation`).add({
+      await addDoc(db.getChatConversations(`chats/${hashId}/conversation`), {
         sender_id: user.id,
         sent_at: chatDate,
         archived: false,
@@ -176,33 +187,37 @@ const seedShopChatsByUser = async ({
         const replyToPrevious = chance.bool()
         await sleep(100)
         const messageData = {
-          sender_id: sender.id,
-          sent_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+          sender_id: sender!.id,
+          sent_at: Timestamp.fromDate(nextReplyDate.toDate()),
           archived: false,
           message,
-          created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
-          community_id: sender.community_id,
+          created_at: Timestamp.fromDate(nextReplyDate.toDate()),
+          community_id: sender!.community_id,
           chat_id: hashId,
         }
         if (replyToPrevious && lastMessageRef) {
           // @ts-ignore
           messageData.reply_to = lastMessageRef
         }
-        const chatMessage = await db
-          .getChatConversations(`chats/${hashId}/conversation`)
-          .add(messageData)
+        const chatMessage = await addDoc(
+          db.getChatConversations(`chats/${hashId}/conversation`),
+          messageData
+        )
         await sleep(100)
-        await db.chats.doc(hashId).update({
+        await updateDoc(doc(db.chats, hashId), {
           last_message: {
-            ref: db.getChatConversations(`chats/${hashId}/conversation`).doc(chatMessage.id),
+            ref: doc(db.getChatConversations(`chats/${hashId}/conversation`), chatMessage.id),
             conversation_id: chatMessage.id,
             content: message,
-            sender: sender.display_name,
-            sender_id: sender.id,
-            created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+            sender: sender!.display_name,
+            sender_id: sender!.id,
+            created_at: Timestamp.fromDate(nextReplyDate.toDate()),
           },
         })
-        lastMessageRef = db.getChatConversations(`chats/${hashId}/conversation`).doc(chatMessage.id)
+        lastMessageRef = doc(
+          db.getChatConversations(`chats/${hashId}/conversation`),
+          chatMessage.id
+        )
       }
     } catch (error) {
       console.error('Error creating shop chat:', error)
@@ -213,11 +228,9 @@ const seedShopChatsByUser = async ({
 const seedUserChatsByUser = async ({
   users,
   user,
-  admin,
 }: {
   users: (User & { id: string })[]
   user: User & { id: string }
-  admin: AdminType
 }) => {
   const randomUsers = chance.pickset(users, chance.integer({ min: 1, max: 3 }))
   for (const otherUser of randomUsers) {
@@ -226,7 +239,7 @@ const seedUserChatsByUser = async ({
         chance.integer({ min: 10, max: 20 }),
         'day'
       )
-      const chatDate = admin.firestore.Timestamp.fromDate(chatDateInDayJs.toDate())
+      const chatDate = Timestamp.fromDate(chatDateInDayJs.toDate())
       const members = [user.id, otherUser.id]
       const messageContent = chance.sentence({ words: chance.integer({ min: 1, max: 20 }) })
       const lastMessage = {
@@ -236,10 +249,10 @@ const seedUserChatsByUser = async ({
         created_at: chatDate,
       }
       const hashId = hashArrayOfStrings(members)
-      const chatExists = (await db.chats.doc(hashId).get()).exists
+      const chatExists = (await getDoc(doc(db.chats, hashId))).exists()
       if (!chatExists) {
         await sleep(100)
-        await db.chats.doc(hashId).set({
+        await setDoc(doc(db.chats, hashId), {
           title: `${user.display_name}, ${otherUser.display_name}`,
           members,
           community_id: user.community_id,
@@ -250,7 +263,7 @@ const seedUserChatsByUser = async ({
         })
 
         await sleep(100)
-        await db.getChatConversations(`chats/${hashId}/conversation`).add({
+        await addDoc(db.getChatConversations(`chats/${hashId}/conversation`), {
           sender_id: user.id,
           sent_at: chatDate,
           archived: false,
@@ -274,10 +287,10 @@ const seedUserChatsByUser = async ({
           await sleep(100)
           const messageData = {
             sender_id: sender.id,
-            sent_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+            sent_at: Timestamp.fromDate(nextReplyDate.toDate()),
             archived: false,
             message,
-            created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+            created_at: Timestamp.fromDate(nextReplyDate.toDate()),
             community_id: sender.community_id,
             chat_id: hashId,
           }
@@ -285,23 +298,25 @@ const seedUserChatsByUser = async ({
             // @ts-ignore
             messageData.reply_to = lastMessageRef
           }
-          const chatMessage = await db
-            .getChatConversations(`chats/${hashId}/conversation`)
-            .add(messageData)
+          const chatMessage = await addDoc(
+            db.getChatConversations(`chats/${hashId}/conversation`),
+            messageData
+          )
           await sleep(100)
-          await db.chats.doc(hashId).update({
+          await updateDoc(doc(db.chats, hashId), {
             last_message: {
-              ref: db.getChatConversations(`chats/${hashId}/conversation`).doc(chatMessage.id),
+              ref: doc(db.getChatConversations(`chats/${hashId}/conversation`), chatMessage.id),
               conversation_id: chatMessage.id,
               content: message,
-              sender: sender.display_name,
-              sender_id: sender.id,
-              created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+              sender: sender!.display_name,
+              sender_id: sender!.id,
+              created_at: Timestamp.fromDate(nextReplyDate.toDate()),
             },
           })
-          lastMessageRef = db
-            .getChatConversations(`chats/${hashId}/conversation`)
-            .doc(chatMessage.id)
+          lastMessageRef = doc(
+            db.getChatConversations(`chats/${hashId}/conversation`),
+            chatMessage.id
+          )
         }
       }
     } catch (error) {
@@ -313,11 +328,9 @@ const seedUserChatsByUser = async ({
 const seedGroupChatsByUser = async ({
   users,
   user,
-  admin,
 }: {
   users: (User & { id: string })[]
   user: User & { id: string }
-  admin: AdminType
 }) => {
   const randomUsersArray = [
     chance.pickset(users, chance.integer({ min: 2, max: 10 })),
@@ -330,7 +343,7 @@ const seedGroupChatsByUser = async ({
         chance.integer({ min: 10, max: 20 }),
         'day'
       )
-      const chatDate = admin.firestore.Timestamp.fromDate(chatDateInDayJs.toDate())
+      const chatDate = Timestamp.fromDate(chatDateInDayJs.toDate())
       const members = [user.id, ...otherUsers.map(({ id }) => id)]
       const messageContent = chance.sentence({ words: chance.integer({ min: 1, max: 20 }) })
       const lastMessage = {
@@ -340,10 +353,10 @@ const seedGroupChatsByUser = async ({
         created_at: chatDate,
       }
       const hashId = hashArrayOfStrings(members)
-      const isNew = (await db.chats.where('group_hash', '==', hashId).get()).empty
+      const isNew = (await getDocs(query(db.chats, where('group_hash', '==', hashId)))).empty
       if (isNew) {
         await sleep(100)
-        const groupChat = await db.chats.add({
+        const groupChat = await addDoc(db.chats, {
           title: `${user.display_name}, ${otherUsers
             .map(({ display_name }) => display_name)
             .join(', ')}`,
@@ -357,7 +370,7 @@ const seedGroupChatsByUser = async ({
         })
 
         await sleep(100)
-        await db.getChatConversations(`chats/${groupChat.id}/conversation`).add({
+        await addDoc(db.getChatConversations(`chats/${groupChat.id}/conversation`), {
           sender_id: user.id,
           sent_at: chatDate,
           archived: false,
@@ -381,10 +394,10 @@ const seedGroupChatsByUser = async ({
           await sleep(100)
           const messageData = {
             sender_id: sender.id,
-            sent_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+            sent_at: Timestamp.fromDate(nextReplyDate.toDate()),
             archived: false,
             message,
-            created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+            created_at: Timestamp.fromDate(nextReplyDate.toDate()),
             community_id: sender.community_id,
             chat_id: groupChat.id,
           }
@@ -392,25 +405,28 @@ const seedGroupChatsByUser = async ({
             // @ts-ignore
             messageData.reply_to = lastMessageRef
           }
-          const chatMessage = await db
-            .getChatConversations(`chats/${groupChat.id}/conversation`)
-            .add(messageData)
+          const chatMessage = await addDoc(
+            db.getChatConversations(`chats/${groupChat.id}/conversation`),
+            messageData
+          )
           await sleep(100)
-          await db.chats.doc(groupChat.id).update({
+          await updateDoc(doc(db.chats, groupChat.id), {
             last_message: {
-              ref: db
-                .getChatConversations(`chats/${groupChat.id}/conversation`)
-                .doc(chatMessage.id),
+              ref: doc(
+                db.getChatConversations(`chats/${groupChat.id}/conversation`),
+                chatMessage.id
+              ),
               conversation_id: chatMessage.id,
               content: message,
-              sender: sender.display_name,
-              sender_id: sender.id,
-              created_at: admin.firestore.Timestamp.fromDate(nextReplyDate.toDate()),
+              sender: sender!.display_name,
+              sender_id: sender!.id,
+              created_at: Timestamp.fromDate(nextReplyDate.toDate()),
             },
           })
-          lastMessageRef = db
-            .getChatConversations(`chats/${groupChat.id}/conversation`)
-            .doc(chatMessage.id)
+          lastMessageRef = doc(
+            db.getChatConversations(`chats/${groupChat.id}/conversation`),
+            chatMessage.id
+          )
         }
       }
     } catch (error) {
@@ -419,10 +435,10 @@ const seedGroupChatsByUser = async ({
   }
 }
 
-export const seedChats = async ({ admin }: { admin: AdminType }) => {
-  const users = (await db.users.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  const shops = (await db.shops.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  const products = (await db.products.get()).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+export const seedChats = async () => {
+  const users = (await getDocs(db.users)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const shops = (await getDocs(db.shops)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const products = (await getDocs(db.products)).docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   const randomUsers = chance.pickset(users, chance.integer({ min: 10, max: 15 }))
   for (const user of randomUsers) {
     const communityProducts = products.filter(
@@ -437,23 +453,19 @@ export const seedChats = async ({ admin }: { admin: AdminType }) => {
       shops,
       products: communityProducts,
       user,
-      admin,
     })
     await seedShopChatsByUser({
       users,
       shops: communityShops,
       user,
-      admin,
     })
     await seedUserChatsByUser({
       users: communityUsers,
       user,
-      admin,
     })
     await seedGroupChatsByUser({
       users: communityUsers,
       user,
-      admin,
     })
   }
 }
