@@ -161,6 +161,7 @@ const createOrderFromSubscription: RequestHandler = async (req, res) => {
     product_subscription_id: subscriptionOrder.id,
     product_subscription_date: subscriptionOrder.date_string,
     payment_method,
+    total_price: product.price * quantity
   }
 
   const order = await OrdersService.createOrder(orderData)

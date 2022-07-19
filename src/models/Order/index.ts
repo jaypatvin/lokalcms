@@ -45,6 +45,7 @@ type Order = {
   cancellation_reason?: string
   product_subscription_id?: string
   product_subscription_date?: string
+  total_price: number
 }
 
 export type OrderCreateData = Pick<

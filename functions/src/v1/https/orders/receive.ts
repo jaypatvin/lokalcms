@@ -3,7 +3,7 @@ import { firestore } from 'firebase-admin'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { OrderUpdateData } from '../../../models/Order'
-import { NotificationsService, OrdersService } from '../../../service'
+import { NotificationsService, OrdersService, ProductsService } from '../../../service'
 import { generateNotFoundError, ErrorCode, generateError } from '../../../utils/generators'
 
 /**
@@ -108,6 +108,12 @@ const received: RequestHandler = async (req, res) => {
   const result = await OrdersService.updateOrder(orderId, updateData)
 
   await OrdersService.createOrderStatusHistory(orderId, statusChange)
+
+  for (const orderProduct of order.products) {
+    await ProductsService.updateProduct(orderProduct.id, {
+      '_meta.sold_count': firestore.FieldValue.increment(orderProduct.quantity),
+    })
+  }
 
   const notificationData = {
     type: 'order_status',

@@ -73,6 +73,7 @@ var orderFields = [
     'decline_reason',
     'product_subscription_id',
     'product_subscription_date',
+    'total_price',
 ];
 var importOrders = function (client) { return __awaiter(void 0, void 0, void 0, function () {
     var ordersIndex, ordersCreatedAtDescIndex, ordersRef, orderDocs, _i, _a, order, orderData, error_1;
@@ -128,6 +129,7 @@ var importOrders = function (client) { return __awaiter(void 0, void 0, void 0, 
                             'filterOnly(seller_id)',
                             'filterOnly(shop_id)',
                             'filterOnly(status_code)',
+                            'filterOnly(delivered_date._seconds)',
                         ]
                     }, {
                         forwardToReplicas: true

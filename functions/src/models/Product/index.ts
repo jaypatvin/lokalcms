@@ -1,3 +1,4 @@
+import { firestore } from 'firebase-admin'
 import { Like, Review, Wishlist, Report } from '../'
 
 type Product = {
@@ -7,6 +8,7 @@ type Product = {
     wishlists_count?: number
     reviews_count?: number
     reports_count?: number
+    sold_count?: number
   }
   likes?: FirebaseFirestore.CollectionGroup<Like>
   wishlists?: FirebaseFirestore.CollectionGroup<Wishlist>
@@ -144,7 +146,7 @@ export type ProductUpdateData = Partial<
     | 'updated_from'
     | 'keywords'
     | 'availability'
-  >
+  > & { '_meta.sold_count': firestore.FieldValue }
 >
 
 export default Product

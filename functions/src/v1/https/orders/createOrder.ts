@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { OrderCreateData } from '../../../models/Order'
+import Order, { OrderCreateData } from '../../../models/Order'
 import {
   NotificationsService,
   OrdersService,
@@ -144,7 +144,7 @@ const createOrder: RequestHandler = async (req, res) => {
     throw generateNotFoundError(ErrorCode.OrderApiError, 'Shop', shop_id)
   }
 
-  const orderProducts = []
+  const orderProducts: Order['products'] = []
   for (const rawOrderProduct of products) {
     const { id, quantity, instruction = '' } = rawOrderProduct
     const product = await ProductsService.getProductByID(id)
@@ -161,7 +161,8 @@ const createOrder: RequestHandler = async (req, res) => {
         message: `Product "${product.name}" only has ${product.quantity} left.`,
       })
     }
-    const orderProduct: any = {
+    // @ts-ignore
+    const orderProduct: Order['products'][0] = {
       id,
       quantity,
       name: product.name,
@@ -179,6 +180,10 @@ const createOrder: RequestHandler = async (req, res) => {
     await ProductsService.decrementProductQuantity(product.id, product.quantity)
   }
   const productIds = products.map((p) => p.id)
+  const totalPrice = orderProducts.reduce((acc, product) => {
+    acc += (product.price * product.quantity)
+    return acc
+  }, 0)
 
   const newOrder: OrderCreateData = {
     products: orderProducts,
@@ -197,6 +202,7 @@ const createOrder: RequestHandler = async (req, res) => {
       name: shop.name,
       description: shop.description,
     },
+    total_price: totalPrice,
   }
 
   if (shop.profile_photo) {

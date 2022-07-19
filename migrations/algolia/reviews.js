@@ -61,6 +61,7 @@ var reviewFields = [
     'community_id',
     'created_at',
     'updated_at',
+    'seller_id'
 ];
 var importReviews = function (client) { return __awaiter(void 0, void 0, void 0, function () {
     var reviewsIndex, reviewsCreatedAtDescIndex, reviewsRatingAscIndex, reviewsRatingDescIndex, reviewsRef, reviewDocs, _i, _a, review, reviewData, userRef, userEmail, productRef, product, error_1;
