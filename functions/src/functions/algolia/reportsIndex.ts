@@ -16,9 +16,13 @@ exports.addReportIndex = functions.firestore
     const data = snapshot.data()
 
     const userRef = await db.users.doc(data.user_id).get()
-    const reportedUserRef = await db.users.doc(data.reported_user_id).get()
     const userEmail = userRef.data().email
-    const reportedUserEmail = reportedUserRef.data().email
+
+    let reportedUserEmail
+    if (data.reported_user_id) {
+      const reportedUserRef = await db.users.doc(data.reported_user_id).get()
+      reportedUserEmail = reportedUserRef.data().email
+    }
 
     const report = {
       objectID: snapshot.id,
@@ -32,7 +36,7 @@ exports.addReportIndex = functions.firestore
 
 exports.updateReportIndex = functions.firestore
   .document('{collection}/{docId}/reports/{reportId}')
-  .onUpdate(async (change) => {
+  .onUpdate(async (change, context) => {
     const newData = change.after.data()
 
     const extraFields: any = {}
@@ -43,7 +47,7 @@ exports.updateReportIndex = functions.firestore
       extraFields.reporter_email = userEmail
     }
 
-    if (!newData.reported_email) {
+    if (!newData.reported_email && context.params.collection !== 'community') {
       const reportedUserRef = await db.users.doc(newData.reported_user_id).get()
       const reportedUserEmail = reportedUserRef.data().email
       extraFields.reported_email = reportedUserEmail

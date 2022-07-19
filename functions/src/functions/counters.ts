@@ -13,6 +13,11 @@ exports.communityCounter = functions.firestore
     logActivity(change)
     return runCounter('community', change, context)
   })
+exports.communitySubCounter = functions.firestore
+  .document('community/{docId}/{subColId}/{subDocId}')
+  .onWrite(async (change, context) => {
+    return runCounter('community', change, context)
+  })
 exports.shopCounter = functions.firestore
   .document('shops/{docId}')
   .onWrite(async (change, context) => {

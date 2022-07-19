@@ -31,3 +31,13 @@ export const createShopReport = async (id: string, data: ReportCreateData) => {
     })
     .then((doc) => ({ id: doc.id, ...doc.data() }))
 }
+
+export const createCommunityReport = async (id: string, data: ReportCreateData) => {
+  return await db
+    .getCommunityReports(`community/${id}/reports`)
+    .add({ ...data, created_at: admin.firestore.Timestamp.now() })
+    .then((res) => {
+      return res.get()
+    })
+    .then((doc) => ({ id: doc.id, ...doc.data() }))
+}
