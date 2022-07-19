@@ -51,6 +51,7 @@ const db = {
   getActivityComments: (subCollectionPath: string) => dataPoint<Comment>(subCollectionPath),
   getActivityReports: (subCollectionPath: string) => dataPoint<Report>(subCollectionPath),
   getChatConversations: (subCollectionPath: string) => dataPoint<Conversation>(subCollectionPath),
+  getCommunityReports: (subCollectionPath: string) => dataPoint<Report>(subCollectionPath),
   getLikes: (subCollectionPath: string) => dataPoint<Like>(subCollectionPath),
   getNotifications: (subCollectionPath: string) => dataPoint<Notification>(subCollectionPath),
   getProductReports: (subCollectionPath: string) => dataPoint<Report>(subCollectionPath),

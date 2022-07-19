@@ -5,6 +5,7 @@ type Community = {
     shops_count?: number
     users_count?: number
     products_count?: number
+    reports_count?: number
   }
   address: {
     barangay: string
