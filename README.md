@@ -1,6 +1,7 @@
 # Lokal Content Mangement System
 
-This is using the Node version v14.15.4
+BE uses node 18.4.0
+CMS uses node v14.15.4
 
 ## Connect to Firebase
 
