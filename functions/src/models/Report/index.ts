@@ -12,7 +12,7 @@ type Report = {
   report_type: 'activity' | 'shop' | 'product' | 'community'
   created_at: Timestamp
   updated_at?: Timestamp
-  document_snapshot: Activity | Shop | Product
+  document_snapshot?: Activity | Shop | Product
 }
 
 export type ReportCreateData = Pick<

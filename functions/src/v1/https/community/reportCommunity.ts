@@ -59,7 +59,7 @@ const reportCommunity: RequestHandler = async (req, res) => {
     })
   }
 
-  const community = await CommunityService.getCommunityByID(communityId)
+  const community = await CommunityService.findById(communityId)
   if (!community) {
     throw generateNotFoundError(ErrorCode.CommunityApiError, 'Community', communityId)
   }

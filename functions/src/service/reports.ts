@@ -15,11 +15,5 @@ export const createProductReport = (id: string, data: ReportCreateData) => {
 }
 
 export const createCommunityReport = async (id: string, data: ReportCreateData) => {
-  return await db
-    .getCommunityReports(`community/${id}/reports`)
-    .add({ ...data, created_at: admin.firestore.Timestamp.now() })
-    .then((res) => {
-      return res.get()
-    })
-    .then((doc) => ({ id: doc.id, ...doc.data() }))
+  return createBaseMethods(db.getCommunityReports(`community/${id}/reports`)).create(data)
 }
