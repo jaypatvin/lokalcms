@@ -138,6 +138,7 @@ module.exports = (api: Express) => {
   api.route('/v1/shops/:shopId/getDates').get(wrapAsync(ShopsAPI.getDates))
   api.route('/v1/shops/:shopId/wishlist').get(wrapAsync(UsersAPI.getShopWishlistUsers))
   api.route('/v1/shops/:shopId/report').post(validation.shop.report, wrapAsync(ShopsAPI.reportShop))
+  api.route('/v1/shops/:shopId/summary').post(orderSearchMiddleware, wrapAsync(ShopsAPI.getSummary))
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
@@ -167,6 +168,9 @@ module.exports = (api: Express) => {
   api
     .route('/v1/community/:communityId/activities')
     .get(wrapAsync(ActivitiesAPI.getCommunityActivities))
+  api
+    .route('/v1/community/:communityId/report')
+    .post(validation.community.report, wrapAsync(CommunityAPI.reportCommunity))
 
   // -- Products routes
   api.route('/v1/availableProducts').get(wrapAsync(ProductsAPI.getAvailableProducts))

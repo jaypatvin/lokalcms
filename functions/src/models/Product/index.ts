@@ -1,4 +1,4 @@
-import { Timestamp, CollectionReference } from 'firebase/firestore'
+import { Timestamp, CollectionReference, FieldValue } from 'firebase/firestore'
 import { Like, Review, Wishlist, Report } from '../'
 
 type Product = {
@@ -8,6 +8,7 @@ type Product = {
     wishlists_count?: number
     reviews_count?: number
     reports_count?: number
+    sold_count?: number
   }
   likes?: CollectionReference<Like>
   wishlists?: CollectionReference<Wishlist>
@@ -145,7 +146,7 @@ export type ProductUpdateData = Partial<
     | 'updated_from'
     | 'keywords'
     | 'availability'
-  >
+  > & { '_meta.sold_count': FieldValue }
 >
 
 export default Product

@@ -102,6 +102,7 @@ export const orderFields = [
   'decline_reason',
   'product_subscription_id',
   'product_subscription_date',
+  'total_price',
 ]
 
 export const productSubscriptionPlanFields = [

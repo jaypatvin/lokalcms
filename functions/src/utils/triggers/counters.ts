@@ -338,7 +338,7 @@ const runCounter = async (
         break
       case 'reports':
         user_id = data!.user_id
-        if (['products', 'shops', 'activities'].includes(collection_name)) {
+        if (['products', 'shops', 'activities', 'community'].includes(collection_name)) {
           await updateCountsInDoc({
             docId: user_id,
             collection: 'users',
@@ -350,17 +350,19 @@ const runCounter = async (
             count,
             transaction,
           })
-          await updateCountsInDoc({
-            docId: data!.reported_user_id,
-            collection: 'users',
-            hasCollection: 'reports',
-            parentCollection: collection_name,
-            parentDocId,
-            foreignKey: 'reported_user_id',
-            countName: 'reported_count',
-            count,
-            transaction,
-          })
+          if (collection_name !== 'community') {
+            await updateCountsInDoc({
+              docId: data!.reported_user_id,
+              collection: 'users',
+              hasCollection: 'reports',
+              parentCollection: collection_name,
+              parentDocId,
+              foreignKey: 'reported_user_id',
+              countName: 'reported_count',
+              count,
+              transaction,
+            })
+          }
         }
         break
       default:

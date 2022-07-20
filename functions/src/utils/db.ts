@@ -62,23 +62,16 @@ const db = {
   comments: groupDataPoint<Comment>('comments'),
   community: dataPoint<Community>('community'),
   conversation: groupDataPoint<Conversation>('conversation'),
-  getActivityComments: (subCollectionPath) =>
-    dataPoint<Comment>(subCollectionPath),
-  getActivityReports: (subCollectionPath) =>
-    dataPoint<Report>(subCollectionPath),
-  getChatConversations: (subCollectionPath) =>
-    dataPoint<Conversation>(subCollectionPath),
+  getActivityComments: (subCollectionPath) => dataPoint<Comment>(subCollectionPath),
+  getActivityReports: (subCollectionPath) => dataPoint<Report>(subCollectionPath),
+  getCommunityReports: (subCollectionPath: string) => dataPoint<Report>(subCollectionPath),
+  getChatConversations: (subCollectionPath) => dataPoint<Conversation>(subCollectionPath),
   getLikes: (subCollectionPath) => dataPoint<Like>(subCollectionPath),
-  getNotifications: (subCollectionPath) =>
-    dataPoint<Notification>(subCollectionPath),
-  getProductReports: (subCollectionPath) =>
-    dataPoint<Report>(subCollectionPath),
-  getProductReviews: (subCollectionPath) =>
-    dataPoint<Review>(subCollectionPath),
-  getProductWishlists: (subCollectionPath) =>
-    dataPoint<Wishlist>(subCollectionPath),
-  getShopReports: (subCollectionPath) =>
-    dataPoint<Report>(subCollectionPath),
+  getNotifications: (subCollectionPath) => dataPoint<Notification>(subCollectionPath),
+  getProductReports: (subCollectionPath) => dataPoint<Report>(subCollectionPath),
+  getProductReviews: (subCollectionPath) => dataPoint<Review>(subCollectionPath),
+  getProductWishlists: (subCollectionPath) => dataPoint<Wishlist>(subCollectionPath),
+  getShopReports: (subCollectionPath) => dataPoint<Report>(subCollectionPath),
   historyLogs: dataPoint<HistoryLog>('history_logs'),
   invites: dataPoint<Invite>('invites'),
   likes: groupDataPoint<Like>('likes'),

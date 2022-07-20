@@ -47,6 +47,7 @@ type Order = {
   decline_reason?: string
   product_subscription_id?: string
   product_subscription_date?: string
+  total_price: number
 }
 
 export type OrderCreateData = Pick<
@@ -67,6 +68,7 @@ export type OrderCreateData = Pick<
   | 'product_subscription_id'
   | 'product_subscription_date'
   | 'payment_method'
+  | 'total_price'
 >
 
 export type OrderUpdateData = Partial<

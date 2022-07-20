@@ -3,13 +3,13 @@ import { Activity, Shop, Product } from '../index'
 
 type Report = {
   user_id: string
-  reported_user_id: string
+  reported_user_id?: string
   description: string
   community_id: string
   activity_id?: string
   shop_id?: string
   product_id?: string
-  report_type: 'activity' | 'shop' | 'product'
+  report_type: 'activity' | 'shop' | 'product' | 'community'
   created_at: Timestamp
   updated_at?: Timestamp
   document_snapshot: Activity | Shop | Product

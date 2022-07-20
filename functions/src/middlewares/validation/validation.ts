@@ -54,6 +54,7 @@ export const product = {
 export const community = {
   create: validate({ body: CommunitiesSchema.create }),
   update: validate({ body: CommunitiesSchema.update }),
+  report: validate({ body: SharedSchema.report }),
 }
 
 export const invite = {

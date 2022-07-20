@@ -7,6 +7,7 @@ type Product = {
     wishlists_count?: number
     reviews_count?: number
     reports_count?: number
+    sold_count?: number
   }
   likes?: firebase.default.firestore.CollectionReference<Like>
   wishlists?: firebase.default.firestore.CollectionReference<Wishlist>
@@ -144,7 +145,7 @@ export type ProductUpdateData = Partial<
     | 'updated_from'
     | 'keywords'
     | 'availability'
-  >
+  > & { '_meta.sold_count': firebase.default.firestore.FieldValue }
 >
 
 export default Product

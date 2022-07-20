@@ -179,6 +179,10 @@ const createOrder: RequestHandler = async (req, res) => {
     await ProductsService.decrementProductQuantity(product.id, product.quantity)
   }
   const productIds = products.map((p) => p.id)
+  const totalPrice = orderProducts.reduce((acc, product) => {
+    acc += (product.price * product.quantity)
+    return acc
+  }, 0)
 
   const newOrder: OrderCreateData = {
     products: orderProducts,
@@ -197,6 +201,7 @@ const createOrder: RequestHandler = async (req, res) => {
       name: shop.name,
       description: shop.description,
     },
+    total_price: totalPrice,
   }
 
   if (shop.profile_photo) {

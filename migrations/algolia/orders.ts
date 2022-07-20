@@ -27,6 +27,7 @@ const orderFields = [
   'decline_reason',
   'product_subscription_id',
   'product_subscription_date',
+  'total_price',
 ]
 
 const importOrders = async (client: SearchClient) => {
@@ -80,6 +81,7 @@ const importOrders = async (client: SearchClient) => {
           'filterOnly(seller_id)',
           'filterOnly(shop_id)',
           'filterOnly(status_code)',
+          'filterOnly(delivered_date._seconds)',
         ],
       },
       {
