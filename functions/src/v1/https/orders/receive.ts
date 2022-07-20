@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { Timestamp } from 'firebase/firestore'
+import { Timestamp, increment } from 'firebase/firestore'
 import { isNumber } from 'lodash'
 import { ORDER_STATUS } from '.'
 import { OrderUpdateData } from '../../../models/Order'
@@ -103,8 +103,8 @@ const received: RequestHandler = async (req, res) => {
   const result = await OrdersService.update(orderId, updateData)
 
   for (const orderProduct of order.products) {
-    await ProductsService.updateProduct(orderProduct.id, {
-      '_meta.sold_count': firestore.FieldValue.increment(orderProduct.quantity),
+    await ProductsService.update(orderProduct.id, {
+      '_meta.sold_count': increment(orderProduct.quantity),
     })
   }
 
