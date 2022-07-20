@@ -84,6 +84,7 @@ const allColumns: Column[] = [
 const columns = [
   'user_id',
   'reported_user_id',
+  'community_id',
   'report_type',
   'description',
   'document_snapshot',
@@ -104,12 +105,16 @@ const filtersMenu: FiltersMenu = [
         name: 'Activities',
       },
       {
-        key: 'shop',
-        name: 'Shops',
+        key: 'community',
+        name: 'Community',
       },
       {
         key: 'product',
         name: 'Products',
+      },
+      {
+        key: 'shop',
+        name: 'Shops',
       },
     ],
   },

@@ -20,7 +20,7 @@ export type DynamicType =
 export type Cell = {
   type: DynamicType
   value?: unknown
-  documentType?: 'activity' | 'shop' | 'product'
+  documentType?: 'activity' | 'shop' | 'product' | 'community'
   collection?: 'community' | 'users' | 'shops' | 'activities' | 'products' | 'orders'
   referenceField?: string
   referenceLink?: string
@@ -32,7 +32,7 @@ export type Column = {
   title: string
   key: string
   type: DynamicType
-  getDocType?: (data: any) => 'activity' | 'shop' | 'product'
+  getDocType?: (data: any) => 'activity' | 'shop' | 'product' | 'community'
   collection?: 'community' | 'users' | 'shops' | 'activities' | 'products' | 'orders'
   referenceField?: string
   referenceLink?: string
