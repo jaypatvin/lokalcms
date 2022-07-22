@@ -60,7 +60,7 @@ const schema: AllowedSchema = {
         },
       ],
     },
-    admin: {
+    admins: {
       type: 'array',
       items: {
         type: 'string',

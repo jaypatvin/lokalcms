@@ -17,7 +17,7 @@ type Community = {
     subdivision: string
     zip_code: string
   }
-  admin?: string[]
+  admins?: string[]
   archived: boolean
   cover_photo?: string
   created_at: Timestamp
@@ -33,7 +33,7 @@ export type CommunityCreateData = Pick<
   Community,
   | 'name'
   | 'address'
-  | 'admin'
+  | 'admins'
   | 'keywords'
   | 'archived'
   | 'updated_by'
@@ -52,7 +52,7 @@ export type CommunityUpdateData = Partial<
     | 'profile_photo'
     | 'cover_photo'
     | 'address'
-    | 'admin'
+    | 'admins'
   >
 >
 

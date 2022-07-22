@@ -40,6 +40,7 @@ export const shop = {
   create: validate({ body: ShopsSchema.create }),
   update: validate({ body: ShopsSchema.update }),
   operatingHours: validate({ body: ShopsSchema.operatingHours }),
+  summary: validate({ body: ShopsSchema.summary }),
   report: validate({ body: SharedSchema.report }),
 }
 
@@ -54,6 +55,7 @@ export const product = {
 export const community = {
   create: validate({ body: CommunitiesSchema.create }),
   update: validate({ body: CommunitiesSchema.update }),
+  addAdmin: validate({ body: CommunitiesSchema.addAdmin }),
   report: validate({ body: SharedSchema.report }),
 }
 

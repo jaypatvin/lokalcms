@@ -18,7 +18,7 @@ type CommunityFormType = {
   state?: string
   country?: string
   zip_code?: string
-  admin?: string[]
+  admins?: string[]
 }
 
 const CommunityEditPage = ({ match }: Props) => {
@@ -27,7 +27,7 @@ const CommunityEditPage = ({ match }: Props) => {
   const normalizeCommunityData = (data: Community) => {
     return {
       name: data.name,
-      admin: data.admin,
+      admins: data.admins,
       profile_photo: data.profile_photo,
       cover_photo: data.cover_photo,
       subdivision: data.address.subdivision,

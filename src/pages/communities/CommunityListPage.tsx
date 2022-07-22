@@ -151,7 +151,7 @@ type FormData = {
   name: string
   cover_photo?: string
   profile_photo?: string
-  admin?: string[]
+  admins?: string[]
   barangay: string
   city: string
   country: string
@@ -190,7 +190,7 @@ const CommunityListPage = () => {
       name: data.name,
       cover_photo: data.cover_photo,
       profile_photo: data.profile_photo,
-      admin: data.admin,
+      admins: data.admins,
       ...data.address,
     }
   }

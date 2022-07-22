@@ -7,7 +7,7 @@ import { ListItemProps } from '../../utils/types'
 import { Community, User } from '../../models'
 
 type Props = Omit<ListItemProps, 'data'> & {
-  data: Community & {
+  data: Omit<Community, 'admins'> & {
     id: string
     admins: (User & { id: string })[]
   }

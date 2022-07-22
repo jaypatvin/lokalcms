@@ -20,23 +20,27 @@ type ProductSold = {
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
- *         name: shop
+ *       - in: path
+ *         name: shopId
+ *         required: true
+ *         description: document id of the shop
  *         schema:
  *           type: string
- *           required: true
- *       - in: query
- *         name: minDate
- *         schema:
- *           type: string
- *           format: date-time
- *           required: true
- *       - in: query
- *         name: maxDate
- *         schema:
- *           type: string
- *           format: date-time
- *           required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               minDate:
+ *                 type: string
+ *                 format: date-time
+ *                 required: true
+ *               maxDate:
+ *                 type: string
+ *                 format: date-time
+ *                 required: true
  *     description: Returns shop earnings and products sold count within the date range
  *     responses:
  *       200:

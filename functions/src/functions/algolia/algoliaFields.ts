@@ -153,7 +153,7 @@ export const communityFields = [
   '_meta',
   'archived',
   'address',
-  'admin',
+  'admins',
   'cover_photo',
   'created_at',
   'name',

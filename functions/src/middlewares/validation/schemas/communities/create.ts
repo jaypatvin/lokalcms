@@ -47,7 +47,7 @@ const schema: AllowedSchema = {
       type: 'string',
       format: 'uri',
     },
-    admin: {
+    admins: {
       type: 'array',
       items: {
         type: 'string',

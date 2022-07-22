@@ -138,7 +138,9 @@ module.exports = (api: Express) => {
   api.route('/v1/shops/:shopId/getDates').get(wrapAsync(ShopsAPI.getDates))
   api.route('/v1/shops/:shopId/wishlist').get(wrapAsync(UsersAPI.getShopWishlistUsers))
   api.route('/v1/shops/:shopId/report').post(validation.shop.report, wrapAsync(ShopsAPI.reportShop))
-  api.route('/v1/shops/:shopId/summary').post(orderSearchMiddleware, wrapAsync(ShopsAPI.getSummary))
+  api
+    .route('/v1/shops/:shopId/summary')
+    .post(validation.shop.summary, orderSearchMiddleware, wrapAsync(ShopsAPI.getSummary))
 
   // -- Invites routes
   api.route('/v1/invite/check/:inviteCode').get(wrapAsync(InvitesAPI.checkInvite))
@@ -165,6 +167,10 @@ module.exports = (api: Express) => {
   api.route('/v1/community/:communityId/users').get(wrapAsync(UsersAPI.getUsersByCommunityId))
   api.route('/v1/community/:communityId/shops').get(wrapAsync(ShopsAPI.getCommunityShops))
   api.route('/v1/community/:communityId/products').get(wrapAsync(ProductsAPI.getCommunityProducts))
+  api
+    .route('/v1/community/:communityId/admins')
+    .post(validation.community.addAdmin, wrapAsync(CommunityAPI.addAdmin))
+  api.route('/v1/community/:communityId/admins/:userId').delete(wrapAsync(CommunityAPI.removeAdmin))
   api
     .route('/v1/community/:communityId/activities')
     .get(wrapAsync(ActivitiesAPI.getCommunityActivities))

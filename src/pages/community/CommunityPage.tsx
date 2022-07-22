@@ -119,8 +119,8 @@ const CommunityPage = ({ match }: Props) => {
     const communityRefData = communityRef.data()
     if (communityRefData) {
       const communityData: CommunityData = { ...communityRefData, id: communityRef.id }
-      if (communityData.admin) {
-        for (const userId of communityData.admin) {
+      if (communityData.admins) {
+        for (const userId of communityData.admins) {
           const admin = await fetchUserByID(userId)
           const adminData = admin.data()
           if (adminData) {

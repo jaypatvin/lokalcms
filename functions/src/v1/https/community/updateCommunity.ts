@@ -64,7 +64,7 @@ import { CommunityUpdateData } from '../../../models/Community'
  *                 type: string
  *               cover_photo:
  *                 type: string
- *               admin:
+ *               admins:
  *                 type: array
  *                 items:
  *                   type: string
@@ -112,11 +112,11 @@ export const updateCommunity: RequestHandler = async (req, res) => {
     }
   }
 
-  if (data.admin) {
+  if (data.admins) {
     const notExistingUsers: string[] = []
     const differentCommunityUsers: string[] = []
-    for (let i = 0; i < data.admin.length; i++) {
-      const user_id = data.admin[i]
+    for (let i = 0; i < data.admins.length; i++) {
+      const user_id = data.admins[i]
       const user = await UsersService.findById(user_id)
       if (!user) notExistingUsers.push(user_id)
       if (user && user.community_id !== communityId) differentCommunityUsers.push(user_id)
@@ -166,7 +166,7 @@ export const updateCommunity: RequestHandler = async (req, res) => {
   if (data.state) updateData['address.state'] = data.state
   if (data.country) updateData['address.country'] = data.country
   if (data.zip_code) updateData['address.zip_code'] = data.zip_code
-  if (data.admin) updateData.admin = data.admin
+  if (data.admins) updateData.admins = data.admins
 
   const result = await CommunityService.update(communityId, updateData)
 

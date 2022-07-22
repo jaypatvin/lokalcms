@@ -37,7 +37,7 @@ export const seedCommunities = async () => {
           subdivision,
           zip_code: zipCode,
         },
-        admin: [],
+        admins: [],
         keywords,
         archived: false,
         profile_photo: chance.pickone(samples.communities),
